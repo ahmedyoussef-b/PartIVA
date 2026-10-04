@@ -17,7 +17,6 @@ import {
   LayoutDashboard,
   Camera,
   PackageCheck,
-  User,
   PlusCircle,
   ExternalLink,
   LogOut,
@@ -41,11 +40,6 @@ const CLIENT_NAV = [
     href: '/client/dashboard',
     label: 'Historique de mes pièces',
     icon: LayoutDashboard,
-  },
-  {
-    href: '/client/dashboard/profil',
-    label: 'Mon Entreprise',
-    icon: User,
   },
 ]
 

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+// Route réservée au mode hybride bureau Tauri (protégée par AdminLayout)
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

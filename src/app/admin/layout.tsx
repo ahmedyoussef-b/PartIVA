@@ -39,9 +39,9 @@ export default function AdminLayout({
     return () => clearInterval(timer)
   }, [triggerSync, isTauri])
 
-  // Si on est en Mode Web Public standard (pas dans Tauri) :
-  // Les pages d'administration atelier ne sont pas accessibles au client web.
-  if (isLoaded && !isTauri) {
+  // Si on est en Mode Web Public standard (pas dans l'application hybride bureau Tauri) :
+  // Les pages d'administration atelier ne sont pas affichées au client web.
+  if (!isTauri) {
     return (
       <div className="min-h-screen bg-muted/20 flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full shadow-2xl border-border/80">
