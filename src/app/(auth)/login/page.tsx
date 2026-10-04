@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { LogIn, ArrowRight, ShieldCheck, UserCheck, Camera, PackageCheck, Users } from 'lucide-react'
+import { LogIn, ArrowRight, ShieldCheck, UserCheck, Camera, PackageCheck, Users, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -64,6 +64,15 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex justify-start">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Retour
+          </Link>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" size="sm" onClick={loginAsClient} className="text-xs gap-1.5">
             <UserCheck className="w-3.5 h-3.5 text-primary" />
