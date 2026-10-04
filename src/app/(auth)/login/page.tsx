@@ -9,33 +9,45 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { LogIn, ArrowRight, ShieldCheck, UserCheck, Camera, PackageCheck } from 'lucide-react'
+import { useAuthStore } from '@/lib/stores/auth-store'
+import { LogIn, ArrowRight, ShieldCheck, UserCheck, Camera, PackageCheck, Users } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = React.useState('m.bensalem@delice.tn')
-  const [password, setPassword] = React.useState('••••••••')
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+  const login = useAuthStore((s) => s.login)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
+      const success = login(email, password)
+      if (!success) {
+        toast.error('Email ou mot de passe incorrect')
+        return
+      }
       toast.success('Connexion réussie')
       if (email.includes('admin') || email.includes('atelier')) {
         router.push('/admin/dashboard')
       } else {
-        // Redirection directe vers la page d'upload photos de pièce client
         router.push('/client/dashboard/creer-piece')
       }
-    }, 800)
+    }, 600)
   }
 
   const loginAsClient = () => {
-    setEmail('m.bensalem@delice-danone.tn')
+    setEmail('m.bensalem@delice.tn')
     setPassword('client123')
     toast.info('Identifiants Client Permanent pré-remplis')
+  }
+
+  const loginAsAdmin = () => {
+    setEmail('admin@partiva.tn')
+    setPassword('admin123')
+    toast.info('Identifiants Admin pré-remplis')
   }
 
   return (
@@ -43,21 +55,30 @@ export default function LoginPage() {
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-1">
           <Badge variant="outline" className="text-primary border-primary/30">
-            Espace Client Permanent
+            Espace de Connexion
           </Badge>
         </div>
-        <CardTitle className="text-2xl font-bold">Connexion Client Permanent</CardTitle>
+        <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
         <CardDescription>
-          Accédez au dépôt de photos de pièces et au suivi des pièces prêtes pour envoi
+          Accédez à l’espace client ou au poste de contrôle atelier.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Shortcut button */}
-        <div className="flex gap-2 justify-center pb-2">
-          <Button variant="outline" size="sm" onClick={loginAsClient} className="text-xs gap-1.5 w-full">
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" size="sm" onClick={loginAsClient} className="text-xs gap-1.5">
             <UserCheck className="w-3.5 h-3.5 text-primary" />
-            Remplir compte démo Client Permanent
+            Client
           </Button>
+          <Button variant="outline" size="sm" onClick={loginAsAdmin} className="text-xs gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+            Admin
+          </Button>
+        </div>
+
+        <div className="text-[11px] text-muted-foreground space-y-1">
+          <p className="font-semibold text-foreground">Comptes de démo :</p>
+          <p>Admin : admin@partiva.tn / admin123</p>
+          <p>Client : m.bensalem@delice.tn / client123</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -99,13 +120,13 @@ export default function LoginPage() {
 
         <div className="text-center text-xs text-muted-foreground pt-4 border-t space-y-2">
           <p>
-            Vous n’êtes pas encore client permanent ?{' '}
+            Pas encore de compte ?{' '}
             <Link href="/register" className="text-primary font-semibold hover:underline">
               S’enregistrer
             </Link>
           </p>
           <p className="text-[11px] text-muted-foreground/80">
-            Note : L’administration atelier complète est réservée au mode hybride bureau Tauri.
+            Accès admin restreint au personnel habilité.
           </p>
         </div>
       </CardContent>

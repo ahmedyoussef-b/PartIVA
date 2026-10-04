@@ -101,7 +101,8 @@ export default function ClientDemandesPage() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[120px]">Réf. Dossier</TableHead>
@@ -160,6 +161,7 @@ export default function ClientDemandesPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

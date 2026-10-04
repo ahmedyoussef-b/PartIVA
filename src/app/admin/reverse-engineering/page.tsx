@@ -274,8 +274,8 @@ export default function ReverseEngineeringPage({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Existing mesures */}
-                  <div className="rounded-lg border overflow-hidden">
-                    <table className="w-full text-xs">
+                  <div className="rounded-lg border overflow-hidden overflow-x-auto">
+                    <table className="w-full text-xs min-w-[400px]">
                       <thead className="bg-muted/50">
                         <tr>
                           <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Côte</th>

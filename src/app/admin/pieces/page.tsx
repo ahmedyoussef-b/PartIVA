@@ -86,7 +86,8 @@ export default function AdminPiecesPage() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Réf.</TableHead>
@@ -154,6 +155,7 @@ export default function AdminPiecesPage() {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

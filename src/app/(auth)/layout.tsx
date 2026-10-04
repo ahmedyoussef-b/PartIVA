@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import Link from 'next/link'
 import { Cog } from 'lucide-react'
@@ -15,7 +17,7 @@ export default function AuthLayout({
         </div>
         <div className="flex flex-col text-left">
           <span className="font-bold tracking-tight text-base leading-tight">
-            Atelier Pièces
+            PartIVA
           </span>
           <span className="text-[11px] font-mono text-muted-foreground uppercase">
             Plastiques Industriels
