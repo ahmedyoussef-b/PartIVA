@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +8,250 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── ENUMS ───────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum PartStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  DEPRECATED
+}
+
+enum ProjectStatus {
+  DRAFT
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum FileType {
+  IMAGE
+  PDF
+  CAD_STL
+  CAD_STEP
+  CAD_OBJ
+  OTHER
+}
+
+// ─── AUTH ────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  passwordHash String?
+  role         UserRole  @default(USER)
+  image        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  auditLogs    AuditLog[]
+  projects     ReverseEngineeringProject[]
+
+  @@map("users")
+}
+
+// ─── PARTS ───────────────────────────────────────────────────────────
+
+model Part {
+  id              String      @id @default(cuid())
+  partNumber      String      @unique
+  name            String
+  description     String?
+  status          PartStatus  @default(DRAFT)
+  categoryId      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  category        PartCategory?            @relation(fields: [categoryId], references: [id])
+  images          PartImage[]
+  specifications PartSpecification[]
+  suppliers       PartSupplier[]
+  attachments     Attachment[]
+  projects        ReverseEngineeringProject[]
+
+  @@index([partNumber])
+  @@index([status])
+  @@index([categoryId])
+  @@map("parts")
+}
+
+model PartCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parent      PartCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    PartCategory[] @relation("CategoryHierarchy")
+  parts       Part[]
+
+  @@map("part_categories")
+}
+
+model PartImage {
+  id        String    @id @default(cuid())
+  partId    String
+  url       String
+  altText   String?
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  part      Part      @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@index([partId])
+  @@map("part_images")
+}
+
+model PartSpecification {
+  id        String    @id @default(cuid())
+  partId    String
+  key       String
+  value     String
+  unit      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  part      Part      @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@unique([partId, key])
+  @@map("part_specifications")
+}
+
+// ─── REVERSE ENGINEERING ─────────────────────────────────────────────
+
+model ReverseEngineeringProject {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus   @default(DRAFT)
+  partId      String?
+  userId      String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  part        Part?           @relation(fields: [partId], references: [id])
+  user        User?           @relation(fields: [userId], references: [id])
+  steps       ReverseEngineeringStep[]
+  cadFiles    CadFile[]
+
+  @@index([status])
+  @@index([partId])
+  @@index([userId])
+  @@map("reverse_engineering_projects")
+}
+
+model ReverseEngineeringStep {
+  id        String    @id @default(cuid())
+  projectId String
+  name      String
+  description String?
+  order     Int
+  completed Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  project ReverseEngineeringProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("reverse_engineering_steps")
+}
+
+model CadFile {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  url       String
+  fileType  FileType
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  project ReverseEngineeringProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("cad_files")
+}
+
+// ─── SUPPLIERS ───────────────────────────────────────────────────────
+
+model Supplier {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  email       String?
+  phone       String?
+  website     String?
+  address     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parts       PartSupplier[]
+
+  @@map("suppliers")
+}
+
+model PartSupplier {
+  id            String    @id @default(cuid())
+  partId        String
+  supplierId    String
+  supplierRef   String?
+  price         Decimal?  @db.Decimal(10, 2)
+  currency      String    @default("EUR")
+  leadTimeDays  Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  part         Part      @relation(fields: [partId], references: [id], onDelete: Cascade)
+  supplier     Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@unique([partId, supplierId])
+  @@index([partId])
+  @@index([supplierId])
+  @@map("part_suppliers")
+}
+
+// ─── DOCUMENTATION ───────────────────────────────────────────────────
+
+model Attachment {
+  id        String   @id @default(cuid())
+  partId    String?
+  name      String
+  url       String
+  fileType  FileType
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  part      Part?     @relation(fields: [partId], references: [id], onDelete: SetNull)
+
+  @@index([partId])
+  @@map("attachments")
+}
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
