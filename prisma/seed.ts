@@ -29,12 +29,15 @@ async function main() {
   await prisma.cadFile.deleteMany();
   await prisma.reverseEngineeringStep.deleteMany();
   await prisma.reverseEngineeringProject.deleteMany();
+  await prisma.request.deleteMany();
   await prisma.partSupplier.deleteMany();
   await prisma.partImage.deleteMany();
   await prisma.partSpecification.deleteMany();
   await prisma.part.deleteMany();
   await prisma.supplier.deleteMany();
   await prisma.partCategory.deleteMany();
+  await prisma.machine.deleteMany();
+  await prisma.material.deleteMany();
   await prisma.user.deleteMany();
 
   // ── Users ───────────────────────────────────────────────────────────
@@ -63,6 +66,200 @@ async function main() {
       name: 'Thomas Bernard',
       passwordHash: '$2b$10$placeholder.hash.for.dev.seed.only',
       role: 'VIEWER',
+    },
+  });
+
+  // ── Materials ────────────────────────────────────────────────────────
+  console.log('🧪 Creating materials...');
+  const pomc = await prisma.material.create({
+    data: {
+      slug: 'pom-c',
+      code: 'POM-C',
+      name: 'Polyoxyméthylène Copolymère (Acétal / Delrin)',
+      category: 'Thermostable technique',
+      density: 1.41,
+      maxTemp: 100,
+      tensileStrength: 65,
+      hardness: '82 Shore D',
+      frictionCoefficient: 0.25,
+      resistanceChemical: 'Excellente',
+      foodGrade: true,
+      description:
+        'Le POM-C offre une excellente stabilité dimensionnelle, une très faible absorption d’humidité et un usinage aisé. C’est le plastique de référence pour les pièces de précision.',
+      advantages: [
+        'Stabilité dimensionnelle exceptionnelle',
+        'Faible coefficient de frottement',
+        'Excellente usinabilité aux tolérances serrées (ISO 2768)',
+        'Agrément contact alimentaire FDA / CE 1935/2004',
+      ],
+      commonApplications: [
+        'Pignons et engrenages silencieux',
+        'Bagues de guidage et coussinets',
+        'Raccords et vannes pour l’agroalimentaire',
+        'Cames et composants de distributeurs',
+      ],
+    },
+  });
+
+  const pa6gf30 = await prisma.material.create({
+    data: {
+      slug: 'pa6-gf30',
+      code: 'PA6-GF30',
+      name: 'Polyamide 6 + 30% fibre de verre',
+      category: 'Thermoplastique renforcé',
+      density: 1.35,
+      maxTemp: 120,
+      tensileStrength: 150,
+      hardness: 'M85 Rockwell',
+      frictionCoefficient: 0.35,
+      resistanceChemical: 'Bonne',
+      foodGrade: false,
+      description:
+        'Le PA6-GF30 allie la ténacité du polyamide à la rigidité apportée par les fibres de verre. Idéal pour les structures soumises à des charges mécaniques importantes.',
+      advantages: [
+        'Haute rigidité et résistance mécanique',
+        'Stabilité dimensionnelle sous charge',
+        'Bonne résistance à la fatigue',
+        'Retrait minimal en usinage',
+      ],
+      commonApplications: [
+        'Supports structurels',
+        'Carter et boîtiers techniques',
+        'Pièces de fixation haute contrainte',
+        'Moules industriels',
+      ],
+    },
+  });
+
+  const peek = await prisma.material.create({
+    data: {
+      slug: 'peek',
+      code: 'PEEK',
+      name: 'Polyétheréthercétone (Ultra-Performance)',
+      category: 'Polymère technique de pointe',
+      density: 1.32,
+      maxTemp: 250,
+      tensileStrength: 100,
+      hardness: 'M75 Rockwell',
+      frictionCoefficient: 0.28,
+      resistanceChemical: 'Excellente',
+      foodGrade: true,
+      description:
+        'Le PEEK est un plastique haute performance remplaçant avantageusement l’inox ou le bronze sous contraintes mécaniques et thermiques sévères.',
+      advantages: [
+        'Résistance thermique continue jusqu’à 250°C',
+        'Résistance mécanique équivalente à certains métaux',
+        'Stérilisable à la vapeur sans dégradation',
+        'Excellente résistance aux rayonnements',
+      ],
+      commonApplications: [
+        'Clapets de compresseurs haute pression',
+        'Composants de pompes pétrochimiques',
+        'Pignons pour environnements stériles',
+        'Connecteurs électroniques aéronautiques',
+      ],
+    },
+  });
+
+  const ptfe = await prisma.material.create({
+    data: {
+      slug: 'ptfe',
+      code: 'PTFE',
+      name: 'Polytétrafluoroéthylène (Téflon)',
+      category: 'Fluoropolymère haute température',
+      density: 2.16,
+      maxTemp: 260,
+      tensileStrength: 28,
+      hardness: '55 Shore D',
+      frictionCoefficient: 0.04,
+      resistanceChemical: 'Excellente',
+      foodGrade: true,
+      description:
+        'Le PTFE combine une plage thermique extrême (-200°C à +260°C) et la résistance chimique la plus élevée du marché. Idéal pour l’industrie chimique et pharmaceutique.',
+      advantages: [
+        'Plage de température extrême (-200°C à +260°C)',
+        'Le plus bas coefficient de frottement connu',
+        'Inertie chimique quasi-totale',
+        'Propriétés anti-adhérentes absolues',
+      ],
+      commonApplications: [
+        'Sièges de vannes et garnitures d’étanchéité',
+        'Joints toriques pour fluides corrosifs',
+        'Isolateurs haute fréquence',
+        'Paliers fonctionnant en milieu agressif',
+      ],
+    },
+  });
+
+  const pehd = await prisma.material.create({
+    data: {
+      slug: 'pehd',
+      code: 'PEHD',
+      name: 'Polyéthylène Haute Densité (PE300 / PE500)',
+      category: 'Polyoléfine polyvalente',
+      density: 0.95,
+      maxTemp: 80,
+      tensileStrength: 30,
+      hardness: '65 Shore D',
+      frictionCoefficient: 0.22,
+      resistanceChemical: 'Bonne',
+      foodGrade: true,
+      description:
+        'Économique et résistant à l’impact, le PEHD convient particulièrement aux cuves, bacs et outillages de coupe agroalimentaires.',
+      advantages: [
+        'Très bon rapport qualité / prix',
+        'Légèreté et soudabilité facile',
+        'Résistance aux chocs même à basse température',
+        'Conforme contact alimentaire',
+      ],
+      commonApplications: [
+        'Planches de découpe industrielles',
+        'Bacs de rétention et cuves',
+        'Guides de glissement basse charge',
+        'Protections de parois et butées',
+      ],
+    },
+  });
+
+  // ── Machines ─────────────────────────────────────────────────────────
+  console.log('🏭 Creating machines...');
+  const cnc01 = await prisma.machine.create({
+    data: {
+      code: 'CNC-01',
+      name: 'Fraiseuse CNC 3 axes',
+      type: 'CNC',
+      status: 'RUNNING',
+      location: 'Atelier A',
+    },
+  });
+
+  const cnc02 = await prisma.machine.create({
+    data: {
+      code: 'CNC-02',
+      name: 'Fraiseuse CNC 5 axes',
+      type: 'CNC',
+      status: 'IDLE',
+      location: 'Atelier A',
+    },
+  });
+
+  const tour01 = await prisma.machine.create({
+    data: {
+      code: 'TOUR-01',
+      name: 'Tour numérique',
+      type: 'LATHE',
+      status: 'IDLE',
+      location: 'Atelier B',
+    },
+  });
+
+  const imp01 = await prisma.machine.create({
+    data: {
+      code: 'IMP-01',
+      name: 'Imprimante 3D industrielle',
+      type: '3D_PRINTER',
+      status: 'MAINTENANCE',
+      location: 'Atelier B',
     },
   });
 
@@ -284,6 +481,71 @@ async function main() {
     },
   });
 
+  // ── Requests ────────────────────────────────────────────────────────
+  console.log('📋 Creating requests...');
+  const request1 = await prisma.request.create({
+    data: {
+      clientId: user.id,
+      partDescription: 'Étoile de transfert bouteilles 1L cassée suite à un bourrage. Les alvéoles de guidage sont fissurées. Pièce d’origine introuvable avant 6 semaines chez le constructeur étranger.',
+      partFunction: 'Sélection et cadencement synchronisé des bouteilles vers l’encaisseuse.',
+      suspectedMaterial: 'UHMW-PE',
+      quantity: 4,
+      urgency: 'URGENT',
+      status: 'IN_PROGRESS',
+      photos: [
+        'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80',
+      ],
+      projects: {
+        connect: [{ id: project1.id }],
+      },
+    },
+  });
+
+  const request2 = await prisma.request.create({
+    data: {
+      clientId: user.id,
+      partDescription: 'Coulisseau de commande de cadre usé prématurément par abrasion. Frottement métal/plastique. Besoin d’un plastique autolubrifiant avec forte tenue thermique.',
+      partFunction: 'Guidage alternatif linéaire haute fréquence (600 coups/min).',
+      suspectedMaterial: 'POM-C',
+      quantity: 12,
+      urgency: 'HIGH',
+      status: 'REVIEW',
+      photos: [
+        'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=800&q=80',
+      ],
+    },
+  });
+
+  const request3 = await prisma.request.create({
+    data: {
+      clientId: _viewer.id,
+      partDescription: 'Bague d’étanchéité de sortie huile végétale. La pièce existante s’est déformée sous la chaleur (85°C) et les acides gras libres.',
+      partFunction: 'Joint labyrinthe tournant sans contact agressif.',
+      suspectedMaterial: 'PTFE',
+      quantity: 2,
+      urgency: 'MEDIUM',
+      status: 'PENDING',
+      photos: [
+        'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80',
+      ],
+    },
+  });
+
+  const request4 = await prisma.request.create({
+    data: {
+      partDescription: 'Patin d’usure sous chariot de translation. Pièce usée jusqu’à la fixation métallique.',
+      partFunction: 'Support de charge dynamique 500 kg en translation continue.',
+      suspectedMaterial: 'PA66',
+      quantity: 6,
+      urgency: 'LOW',
+      status: 'COMPLETED',
+      photos: [
+        'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+      ],
+    },
+  });
+
   // ── ReverseEngineeringSteps ────────────────────────────────────────
   console.log('📋 Creating reverse engineering steps...');
   await prisma.reverseEngineeringStep.createMany({
@@ -404,6 +666,9 @@ async function main() {
     cadFiles: await prisma.cadFile.count(),
     auditLogs: await prisma.auditLog.count(),
     attachments: await prisma.attachment.count(),
+    materials: await prisma.material.count(),
+    machines: await prisma.machine.count(),
+    requests: await prisma.request.count(),
   };
 
   for (const [table, count] of Object.entries(counts)) {
