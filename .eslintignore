@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+dist
+build
+src-tauri/target
+*.config.js
+*.config.ts
+coverage

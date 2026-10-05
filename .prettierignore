@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+dist
+build
+coverage
+src-tauri/target
+package-lock.json
+*.md
+.kilocode/
+.agents/
+.claude/
+.windsurf/
