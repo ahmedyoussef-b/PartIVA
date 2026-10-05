@@ -1,36 +1,33 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useDropzone } from 'react-dropzone'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useDropzone } from 'react-dropzone';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import {
   UploadCloud,
   X,
   Camera,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
   Layers,
-  AlertTriangle,
-  Info,
   PackageCheck,
   Tag,
-} from 'lucide-react'
+} from 'lucide-react';
 
 interface UploadedPhoto {
-  id: string
-  url: string
-  name: string
-  size: string
-  tag: string
+  id: string;
+  url: string;
+  name: string;
+  size: string;
+  tag: string;
 }
 
 const PHOTO_TAGS = [
@@ -40,7 +37,7 @@ const PHOTO_TAGS = [
   'Cotes mesurées',
   'Plaque machine',
   'Autre',
-]
+];
 
 const MATERIAL_OPTIONS = [
   { value: 'POM-C', label: 'POM-C (Acétal / Delrin) - Précision & Frottement' },
@@ -49,10 +46,10 @@ const MATERIAL_OPTIONS = [
   { value: 'PA6', label: 'PA6 / PA66 (Nylon) - Résistance mécanique & Chocs' },
   { value: 'PEEK', label: 'PEEK - Performance extrême' },
   { value: 'INCONNU', label: 'À déterminer par nos ingénieurs méthodes' },
-]
+];
 
 export default function CreerPiecePage() {
-  const router = useRouter()
+  const router = useRouter();
   const [photos, setPhotos] = React.useState<UploadedPhoto[]>([
     {
       id: 'photo-1',
@@ -68,17 +65,17 @@ export default function CreerPiecePage() {
       size: '1.8 MB',
       tag: 'Vue d’ensemble',
     },
-  ])
+  ]);
 
-  const [partName, setPartName] = React.useState('Pignon d’entraînement chaîne')
-  const [machineRef, setMachineRef] = React.useState('Convoyeur Ligne 3 - Remplisseuse')
-  const [material, setMaterial] = React.useState('POM-C')
-  const [quantity, setQuantity] = React.useState('4')
-  const [urgency, setUrgency] = React.useState('urgent')
+  const [partName, setPartName] = React.useState('Pignon d’entraînement chaîne');
+  const [machineRef, setMachineRef] = React.useState('Convoyeur Ligne 3 - Remplisseuse');
+  const [material, setMaterial] = React.useState('POM-C');
+  const [quantity, setQuantity] = React.useState('4');
+  const [urgency, setUrgency] = React.useState('urgent');
   const [notes, setNotes] = React.useState(
-    'Présence d’arrachement de matière sur 3 dents. Merci de respecter le diamètre d’arbre de 25mm avec tolérance H7.'
-  )
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+    'Présence d’arrachement de matière sur 3 dents. Merci de respecter le diamètre d’arbre de 25mm avec tolérance H7.',
+  );
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
     const newItems: UploadedPhoto[] = acceptedFiles.map((file, idx) => ({
@@ -87,71 +84,68 @@ export default function CreerPiecePage() {
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       tag: 'Vue d’ensemble',
-    }))
+    }));
 
-    setPhotos((prev) => [...prev, ...newItems])
-    toast.success(`${acceptedFiles.length} photo(s) ajoutée(s) avec succès.`)
-  }, [])
+    setPhotos((prev) => [...prev, ...newItems]);
+    toast.success(`${acceptedFiles.length} photo(s) ajoutée(s) avec succès.`);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] },
     multiple: true,
-  })
+  });
 
   const removePhoto = (id: string) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== id))
-    toast.info('Photo supprimée.')
-  }
+    setPhotos((prev) => prev.filter((p) => p.id !== id));
+    toast.info('Photo supprimée.');
+  };
 
   const updateTag = (id: string, newTag: string) => {
-    setPhotos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, tag: newTag } : p))
-    )
-  }
+    setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, tag: newTag } : p)));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (photos.length === 0) {
-      toast.error('Veuillez ajouter au moins une photo de la pièce souhaitée.')
-      return
+      toast.error('Veuillez ajouter au moins une photo de la pièce souhaitée.');
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     setTimeout(() => {
-      setIsSubmitting(false)
-      toast.success(
-        'Votre demande avec photos a été transmise à notre atelier CNC !'
-      )
-      router.push('/client/dashboard')
-    }, 1200)
-  }
+      setIsSubmitting(false);
+      toast.success('Votre demande avec photos a été transmise à notre atelier CNC !');
+      router.push('/client/dashboard');
+    }, 1200);
+  };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="mx-auto max-w-5xl space-y-8 pb-12">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6">
+      <div className="flex flex-col justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Badge variant="outline" className="text-primary border-primary/30">
+          <div className="mb-1.5 flex items-center gap-2">
+            <Badge variant="outline" className="border-primary/30 text-primary">
               Espace Client Permanent
             </Badge>
             <Badge variant="secondary" className="text-xs">
               Étape 1 : Demande & Dépôt Photos
             </Badge>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Créer une nouvelle pièce à fabriquer
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Uploadez autant de photos que vous le souhaitez de la pièce cassée ou usée. Nos régleurs se chargent de la rétro-ingénierie et de l’usinage.
+          <p className="mt-1 text-sm text-muted-foreground">
+            Uploadez autant de photos que vous le souhaitez de la pièce cassée ou usée. Nos régleurs
+            se chargent de la rétro-ingénierie et de l’usinage.
           </p>
         </div>
 
         <Link href="/client/dashboard/pieces-pretes">
-          <Button variant="outline" className="gap-2 shrink-0">
-            <PackageCheck className="w-4 h-4 text-emerald-500" />
+          <Button variant="outline" className="shrink-0 gap-2">
+            <PackageCheck className="h-4 w-4 text-emerald-500" />
             Voir mes pièces prêtes
           </Button>
         </Link>
@@ -163,16 +157,18 @@ export default function CreerPiecePage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Camera className="h-5 w-5 text-primary" />
                   1. Photographies de la pièce souhaitée
                 </CardTitle>
                 <CardDescription>
-                  Ajoutez autant de photos que nécessaire (face, profil, zone de rupture, macro sur cotes ou références).
+                  Ajoutez autant de photos que nécessaire (face, profil, zone de rupture, macro sur
+                  cotes ou références).
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="font-mono text-xs">
-                {photos.length} photo{photos.length > 1 ? 's' : ''} chargée{photos.length > 1 ? 's' : ''}
+                {photos.length} photo{photos.length > 1 ? 's' : ''} chargée
+                {photos.length > 1 ? 's' : ''}
               </Badge>
             </div>
           </CardHeader>
@@ -181,24 +177,25 @@ export default function CreerPiecePage() {
             {/* Dropzone */}
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+              className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200 ${
                 isDragActive
-                  ? 'border-primary bg-primary/5 scale-[1.005]'
+                  ? 'scale-[1.005] border-primary bg-primary/5'
                   : 'border-border/80 hover:border-primary/50 hover:bg-muted/40'
               }`}
             >
               <input {...getInputProps()} />
               <div className="flex flex-col items-center justify-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shadow-xs">
-                  <UploadCloud className="w-7 h-7" />
+                <div className="shadow-xs flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <UploadCloud className="h-7 w-7" />
                 </div>
                 <div className="space-y-1">
-                  <p className="font-semibold text-sm">
+                  <p className="text-sm font-semibold">
                     Glissez-déposez vos photos ici, ou{' '}
                     <span className="text-primary underline">parcourez vos fichiers</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Nombre illimité de photos • Formats JPG, PNG, WEBP acceptés jusqu’à 15 Mo par image
+                    Nombre illimité de photos • Formats JPG, PNG, WEBP acceptés jusqu’à 15 Mo par
+                    image
                   </p>
                 </div>
               </div>
@@ -207,55 +204,58 @@ export default function CreerPiecePage() {
             {/* Galerie des photos chargées */}
             {photos.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <span>Photos prêtes pour l’analyse atelier</span>
                   <span>Précisez l’angle de prise de vue pour chaque photo</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {photos.map((photo) => (
                     <div
                       key={photo.id}
-                      className="group relative rounded-xl border bg-card overflow-hidden shadow-xs hover:border-primary/40 transition-all flex flex-col"
+                      className="shadow-xs group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all hover:border-primary/40"
                     >
                       {/* Image Thumbnail */}
-                      <div className="aspect-[4/3] w-full bg-muted relative overflow-hidden">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo.url}
                           alt={photo.name}
-                          className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <button
                           type="button"
                           onClick={() => removePhoto(photo.id)}
-                          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-rose-600 transition-colors shadow-sm"
+                          className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white shadow-sm transition-colors hover:bg-rose-600"
                           title="Supprimer la photo"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
 
                         <div className="absolute bottom-2 left-2">
-                          <span className="text-[10px] font-medium bg-black/70 text-white px-2 py-0.5 rounded-md backdrop-blur-xs">
+                          <span className="backdrop-blur-xs rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white">
                             {photo.size}
                           </span>
                         </div>
                       </div>
 
                       {/* Tag selector */}
-                      <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
-                        <div className="truncate text-xs font-medium text-foreground" title={photo.name}>
+                      <div className="flex flex-1 flex-col justify-between space-y-2 p-3">
+                        <div
+                          className="truncate text-xs font-medium text-foreground"
+                          title={photo.name}
+                        >
                           {photo.name}
                         </div>
 
                         <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <Tag className="w-3 h-3 text-primary" /> Angle / Vue :
+                          <Label className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <Tag className="h-3 w-3 text-primary" /> Angle / Vue :
                           </Label>
                           <select
                             value={photo.tag}
                             onChange={(e) => updateTag(photo.id, e.target.value)}
-                            className="w-full text-xs rounded-md border border-input bg-background px-2 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                           >
                             {PHOTO_TAGS.map((t) => (
                               <option key={t} value={t}>
@@ -276,17 +276,18 @@ export default function CreerPiecePage() {
         {/* SECTION 2: SPÉCIFICATIONS TECHNIQUES */}
         <Card className="border-border shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Layers className="w-5 h-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Layers className="h-5 w-5 text-primary" />
               2. Caractéristiques & Spécifications de la pièce
             </CardTitle>
             <CardDescription>
-              Donnez à nos techniciens les éléments essentiels pour préparer le programme d’usinage CNC.
+              Donnez à nos techniciens les éléments essentiels pour préparer le programme d’usinage
+              CNC.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="partName">
                   Nom ou référence de la pièce <span className="text-rose-500">*</span>
@@ -311,14 +312,14 @@ export default function CreerPiecePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="material">Matière plastique souhaitée</Label>
                 <select
                   id="material"
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  className="w-full text-sm rounded-md border border-input bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   {MATERIAL_OPTIONS.map((mat) => (
                     <option key={mat.value} value={mat.value}>
@@ -348,7 +349,7 @@ export default function CreerPiecePage() {
                   id="urgency"
                   value={urgency}
                   onChange={(e) => setUrgency(e.target.value)}
-                  className="w-full text-sm rounded-md border border-input bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="normal">Délai standard (4-6 jours)</option>
                   <option value="urgent">Urgent (48-72h)</option>
@@ -373,22 +374,23 @@ export default function CreerPiecePage() {
         </Card>
 
         {/* RECAPITULATIF & SOUMISSION */}
-        <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-semibold">
                 Engagement Atelier PartIVA pour les clients permanents
               </p>
               <p className="text-xs text-muted-foreground">
-                Prise en charge prioritaire • Rétro-conception CAO sous 4h • Validation avant usinage
+                Prise en charge prioritaire • Rétro-conception CAO sous 4h • Validation avant
+                usinage
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex w-full items-center gap-3 sm:w-auto">
             <Link href="/client/dashboard">
               <Button type="button" variant="ghost">
                 Annuler
@@ -397,14 +399,14 @@ export default function CreerPiecePage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="gap-2 font-bold shadow-md w-full sm:w-auto px-6"
+              className="w-full gap-2 px-6 font-bold shadow-md sm:w-auto"
             >
               {isSubmitting ? (
                 'Transmission en cours...'
               ) : (
                 <>
                   Envoyer la demande de refabrication
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
@@ -412,5 +414,5 @@ export default function CreerPiecePage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

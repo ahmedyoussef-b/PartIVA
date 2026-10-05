@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server'
-import { INITIAL_REQUESTS } from '@/lib/mock-data'
+import { NextResponse } from 'next/server';
+import { INITIAL_REQUESTS } from '@/lib/mock-data';
 
-let requestsMemory = [...INITIAL_REQUESTS]
+const requestsMemory = [...INITIAL_REQUESTS];
 
 export async function GET() {
-  return NextResponse.json(requestsMemory)
+  return NextResponse.json(requestsMemory);
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    const body = await req.json();
     const newRequest = {
       id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       cloudId: Math.floor(1040 + Math.random() * 50),
@@ -26,11 +26,11 @@ export async function POST(req: Request) {
       status: 'new' as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }
+    };
 
-    requestsMemory.unshift(newRequest)
-    return NextResponse.json(newRequest, { status: 201 })
-  } catch (error) {
-    return NextResponse.json({ message: 'Payload invalide' }, { status: 400 })
+    requestsMemory.unshift(newRequest);
+    return NextResponse.json(newRequest, { status: 201 });
+  } catch {
+    return NextResponse.json({ message: 'Payload invalide' }, { status: 400 });
   }
 }

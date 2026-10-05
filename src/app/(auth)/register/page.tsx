@@ -1,42 +1,43 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import { UserPlus, Sparkles, ArrowRight, Camera } from 'lucide-react'
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [loading, setLoading] = React.useState(false)
+  const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     setTimeout(() => {
-      setLoading(false)
-      toast.success('Bienvenue ! Votre compte client permanent a été activé.')
+      setLoading(false);
+      toast.success('Bienvenue ! Votre compte client permanent a été activé.');
       // Redirection directe vers la page d'upload photos de la pièce
-      router.push('/client/dashboard/creer-piece')
-    }, 800)
-  }
+      router.push('/client/dashboard/creer-piece');
+    }, 800);
+  };
 
   return (
-    <Card className="shadow-xl border-border/60 max-w-md mx-auto">
+    <Card className="mx-auto max-w-md border-border/60 shadow-xl">
       <CardHeader className="space-y-1 text-center">
-        <div className="flex justify-center mb-1">
-          <Badge variant="outline" className="text-primary border-primary/30">
+        <div className="mb-1 flex justify-center">
+          <Badge variant="outline" className="border-primary/30 text-primary">
             Adhésion Client Permanent
           </Badge>
         </div>
         <CardTitle className="text-2xl font-bold">Créer mon Espace Client Permanent</CardTitle>
         <CardDescription>
-          Accédez au dépôt libre de photos de pièces à reproduire et visualisez vos pièces prêtes à l’envoi.
+          Accédez au dépôt libre de photos de pièces à reproduire et visualisez vos pièces prêtes à
+          l’envoi.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -62,18 +63,18 @@ export default function RegisterPage() {
           </div>
 
           <Button type="submit" disabled={loading} className="w-full gap-2 font-bold shadow-md">
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="h-4 w-4" />
             {loading ? 'Activation en cours...' : 'Activer mon compte & Déposer une pièce'}
           </Button>
         </form>
 
-        <div className="text-center text-xs text-muted-foreground pt-4 border-t">
+        <div className="border-t pt-4 text-center text-xs text-muted-foreground">
           Déjà client permanent ?{' '}
-          <Link href="/login" className="text-primary font-semibold hover:underline">
+          <Link href="/login" className="font-semibold text-primary hover:underline">
             Se connecter
           </Link>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

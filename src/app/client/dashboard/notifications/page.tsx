@@ -1,11 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Bell, CheckCircle2, Clock, Hammer, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import * as React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Bell, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ClientNotificationsPage() {
   const notifications = [
@@ -33,13 +32,13 @@ export default function ClientNotificationsPage() {
       unread: false,
       href: '/client/dashboard/demandes/a1111111-2222-3333-4444-555555555553',
     },
-  ]
+  ];
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Notifications</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Notifications</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Alertes de fabrication, validation de modèles et expéditions.
         </p>
       </div>
@@ -50,26 +49,30 @@ export default function ClientNotificationsPage() {
             key={notif.id}
             className={`transition-colors ${notif.unread ? 'border-primary/50 bg-primary/5' : ''}`}
           >
-            <CardContent className="p-4 flex items-start gap-4">
+            <CardContent className="flex items-start gap-4 p-4">
               <div
-                className={`p-2.5 rounded-full shrink-0 ${
+                className={`shrink-0 rounded-full p-2.5 ${
                   notif.unread
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="h-4 w-4" />
               </div>
-              <div className="space-y-1 flex-1">
+              <div className="flex-1 space-y-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-sm">{notif.title}</h4>
-                  <span className="text-[11px] text-muted-foreground font-mono">{notif.time}</span>
+                  <h4 className="text-sm font-semibold">{notif.title}</h4>
+                  <span className="font-mono text-[11px] text-muted-foreground">{notif.time}</span>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{notif.desc}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{notif.desc}</p>
                 <div className="pt-1">
                   <Link href={notif.href}>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-primary gap-1">
-                      Voir le dossier <ArrowRight className="w-3 h-3" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1 px-2 text-xs text-primary"
+                    >
+                      Voir le dossier <ArrowRight className="h-3 w-3" />
                     </Button>
                   </Link>
                 </div>
@@ -79,5 +82,5 @@ export default function ClientNotificationsPage() {
         ))}
       </div>
     </div>
-  )
+  );
 }

@@ -1,22 +1,22 @@
-import type { Part } from '@/schemas/part'
-import type { Request } from '@/schemas/request'
-import type { SearchCandidate } from '@/schemas/search'
+import type { Part } from '@/schemas/part';
+import type { Request } from '@/schemas/request';
+import type { SearchCandidate } from '@/schemas/search';
 
 export interface MaterialDetail {
-  slug: string
-  code: string
-  name: string
-  category: string
-  density: number // g/cm³
-  maxTemp: number // °C
-  tensileStrength: number // MPa
-  hardness: string // Shore D or Rockwell
-  frictionCoefficient: number
-  resistanceChemical: 'Excellente' | 'Bonne' | 'Moyenne' | 'Faible'
-  foodGrade: boolean
-  description: string
-  advantages: string[]
-  commonApplications: string[]
+  slug: string;
+  code: string;
+  name: string;
+  category: string;
+  density: number; // g/cm³
+  maxTemp: number; // °C
+  tensileStrength: number; // MPa
+  hardness: string; // Shore D or Rockwell
+  frictionCoefficient: number;
+  resistanceChemical: 'Excellente' | 'Bonne' | 'Moyenne' | 'Faible';
+  foodGrade: boolean;
+  description: string;
+  advantages: string[];
+  commonApplications: string[];
 }
 
 export const MATERIALS_CATALOG: MaterialDetail[] = [
@@ -182,14 +182,15 @@ export const MATERIALS_CATALOG: MaterialDetail[] = [
       'Connecteurs électroniques aéronautiques',
     ],
   },
-]
+];
 
 export const INITIAL_PARTS: Part[] = [
   {
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     reference: 'PL-004812',
     name: 'Pignon conique d’entraînement étiqueteuse',
-    description: 'Pignon à denture hélicoïdale 24 dents pour ligne d’embouteillage agroalimentaire.',
+    description:
+      'Pignon à denture hélicoïdale 24 dents pour ligne d’embouteillage agroalimentaire.',
     material: 'POM-C',
     dimensions: {
       diameter: 84.5,
@@ -202,7 +203,9 @@ export const INITIAL_PARTS: Part[] = [
     files: {
       cad: ['/models/pignon-conique.glb'],
       plans: ['/plans/PL-004812-plan.pdf'],
-      photos: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80'],
+      photos: [
+        'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
+      ],
     },
     createdAt: '2026-08-14T09:30:00Z',
     updatedAt: '2026-09-02T14:15:00Z',
@@ -218,13 +221,15 @@ export const INITIAL_PARTS: Part[] = [
       length: 45.0,
       weight: 62,
     },
-    tolerances: { 'Diamètre intérieur': 'E9', 'Concentricité': '0.02 mm' },
+    tolerances: { 'Diamètre intérieur': 'E9', Concentricité: '0.02 mm' },
     version: 'V1',
     status: 'validated',
     files: {
       cad: ['/models/bague-frottement.glb'],
       plans: ['/plans/PL-004813-plan.pdf'],
-      photos: ['https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80'],
+      photos: [
+        'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80',
+      ],
     },
     createdAt: '2026-09-01T11:20:00Z',
     updatedAt: '2026-09-01T11:20:00Z',
@@ -246,7 +251,9 @@ export const INITIAL_PARTS: Part[] = [
     files: {
       cad: ['/models/siege-clapet.glb'],
       plans: ['/plans/PL-004814-plan.pdf'],
-      photos: ['https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80'],
+      photos: [
+        'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80',
+      ],
     },
     createdAt: '2026-09-15T15:40:00Z',
     updatedAt: '2026-09-18T10:00:00Z',
@@ -262,18 +269,20 @@ export const INITIAL_PARTS: Part[] = [
       width: 40.0,
       weight: 340,
     },
-    tolerances: { 'Gorge': '±0.1 mm' },
+    tolerances: { Gorge: '±0.1 mm' },
     version: 'V1',
     status: 'draft',
     files: {
       cad: [],
       plans: [],
-      photos: ['https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80'],
+      photos: [
+        'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80',
+      ],
     },
     createdAt: '2026-10-02T08:15:00Z',
     updatedAt: '2026-10-02T08:15:00Z',
   },
-]
+];
 
 export const INITIAL_REQUESTS: Request[] = [
   {
@@ -370,7 +379,7 @@ export const INITIAL_REQUESTS: Request[] = [
     createdAt: '2026-10-02T10:00:00Z',
     updatedAt: '2026-10-04T08:00:00Z',
   },
-]
+];
 
 export const MOCK_SEARCH_CANDIDATES: SearchCandidate[] = [
   {
@@ -379,14 +388,15 @@ export const MOCK_SEARCH_CANDIDATES: SearchCandidate[] = [
     reference: 'PL-004812',
     name: 'Pignon d’entraînement POM-C 24 dents',
     manufacturer: 'Atelier Usinage Sfax (Archives)',
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80',
     cadAvailable: true,
     datasheetAvailable: true,
     scores: {
       global: 0.88,
       geometry: 0.92,
       dimensions: 0.85,
-      material: 0.90,
+      material: 0.9,
     },
     metadata: {
       usinageTime: '45 min',
@@ -399,14 +409,15 @@ export const MOCK_SEARCH_CANDIDATES: SearchCandidate[] = [
     reference: 'TP-948210-EN',
     name: 'Spur Gear Module 2.5 - 24 Teeth',
     manufacturer: 'KHK Standard Gears Inc.',
-    imageUrl: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=400&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=400&q=80',
     cadAvailable: true,
     datasheetAvailable: true,
     scores: {
       global: 0.76,
       geometry: 0.82,
       dimensions: 0.74,
-      material: 0.70,
+      material: 0.7,
     },
     metadata: {
       standard: 'DIN 867',
@@ -419,7 +430,8 @@ export const MOCK_SEARCH_CANDIDATES: SearchCandidate[] = [
     reference: 'CAD-MISUMI-GEAR-84',
     name: 'Polyacetal Spur Gear Hub Type A',
     manufacturer: 'Misumi Industrial Europe',
-    imageUrl: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=400&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=400&q=80',
     cadAvailable: true,
     datasheetAvailable: false,
     scores: {
@@ -435,17 +447,18 @@ export const MOCK_SEARCH_CANDIDATES: SearchCandidate[] = [
     reference: 'GEO-CLUSTER-591',
     name: 'Modèle similaire géométrie rotative crantée',
     manufacturer: 'Index 3D IA Local',
-    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80',
     cadAvailable: true,
     datasheetAvailable: false,
     scores: {
       global: 0.64,
       geometry: 0.68,
-      dimensions: 0.60,
-      material: 0.50,
+      dimensions: 0.6,
+      material: 0.5,
     },
   },
-]
+];
 
 export const WORKSHOP_MACHINES = [
   {
@@ -484,4 +497,4 @@ export const WORKSHOP_MACHINES = [
     currentJob: 'Contrôle dimensionnel lot PL-004813',
     loadPercent: 65,
   },
-]
+];

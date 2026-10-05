@@ -1,48 +1,40 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import {
-  Cog,
-  Phone,
-  ArrowRight,
-  Menu,
-  X,
-  UserCheck,
-  Sparkles,
-} from 'lucide-react'
-import { ThemeToggle } from '@/components/layout/theme-toggle'
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Cog, Phone, ArrowRight, Menu, X, UserCheck, Sparkles } from 'lucide-react';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 // En mode Web public, accès réservé à 2 pages uniquement : Accueil et Contact & Atelier
 const NAV_ITEMS = [
   { href: '/', label: 'Accueil' },
   { href: '/contact', label: 'Contact & Atelier' },
-]
+];
 
 export function PublicHeader() {
-  const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Top micro-bar */}
-      <div className="bg-primary/5 border-b border-border/30 px-4 py-1.5 text-xs text-muted-foreground hidden md:block">
+      <div className="hidden border-b border-border/30 bg-primary/5 px-4 py-1.5 text-xs text-muted-foreground md:block">
         <div className="container flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 font-medium text-foreground">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               Atelier d’Usinage & Reverse Engineering Plastiques • Sousse & Sfax
             </span>
             <span className="text-border">|</span>
             <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 text-primary" /> +216 27 80 37 61
+              <Phone className="h-3 w-3 text-primary" /> +216 27 80 37 61
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-muted-foreground font-mono">
+            <span className="font-mono text-[11px] text-muted-foreground">
               Mode Web Public • Espace Client Permanent
             </span>
           </div>
@@ -52,49 +44,49 @@ export function PublicHeader() {
       {/* Main navigation */}
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
             <Cog className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-base leading-tight">
-              PartIVA
-            </span>
-            <span className="text-[11px] font-mono text-muted-foreground tracking-wider uppercase">
+            <span className="text-base font-bold leading-tight tracking-tight">PartIVA</span>
+            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
               Usinage Plastiques Industriels
             </span>
           </div>
         </Link>
 
         {/* Desktop Nav - 2 pages uniquement */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+        <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
           {NAV_ITEMS.map((item) => {
-            const active = pathname === item.href
+            const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'transition-colors hover:text-primary py-1 text-sm font-medium',
-                  active ? 'text-primary font-bold border-b-2 border-primary' : 'text-muted-foreground'
+                  'py-1 text-sm font-medium transition-colors hover:text-primary',
+                  active
+                    ? 'border-b-2 border-primary font-bold text-primary'
+                    : 'text-muted-foreground',
                 )}
               >
                 {item.label}
               </Link>
-            )
+            );
           })}
         </nav>
 
         {/* Actions Client Permanent */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="hidden items-center gap-3 sm:flex">
           <ThemeToggle />
           <Link href="/login">
             <Button variant="ghost" size="sm" className="gap-1.5 font-medium">
-              <UserCheck className="w-4 h-4" />
+              <UserCheck className="h-4 w-4" />
               Connexion Client
             </Button>
           </Link>
           <Link href="/register">
-            <Button size="sm" className="gap-2 shadow-sm font-semibold">
+            <Button size="sm" className="gap-2 font-semibold shadow-sm">
               <Sparkles className="h-3.5 w-3.5" />
               Devenir Client Permanent
               <ArrowRight className="h-3.5 w-3.5" />
@@ -117,7 +109,7 @@ export function PublicHeader() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b bg-background px-4 py-6 space-y-4">
+        <div className="space-y-4 border-b bg-background px-4 py-6 md:hidden">
           <nav className="flex flex-col gap-3">
             {NAV_ITEMS.map((item) => (
               <Link
@@ -125,18 +117,20 @@ export function PublicHeader() {
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  'text-sm font-medium p-2.5 rounded-md transition-colors',
-                  pathname === item.href ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground'
+                  'rounded-md p-2.5 text-sm font-medium transition-colors',
+                  pathname === item.href
+                    ? 'bg-primary/10 font-semibold text-primary'
+                    : 'text-foreground',
                 )}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="pt-4 border-t flex flex-col gap-2">
+          <div className="flex flex-col gap-2 border-t pt-4">
             <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="outline" className="w-full gap-2">
-                <UserCheck className="w-4 h-4" />
+                <UserCheck className="h-4 w-4" />
                 Connexion Client
               </Button>
             </Link>
@@ -149,5 +143,5 @@ export function PublicHeader() {
         </div>
       )}
     </header>
-  )
+  );
 }

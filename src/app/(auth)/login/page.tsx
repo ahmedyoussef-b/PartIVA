@@ -1,60 +1,60 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import { useAuthStore } from '@/lib/stores/auth-store'
-import { LogIn, ArrowRight, ShieldCheck, UserCheck, Camera, PackageCheck, Users, ArrowLeft } from 'lucide-react'
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { LogIn, ShieldCheck, UserCheck, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [loading, setLoading] = React.useState(false)
-  const login = useAuthStore((s) => s.login)
+  const router = useRouter();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const login = useAuthStore((s) => s.login);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     setTimeout(() => {
-      setLoading(false)
-      const success = login(email, password)
+      setLoading(false);
+      const success = login(email, password);
       if (!success) {
-        toast.error('Email ou mot de passe incorrect')
-        return
+        toast.error('Email ou mot de passe incorrect');
+        return;
       }
-      toast.success('Connexion réussie')
+      toast.success('Connexion réussie');
       if (email.includes('admin') || email.includes('atelier')) {
-        router.push('/admin/dashboard')
+        router.push('/admin/dashboard');
       } else {
-        router.push('/client/dashboard/creer-piece')
+        router.push('/client/dashboard/creer-piece');
       }
-    }, 600)
-  }
+    }, 600);
+  };
 
   const loginAsClient = () => {
-    setEmail('m.bensalem@delice.tn')
-    setPassword('client123')
-    toast.info('Identifiants Client Permanent pré-remplis')
-  }
+    setEmail('m.bensalem@delice.tn');
+    setPassword('client123');
+    toast.info('Identifiants Client Permanent pré-remplis');
+  };
 
   const loginAsAdmin = () => {
-    setEmail('admin@partiva.tn')
-    setPassword('admin123')
-    toast.info('Identifiants Admin pré-remplis')
-  }
+    setEmail('admin@partiva.tn');
+    setPassword('admin123');
+    toast.info('Identifiants Admin pré-remplis');
+  };
 
   return (
-    <Card className="shadow-xl border-border/60 max-w-md mx-auto">
+    <Card className="mx-auto max-w-md border-border/60 shadow-xl">
       <CardHeader className="space-y-1 text-center">
-        <div className="flex justify-center mb-1">
-          <Badge variant="outline" className="text-primary border-primary/30">
+        <div className="mb-1 flex justify-center">
+          <Badge variant="outline" className="border-primary/30 text-primary">
             Espace de Connexion
           </Badge>
         </div>
@@ -67,24 +67,24 @@ export default function LoginPage() {
         <div className="flex justify-start">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="h-3.5 w-3.5" />
             Retour
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" onClick={loginAsClient} className="text-xs gap-1.5">
-            <UserCheck className="w-3.5 h-3.5 text-primary" />
+          <Button variant="outline" size="sm" onClick={loginAsClient} className="gap-1.5 text-xs">
+            <UserCheck className="h-3.5 w-3.5 text-primary" />
             Client
           </Button>
-          <Button variant="outline" size="sm" onClick={loginAsAdmin} className="text-xs gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+          <Button variant="outline" size="sm" onClick={loginAsAdmin} className="gap-1.5 text-xs">
+            <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
             Admin
           </Button>
         </div>
 
-        <div className="text-[11px] text-muted-foreground space-y-1">
+        <div className="space-y-1 text-[11px] text-muted-foreground">
           <p className="font-semibold text-foreground">Comptes de démo :</p>
           <p>Admin : admin@partiva.tn / admin123</p>
           <p>Client : m.bensalem@delice.tn / client123</p>
@@ -105,10 +105,7 @@ export default function LoginPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Mot de passe</Label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-primary hover:underline"
-              >
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                 Mot de passe oublié ?
               </Link>
             </div>
@@ -122,15 +119,15 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" disabled={loading} className="w-full gap-2 font-bold shadow-md">
-            <LogIn className="w-4 h-4" />
+            <LogIn className="h-4 w-4" />
             {loading ? 'Connexion en cours...' : 'Se connecter'}
           </Button>
         </form>
 
-        <div className="text-center text-xs text-muted-foreground pt-4 border-t space-y-2">
+        <div className="space-y-2 border-t pt-4 text-center text-xs text-muted-foreground">
           <p>
             Pas encore de compte ?{' '}
-            <Link href="/register" className="text-primary font-semibold hover:underline">
+            <Link href="/register" className="font-semibold text-primary hover:underline">
               S’enregistrer
             </Link>
           </p>
@@ -140,5 +137,5 @@ export default function LoginPage() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

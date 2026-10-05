@@ -1,24 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import {
-  ScanLine,
-  Database,
-  Search,
-  Hammer,
-  FileCheck2,
-  Truck,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Camera,
-  Layers,
-  Wrench,
-} from 'lucide-react'
+import * as React from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Search, Hammer, ArrowRight, Camera, Truck, Wrench } from 'lucide-react';
 
 export default function CommentCaMarchePage() {
   const steps = [
@@ -57,58 +43,56 @@ export default function CommentCaMarchePage() {
       icon: Truck,
       tag: 'Expédition',
     },
-  ]
+  ];
 
   return (
-    <div className="container py-12 space-y-12">
+    <div className="container space-y-12 py-12">
       <div className="max-w-3xl space-y-3">
         <Badge variant="outline">Le Flux Métier</Badge>
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          Comment ça marche ?
-        </h1>
-        <p className="text-muted-foreground text-base leading-relaxed">
-          De votre photo prise sur votre smartphone jusqu’à la réception d’une pièce neuve usinée aux
-          tolérances exactes de votre machine.
+        <h1 className="text-4xl font-extrabold tracking-tight">Comment ça marche ?</h1>
+        <p className="text-base leading-relaxed text-muted-foreground">
+          De votre photo prise sur votre smartphone jusqu’à la réception d’une pièce neuve usinée
+          aux tolérances exactes de votre machine.
         </p>
       </div>
 
       <div className="space-y-6">
         {steps.map((st) => {
-          const Icon = st.icon
+          const Icon = st.icon;
           return (
             <div
               key={st.num}
-              className="flex flex-col md:flex-row gap-6 p-6 rounded-2xl border bg-card/60 hover:border-primary/40 transition-colors"
+              className="flex flex-col gap-6 rounded-2xl border bg-card/60 p-6 transition-colors hover:border-primary/40 md:flex-row"
             >
-              <div className="flex items-center gap-4 md:flex-col md:items-center md:justify-center md:w-28 shrink-0">
-                <span className="text-4xl font-black font-mono text-primary">{st.num}</span>
-                <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                  <Icon className="w-6 h-6" />
+              <div className="flex shrink-0 items-center gap-4 md:w-28 md:flex-col md:items-center md:justify-center">
+                <span className="font-mono text-4xl font-black text-primary">{st.num}</span>
+                <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                  <Icon className="h-6 w-6" />
                 </div>
               </div>
 
-              <div className="space-y-2 flex-1">
+              <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-[10px] font-mono">
+                  <Badge variant="secondary" className="font-mono text-[10px]">
                     {st.tag}
                   </Badge>
                 </div>
                 <h3 className="text-xl font-bold text-foreground">{st.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{st.desc}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{st.desc}</p>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
-      <div className="text-center py-6">
+      <div className="py-6 text-center">
         <Link href="/demande">
           <Button size="lg" className="gap-2 font-bold shadow-lg">
             Démarrer ma demande de pièce maintenant
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
       </div>
     </div>
-  )
+  );
 }

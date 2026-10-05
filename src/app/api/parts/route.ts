@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server'
-import { INITIAL_PARTS } from '@/lib/mock-data'
+import { NextResponse } from 'next/server';
+import { INITIAL_PARTS } from '@/lib/mock-data';
 
-let partsMemory = [...INITIAL_PARTS]
+const partsMemory = [...INITIAL_PARTS];
 
 export async function GET() {
-  return NextResponse.json(partsMemory)
+  return NextResponse.json(partsMemory);
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    const body = await req.json();
     const newPart = {
       id: `part-${Date.now()}`,
       reference: `PL-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -23,10 +23,10 @@ export async function POST(req: Request) {
       files: body.files || { cad: [], plans: [], photos: [] },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }
-    partsMemory.unshift(newPart)
-    return NextResponse.json(newPart, { status: 201 })
-  } catch (err) {
-    return NextResponse.json({ message: 'Erreur création pièce' }, { status: 400 })
+    };
+    partsMemory.unshift(newPart);
+    return NextResponse.json(newPart, { status: 201 });
+  } catch {
+    return NextResponse.json({ message: 'Erreur création pièce' }, { status: 400 });
   }
 }
