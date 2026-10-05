@@ -16,15 +16,28 @@ pnpm-debug.log*
 
 # Tauri
 src-tauri/target/
+src-tauri/gen/
+*.msi
+*.exe
 
 # Environment
 .env
-.env*.local
+.env.*
+!.env.example
 .neon
 
-# OS
+# Certificats et clés
+*.pem
+*.key
+*.p12
+*.pfx
+
+# IDE / OS
+.vscode/settings.json
+.idea/
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
 
+# Generated
 /src/generated/prisma
