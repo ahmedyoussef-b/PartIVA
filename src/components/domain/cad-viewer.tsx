@@ -1,19 +1,18 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stage, Grid, Float } from '@react-three/drei'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { Box, RotateCcw, Eye, Layers, Maximize2 } from 'lucide-react'
+import * as React from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Stage, Grid, Float } from '@react-three/drei';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Box, RotateCcw, Layers } from 'lucide-react';
 
 interface CadViewerProps {
-  url?: string
-  format?: 'glb' | 'gltf' | 'stl'
-  className?: string
-  partName?: string
-  materialColor?: string
+  format?: 'glb' | 'gltf' | 'stl';
+  className?: string;
+  partName?: string;
+  materialColor?: string;
 }
 
 // Procedural 3D industrial part geometry for interactive viewer
@@ -21,8 +20,8 @@ function IndustrialPartMesh({
   wireframe,
   color = '#38bdf8',
 }: {
-  wireframe: boolean
-  color?: string
+  wireframe: boolean;
+  color?: string;
 }) {
   return (
     <group position={[0, 0, 0]}>
@@ -53,102 +52,91 @@ function IndustrialPartMesh({
       </mesh>
       {/* 8 Tooth teeth projections */}
       {Array.from({ length: 12 }).map((_, i) => {
-        const angle = (i * Math.PI * 2) / 12
-        const x = Math.cos(angle) * 2.3
-        const z = Math.sin(angle) * 2.3
+        const angle = (i * Math.PI * 2) / 12;
+        const x = Math.cos(angle) * 2.3;
+        const z = Math.sin(angle) * 2.3;
         return (
-          <mesh
-            key={i}
-            position={[x, -0.3, z]}
-            rotation={[0, -angle, 0]}
-            castShadow
-            receiveShadow
-          >
+          <mesh key={i} position={[x, -0.3, z]} rotation={[0, -angle, 0]} castShadow receiveShadow>
             <boxGeometry args={[0.3, 0.38, 0.45]} />
-            <meshStandardMaterial
-              color={color}
-              roughness={0.3}
-              wireframe={wireframe}
-            />
+            <meshStandardMaterial color={color} roughness={0.3} wireframe={wireframe} />
           </mesh>
-        )
+        );
       })}
     </group>
-  )
+  );
 }
 
 export function CadViewer({
-  url,
   className,
   partName = 'Composant CAO 3D',
   materialColor = '#38bdf8',
 }: CadViewerProps) {
-  const [mounted, setMounted] = React.useState(false)
-  const [wireframe, setWireframe] = React.useState(false)
-  const [autorotate, setAutorotate] = React.useState(true)
-  const [webGlAvailable, setWebGlAvailable] = React.useState(true)
+  const [mounted, setMounted] = React.useState(false);
+  const [wireframe, setWireframe] = React.useState(false);
+  const [autorotate, setAutorotate] = React.useState(true);
+  const [webGlAvailable, setWebGlAvailable] = React.useState(true);
 
   React.useEffect(() => {
-    setMounted(true)
+    setMounted(true);
     try {
-      const canvas = document.createElement('canvas')
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
-      if (!gl) setWebGlAvailable(false)
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) setWebGlAvailable(false);
     } catch {
-      setWebGlAvailable(false)
+      setWebGlAvailable(false);
     }
-  }, [])
+  }, []);
 
   if (!mounted) {
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-center rounded-xl border bg-muted/30 p-8 min-h-[420px]',
-          className
+          'flex min-h-[420px] flex-col items-center justify-center rounded-xl border bg-muted/30 p-8',
+          className,
         )}
       >
-        <Skeleton className="h-44 w-44 rounded-full mb-4" />
-        <p className="text-xs text-muted-foreground font-mono">Chargement du moteur 3D...</p>
+        <Skeleton className="mb-4 h-44 w-44 rounded-full" />
+        <p className="font-mono text-xs text-muted-foreground">Chargement du moteur 3D...</p>
       </div>
-    )
+    );
   }
 
   if (!webGlAvailable) {
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-center rounded-xl border bg-muted/40 p-8 min-h-[420px] text-center',
-          className
+          'flex min-h-[420px] flex-col items-center justify-center rounded-xl border bg-muted/40 p-8 text-center',
+          className,
         )}
       >
-        <Box className="w-12 h-12 text-muted-foreground mb-3" />
-        <h4 className="font-semibold text-sm">Visualisation 3D (Mode simplifié)</h4>
-        <p className="text-xs text-muted-foreground max-w-sm mt-1">
+        <Box className="mb-3 h-12 w-12 text-muted-foreground" />
+        <h4 className="text-sm font-semibold">Visualisation 3D (Mode simplifié)</h4>
+        <p className="mt-1 max-w-sm text-xs text-muted-foreground">
           Fichier CAO {partName} disponible au format STEP et GLB.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div
       className={cn(
-        'relative rounded-xl border bg-gradient-to-b from-card/80 to-muted/50 overflow-hidden shadow-inner flex flex-col',
-        className
+        'relative flex flex-col overflow-hidden rounded-xl border bg-gradient-to-b from-card/80 to-muted/50 shadow-inner',
+        className,
       )}
       style={{ minHeight: 420 }}
     >
       {/* Top Header Controls */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-2 rounded-lg bg-background/90 px-3 py-1.5 text-xs backdrop-blur border shadow-xs pointer-events-auto">
+      <div className="pointer-events-none absolute left-3 right-3 top-3 z-10 flex items-center justify-between">
+        <div className="shadow-xs pointer-events-auto flex items-center gap-2 rounded-lg border bg-background/90 px-3 py-1.5 text-xs backdrop-blur">
           <Box className="h-4 w-4 text-primary" />
           <span className="font-semibold">{partName}</span>
-          <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+          <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
             STEP / GLB
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 pointer-events-auto bg-background/90 p-1 rounded-lg border backdrop-blur shadow-xs">
+        <div className="shadow-xs pointer-events-auto flex items-center gap-1.5 rounded-lg border bg-background/90 p-1 backdrop-blur">
           <Button
             size="icon"
             variant={wireframe ? 'default' : 'ghost'}
@@ -171,7 +159,7 @@ export function CadViewer({
       </div>
 
       {/* 3D Canvas */}
-      <div className="w-full h-full flex-1 min-h-[380px]">
+      <div className="h-full min-h-[380px] w-full flex-1">
         <Canvas shadows camera={{ position: [5, 4, 5], fov: 45 }}>
           <ambientLight intensity={0.7} />
           <directionalLight
@@ -203,10 +191,10 @@ export function CadViewer({
       </div>
 
       {/* Bottom Hint */}
-      <div className="px-4 py-2 border-t bg-background/50 backdrop-blur flex items-center justify-between text-[11px] text-muted-foreground">
+      <div className="flex items-center justify-between border-t bg-background/50 px-4 py-2 text-[11px] text-muted-foreground backdrop-blur">
         <span>Clic gauche : Rotation • Molette : Zoom • Clic droit : Pan</span>
         <span className="font-mono">R3F / Three.js</span>
       </div>
     </div>
-  )
+  );
 }

@@ -1,29 +1,29 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { ArrowLeft } from 'lucide-react';
 
 interface PageHeaderProps {
-  title: string
-  description?: string
+  title: string;
+  description?: string;
   badge?: {
-    label: string
-    variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'
-  }
+    label: string;
+    variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning';
+  };
   actions?: {
-    label: string
-    onClick?: () => void
-    href?: string
-    variant?: 'default' | 'outline' | 'ghost'
-    icon?: React.ReactNode
-  }[]
-  backHref?: string
-  onBack?: () => void
-  children?: React.ReactNode
-  className?: string
+    label: string;
+    onClick?: () => void;
+    href?: string;
+    variant?: 'default' | 'outline' | 'ghost';
+    icon?: React.ReactNode;
+  }[];
+  backHref?: string;
+  onBack?: () => void;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export function PageHeader({
@@ -36,27 +36,22 @@ export function PageHeader({
   children,
   className,
 }: PageHeaderProps) {
-  const BackButton = backHref || onBack ? (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onBack}
-      asChild={!!backHref}
-      className="h-8 -ml-2"
-    >
-      {backHref ? (
-        <a href={backHref}>
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Retour
-        </a>
-      ) : (
-        <>
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Retour
-        </>
-      )}
-    </Button>
-  ) : null
+  const BackButton =
+    backHref || onBack ? (
+      <Button variant="ghost" size="sm" onClick={onBack} asChild={!!backHref} className="-ml-2 h-8">
+        {backHref ? (
+          <a href={backHref}>
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Retour
+          </a>
+        ) : (
+          <>
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Retour
+          </>
+        )}
+      </Button>
+    ) : null;
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -65,17 +60,13 @@ export function PageHeader({
           <div className="flex items-center gap-2">
             {BackButton}
             <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-            {badge && (
-              <Badge variant={badge.variant || 'secondary'}>{badge.label}</Badge>
-            )}
+            {badge && <Badge variant={badge.variant || 'secondary'}>{badge.label}</Badge>}
           </div>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          )}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
-        
+
         {(actions.length > 0 || children) && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             {actions.map((action, idx) => (
               <Button
                 key={idx}
@@ -103,5 +94,5 @@ export function PageHeader({
         )}
       </div>
     </div>
-  )
+  );
 }

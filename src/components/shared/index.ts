@@ -1,3 +1,3 @@
-export { KPICard } from './kpi-card'
-export { FilterBar } from './filter-bar'
-export { PageHeader } from './page-header'
+export { KPICard } from './kpi-card';
+export { FilterBar } from './filter-bar';
+export { PageHeader } from './page-header';

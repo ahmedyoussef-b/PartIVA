@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
 /**
  * Détection du mode d'exécution de l'application :
@@ -8,50 +8,47 @@ import * as React from 'react'
  * - Mode Web Public : réservé aux clients (Accueil, Contact, Espace Client Permanent).
  */
 export function isTauriEnvironment(): boolean {
-  if (typeof window === 'undefined') return false
+  if (typeof window === 'undefined') return false;
 
   // 1. Détection des variables globales injectées par le runtime Tauri
   const hasTauriGlobal =
-    '__TAURI__' in window ||
-    '__TAURI_INTERNALS__' in window ||
-    '__TAURI_METADATA__' in window
+    '__TAURI__' in window || '__TAURI_INTERNALS__' in window || '__TAURI_METADATA__' in window;
 
   // 2. Détection via variable d'environnement build
-  const envMode = process.env.NEXT_PUBLIC_APP_MODE === 'tauri'
+  const envMode = process.env.NEXT_PUBLIC_APP_MODE === 'tauri';
 
   // 3. Détection via localStorage ou paramètre URL de test (?mode=tauri)
   const queryParam =
     typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('mode') === 'tauri'
+    new URLSearchParams(window.location.search).get('mode') === 'tauri';
 
   const storageOverride =
-    typeof window !== 'undefined' &&
-    window.localStorage?.getItem('partiva_mode') === 'tauri'
+    typeof window !== 'undefined' && window.localStorage?.getItem('partiva_mode') === 'tauri';
 
-  return hasTauriGlobal || envMode || queryParam || storageOverride
+  return hasTauriGlobal || envMode || queryParam || storageOverride;
 }
 
 export function useAppMode() {
-  const [isTauri, setIsTauri] = React.useState<boolean>(false)
-  const [isClient, setIsClient] = React.useState<boolean>(false)
+  const [isTauri, setIsTauri] = React.useState<boolean>(false);
+  const [isClient, setIsClient] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    setIsClient(true)
-    setIsTauri(isTauriEnvironment())
-  }, [])
+    setIsClient(true);
+    setIsTauri(isTauriEnvironment());
+  }, []);
 
   const setManualMode = (mode: 'web' | 'tauri') => {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('partiva_mode', mode)
-      setIsTauri(mode === 'tauri')
-      window.location.reload()
+      window.localStorage.setItem('partiva_mode', mode);
+      setIsTauri(mode === 'tauri');
+      window.location.reload();
     }
-  }
+  };
 
   return {
     isTauri,
     isWeb: !isTauri,
     isLoaded: isClient,
     setManualMode,
-  }
+  };
 }

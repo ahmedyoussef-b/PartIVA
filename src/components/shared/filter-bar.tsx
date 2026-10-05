@@ -1,27 +1,26 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { Search, X } from 'lucide-react'
+import * as React from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Search, X } from 'lucide-react';
 
 interface FilterOption {
-  label: string
-  value: string
-  count?: number
+  label: string;
+  value: string;
+  count?: number;
 }
 
 interface FilterBarProps {
-  searchPlaceholder?: string
-  searchValue?: string
-  onSearchChange?: (value: string) => void
-  filters?: FilterOption[]
-  activeFilters?: string[]
-  onFilterChange?: (value: string) => void
-  onClearFilters?: () => void
-  className?: string
+  searchPlaceholder?: string;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  filters?: FilterOption[];
+  activeFilters?: string[];
+  onFilterChange?: (value: string) => void;
+  onClearFilters?: () => void;
+  className?: string;
 }
 
 export function FilterBar({
@@ -34,26 +33,26 @@ export function FilterBar({
   onClearFilters,
   className,
 }: FilterBarProps) {
-  const hasActiveFilters = activeFilters.length > 0 || (searchValue && searchValue.length > 0)
+  const hasActiveFilters = activeFilters.length > 0 || (searchValue && searchValue.length > 0);
 
   return (
-    <div className={cn('flex flex-col sm:flex-row gap-3', className)}>
+    <div className={cn('flex flex-col gap-3 sm:flex-row', className)}>
       {onSearchChange && (
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 h-9"
+            className="h-9 pl-9"
           />
         </div>
       )}
-      
+
       {filters.length > 0 && onFilterChange && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           {filters.map((filter) => {
-            const isActive = activeFilters.includes(filter.value)
+            const isActive = activeFilters.includes(filter.value);
             return (
               <Button
                 key={filter.value}
@@ -67,7 +66,7 @@ export function FilterBar({
                   <span className="ml-1.5 text-muted-foreground">{filter.count}</span>
                 )}
               </Button>
-            )
+            );
           })}
         </div>
       )}
@@ -79,10 +78,10 @@ export function FilterBar({
           onClick={onClearFilters}
           className="h-8 text-xs text-muted-foreground"
         >
-          <X className="h-3.5 w-3.5 mr-1" />
+          <X className="mr-1 h-3.5 w-3.5" />
           Effacer
         </Button>
       )}
     </div>
-  )
+  );
 }

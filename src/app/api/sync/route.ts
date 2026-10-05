@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
 export async function POST() {
   // Simulates cloud Neon pull
@@ -7,5 +7,5 @@ export async function POST() {
     received: 2,
     ids: [1041, 1042],
     timestamp: new Date().toISOString(),
-  })
+  });
 }

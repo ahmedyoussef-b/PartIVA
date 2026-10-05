@@ -1,6 +1,6 @@
-import type { Material } from '@/schemas/part'
-import type { RequestStatus, RequestUrgency } from '@/schemas/request'
-import type { SearchSource } from '@/schemas/search'
+import type { Material } from '@/schemas/part';
+import type { RequestStatus, RequestUrgency } from '@/schemas/request';
+import type { SearchSource } from '@/schemas/search';
 
 export const FR = {
   app: {
@@ -13,16 +13,16 @@ export const FR = {
   materials: {
     'POM-C': 'Polyoxyméthylène Copolymère (Acétal / Delrin)',
     'POM-H': 'Polyoxyméthylène Homopolymère',
-    'PA6': 'Polyamide 6 (Nylon standard usinage)',
-    'PA66': 'Polyamide 6.6 (Haute rigidité)',
-    'PEHD': 'Polyéthylène Haute Densité (PE-HD / PE300)',
-    'PEBD': 'Polyéthylène Basse Densité',
-    'PTFE': 'Polytétrafluoroéthylène (Téflon haute T° & inertie)',
+    PA6: 'Polyamide 6 (Nylon standard usinage)',
+    PA66: 'Polyamide 6.6 (Haute rigidité)',
+    PEHD: 'Polyéthylène Haute Densité (PE-HD / PE300)',
+    PEBD: 'Polyéthylène Basse Densité',
+    PTFE: 'Polytétrafluoroéthylène (Téflon haute T° & inertie)',
     'UHMW-PE': 'Polyéthylène Masse Molaire Très Élevée (PE1000 - Glissement extrême)',
-    'PVC': 'Polychlorure de vinyle rigide',
-    'PEEK': 'Polyétheréthercétone (Plastique ultra-haute performance)',
-    'ABS': 'Acrylonitrile Butadiène Styrène',
-    'PETP': 'Polyéthylène Téréphtalate',
+    PVC: 'Polychlorure de vinyle rigide',
+    PEEK: 'Polyétheréthercétone (Plastique ultra-haute performance)',
+    ABS: 'Acrylonitrile Butadiène Styrène',
+    PETP: 'Polyéthylène Téréphtalate',
   } satisfies Record<Material, string>,
   statuses: {
     new: 'Nouvelle demande',
@@ -61,4 +61,4 @@ export const FR = {
     quantity: '5. Quantité & Délais',
     summary: '6. Récapitulatif & Soumission',
   },
-} as const
+} as const;

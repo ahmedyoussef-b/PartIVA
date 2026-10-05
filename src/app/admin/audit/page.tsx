@@ -1,13 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { INITIAL_REQUESTS } from '@/lib/mock-data'
-import { FR } from '@/i18n/fr'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { formatDate } from '@/lib/utils'
+import * as React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   FileSpreadsheet,
   Search,
@@ -15,11 +12,9 @@ import {
   Database,
   RefreshCw,
   CheckCircle2,
-  AlertTriangle,
   Wrench,
   Hammer,
-  Eye,
-} from 'lucide-react'
+} from 'lucide-react';
 
 type AuditAction =
   | 'sync_pull'
@@ -28,17 +23,17 @@ type AuditAction =
   | 'candidate_selected'
   | 'reverse_started'
   | 'machining_started'
-  | 'completed'
+  | 'completed';
 
 interface AuditEntry {
-  id: string
-  ts: string
-  action: AuditAction
-  actor: string
-  entityId: string
-  entityType: 'request' | 'part' | 'sync'
-  description: string
-  severity: 'info' | 'success' | 'warning'
+  id: string;
+  ts: string;
+  action: AuditAction;
+  actor: string;
+  entityId: string;
+  entityType: 'request' | 'part' | 'sync';
+  description: string;
+  severity: 'info' | 'success' | 'warning';
 }
 
 const AUDIT_LOG: AuditEntry[] = [
@@ -112,43 +107,46 @@ const AUDIT_LOG: AuditEntry[] = [
     description: "Demande REQ-1039 reçue : Bague PTFE décanteur CHO Huile d'Olive",
     severity: 'info',
   },
-]
+];
 
-const ACTION_CONFIG: Record<AuditAction, { label: string; icon: React.ElementType; color: string }> = {
-  sync_pull:          { label: 'Sync Cloud',        icon: RefreshCw,     color: 'text-blue-500' },
-  request_received:   { label: 'Demande reçue',     icon: Database,      color: 'text-violet-500' },
-  search_launched:    { label: 'Recherche lancée',  icon: Search,        color: 'text-amber-500' },
-  candidate_selected: { label: 'Candidat validé',   icon: CheckCircle2,  color: 'text-emerald-500' },
-  reverse_started:    { label: 'Reverse CAO',       icon: Wrench,        color: 'text-orange-500' },
-  machining_started:  { label: 'Usinage démarré',   icon: Hammer,        color: 'text-primary' },
-  completed:          { label: 'Dossier clôturé',   icon: CheckCircle2,  color: 'text-emerald-600' },
-}
+const ACTION_CONFIG: Record<
+  AuditAction,
+  { label: string; icon: React.ElementType; color: string }
+> = {
+  sync_pull: { label: 'Sync Cloud', icon: RefreshCw, color: 'text-blue-500' },
+  request_received: { label: 'Demande reçue', icon: Database, color: 'text-violet-500' },
+  search_launched: { label: 'Recherche lancée', icon: Search, color: 'text-amber-500' },
+  candidate_selected: { label: 'Candidat validé', icon: CheckCircle2, color: 'text-emerald-500' },
+  reverse_started: { label: 'Reverse CAO', icon: Wrench, color: 'text-orange-500' },
+  machining_started: { label: 'Usinage démarré', icon: Hammer, color: 'text-primary' },
+  completed: { label: 'Dossier clôturé', icon: CheckCircle2, color: 'text-emerald-600' },
+};
 
 export default function AdminAuditPage() {
-  const [query, setQuery] = React.useState('')
+  const [query, setQuery] = React.useState('');
 
   const filtered = AUDIT_LOG.filter((entry) => {
-    const q = query.toLowerCase()
+    const q = query.toLowerCase();
     return (
       entry.description.toLowerCase().includes(q) ||
       entry.actor.toLowerCase().includes(q) ||
       entry.action.includes(q)
-    )
-  })
+    );
+  });
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-5xl space-y-6">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Journal d'Audit
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Journal d&apos;Audit
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Traçabilité complète de toutes les actions métier et opérations système.
           </p>
         </div>
         <Button variant="outline" className="gap-2 text-xs">
-          <FileSpreadsheet className="w-4 h-4" />
+          <FileSpreadsheet className="h-4 w-4" />
           Exporter CSV
         </Button>
       </div>
@@ -166,9 +164,7 @@ export default function AdminAuditPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">
-            {filtered.length} événement(s)
-          </CardTitle>
+          <CardTitle className="text-sm font-semibold">{filtered.length} événement(s)</CardTitle>
           <CardDescription className="text-xs">
             Log chronologique décroissant — toutes les opérations sensibles sont tracées
           </CardDescription>
@@ -176,29 +172,31 @@ export default function AdminAuditPage() {
         <CardContent>
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute left-[18px] top-0 bottom-0 w-px bg-border" />
+            <div className="absolute bottom-0 left-[18px] top-0 w-px bg-border" />
 
             <div className="space-y-0">
               {filtered.map((entry, i) => {
-                const cfg = ACTION_CONFIG[entry.action]
-                const Icon = cfg.icon
+                const cfg = ACTION_CONFIG[entry.action];
+                const Icon = cfg.icon;
                 return (
-                  <div key={entry.id} className="flex gap-4 group relative">
+                  <div key={entry.id} className="group relative flex gap-4">
                     {/* Dot */}
-                    <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center border-2 border-background z-10 ${
-                      entry.severity === 'success'
-                        ? 'bg-emerald-500/15'
-                        : entry.severity === 'warning'
-                        ? 'bg-amber-500/15'
-                        : 'bg-muted'
-                    }`}>
-                      <Icon className={`w-3.5 h-3.5 ${cfg.color}`} />
+                    <div
+                      className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-background ${
+                        entry.severity === 'success'
+                          ? 'bg-emerald-500/15'
+                          : entry.severity === 'warning'
+                            ? 'bg-amber-500/15'
+                            : 'bg-muted'
+                      }`}
+                    >
+                      <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
                     </div>
 
                     {/* Content */}
                     <div className={`flex-1 pb-6 ${i === filtered.length - 1 ? 'pb-0' : ''}`}>
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-[9px] font-mono">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-[9px]">
                           {cfg.label}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground">
@@ -209,20 +207,20 @@ export default function AdminAuditPage() {
                             minute: '2-digit',
                           })}
                         </span>
-                        <span className="text-[10px] flex items-center gap-1 text-muted-foreground">
-                          <User className="w-2.5 h-2.5" />
+                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <User className="h-2.5 w-2.5" />
                           {entry.actor}
                         </span>
                       </div>
-                      <p className="text-xs text-foreground leading-snug">{entry.description}</p>
+                      <p className="text-xs leading-snug text-foreground">{entry.description}</p>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

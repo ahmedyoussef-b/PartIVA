@@ -1,48 +1,35 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { MATERIALS_CATALOG } from '@/lib/mock-data'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  Layers,
-  Thermometer,
-  ShieldCheck,
-  Zap,
-  Box,
-} from 'lucide-react'
+import * as React from 'react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { MATERIALS_CATALOG } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, ArrowRight, CheckCircle2, Box } from 'lucide-react';
 
-export default function MaterialDetailPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
-  const material = MATERIALS_CATALOG.find((m) => m.slug === params.slug)
+export default function MaterialDetailPage({ params }: { params: { slug: string } }) {
+  const material = MATERIALS_CATALOG.find((m) => m.slug === params.slug);
 
   if (!material) {
-    notFound()
+    notFound();
   }
 
   return (
-    <div className="container py-12 space-y-10">
+    <div className="container space-y-10 py-12">
       <div>
         <Link
           href="/materiaux"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-4 transition-colors"
+          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           Retour au catalogue des plastiques
         </Link>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight font-mono text-primary">
+              <h1 className="font-mono text-3xl font-black tracking-tight text-primary sm:text-4xl">
                 {material.code}
               </h1>
               <Badge variant="outline" className="text-xs">
@@ -60,15 +47,15 @@ export default function MaterialDetailPage({
           <Link href="/demande">
             <Button className="gap-2 font-bold shadow-md">
               Demander une pièce en {material.code}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Main Details */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Description & Comportement Mécanique</CardTitle>
@@ -83,10 +70,10 @@ export default function MaterialDetailPage({
               <CardTitle className="text-lg">Principaux Avantages en Usinage & Service</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <ul className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 {material.advantages.map((adv, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                     <span className="text-foreground">{adv}</span>
                   </li>
                 ))}
@@ -99,13 +86,13 @@ export default function MaterialDetailPage({
               <CardTitle className="text-lg">Applications Types en Usine</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 {material.commonApplications.map((app, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-lg border bg-muted/30 flex items-center gap-2.5 font-medium"
+                    className="flex items-center gap-2.5 rounded-lg border bg-muted/30 p-3 font-medium"
                   >
-                    <Box className="w-4 h-4 text-primary shrink-0" />
+                    <Box className="h-4 w-4 shrink-0 text-primary" />
                     <span>{app}</span>
                   </div>
                 ))}
@@ -118,33 +105,35 @@ export default function MaterialDetailPage({
         <div className="space-y-6">
           <Card className="border-primary/40 bg-card/80">
             <CardHeader>
-              <CardTitle className="text-base font-mono uppercase tracking-wider">
+              <CardTitle className="font-mono text-base uppercase tracking-wider">
                 Fiche Métrologique
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 font-mono text-xs">
-                <div className="flex justify-between py-1.5 border-b">
+                <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Densité spécifique</span>
                   <span className="font-bold">{material.density} g/cm³</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b">
+                <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Température max continue</span>
                   <span className="font-bold text-amber-500">{material.maxTemp} °C</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b">
+                <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Résistance à la traction</span>
                   <span className="font-bold">{material.tensileStrength} MPa</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b">
+                <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Dureté</span>
                   <span className="font-bold">{material.hardness}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b">
+                <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Coefficient de frottement</span>
-                  <span className="font-bold text-emerald-500">µ = {material.frictionCoefficient}</span>
+                  <span className="font-bold text-emerald-500">
+                    µ = {material.frictionCoefficient}
+                  </span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b">
+                <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Résistance chimique</span>
                   <span className="font-bold">{material.resistanceChemical}</span>
                 </div>
@@ -168,5 +157,5 @@ export default function MaterialDetailPage({
         </div>
       </div>
     </div>
-  )
+  );
 }

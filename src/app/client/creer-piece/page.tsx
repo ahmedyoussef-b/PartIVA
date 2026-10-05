@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation';
 
 export default function CreerPieceRedirect() {
-  redirect('/client/dashboard/creer-piece')
+  redirect('/client/dashboard/creer-piece');
 }

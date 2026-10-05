@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const MaterialSchema = z.enum([
   'POM-C',
@@ -13,8 +13,8 @@ export const MaterialSchema = z.enum([
   'PEEK',
   'ABS',
   'PETP',
-])
-export type Material = z.infer<typeof MaterialSchema>
+]);
+export type Material = z.infer<typeof MaterialSchema>;
 
 export const PartDimensionsSchema = z.object({
   length: z.number().positive().optional(),
@@ -22,8 +22,8 @@ export const PartDimensionsSchema = z.object({
   height: z.number().positive().optional(),
   diameter: z.number().positive().optional(),
   weight: z.number().positive().optional(),
-})
-export type PartDimensions = z.infer<typeof PartDimensionsSchema>
+});
+export type PartDimensions = z.infer<typeof PartDimensionsSchema>;
 
 export const PartSchema = z.object({
   id: z.string().uuid(),
@@ -43,8 +43,8 @@ export const PartSchema = z.object({
   machineId: z.string().uuid().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
-})
-export type Part = z.infer<typeof PartSchema>
+});
+export type Part = z.infer<typeof PartSchema>;
 
 export const PartRelationSchema = z.object({
   id: z.string().uuid(),
@@ -53,23 +53,23 @@ export const PartRelationSchema = z.object({
   relationType: z.enum(['replaces', 'similar_to', 'used_in', 'derived_from']),
   score: z.number().min(0).max(1).optional(),
   notes: z.string().optional(),
-})
-export type PartRelation = z.infer<typeof PartRelationSchema>
+});
+export type PartRelation = z.infer<typeof PartRelationSchema>;
 
 export const PartFiltersSchema = z.object({
   query: z.string().optional(),
   material: MaterialSchema.optional(),
   status: z.enum(['draft', 'validated', 'deprecated']).optional(),
   machineId: z.string().optional(),
-})
-export type PartFilters = z.infer<typeof PartFiltersSchema>
+});
+export type PartFilters = z.infer<typeof PartFiltersSchema>;
 
 export const NewPartSchema = PartSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-})
-export type NewPart = z.infer<typeof NewPartSchema>
+});
+export type NewPart = z.infer<typeof NewPartSchema>;
 
-export const UpdatePartSchema = NewPartSchema.partial()
-export type UpdatePart = z.infer<typeof UpdatePartSchema>
+export const UpdatePartSchema = NewPartSchema.partial();
+export type UpdatePart = z.infer<typeof UpdatePartSchema>;

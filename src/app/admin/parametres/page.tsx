@@ -1,72 +1,62 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import {
-  Settings,
-  Database,
-  Bell,
-  Shield,
-  Palette,
-  Globe,
-  Save,
-  RefreshCw,
-  Info,
-  CheckCircle2,
-} from 'lucide-react'
+import * as React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Settings, Bell, Shield, Palette, Save, RefreshCw, Info, CheckCircle2 } from 'lucide-react';
 
 const SETTINGS_SECTIONS = [
   { id: 'atelier', label: 'Atelier', icon: Settings },
-  { id: 'sync',    label: 'Synchronisation', icon: RefreshCw },
-  { id: 'notifs',  label: 'Notifications', icon: Bell },
-  { id: 'securite',label: 'Sécurité', icon: Shield },
-  { id: 'ui',      label: 'Interface', icon: Palette },
-]
+  { id: 'sync', label: 'Synchronisation', icon: RefreshCw },
+  { id: 'notifs', label: 'Notifications', icon: Bell },
+  { id: 'securite', label: 'Sécurité', icon: Shield },
+  { id: 'ui', label: 'Interface', icon: Palette },
+];
 
 export default function AdminParametresPage() {
-  const [activeSection, setActiveSection] = React.useState('atelier')
-  const [saved, setSaved] = React.useState(false)
+  const [activeSection, setActiveSection] = React.useState('atelier');
+  const [saved, setSaved] = React.useState(false);
 
   const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
-  }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="max-w-5xl space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Paramètres</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Configuration de la plateforme admin — connexion cloud, notifications et préférences atelier.
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Paramètres</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Configuration de la plateforme admin — connexion cloud, notifications et préférences
+          atelier.
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-6">
+      <div className="flex flex-col gap-6 sm:flex-row">
         {/* Sidebar nav */}
-        <div className="w-full sm:w-48 shrink-0">
+        <div className="w-full shrink-0 sm:w-48">
           <nav className="space-y-1">
             {SETTINGS_SECTIONS.map((s) => {
-              const Icon = s.icon
-              const active = activeSection === s.id
+              const Icon = s.icon;
+              const active = activeSection === s.id;
               return (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors text-left ${
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-xs font-medium transition-colors ${
                     active
-                      ? 'bg-primary/10 text-primary border border-primary/20'
+                      ? 'border border-primary/20 bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   {s.label}
                 </button>
-              )
+              );
             })}
           </nav>
         </div>
@@ -82,14 +72,14 @@ export default function AdminParametresPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Nom de l'atelier</Label>
+                    <Label className="text-xs">Nom de l&apos;atelier</Label>
                     <Input defaultValue="Atelier Plastiques Sfax" className="text-xs" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Référence interne</Label>
-                    <Input defaultValue="ATL-SFX-001" className="text-xs font-mono" />
+                    <Input defaultValue="ATL-SFX-001" className="font-mono text-xs" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Responsable technique</Label>
@@ -99,16 +89,20 @@ export default function AdminParametresPage() {
                     <Label className="text-xs">Fuseau horaire</Label>
                     <Input defaultValue="Africa/Tunis (UTC+1)" className="text-xs" readOnly />
                   </div>
-                  <div className="sm:col-span-2 space-y-1.5">
+                  <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">Adresse physique</Label>
-                    <Input defaultValue="Zone Industrielle, Sfax 3000, Tunisie" className="text-xs" />
+                    <Input
+                      defaultValue="Zone Industrielle, Sfax 3000, Tunisie"
+                      className="text-xs"
+                    />
                   </div>
                 </div>
                 <Separator />
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border">
-                  <Info className="w-4 h-4 text-primary shrink-0" />
+                <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3">
+                  <Info className="h-4 w-4 shrink-0 text-primary" />
                   <p className="text-xs text-muted-foreground">
-                    Ces informations apparaissent dans les devis PDF et les notifications envoyées aux clients.
+                    Ces informations apparaissent dans les devis PDF et les notifications envoyées
+                    aux clients.
                   </p>
                 </div>
               </CardContent>
@@ -118,7 +112,9 @@ export default function AdminParametresPage() {
           {activeSection === 'sync' && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-bold">Configuration Synchronisation Neon</CardTitle>
+                <CardTitle className="text-sm font-bold">
+                  Configuration Synchronisation Neon
+                </CardTitle>
                 <CardDescription className="text-xs">
                   Paramètres de connexion à la base de données cloud Neon Postgres
                 </CardDescription>
@@ -130,24 +126,29 @@ export default function AdminParametresPage() {
                     <Input
                       type="password"
                       defaultValue="postgresql://neon.tech/partiva-prod?sslmode=require"
-                      className="text-xs font-mono"
+                      className="font-mono text-xs"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Intervalle de sync (secondes)</Label>
-                      <Input type="number" defaultValue={45} className="text-xs font-mono" />
+                      <Input type="number" defaultValue={45} className="font-mono text-xs" />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Rétention locale (jours)</Label>
-                      <Input type="number" defaultValue={90} className="text-xs font-mono" />
+                      <Input type="number" defaultValue={90} className="font-mono text-xs" />
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs text-emerald-600 font-medium">Connexion testée et opérationnelle</span>
-                  <Badge variant="outline" className="ml-auto text-[9px] font-mono border-emerald-500/30 text-emerald-500">
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <span className="text-xs font-medium text-emerald-600">
+                    Connexion testée et opérationnelle
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="ml-auto border-emerald-500/30 font-mono text-[9px] text-emerald-500"
+                  >
                     Latence 42 ms
                   </Badge>
                 </div>
@@ -165,20 +166,45 @@ export default function AdminParametresPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
-                  { label: 'Nouvelle demande urgence CRITIQUE', desc: 'Alerte immédiate dès la réception', active: true },
-                  { label: 'Candidat trouvé ≥ 70% similarité', desc: 'Notification pour validation rapide', active: true },
-                  { label: 'Retard de synchronisation > 5 min', desc: 'Alerte perte de connexion cloud', active: true },
-                  { label: 'Machine CNC en surcharge (> 90%)', desc: 'Monitoring charge parc machines', active: false },
-                  { label: 'Rapport de production quotidien', desc: 'Résumé 18h00 chaque jour', active: false },
+                  {
+                    label: 'Nouvelle demande urgence CRITIQUE',
+                    desc: 'Alerte immédiate dès la réception',
+                    active: true,
+                  },
+                  {
+                    label: 'Candidat trouvé ≥ 70% similarité',
+                    desc: 'Notification pour validation rapide',
+                    active: true,
+                  },
+                  {
+                    label: 'Retard de synchronisation > 5 min',
+                    desc: 'Alerte perte de connexion cloud',
+                    active: true,
+                  },
+                  {
+                    label: 'Machine CNC en surcharge (> 90%)',
+                    desc: 'Monitoring charge parc machines',
+                    active: false,
+                  },
+                  {
+                    label: 'Rapport de production quotidien',
+                    desc: 'Résumé 18h00 chaque jour',
+                    active: false,
+                  },
                 ].map((notif) => (
-                  <div key={notif.label} className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-muted/20">
+                  <div
+                    key={notif.label}
+                    className="flex items-center justify-between gap-4 rounded-lg border bg-muted/20 p-3"
+                  >
                     <div>
                       <p className="text-xs font-medium">{notif.label}</p>
                       <p className="text-[10px] text-muted-foreground">{notif.desc}</p>
                     </div>
-                    <div className={`w-9 h-5 rounded-full transition-colors cursor-pointer border ${
-                      notif.active ? 'bg-primary border-primary/50' : 'bg-muted border-border'
-                    }`} />
+                    <div
+                      className={`h-5 w-9 cursor-pointer rounded-full border transition-colors ${
+                        notif.active ? 'border-primary/50 bg-primary' : 'border-border bg-muted'
+                      }`}
+                    />
                   </div>
                 ))}
               </CardContent>
@@ -190,7 +216,7 @@ export default function AdminParametresPage() {
               <CardHeader>
                 <CardTitle className="text-sm font-bold">Sécurité</CardTitle>
                 <CardDescription className="text-xs">
-                  Accès et authentification à l'interface admin de l'atelier
+                  Accès et authentification à l&apos;interface admin de l&apos;atelier
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -207,12 +233,19 @@ export default function AdminParametresPage() {
                 <Separator />
                 <div className="space-y-2">
                   <p className="text-xs font-semibold">Session active</p>
-                  <div className="flex items-center justify-between text-xs p-3 rounded-lg bg-muted/40 border">
+                  <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-3 text-xs">
                     <div>
                       <p className="font-medium">Poste Atelier Local</p>
-                      <p className="text-muted-foreground text-[10px]">192.168.1.10 — Connecté depuis 2h</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        192.168.1.10 — Connecté depuis 2h
+                      </p>
                     </div>
-                    <Badge variant="outline" className="text-[9px] border-emerald-500/30 text-emerald-500">Active</Badge>
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-500/30 text-[9px] text-emerald-500"
+                    >
+                      Active
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -224,7 +257,7 @@ export default function AdminParametresPage() {
               <CardHeader>
                 <CardTitle className="text-sm font-bold">Interface</CardTitle>
                 <CardDescription className="text-xs">
-                  Préférences d'affichage et de langue
+                  Préférences d&apos;affichage et de langue
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -236,9 +269,14 @@ export default function AdminParametresPage() {
                     { label: 'Unités dimensionnelles', value: 'Millimètres (mm)' },
                     { label: 'Densité affichage', value: 'Compact' },
                   ].map((pref) => (
-                    <div key={pref.label} className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+                    <div
+                      key={pref.label}
+                      className="flex items-center justify-between rounded-lg border bg-muted/20 p-3"
+                    >
                       <span className="text-xs font-medium">{pref.label}</span>
-                      <Badge variant="outline" className="text-[10px] font-mono">{pref.value}</Badge>
+                      <Badge variant="outline" className="font-mono text-[10px]">
+                        {pref.value}
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -251,12 +289,12 @@ export default function AdminParametresPage() {
             <Button onClick={handleSave} className="gap-2 font-bold" disabled={saved}>
               {saved ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="h-4 w-4" />
                   Enregistré !
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <Save className="h-4 w-4" />
                   Enregistrer les modifications
                 </>
               )}
@@ -265,5 +303,5 @@ export default function AdminParametresPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
