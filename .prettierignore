@@ -11,3 +11,14 @@ package-lock.json
 .agents/
 .claude/
 .windsurf/
+
+# Config infra (formatage manuel, hors baseline applicative)
+next.config.mjs
+next.config.js
+next.config.ts
+tsconfig.json
+tailwind.config.ts
+tailwind.config.js
+postcss.config.js
+postcss.config.mjs
+prisma7.config.ts
