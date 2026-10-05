@@ -43,4 +43,4 @@ Thumbs.db
 *.tsbuildinfo
 
 # Generated
-/src/generated/prisma
+src/generated/

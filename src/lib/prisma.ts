@@ -8,12 +8,14 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is not set in environment variables')
 }
 
-const adapter = new PrismaPg({
-  connectionString,
-  // Neon serverless: increase connect timeout to handle scale-to-zero
-  options: {
-    connect_timeout: 30,
+const adapter = new PrismaPg(
+  {
+    connectionString,
+    connectionTimeoutMillis: 30000,
   },
-})
+  {
+    schema: 'public',
+  }
+)
 
 export const prisma = new PrismaClient({ adapter })
