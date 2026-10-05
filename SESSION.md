@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | `[Vercel / VPS / Docker / À DÉFINIR]` |
 | **Phase actuelle** | `[Prototype / MVP / Beta / Prod — À REMPLIR]` |
-| **Dernière session** | `—` |
-| **Session en cours** | `S001 (à ouvrir)` |
-| **Statut global** | 🟡 Initialisation |
+| **Dernière session** | `E0-S02-3b` |
+| **Session en cours** | `E0-S02-4` |
+| **Statut global** | 🟢 Fondation en cours |
 
 ---
 
@@ -28,7 +28,17 @@
 
 > À ajuster au fil des sessions. Cocher ✅ quand terminé.
 
-- [ ] **Phase 1 — Fondations** : setup projet, DB, auth, design system
+- [ ] **Phase 1 — Fondations** : sécurisation infra (E0-S01)
+- [ ] **Phase 1 — Fondations** : setup qualité ESLint/Prettier (E0-S02)
+- [ ] **Phase 1 — Fondations** : décision version Prisma (E0-S02b)
+- [ ] **Phase 1 — Fondations** : résorption erreurs ESLint (E0-S02c)
+- [ ] **Phase 1 — Fondations** : schéma Prisma réel (E0-S03)
+- [ ] **Phase 1 — Fondations** : migration + seed dev (E0-S04)
+- [ ] **Phase 1 — Fondations** : auth réelle (E0-S05)
+- [ ] **Phase 1 — Fondations** : middleware & protection routes (E0-S06)
+- [ ] **Phase 1 — Fondations** : remplacement mocks par DB réelle (E0-S07)
+- [ ] **Phase 1 — Fondations** : migration Next 14 → 16 (E0-S08)
+- [ ] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [ ] **Phase 2 — Core Features** : `[à définir]`
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
@@ -42,7 +52,112 @@
 <!-- TEMPLATE À COPIER POUR CHAQUE NOUVELLE SESSION TERMINÉE   -->
 <!-- ────────────────────────────────────────────────────────── -->
 
-### Session S001 — `[Titre de la session]`
+### Session E0-S01 — Sécurisation infra
+- **Date** : `05/10/2026`
+- **Objectif** : Nettoyage infra & sécurisation du repo
+- **Statut** : ✅ terminée
+- **Livrables** :
+  - `.gitignore` durci (secrets, Tauri, IDE)
+  - Audit historique Git : 4 commits, 0 secret exposé
+  - Diagnostic 12 vulnérabilités npm (documenté, reporté)
+  - Section "Vulnérabilités reportées" dans SESSION.md
+- **Décisions techniques** :
+  - Aucune rotation de secrets nécessaire (historique sain)
+  - Migrations majeures reportées à sessions dédiées
+  - Next.js 14→16 → E0-S08
+  - Prisma 7 canary→6 stable → E0-S03b
+  - Tailwind 3→4 → E0-S09
+- **Problèmes rencontrés** :
+  - 12 vulns sans fix safe (dette de versions)
+- **Reporté à E0-S02** :
+  - Setup qualité (ESLint, Prettier)
+
+<!-- ────────────────────────────────────────────────────────── -->
+
+### Session E0-S02-1 — Setup ESLint
+- **Date** : `05/10/2026`
+- **Objectif** : Installation et configuration ESLint pour Next 14 + TypeScript
+- **Statut** : ✅ terminée
+- **Livrables** :
+  - `.eslintrc.json` créé
+  - `.eslintignore` créé
+  - Script `lint:fix` ajouté dans package.json
+  - `npm run lint` opérationnel
+- **Décisions techniques** :
+  - ESLint 8.57.1 + eslint-config-next 14.2.35
+  - Configuration legacy JSON compatible Next 14
+- **Problèmes rencontrés** :
+  - 72 erreurs ESLint détectées (hors scope)
+- **Reporté** :
+  - E0-S02-2 : Prettier
+  - E0-S02c : résorption des 72 erreurs
+
+### Session E0-S02-2 — Setup Prettier
+- **Date** : `05/10/2026`
+- **Objectif** : Installation et configuration Prettier
+- **Statut** : ✅ terminée
+- **Livrables** :
+  - `.prettierrc.json` créé
+  - `.prettierignore` créé
+  - Scripts `format` et `format:check` ajoutés
+  - `npm run format:check` opérationnel
+- **Décisions techniques** :
+  - Prettier 3.9.9
+  - Configuration: singleQuote, trailingComma all, printWidth 100
+- **Problèmes rencontrés** :
+  - 196 fichiers non conformes Prettier (hors scope)
+- **Reporté** :
+  - E0-S02-3 : intégration ESLint ↔ Prettier
+  - E0-S02-4 : scripts + validation finale
+
+### Session E0-S02-3 — Intégration ESLint ↔ Prettier
+- **Date** : `05/10/2026`
+- **Objectif** : Intégration de `eslint-config-prettier` pour résoudre les conflits ESLint/Prettier
+- **Statut** : ✅ terminée
+- **Livrables** :
+  - `eslint-config-prettier` 10.1.8 installé
+  - `.eslintrc.json` mis à jour avec `extends: ["next/core-web-vitals", "prettier"]`
+  - `eslint-config-prettier` confirmé hors de cause (138 = 138)
+- **Décisions techniques** :
+  - `prettier` désormais en fin de chaîne d'extends
+  - Aucun conflit entre ESLint et Prettier
+- **Problèmes rencontrés** :
+  - Confusion initiale entre 72 erreurs (E0-S02-1) et mesure erronée
+- **Reporté à E0-S02-3b** :
+  - Diagnostic fiable du comptage ESLint
+
+### Session E0-S02-3b — Diagnostic baseline ESLint
+- **Date** : `05/10/2026`
+- **Objectif** : Établir une baseline fiable du nombre d'erreurs ESLint
+- **Statut** : ✅ terminée
+- **Livrables** :
+  - Cause identifiée : undercount E0-S02-1 (72 déclaré, réalité 138)
+  - Méthode de mesure fiable établie : `--format json` + comptage scripté
+  - `.eslintrc.json` restauré (rollback)
+  - Aucune correction de code (scope E0-S02c)
+- **Décisions techniques** :
+  - Baseline qualité figée : 138 erreurs ESLint / 0 warning / 196 fichiers Prettier
+  - Toute mesure ESLint doit passer par JSON scripté (règle ajoutée à `.kilocode/rules.md`)
+- **Problèmes rencontrés** :
+  - Undercount de 66 erreurs dans E0-S02-1
+- **Reporté à E0-S02-4** :
+  - Scripts npm cohérents + validation finale + décision tailwind plugin
+
+### Session E0-S02-4 — Scripts + validation finale + tailwind plugin
+- **Date** : `05/10/2026`
+- **Objectif** : Finaliser l'outillage qualité : scripts npm, validation globale, `prettier-plugin-tailwindcss`
+- **Statut** : ⏳ en cours
+- **Livrables** :
+  - Scripts npm cohérents
+  - `prettier-plugin-tailwindcss` installé et configuré
+  - Validation globale : lint, format:check, typecheck, build
+- **Décisions techniques** :
+  - Installation de `prettier-plugin-tailwindcss` autorisée par Superviseur
+  - Aucune exécution de `npm run format` ou `npm run lint:fix`
+- **Problèmes rencontrés** :
+  - `[...]`
+
+### Session S001 — `[Titre de la session]]`
 - **Date** : `[JJ/MM/AAAA]`
 - **Objectif** : `[...]`
 - **Statut** : ⏳ en cours / ✅ terminée / ⚠️ partielle / ❌ bloquée
@@ -76,14 +191,34 @@
 ### 🚀 Infra / DevOps
 - **Hosting** : `[à définir]`
 - **CI/CD** : `[à définir]`
+- **Sécurité repo** : ✅ auditée (E0-S01)
+- **Vulnérabilités npm** : 12 identifiées, report documenté
 - **Variables d'environnement** : `[à lister]`
 
 ---
 
 ## 🐛 DETTES TECHNIQUES & TODO CRITIQUES
 
-- [ ] `[...]`
-- [ ] `[...]`
+- [ ] Résorption 138 erreurs ESLint (E0-S02c)
+- [ ] Migration Next 14 → 16 (E0-S08)
+- [ ] Migration Prisma 7 canary → 6 stable (E0-S02b / E0-S03)
+- [ ] Migration Tailwind 3 → 4 (E0-S09)
+
+---
+
+## 🚨 VULNÉRABILITÉS REPORTÉES
+
+> Vulnérabilités non corrigées dans E0-S01 car nécessitant des migrations majeures. Reportées aux sessions indiquées.
+
+| Cluster | Packages concernés | Session cible | Raison du report |
+|---|---|---|---|
+| Next.js 14 → 16 | `next` | E0-S08 | Migration majeure 14 → 16, breaking changes React/APIs |
+| Prisma canary → 6 stable | `prisma`, `@prisma/client`, `@prisma/config`, `mysql2`, `deepmerge-ts` | E0-S03 | Version 7.10.0 non production ; décision de version requise avant schéma |
+| Tailwind 3 → 4 | `tailwindcss`, `tailwindcss-animate`, `braces`, `chokidar`, `micromatch` | E0-S09 | Migration majeure, pas de fix disponible en 3.x |
+| postcss | `postcss` | E0-S08 | Fix inclus dans la migration Next.js 16 |
+| fast-glob / micromatch / braces | `fast-glob`, `micromatch`, `braces` | À définir | Dépendances transitives Tailwind, pas de fix non-breaking disponible |
+
+**Audit npm au 05/10/2026** : 12 vulnérabilités (1 critical, 11 high). Aucune correction non-breaking disponible pour ces clusters.
 
 ---
 
@@ -99,9 +234,9 @@
 
 ## 🎯 PROCHAINE SESSION PRÉVUE
 
-- **Session** : `S001`
-- **Objectif** : `[à définir avec le Superviseur]`
-- **Étapes prévues** : `[à découper par le Superviseur]`
+- **Session** : `E0-S02-4`
+- **Objectif** : Scripts npm + validation finale + installation `prettier-plugin-tailwindcss`
+- **Étapes prévues** : `[voir ordre E0-S02-4 transmis à Kilo Code]`
 
 ---
 

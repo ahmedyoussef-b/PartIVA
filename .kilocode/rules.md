@@ -118,6 +118,19 @@ Si tu es bloqué ou incertain :
 
 ---
 
+## 🔒 RÈGLES DE MESURE & OUTILLAGE QUALITÉ
+
+7. **Toute mesure ESLint doit passer par `--format json` + comptage scripté.**
+   - Interdiction formelle de compter les erreurs en sortie texte (`eslint .`).
+   - Méthode obligatoire :
+     ```bash
+     npx eslint . --ext .js,.jsx,.ts,.tsx --no-cache --format json > /tmp/eslint-results.json
+     node -e "const d=require('/tmp/eslint-results.json'); const msgs=d.flatMap(f=>f.messages||[]); console.log(msgs.length)"
+     ```
+   - Même règle pour `format:check` : toujours compter par script, jamais à l'œil nu.
+
+---
+
 ## 📚 RESSOURCES DE RÉFÉRENCE
 
 - Next.js docs : https://nextjs.org/docs

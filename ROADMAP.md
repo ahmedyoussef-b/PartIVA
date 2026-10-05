@@ -108,11 +108,16 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 |---|---|---|---|
 | **E0-S01** | Nettoyage infra & sécurisation du repo | `.env` sorti du git, vulns corrigées, `.gitignore` durci | 🔴 Critique |
 | **E0-S02** | Setup qualité (ESLint, Prettier, scripts) | `npm run lint` et `npm run format` fonctionnels | 🟠 Haute |
+| **E0-S02b** | Décision version Prisma (6 stable vs 7 canary) | Version figée avant schéma | 🔴 Critique |
+| **E0-S02c** | Résorption erreurs ESLint | Code applicatif nettoyé (138 erreurs / 0 warning / 196 fichiers Prettier) | 🟡 Moyenne |
+| **E0-S02-4** | Scripts + validation finale + tailwind plugin | `prettier-plugin-tailwindcss` installé, scripts cohérents, build OK | 🟡 Moyenne |
 | **E0-S03** | Schéma Prisma réel (noyau métier) | User, Part, Request, Material, Machine, Status | 🔴 Critique |
 | **E0-S04** | Première migration + seed dev | DB Neon opérationnelle avec données test | 🔴 Critique |
 | **E0-S05** | Auth réelle (BetterAuth) | Inscription, connexion, session persistante | 🔴 Critique |
 | **E0-S06** | Middleware & protection des routes | `/admin/*` et `/client/*` protégés | 🔴 Critique |
 | **E0-S07** | Remplacement des mocks par DB réelle | `mock-data.ts` supprimé, tout branche sur Prisma | 🔴 Critique |
+| **E0-S08** | Migration Next 14 → 16 | Upgrade Next.js + vérification compatibilité | 🟠 Haute |
+| **E0-S09** | Migration Tailwind 3 → 4 | Upgrade Tailwind + adaptation config | 🟡 Moyenne |
 
 **Définition de "E0 terminée"** : l'app démarre, un utilisateur peut s'inscrire, se connecter, créer une pièce, la voir persister en DB, et les zones admin/client sont inaccessibles sans rôle adéquat.
 
@@ -294,7 +299,7 @@ Ces décisions seront prises **en E7-S02**, pas maintenant.
 
 | Étape | Sessions | Durée estimée | Dépendance |
 |---|---|---|---|
-| **E0** Fondation | 7 | 2-3 sem. | — |
+| **E0** Fondation | 9 | 3-4 sem. | — |
 | **E1** Modèle métier | 7 | 2-3 sem. | E0 |
 | **E2** Identification | 9 | 3-4 sem. | E1 |
 | **E3** Sources externes | 7 | 3-4 sem. | E2 |
@@ -303,9 +308,9 @@ Ces décisions seront prises **en E7-S02**, pas maintenant.
 | **E6** Écosystème | 7 | 4-6 sem. | E5 |
 | **E7** Desktop Tauri | 10 | 3-5 sem. | E6 |
 | **E8** Finalisation | 9 | 3-4 sem. | E7 |
-| **TOTAL** | **70 sessions** | **~28-39 sem.** | — |
+| **TOTAL** | **72 sessions** | **~30-42 sem.** | — |
 
-**Estimation réaliste** : **7 à 10 mois** pour la plateforme complète hybride.
+**Estimation réaliste** : **7 à 11 mois** pour la plateforme complète hybride.
 
 ---
 
