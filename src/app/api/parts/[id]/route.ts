@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import { INITIAL_PARTS } from '@/lib/mock-data';
+import { getPartById } from '@/lib/data/parts';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const item = INITIAL_PARTS.find((p) => p.id === params.id);
-  if (!item) {
+  const part = await getPartById(params.id);
+
+  if (!part) {
     return NextResponse.json({ message: 'Pièce non trouvée' }, { status: 404 });
   }
-  return NextResponse.json(item);
+
+  return NextResponse.json(part);
 }
