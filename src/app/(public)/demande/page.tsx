@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDropzone } from 'react-dropzone';
-import { useMutation } from '@tanstack/react-query';
+import { useTransition } from 'react';
 import { CreateRequestSchema, type CreateRequest } from '@/schemas/request';
 import { MaterialSchema } from '@/schemas/part';
 import { FR } from '@/i18n/fr';
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowRight, ArrowLeft, UploadCloud, X, CheckCircle2 } from 'lucide-react';
+import { createRequest } from '@/lib/actions/requests';
 
 const STEPS = [
   { id: 1, label: 'Client' },
@@ -87,8 +88,10 @@ export default function DemandePage() {
     setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const submitMutation = useMutation({
-    mutationFn: async (data: CreateRequest) => {
+  const [isPending, startTransition] = useTransition();
+
+  const onSubmit = async (data: CreateRequest) => {
+    startTransition(async () => {
       const payload = {
         client: data.client,
         machineRef: data.machineRef,
@@ -99,20 +102,15 @@ export default function DemandePage() {
         urgency: data.urgency,
         photos: photoPreviews.length > 0 ? photoPreviews : [],
       };
-      const res = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Erreur lors de la création de la demande');
-      return res.json();
-    },
-    onSuccess: (result) => {
-      toast.success('Demande enregistrée avec succès !');
-      router.push(`/demande/confirmation?id=${result.id || 'req-new'}`);
-    },
-    onError: (err: Error) => toast.error(err.message || 'Échec de la soumission'),
-  });
+      const result = await createRequest(payload);
+      if (result.success) {
+        toast.success('Demande enregistrée avec succès !');
+        router.push(`/demande/confirmation?id=${(result.data as unknown as { id?: string }).id || 'req-new'}`);
+      } else {
+        toast.error(result.error || 'Échec de la soumission');
+      }
+    });
+  };
 
   const handleNext = async () => {
     let valid = false;
@@ -139,8 +137,6 @@ export default function DemandePage() {
   };
 
   const handlePrev = () => setCurrentStep((s) => Math.max(1, s - 1));
-
-  const onSubmit = (data: CreateRequest) => submitMutation.mutate(data);
 
   return (
     <div className="container max-w-3xl py-12">
@@ -487,7 +483,7 @@ export default function DemandePage() {
             <Button
               type="button"
               variant="ghost"
-              disabled={currentStep === 1 || submitMutation.isPending}
+              disabled={currentStep === 1 || isPending}
               onClick={handlePrev}
               className="gap-2"
             >
@@ -501,11 +497,11 @@ export default function DemandePage() {
             ) : (
               <Button
                 type="submit"
-                disabled={submitMutation.isPending}
+                disabled={isPending}
                 className="gap-2 font-semibold"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                {submitMutation.isPending ? 'Envoi...' : 'Envoyer la demande'}
+                {isPending ? 'Envoi...' : 'Envoyer la demande'}
               </Button>
             )}
           </div>
