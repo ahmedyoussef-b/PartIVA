@@ -1,7 +1,8 @@
 'use client';
 
-import ReverseEngineeringPage from '@/app/admin/reverse-engineering/page';
+import { ReverseEngineeringContent } from '@/app/admin/reverse-engineering/reverse-engineering-content';
 
-export default function ReverseEngineeringDemandePage({ params }: { params: { id: string } }) {
-  return <ReverseEngineeringPage params={params} />;
+export default async function ReverseEngineeringDemandePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <ReverseEngineeringContent requestId={id} />;
 }

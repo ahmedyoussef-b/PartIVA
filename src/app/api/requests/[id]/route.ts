@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getRequestById } from '@/lib/data/requests';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const request = await getRequestById(params.id);
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const request = await getRequestById(id);
 
   if (!request) {
     return NextResponse.json({ message: 'Demande non trouvée' }, { status: 404 });
@@ -12,17 +13,18 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(request);
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const body = await req.json();
-    const request = await getRequestById(params.id);
+    const request = await getRequestById(id);
 
     if (!request) {
       return NextResponse.json({ message: 'Demande non trouvée' }, { status: 404 });
     }
 
     const updated = await prisma.request.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: body.status ? body.status.toUpperCase() : request.status,
         updatedAt: new Date(),

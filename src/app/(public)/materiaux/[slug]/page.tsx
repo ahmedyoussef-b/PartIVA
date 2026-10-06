@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -9,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, CheckCircle2, Box } from 'lucide-react';
 
-export default function MaterialDetailPage({ params }: { params: { slug: string } }) {
-  const material = MATERIALS_CATALOG.find((m) => m.slug === params.slug);
+export default async function MaterialDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const material = MATERIALS_CATALOG.find((m) => m.slug === slug);
 
   if (!material) {
     notFound();
