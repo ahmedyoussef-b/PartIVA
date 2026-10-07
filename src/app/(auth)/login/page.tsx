@@ -9,45 +9,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { LogIn, ShieldCheck, UserCheck, ArrowLeft } from 'lucide-react';
+import { signIn } from '@/lib/auth-client';
+import { LogIn, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
-  const login = useAuthStore((s) => s.login);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setTimeout(() => {
+
+    const { data, error: signInError } = await signIn.email({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message ?? 'Identifiants invalides');
       setLoading(false);
-      const success = login(email, password);
-      if (!success) {
-        toast.error('Email ou mot de passe incorrect');
-        return;
-      }
-      toast.success('Connexion réussie');
-      if (email.includes('admin') || email.includes('atelier')) {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/client/dashboard/creer-piece');
-      }
-    }, 600);
-  };
+      return;
+    }
 
-  const loginAsClient = () => {
-    setEmail('m.bensalem@delice.tn');
-    setPassword('client123');
-    toast.info('Identifiants Client Permanent pré-remplis');
-  };
+    toast.success('Connexion réussie');
 
-  const loginAsAdmin = () => {
-    setEmail('admin@partiva.tn');
-    setPassword('admin123');
-    toast.info('Identifiants Admin pré-remplis');
+    const role = (data?.user as { role?: string } | undefined)?.role;
+    if (role === 'ADMIN') {
+      router.push('/admin/dashboard');
+    } else {
+      router.push('/client/dashboard/creer-piece');
+    }
   };
 
   return (
@@ -73,22 +68,12 @@ export default function LoginPage() {
             Retour
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" onClick={loginAsClient} className="gap-1.5 text-xs">
-            <UserCheck className="h-3.5 w-3.5 text-primary" />
-            Client
-          </Button>
-          <Button variant="outline" size="sm" onClick={loginAsAdmin} className="gap-1.5 text-xs">
-            <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
-            Admin
-          </Button>
-        </div>
 
-        <div className="space-y-1 text-[11px] text-muted-foreground">
-          <p className="font-semibold text-foreground">Comptes de démo :</p>
-          <p>Admin : admin@partiva.tn / admin123</p>
-          <p>Client : m.bensalem@delice.tn / client123</p>
-        </div>
+        {error ? (
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+            {error}
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

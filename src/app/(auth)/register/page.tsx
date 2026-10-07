@@ -9,21 +9,37 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { signUp } from '@/lib/auth-client';
 import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [company, setCompany] = React.useState('');
+  const [contactName, setContactName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setTimeout(() => {
+
+    const { error: signUpError } = await signUp.email({
+      email,
+      password,
+      name: `${company} - ${contactName}`,
+    });
+
+    if (signUpError) {
+      setError(signUpError.message ?? 'Inscription impossible');
       setLoading(false);
-      toast.success('Bienvenue ! Votre compte client permanent a été activé.');
-      // Redirection directe vers la page d'upload photos de la pièce
-      router.push('/client/dashboard/creer-piece');
-    }, 800);
+      return;
+    }
+
+    toast.success('Bienvenue ! Votre compte client a été créé.');
+    router.push('/client/dashboard/creer-piece');
   };
 
   return (
@@ -41,25 +57,57 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error ? (
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+            {error}
+          </div>
+        ) : null}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="company">Nom de l’entreprise / Usine *</Label>
-            <Input id="company" required placeholder="Ex: Délice Danone, Poulina, Sancella..." />
+            <Input
+              id="company"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              required
+              placeholder="Ex: Délice Danone, Poulina, Sancella..."
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Responsable maintenance ou achat *</Label>
-            <Input id="name" required placeholder="Ex: Tarek Mejri" />
+            <Label htmlFor="contactName">Responsable maintenance ou achat *</Label>
+            <Input
+              id="contactName"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              required
+              placeholder="Ex: Tarek Mejri"
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email professionnel *</Label>
-            <Input id="email" type="email" required placeholder="contact@entreprise.tn" />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="contact@entreprise.tn"
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Mot de passe *</Label>
-            <Input id="password" type="password" required placeholder="••••••••" />
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+            />
           </div>
 
           <Button type="submit" disabled={loading} className="w-full gap-2 font-bold shadow-md">

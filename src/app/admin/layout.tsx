@@ -13,16 +13,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useSyncStore } from '@/lib/stores/sync-store';
 import { useAppMode } from '@/lib/app-mode';
-import { useAuthStore } from '@/lib/stores/auth-store';
+import { useSession, signOut } from '@/lib/auth-client';
 import { ShieldAlert, ArrowLeft, Monitor, Lock, LogOut } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { triggerSync } = useSyncStore();
   const { isTauri, setManualMode } = useAppMode();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { data: session, isPending } = useSession();
 
-  const isAdmin = isAuthenticated && user?.role === 'admin';
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
 
   React.useEffect(() => {
     if (!isTauri) return;
@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => clearInterval(timer);
   }, [triggerSync, isTauri]);
 
-  if (!isAdmin) {
+  if (isPending || !isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
         <Card className="w-full max-w-2xl border-border/80 shadow-2xl">
@@ -136,13 +136,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/20 text-xs font-bold text-emerald-500">
                 ADM
               </div>
-              <span className="hidden text-xs font-medium sm:inline">{user?.name || 'Admin'}</span>
+              <span className="hidden text-xs font-medium sm:inline">
+                {session?.user?.name || 'Admin'}
+              </span>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                logout();
+              onClick={async () => {
+                await signOut();
                 router.push('/login');
               }}
               className="h-7 px-2 text-[10px] text-muted-foreground"
