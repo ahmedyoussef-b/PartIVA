@@ -1,15 +1,15 @@
-import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth-server';
 import { getRequests } from '@/lib/data/requests';
 import DemandesClient from './demandes-client';
+import { redirect } from 'next/navigation';
 
 export default async function ClientDemandesPage() {
-  const clientEmail = 'user@partiva.dev';
-  const users = await prisma.user.findMany({
-    where: { email: clientEmail },
-    select: { id: true },
-  });
-  const clientId = users[0]?.id;
-  const requests = clientId ? await getRequests({ clientId }) : [];
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/login');
+  }
+
+  const requests = await getRequests({ clientId: user.id });
 
   return <DemandesClient initialRequests={requests} />;
 }

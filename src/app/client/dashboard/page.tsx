@@ -1,18 +1,29 @@
-'use client';
-
-import * as React from 'react';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getRequests } from '@/lib/data/requests';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PipelineStepper } from '@/components/domain/pipeline-stepper';
-import { INITIAL_REQUESTS } from '@/lib/mock-data';
 import { FR } from '@/i18n/fr';
 import { formatDate } from '@/lib/utils';
 import { FileText, Clock, Hammer, CheckCircle2, PlusCircle, ArrowRight } from 'lucide-react';
 
-export default function ClientDashboardPage() {
-  const requests = INITIAL_REQUESTS;
+const URGENCY_LABELS: Record<string, string> = {
+  LOW: FR.urgencies.low,
+  MEDIUM: FR.urgencies.normal,
+  HIGH: FR.urgencies.high,
+  URGENT: FR.urgencies.critical,
+};
+
+export default async function ClientDashboardPage() {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/login');
+  }
+
+  const requests = await getRequests({ clientId: user.id, limit: 3 });
 
   return (
     <div className="max-w-6xl space-y-8">
@@ -23,7 +34,8 @@ export default function ClientDashboardPage() {
             Espace Maintenance & Commandes
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Suivez la numérisation CAO, l’usinage et l’expédition de vos pièces industrielles.
+            Suivez la numérisation CAO, l&apos;usinage et l&apos;expédition de vos pièces
+            industrielles.
           </p>
         </div>
         <Link href="/demande">
@@ -42,8 +54,8 @@ export default function ClientDashboardPage() {
             <FileText className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="font-mono text-2xl font-black">3</div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Dont 1 arrêt de ligne</p>
+            <div className="font-mono text-2xl font-black">{requests.length}</div>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Votre espace client</p>
           </CardContent>
         </Card>
 
@@ -53,8 +65,10 @@ export default function ClientDashboardPage() {
             <Hammer className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="font-mono text-2xl font-black text-amber-500">1</div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Tour CNC Haas ST-20</p>
+            <div className="font-mono text-2xl font-black text-amber-500">
+              {requests.filter((req) => req.status === 'IN_PROGRESS').length}
+            </div>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Sur vos demandes</p>
           </CardContent>
         </Card>
 
@@ -64,7 +78,9 @@ export default function ClientDashboardPage() {
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="font-mono text-2xl font-black text-emerald-500">14</div>
+            <div className="font-mono text-2xl font-black text-emerald-500">
+              {requests.filter((req) => req.status === 'COMPLETED').length}
+            </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">Année en cours</p>
           </CardContent>
         </Card>
@@ -89,28 +105,28 @@ export default function ClientDashboardPage() {
             href="/client/dashboard/demandes"
             className="text-xs font-semibold text-primary hover:underline"
           >
-            Voir l’historique complet →
+            Voir l&apos;historique complet →
           </Link>
         </div>
 
         <div className="space-y-4">
-          {requests.slice(0, 3).map((req) => (
+          {requests.map((req) => (
             <Card key={req.id} className="transition-all hover:border-primary/50">
               <CardContent className="space-y-4 p-5">
                 <div className="flex flex-col justify-between gap-2 border-b pb-3 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-xs font-bold text-primary">
-                      {req.cloudId ? `#REQ-${req.cloudId}` : req.id.slice(0, 8)}
+                      {req.id.slice(0, 8)}
                     </span>
                     <Badge
-                      variant={req.urgency === 'critical' ? 'critical' : 'outline'}
+                      variant={req.urgency === 'URGENT' ? 'critical' : 'outline'}
                       className="text-[10px]"
                     >
-                      Urgence : {FR.urgencies[req.urgency]}
+                      Urgence : {URGENCY_LABELS[req.urgency] ?? req.urgency}
                     </Badge>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    Soumise le {formatDate(req.createdAt)}
+                    Soumise le {formatDate(req.createdAt.toISOString())}
                   </span>
                 </div>
 
