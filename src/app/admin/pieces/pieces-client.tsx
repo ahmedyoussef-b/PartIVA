@@ -46,7 +46,7 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
 
   const allMaterials = React.useMemo(
     () => [...new Set(parts.map((p) => p.material).filter((m): m is string => Boolean(m)))],
-    [parts]
+    [parts],
   );
 
   const filtered = React.useMemo(() => {

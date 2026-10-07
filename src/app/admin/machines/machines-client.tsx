@@ -129,7 +129,10 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
           const currentJob = machine.currentJob ?? '—';
           const capacity = machine.capacity ?? '—';
           return (
-            <Card key={machine.id} className={`border transition-all hover:shadow-md ${config.borderColor}`}>
+            <Card
+              key={machine.id}
+              className={`border transition-all hover:shadow-md ${config.borderColor}`}
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -137,11 +140,16 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
                       <Hammer className={`h-5 w-5 ${config.color}`} />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-bold leading-snug">{machine.name}</CardTitle>
+                      <CardTitle className="text-sm font-bold leading-snug">
+                        {machine.name}
+                      </CardTitle>
                       <CardDescription className="mt-0.5 text-xs">{machine.type}</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className={`shrink-0 border text-[10px] ${config.borderColor} ${config.color}`}>
+                  <Badge
+                    variant="outline"
+                    className={`shrink-0 border text-[10px] ${config.borderColor} ${config.color}`}
+                  >
                     <StatusIcon className="mr-1 h-2.5 w-2.5" />
                     {config.label}
                   </Badge>

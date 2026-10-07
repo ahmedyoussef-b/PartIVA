@@ -16,7 +16,11 @@ import type { MaterialWithDetails } from '@/lib/data/materials';
 
 const MATERIAL_COLORS: Record<string, { accent: string; bg: string; border: string }> = {
   'POM-C': { accent: 'text-blue-500', bg: 'bg-blue-500/8', border: 'border-blue-500/20' },
-  'UHMW-PE': { accent: 'text-emerald-500', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20' },
+  'UHMW-PE': {
+    accent: 'text-emerald-500',
+    bg: 'bg-emerald-500/8',
+    border: 'border-emerald-500/20',
+  },
   PTFE: { accent: 'text-violet-500', bg: 'bg-violet-500/8', border: 'border-violet-500/20' },
   PA6: { accent: 'text-amber-500', bg: 'bg-amber-500/8', border: 'border-amber-500/20' },
   PEHD: { accent: 'text-cyan-500', bg: 'bg-cyan-500/8', border: 'border-cyan-500/20' },
@@ -58,7 +62,9 @@ interface AdminMateriauxPageClientProps {
   initialMaterials: MaterialWithDetails[];
 }
 
-export default function AdminMateriauxPageClient({ initialMaterials }: AdminMateriauxPageClientProps) {
+export default function AdminMateriauxPageClient({
+  initialMaterials,
+}: AdminMateriauxPageClientProps) {
   const [selected, setSelected] = React.useState<string | null>(null);
 
   const materials = React.useMemo(() => initialMaterials, [initialMaterials]);
@@ -68,9 +74,12 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
   return (
     <div className="max-w-7xl space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Plastiques Techniques</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Plastiques Techniques
+        </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Catalogue complet des matières usinées dans l&apos;atelier — propriétés, applications et aide à la sélection.
+          Catalogue complet des matières usinées dans l&apos;atelier — propriétés, applications et
+          aide à la sélection.
         </p>
       </div>
 
@@ -88,7 +97,9 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
                 key={mat.id}
                 onClick={() => setSelected(isActive ? null : mat.slug)}
                 className={`w-full rounded-xl border p-4 text-left transition-all hover:shadow-sm ${
-                  isActive ? `${col.border} ${col.bg} shadow-sm` : 'border-border bg-card/60 hover:bg-muted/40'
+                  isActive
+                    ? `${col.border} ${col.bg} shadow-sm`
+                    : 'border-border bg-card/60 hover:bg-muted/40'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -99,11 +110,15 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
                       {mat.code}
                     </div>
                     <div>
-                      <div className="text-xs font-bold leading-tight text-foreground">{mat.name.split(' (')[0]}</div>
+                      <div className="text-xs font-bold leading-tight text-foreground">
+                        {mat.name.split(' (')[0]}
+                      </div>
                       <div className="text-[10px] text-muted-foreground">{mat.category}</div>
                     </div>
                   </div>
-                  <ArrowRight className={`h-4 w-4 transition-transform ${isActive ? 'rotate-90' : ''} ${col.accent}`} />
+                  <ArrowRight
+                    className={`h-4 w-4 transition-transform ${isActive ? 'rotate-90' : ''} ${col.accent}`}
+                  />
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-3 font-mono text-[10px]">
@@ -138,10 +153,14 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
               <div className="rounded-full bg-muted p-4">
                 <Layers className="h-8 w-8 text-muted-foreground/40" />
               </div>
-              <p className="text-sm text-muted-foreground">Sélectionnez une matière pour afficher ses propriétés détaillées</p>
+              <p className="text-sm text-muted-foreground">
+                Sélectionnez une matière pour afficher ses propriétés détaillées
+              </p>
             </div>
           ) : (
-            <Card className={`${getColor(selectedMat.code).border} ${getColor(selectedMat.code).bg}`}>
+            <Card
+              className={`${getColor(selectedMat.code).border} ${getColor(selectedMat.code).bg}`}
+            >
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <span
@@ -156,7 +175,9 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
-                <p className="text-xs leading-relaxed text-muted-foreground">{selectedMat.description}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {selectedMat.description}
+                </p>
 
                 <Separator />
 
@@ -173,24 +194,36 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
                       value: selectedMat.foodGrade ? '✓ FDA / CE 1935' : '✗ Non certifié',
                     },
                   ].map((prop) => (
-                    <div key={prop.label} className="rounded-lg border border-border/50 bg-background/60 p-3">
-                      <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{prop.label}</div>
+                    <div
+                      key={prop.label}
+                      className="rounded-lg border border-border/50 bg-background/60 p-3"
+                    >
+                      <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {prop.label}
+                      </div>
                       <div className="text-xs font-bold text-foreground">{prop.value}</div>
                     </div>
                   ))}
                 </div>
 
-                <ResistanceBar label="Résistance chimique" value={selectedMat.resistanceChemical ?? 'Moyenne'} />
+                <ResistanceBar
+                  label="Résistance chimique"
+                  value={selectedMat.resistanceChemical ?? 'Moyenne'}
+                />
 
                 <Separator />
 
                 {/* Advantages */}
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Avantages clés</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Avantages clés
+                  </h4>
                   <ul className="space-y-1.5">
                     {selectedMat.advantages.map((adv, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs">
-                        <CheckCircle2 className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${getColor(selectedMat.code).accent}`} />
+                        <CheckCircle2
+                          className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${getColor(selectedMat.code).accent}`}
+                        />
                         <span>{adv}</span>
                       </li>
                     ))}
@@ -199,7 +232,9 @@ export default function AdminMateriauxPageClient({ initialMaterials }: AdminMate
 
                 {/* Applications */}
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Applications typiques atelier</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Applications typiques atelier
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedMat.commonApplications.map((app, i) => (
                       <span

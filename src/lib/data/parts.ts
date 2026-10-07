@@ -1,5 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import type { Part, PartCategory, PartImage, PartSpecification, PartSupplier } from '@/generated/prisma/client';
+import type {
+  Part,
+  PartCategory,
+  PartImage,
+  PartSpecification,
+  PartSupplier,
+} from '@/generated/prisma/client';
 
 export type PartWithRelations = Part & {
   category: PartCategory | null;
@@ -75,6 +81,8 @@ export async function getPartById(id: string): Promise<PartWithRelations | null>
 }
 
 export async function getPartsCount(options?: { status?: string }): Promise<number> {
-  const where = options?.status ? { status: options.status.toUpperCase() as Part['status'] } : undefined;
+  const where = options?.status
+    ? { status: options.status.toUpperCase() as Part['status'] }
+    : undefined;
   return prisma.part.count({ where });
 }

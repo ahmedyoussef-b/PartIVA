@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { hashPassword } from 'better-auth/crypto';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -42,30 +43,68 @@ async function main() {
 
   // ── Users ───────────────────────────────────────────────────────────
   console.log('👤 Creating users...');
-  const admin = await prisma.user.create({
-    data: {
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@partiva.dev' },
+    update: { name: 'Marc Dubois', role: 'ADMIN' },
+    create: {
       email: 'admin@partiva.dev',
       name: 'Marc Dubois',
-      passwordHash: '$2b$10$placeholder.hash.for.dev.seed.only',
       role: 'ADMIN',
     },
   });
 
-  const user = await prisma.user.create({
-    data: {
+  const user = await prisma.user.upsert({
+    where: { email: 'user@partiva.dev' },
+    update: { name: 'Sophie Martin', role: 'USER' },
+    create: {
       email: 'user@partiva.dev',
       name: 'Sophie Martin',
-      passwordHash: '$2b$10$placeholder.hash.for.dev.seed.only',
       role: 'USER',
     },
   });
 
-  const _viewer = await prisma.user.create({
-    data: {
+  const viewer = await prisma.user.upsert({
+    where: { email: 'viewer@partiva.dev' },
+    update: { name: 'Thomas Bernard', role: 'VIEWER' },
+    create: {
       email: 'viewer@partiva.dev',
       name: 'Thomas Bernard',
-      passwordHash: '$2b$10$placeholder.hash.for.dev.seed.only',
       role: 'VIEWER',
+    },
+  });
+
+  const devPasswordHash = await hashPassword('PartIVA-dev-2026!');
+
+  await prisma.account.upsert({
+    where: { providerId_accountId: { providerId: 'credential', accountId: admin.id } },
+    update: { password: devPasswordHash },
+    create: {
+      userId: admin.id,
+      accountId: admin.id,
+      providerId: 'credential',
+      password: devPasswordHash,
+    },
+  });
+
+  await prisma.account.upsert({
+    where: { providerId_accountId: { providerId: 'credential', accountId: user.id } },
+    update: { password: devPasswordHash },
+    create: {
+      userId: user.id,
+      accountId: user.id,
+      providerId: 'credential',
+      password: devPasswordHash,
+    },
+  });
+
+  await prisma.account.upsert({
+    where: { providerId_accountId: { providerId: 'credential', accountId: viewer.id } },
+    update: { password: devPasswordHash },
+    create: {
+      userId: viewer.id,
+      accountId: viewer.id,
+      providerId: 'credential',
+      password: devPasswordHash,
     },
   });
 
@@ -486,7 +525,8 @@ async function main() {
   const request1 = await prisma.request.create({
     data: {
       clientId: user.id,
-      partDescription: 'Étoile de transfert bouteilles 1L cassée suite à un bourrage. Les alvéoles de guidage sont fissurées. Pièce d’origine introuvable avant 6 semaines chez le constructeur étranger.',
+      partDescription:
+        'Étoile de transfert bouteilles 1L cassée suite à un bourrage. Les alvéoles de guidage sont fissurées. Pièce d’origine introuvable avant 6 semaines chez le constructeur étranger.',
       partFunction: 'Sélection et cadencement synchronisé des bouteilles vers l’encaisseuse.',
       suspectedMaterial: 'UHMW-PE',
       quantity: 4,
@@ -505,7 +545,8 @@ async function main() {
   const request2 = await prisma.request.create({
     data: {
       clientId: user.id,
-      partDescription: 'Coulisseau de commande de cadre usé prématurément par abrasion. Frottement métal/plastique. Besoin d’un plastique autolubrifiant avec forte tenue thermique.',
+      partDescription:
+        'Coulisseau de commande de cadre usé prématurément par abrasion. Frottement métal/plastique. Besoin d’un plastique autolubrifiant avec forte tenue thermique.',
       partFunction: 'Guidage alternatif linéaire haute fréquence (600 coups/min).',
       suspectedMaterial: 'POM-C',
       quantity: 12,
@@ -519,8 +560,9 @@ async function main() {
 
   const request3 = await prisma.request.create({
     data: {
-      clientId: _viewer.id,
-      partDescription: 'Bague d’étanchéité de sortie huile végétale. La pièce existante s’est déformée sous la chaleur (85°C) et les acides gras libres.',
+      clientId: viewer.id,
+      partDescription:
+        'Bague d’étanchéité de sortie huile végétale. La pièce existante s’est déformée sous la chaleur (85°C) et les acides gras libres.',
       partFunction: 'Joint labyrinthe tournant sans contact agressif.',
       suspectedMaterial: 'PTFE',
       quantity: 2,
@@ -534,7 +576,8 @@ async function main() {
 
   const request4 = await prisma.request.create({
     data: {
-      partDescription: 'Patin d’usure sous chariot de translation. Pièce usée jusqu’à la fixation métallique.',
+      partDescription:
+        'Patin d’usure sous chariot de translation. Pièce usée jusqu’à la fixation métallique.',
       partFunction: 'Support de charge dynamique 500 kg en translation continue.',
       suspectedMaterial: 'PA66',
       quantity: 6,

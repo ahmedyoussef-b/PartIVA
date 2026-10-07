@@ -1,7 +1,11 @@
 import { getRequestById } from '@/lib/data/requests';
 import RechercheClient from './recherche-client';
 
-export default async function RechercheMultiSourcePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RechercheMultiSourcePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const request = await getRequestById(id);
 

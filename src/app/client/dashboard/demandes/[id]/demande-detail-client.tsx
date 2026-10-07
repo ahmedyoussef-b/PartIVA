@@ -91,7 +91,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 <div>
                   <span className="block text-[11px] text-muted-foreground">MATIÈRE ANALYSÉE</span>
                   <span className="font-mono font-semibold text-primary">
-                    {request.suspectedMaterial || 'En cours d\'analyse'}
+                    {request.suspectedMaterial || "En cours d'analyse"}
                   </span>
                 </div>
                 <div>
@@ -111,7 +111,8 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 Photos & Échantillons Transmis
               </CardTitle>
               <CardDescription>
-                Prises de vue utilisées pour le dimensionnement et la recherche d&apos;équivalences CAO.
+                Prises de vue utilisées pour le dimensionnement et la recherche d&apos;équivalences
+                CAO.
               </CardDescription>
             </CardHeader>
             <CardContent>

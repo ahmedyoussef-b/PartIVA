@@ -7,7 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, CheckCircle2, Box } from 'lucide-react';
 
-export default async function MaterialDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function MaterialDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const material = await getMaterialBySlug(slug);
 
@@ -28,9 +32,17 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="font-mono text-3xl font-black tracking-tight text-primary sm:text-4xl">{material.code}</h1>
-              <Badge variant="outline" className="text-xs">{material.category}</Badge>
-              {material.foodGrade && <Badge variant="success" className="text-xs">Agréé Contact Alimentaire</Badge>}
+              <h1 className="font-mono text-3xl font-black tracking-tight text-primary sm:text-4xl">
+                {material.code}
+              </h1>
+              <Badge variant="outline" className="text-xs">
+                {material.category}
+              </Badge>
+              {material.foodGrade && (
+                <Badge variant="success" className="text-xs">
+                  Agréé Contact Alimentaire
+                </Badge>
+              )}
             </div>
             <p className="text-lg text-muted-foreground">{material.name}</p>
           </div>
@@ -79,7 +91,10 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
             <CardContent>
               <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 {material.commonApplications.map((app, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 rounded-lg border bg-muted/30 p-3 font-medium">
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2.5 rounded-lg border bg-muted/30 p-3 font-medium"
+                  >
                     <Box className="h-4 w-4 shrink-0 text-primary" />
                     <span>{app}</span>
                   </div>
@@ -93,7 +108,9 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
         <div className="space-y-6">
           <Card className="border-primary/40 bg-card/80">
             <CardHeader>
-              <CardTitle className="font-mono text-base uppercase tracking-wider">Fiche Métrologique</CardTitle>
+              <CardTitle className="font-mono text-base uppercase tracking-wider">
+                Fiche Métrologique
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 font-mono text-xs">
@@ -115,7 +132,9 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                 </div>
                 <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Coefficient de frottement</span>
-                  <span className="font-bold text-emerald-500">µ = {material.frictionCoefficient}</span>
+                  <span className="font-bold text-emerald-500">
+                    µ = {material.frictionCoefficient}
+                  </span>
                 </div>
                 <div className="flex justify-between border-b py-1.5">
                   <span className="text-muted-foreground">Résistance chimique</span>
@@ -123,13 +142,17 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                 </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-muted-foreground">Contact alimentaire</span>
-                  <span className="font-bold">{material.foodGrade ? 'Conforme CE/FDA' : 'Non homologué'}</span>
+                  <span className="font-bold">
+                    {material.foodGrade ? 'Conforme CE/FDA' : 'Non homologué'}
+                  </span>
                 </div>
               </div>
 
               <div className="pt-2">
                 <Link href="/demande">
-                  <Button className="w-full font-bold shadow-sm">Lancer un devis avec ce matériau</Button>
+                  <Button className="w-full font-bold shadow-sm">
+                    Lancer un devis avec ce matériau
+                  </Button>
                 </Link>
               </div>
             </CardContent>

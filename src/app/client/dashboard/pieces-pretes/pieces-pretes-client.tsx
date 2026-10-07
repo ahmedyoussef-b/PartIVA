@@ -75,7 +75,15 @@ function mapPartToReadyPart(part: PartWithRelations, index: number): ReadyPartIt
     })),
     metrics: [
       { label: 'Référence', value: part.partNumber },
-      { label: 'Statut', value: status === 'prete' ? 'Prête à l\'envoi' : status === 'expediee' ? 'Expédiée' : 'En transit' },
+      {
+        label: 'Statut',
+        value:
+          status === 'prete'
+            ? "Prête à l'envoi"
+            : status === 'expediee'
+              ? 'Expédiée'
+              : 'En transit',
+      },
     ],
   };
 }
@@ -89,7 +97,7 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
 
   const readyParts = React.useMemo(
     () => initialParts.slice(0, 2).map(mapPartToReadyPart),
-    [initialParts]
+    [initialParts],
   );
 
   const downloadReport = (ref: string) => {
@@ -143,7 +151,9 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
               <p className="text-xs font-medium text-muted-foreground">
                 Pièces prêtes pour expédition
               </p>
-              <p className="font-mono text-2xl font-black text-emerald-500">{readyParts.length} commandes</p>
+              <p className="font-mono text-2xl font-black text-emerald-500">
+                {readyParts.length} commandes
+              </p>
               <p className="text-[11px] text-muted-foreground">
                 {readyParts.reduce((acc, p) => acc + p.quantity, 0)} pièces contrôlées
               </p>

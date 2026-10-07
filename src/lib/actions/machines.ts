@@ -27,7 +27,7 @@ const UpdateMachineSchema = z.object({
 });
 
 export async function createMachine(
-  input: z.infer<typeof CreateMachineSchema>
+  input: z.infer<typeof CreateMachineSchema>,
 ): Promise<{ success: true; data: MachineWithRelations } | { success: false; error: string }> {
   try {
     const validated = CreateMachineSchema.parse(input);
@@ -53,7 +53,7 @@ export async function createMachine(
 }
 
 export async function updateMachine(
-  input: z.infer<typeof UpdateMachineSchema>
+  input: z.infer<typeof UpdateMachineSchema>,
 ): Promise<{ success: true; data: MachineWithRelations } | { success: false; error: string }> {
   try {
     const validated = UpdateMachineSchema.parse(input);

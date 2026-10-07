@@ -1,7 +1,11 @@
 import { getReverseEngineeringProjectById } from '@/lib/data/reverse-engineering';
 import ReverseEngineeringContent from '../reverse-engineering-content';
 
-export default async function ReverseEngineeringProjectPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReverseEngineeringProjectPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const project = await getReverseEngineeringProjectById(id);
 

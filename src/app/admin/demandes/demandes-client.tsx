@@ -155,7 +155,9 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                             >
                               {FR.urgencies[req.urgency]}
                             </Badge>
-                            {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                            {isPending && (
+                              <span className="text-[10px] text-muted-foreground">...</span>
+                            )}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">
@@ -178,7 +180,9 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                             <Badge variant="secondary" className="text-[10px]">
                               {FR.statuses[req.status]}
                             </Badge>
-                            {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                            {isPending && (
+                              <span className="text-[10px] text-muted-foreground">...</span>
+                            )}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">

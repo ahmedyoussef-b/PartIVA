@@ -30,6 +30,8 @@ export async function getMachineById(id: string): Promise<MachineWithRelations |
 }
 
 export async function getMachinesCount(options?: { status?: string }): Promise<number> {
-  const where = options?.status ? { status: options.status.toUpperCase() as MachineStatus } : undefined;
+  const where = options?.status
+    ? { status: options.status.toUpperCase() as MachineStatus }
+    : undefined;
   return prisma.machine.count({ where });
 }

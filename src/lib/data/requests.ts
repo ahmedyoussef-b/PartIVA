@@ -1,5 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import type { Request, User, ReverseEngineeringProject, RequestStatus, UrgencyLevel } from '@/generated/prisma/client';
+import type {
+  Request,
+  User,
+  ReverseEngineeringProject,
+  RequestStatus,
+  UrgencyLevel,
+} from '@/generated/prisma/client';
 
 export type RequestWithRelations = Request & {
   client: User | null;
@@ -48,6 +54,8 @@ export async function getRequestById(id: string): Promise<RequestWithRelations |
 }
 
 export async function getRequestsCount(options?: { status?: string }): Promise<number> {
-  const where = options?.status ? { status: options.status.toUpperCase() as RequestStatus } : undefined;
+  const where = options?.status
+    ? { status: options.status.toUpperCase() as RequestStatus }
+    : undefined;
   return prisma.request.count({ where });
 }

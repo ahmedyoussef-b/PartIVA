@@ -1,5 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import type { ReverseEngineeringProject, ReverseEngineeringStep, CadFile, Request, Part } from '@/generated/prisma/client';
+import type {
+  ReverseEngineeringProject,
+  ReverseEngineeringStep,
+  CadFile,
+  Request,
+  Part,
+} from '@/generated/prisma/client';
 
 export type REProjectWithRelations = ReverseEngineeringProject & {
   part: Part | null;
@@ -45,7 +51,9 @@ export async function getReverseEngineeringProjects(options?: {
   });
 }
 
-export async function getReverseEngineeringProjectById(id: string): Promise<REProjectWithRelations | null> {
+export async function getReverseEngineeringProjectById(
+  id: string,
+): Promise<REProjectWithRelations | null> {
   return prisma.reverseEngineeringProject.findUnique({
     where: { id },
     include: {
@@ -58,7 +66,9 @@ export async function getReverseEngineeringProjectById(id: string): Promise<REPr
   });
 }
 
-export async function getReverseEngineeringProjectsCount(options?: { status?: string }): Promise<number> {
+export async function getReverseEngineeringProjectsCount(options?: {
+  status?: string;
+}): Promise<number> {
   const where = options?.status
     ? { status: options.status.toUpperCase() as ReverseEngineeringProject['status'] }
     : undefined;

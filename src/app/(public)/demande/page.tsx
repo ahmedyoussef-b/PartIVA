@@ -105,7 +105,9 @@ export default function DemandePage() {
       const result = await createRequest(payload);
       if (result.success) {
         toast.success('Demande enregistrée avec succès !');
-        router.push(`/demande/confirmation?id=${(result.data as unknown as { id?: string }).id || 'req-new'}`);
+        router.push(
+          `/demande/confirmation?id=${(result.data as unknown as { id?: string }).id || 'req-new'}`,
+        );
       } else {
         toast.error(result.error || 'Échec de la soumission');
       }
@@ -495,11 +497,7 @@ export default function DemandePage() {
                 Suivant <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="gap-2 font-semibold"
-              >
+              <Button type="submit" disabled={isPending} className="gap-2 font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
                 {isPending ? 'Envoi...' : 'Envoyer la demande'}
               </Button>

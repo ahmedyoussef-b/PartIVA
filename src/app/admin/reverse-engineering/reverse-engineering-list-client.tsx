@@ -31,7 +31,9 @@ interface ReverseEngineeringListClientProps {
   initialProjects: REProjectWithRelations[];
 }
 
-export default function ReverseEngineeringListClient({ initialProjects }: ReverseEngineeringListClientProps) {
+export default function ReverseEngineeringListClient({
+  initialProjects,
+}: ReverseEngineeringListClientProps) {
   const projects = React.useMemo(() => initialProjects, [initialProjects]);
 
   const filtered = React.useMemo(() => {
@@ -39,7 +41,7 @@ export default function ReverseEngineeringListClient({ initialProjects }: Revers
       const matchName = project.name.toLowerCase().includes('');
       const matchDescription = project.description?.toLowerCase().includes('') ?? false;
       const matchRequest = project.requests.some((req) =>
-        req.partDescription.toLowerCase().includes('')
+        req.partDescription.toLowerCase().includes(''),
       );
       return matchName || matchDescription || matchRequest;
     });
@@ -95,9 +97,7 @@ export default function ReverseEngineeringListClient({ initialProjects }: Revers
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="text-xs">
-                          {project.requests.length} demande(s)
-                        </div>
+                        <div className="text-xs">{project.requests.length} demande(s)</div>
                       </TableCell>
                       <TableCell>
                         <div className="text-xs">

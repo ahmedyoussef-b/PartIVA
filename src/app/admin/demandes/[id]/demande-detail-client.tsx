@@ -197,8 +197,8 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
             <CardHeader>
               <CardTitle className="text-base font-semibold">Photos & Documents Reçus</CardTitle>
               <CardDescription>
-                Ces photos sont conservées localement dans l&apos;atelier conformément à la politique de
-                confidentialité.
+                Ces photos sont conservées localement dans l&apos;atelier conformément à la
+                politique de confidentialité.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,7 +1,11 @@
 import { getRequestById } from '@/lib/data/requests';
 import DemandeDetailClient from './demande-detail-client';
 
-export default async function ClientDemandeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientDemandeDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const request = await getRequestById(id);
 

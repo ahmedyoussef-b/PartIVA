@@ -42,7 +42,7 @@ type CreateRequestInput = {
 };
 
 export async function createRequest(
-  input: CreateRequestInput
+  input: CreateRequestInput,
 ): Promise<{ success: true; data: Request } | { success: false; error: string }> {
   try {
     const validated = CreateRequestSchema.parse(input);
@@ -62,7 +62,6 @@ export async function createRequest(
             email: validated.client.email,
             name: validated.client.name,
             role: 'USER',
-            passwordHash: '$2b$10$placeholder.hash.for.dev.seed.only',
           },
           select: { id: true },
         });
@@ -70,11 +69,12 @@ export async function createRequest(
       }
     }
 
-    const photos = validated.photos?.map((file) => {
-      if (typeof file === 'string') return file;
-      if (file instanceof File) return URL.createObjectURL(file);
-      return String(file);
-    }) ?? [];
+    const photos =
+      validated.photos?.map((file) => {
+        if (typeof file === 'string') return file;
+        if (file instanceof File) return URL.createObjectURL(file);
+        return String(file);
+      }) ?? [];
 
     const request = await prisma.request.create({
       data: {
@@ -111,14 +111,16 @@ type UpdateRequestStatusInput = {
 };
 
 export async function updateRequestStatus(
-  input: UpdateRequestStatusInput
+  input: UpdateRequestStatusInput,
 ): Promise<{ success: true; data: Request } | { success: false; error: string }> {
   try {
     const validated = RequestStatusSchema.parse(input.status);
 
     const request = await prisma.request.update({
       where: { id: input.id },
-      data: { status: (PRISMA_STATUS_MAP[validated] ?? validated.toUpperCase()) as Request['status'] },
+      data: {
+        status: (PRISMA_STATUS_MAP[validated] ?? validated.toUpperCase()) as Request['status'],
+      },
       include: {
         client: true,
         projects: true,
@@ -143,14 +145,16 @@ type UpdateRequestUrgencyInput = {
 };
 
 export async function updateRequestUrgency(
-  input: UpdateRequestUrgencyInput
+  input: UpdateRequestUrgencyInput,
 ): Promise<{ success: true; data: Request } | { success: false; error: string }> {
   try {
     const validated = RequestUrgencySchema.parse(input.urgency);
 
     const request = await prisma.request.update({
       where: { id: input.id },
-      data: { urgency: (PRISMA_URGENCY_MAP[validated] ?? validated.toUpperCase()) as Request['urgency'] },
+      data: {
+        urgency: (PRISMA_URGENCY_MAP[validated] ?? validated.toUpperCase()) as Request['urgency'],
+      },
       include: {
         client: true,
         projects: true,

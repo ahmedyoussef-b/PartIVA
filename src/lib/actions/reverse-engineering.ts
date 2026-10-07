@@ -23,7 +23,7 @@ const UpdateREProjectStatusSchema = z.object({
 
 const AddREStepSchema = z.object({
   projectId: z.string().uuid(),
-  name: z.string().min(1, 'Le nom de l\'étape est requis'),
+  name: z.string().min(1, "Le nom de l'étape est requis"),
   description: z.string().optional(),
   order: z.number().int().min(0),
 });
@@ -44,7 +44,7 @@ const AddCadFileSchema = z.object({
 });
 
 export async function createREProject(
-  input: z.infer<typeof CreateREProjectSchema>
+  input: z.infer<typeof CreateREProjectSchema>,
 ): Promise<{ success: true; data: REProjectWithRelations } | { success: false; error: string }> {
   try {
     const validated = CreateREProjectSchema.parse(input);
@@ -77,7 +77,7 @@ export async function createREProject(
 }
 
 export async function updateREProjectStatus(
-  input: z.infer<typeof UpdateREProjectStatusSchema>
+  input: z.infer<typeof UpdateREProjectStatusSchema>,
 ): Promise<{ success: true; data: REProjectWithRelations } | { success: false; error: string }> {
   try {
     const validated = UpdateREProjectStatusSchema.parse(input);
@@ -105,7 +105,7 @@ export async function updateREProjectStatus(
 }
 
 export async function addREStep(
-  input: z.infer<typeof AddREStepSchema>
+  input: z.infer<typeof AddREStepSchema>,
 ): Promise<{ success: true; data: ReverseEngineeringStep } | { success: false; error: string }> {
   try {
     const validated = AddREStepSchema.parse(input);
@@ -133,12 +133,12 @@ export async function addREStep(
     return { success: true, data: step };
   } catch (error) {
     console.error('Error adding RE step:', error);
-    return { success: false, error: 'Erreur lors de l\'ajout de l\'étape' };
+    return { success: false, error: "Erreur lors de l'ajout de l'étape" };
   }
 }
 
 export async function updateREStep(
-  input: z.infer<typeof UpdateREStepSchema>
+  input: z.infer<typeof UpdateREStepSchema>,
 ): Promise<{ success: true; data: ReverseEngineeringStep } | { success: false; error: string }> {
   try {
     const validated = UpdateREStepSchema.parse(input);
@@ -157,12 +157,12 @@ export async function updateREStep(
     return { success: true, data: step };
   } catch (error) {
     console.error('Error updating RE step:', error);
-    return { success: false, error: 'Erreur lors de la mise à jour de l\'étape' };
+    return { success: false, error: "Erreur lors de la mise à jour de l'étape" };
   }
 }
 
 export async function addCadFile(
-  input: z.infer<typeof AddCadFileSchema>
+  input: z.infer<typeof AddCadFileSchema>,
 ): Promise<{ success: true; data: CadFile } | { success: false; error: string }> {
   try {
     const validated = AddCadFileSchema.parse(input);
@@ -191,6 +191,6 @@ export async function addCadFile(
     return { success: true, data: cadFile };
   } catch (error) {
     console.error('Error adding CAD file:', error);
-    return { success: false, error: 'Erreur lors de l\'ajout du fichier CAO' };
+    return { success: false, error: "Erreur lors de l'ajout du fichier CAO" };
   }
 }
