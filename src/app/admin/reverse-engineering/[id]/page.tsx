@@ -1,8 +1,13 @@
-'use client';
+import { getReverseEngineeringProjectById } from '@/lib/data/reverse-engineering';
+import ReverseEngineeringContent from '../reverse-engineering-content';
 
-import { ReverseEngineeringContent } from '@/app/admin/reverse-engineering/reverse-engineering-content';
-
-export default async function ReverseEngineeringDemandePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReverseEngineeringProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <ReverseEngineeringContent requestId={id} />;
+  const project = await getReverseEngineeringProjectById(id);
+
+  if (!project) {
+    return <div className="p-8 text-center text-muted-foreground">Projet introuvable</div>;
+  }
+
+  return <ReverseEngineeringContent project={project} />;
 }

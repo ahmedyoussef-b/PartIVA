@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { INITIAL_REQUESTS } from '@/lib/mock-data';
-import { FR } from '@/i18n/fr';
+import type { REProjectWithRelations } from '@/lib/data/reverse-engineering';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,23 +31,16 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-const RE_STEPS = [
-  { id: 'photos', label: 'Photos & Numérisation', done: true },
-  { id: 'mesures', label: 'Relevé de cotes', done: false },
-  { id: 'materiau', label: 'ID matière', done: false },
-  { id: 'tolérances', label: 'Tolérances & fits', done: false },
-  { id: 'validation', label: 'Validation CAO', done: false },
-];
-
 const EMPTY_MESURE = { cote: '', valeur: '', tolerance: '', note: '' };
 
-export function ReverseEngineeringContent({ requestId }: { requestId?: string }) {
-  const request =
-    (requestId
-      ? INITIAL_REQUESTS.find((r) => r.id === requestId) || INITIAL_REQUESTS[2]
-      : INITIAL_REQUESTS[2]) ?? INITIAL_REQUESTS[0];
+interface ReverseEngineeringContentProps {
+  project: REProjectWithRelations;
+}
 
-  const [steps, setSteps] = React.useState(RE_STEPS);
+export default function ReverseEngineeringContent({ project }: ReverseEngineeringContentProps) {
+  const request = project.requests[0] ?? null;
+
+  const [steps, setSteps] = React.useState(project.steps);
   const [mesures, setMesures] = React.useState([
     {
       cote: 'Diamètre extérieur',
@@ -64,15 +56,11 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
   );
   const [saved, setSaved] = React.useState(false);
 
-  if (!request) {
-    return <div className="p-8 text-center text-muted-foreground">Dossier introuvable</div>;
-  }
-
-  const completedCount = steps.filter((s) => s.done).length;
+  const completedCount = steps.filter((s) => s.completed).length;
   const progressPct = Math.round((completedCount / steps.length) * 100);
 
   const toggleStep = (id: string) => {
-    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, done: !s.done } : s)));
+    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, completed: !s.completed } : s)));
   };
 
   const addMesure = () => {
@@ -90,23 +78,13 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
   return (
     <div className="max-w-6xl space-y-6">
       <div>
-        {requestId ? (
-          <Link
-            href={`/admin/demandes/${request.id}`}
-            className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Retour au dossier {request.cloudId ? `#REQ-${request.cloudId}` : request.id.slice(0, 8)}
-          </Link>
-        ) : (
-          <Link
-            href="/admin/demandes"
-            className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            File des demandes
-          </Link>
-        )}
+        <Link
+          href="/admin/demandes"
+          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          File des demandes
+        </Link>
 
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
@@ -120,13 +98,13 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
           </div>
           <div className="flex items-center gap-2">
             <Badge
-              variant={request.urgency === 'critical' ? 'critical' : 'outline'}
+              variant={project.status === 'COMPLETED' ? 'default' : 'outline'}
               className="text-xs"
             >
-              {FR.urgencies[request.urgency]}
+              {project.status}
             </Badge>
             <span className="font-mono text-xs font-bold text-primary">
-              {request.cloudId ? `#REQ-${request.cloudId}` : request.id.slice(0, 8)}
+              {project.id.slice(0, 8)}
             </span>
           </div>
         </div>
@@ -137,34 +115,34 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
           <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-4">
             <div>
               <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Client
+                Projet
               </span>
-              <span className="font-semibold">{request.client.company || request.client.name}</span>
+              <span className="font-semibold">{project.name}</span>
             </div>
             <div>
               <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Machine
+                Description
               </span>
-              <span className="font-mono">{request.machineRef || '—'}</span>
+              <span className="font-semibold">{project.description || '—'}</span>
             </div>
             <div>
               <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Matière suspectée
+                Demandes liées
               </span>
-              <Badge variant="outline" className="font-mono text-[10px]">
-                {request.suspectedMaterial}
-              </Badge>
+              <span className="font-bold text-primary">{project.requests.length} demande(s)</span>
             </div>
             <div>
               <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Quantité
+                Fichiers CAO
               </span>
-              <span className="font-bold text-primary">×{request.quantity} pièce(s)</span>
+              <span className="font-bold text-primary">{project.cadFiles.length} fichier(s)</span>
             </div>
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            {request.partDescription}
-          </p>
+          {request && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              {request.partDescription}
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -192,23 +170,23 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
                     key={step.id}
                     onClick={() => toggleStep(step.id)}
                     className={`flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left text-xs transition-all ${
-                      step.done
+                      step.completed
                         ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-700'
                         : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted'
                     }`}
                   >
                     <div
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                        step.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-border'
+                        step.completed ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-border'
                       }`}
                     >
-                      {step.done ? (
+                      {step.completed ? (
                         <CheckCircle2 className="h-3 w-3" />
                       ) : (
                         <span className="text-[9px] font-bold">{i + 1}</span>
                       )}
                     </div>
-                    <span className="font-medium">{step.label}</span>
+                    <span className="font-medium">{step.name}</span>
                   </button>
                 ))}
               </div>
@@ -236,11 +214,16 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-2">
-                {request.photos.map((url, i) => (
-                  <div key={i} className="aspect-square overflow-hidden rounded-lg border bg-muted">
-                    <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
-                  </div>
-                ))}
+                {(() => {
+                  const photos = Array.isArray(request?.photos)
+                    ? request.photos.filter((p): p is string => typeof p === 'string')
+                    : [];
+                  return photos.map((url, i) => (
+                    <div key={i} className="aspect-square overflow-hidden rounded-lg border bg-muted">
+                      <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
+                    </div>
+                  ));
+                })()}
               </div>
             </CardContent>
           </Card>
@@ -383,7 +366,7 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {[
-                      { label: 'Matière suspectée (client)', value: request.suspectedMaterial, color: 'text-primary' },
+                      { label: 'Matière suspectée (client)', value: request?.suspectedMaterial || '—', color: 'text-primary' },
                       { label: 'Couleur de la pièce', value: 'Blanc translucide', color: '' },
                       { label: 'Densité mesurée', value: '2.14 g/cm³', color: '' },
                       { label: 'Test HVN Vickers', value: '54 (Shore D ≈ 55)', color: '' },
@@ -469,24 +452,43 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {[
-                      { name: 'Croquis coté annoté (PDF)', status: 'À produire', icon: FileCheck2, color: 'text-amber-500', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
-                      { name: 'Modèle STEP 3D paramétrique', status: 'À produire', icon: Cpu, color: 'text-amber-500', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
-                      { name: 'Programme CNC (G-code)', status: 'À générer', icon: Hammer, color: 'text-muted-foreground', border: 'border-border', bg: 'bg-muted/20' },
-                      { name: 'Plan de contrôle qualité', status: 'À définir', icon: BarChart3, color: 'text-muted-foreground', border: 'border-border', bg: 'bg-muted/20' },
-                    ].map((f) => {
-                      const Icon = f.icon;
-                      return (
-                        <div key={f.name} className={`flex items-center gap-3 rounded-xl border p-4 ${f.border} ${f.bg}`}>
-                          <Icon className={`h-5 w-5 ${f.color} shrink-0`} />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium">{f.name}</p>
-                            <p className={`text-[10px] ${f.color}`}>{f.status}</p>
+                    {project.cadFiles.length > 0 ? (
+                      project.cadFiles.map((file) => {
+                        const Icon = file.fileType.startsWith('CAD') ? Cpu : file.fileType === 'PDF' ? FileCheck2 : Layers;
+                        const color = 'text-primary';
+                        const border = 'border-border';
+                        const bg = 'bg-muted/20';
+                        return (
+                          <div key={file.id} className={`flex items-center gap-3 rounded-xl border p-4 ${border} ${bg}`}>
+                            <Icon className={`h-5 w-5 ${color} shrink-0`} />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium">{file.name}</p>
+                              <p className={`text-[10px] ${color}`}>{file.fileType}</p>
+                            </div>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                           </div>
-                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    ) : (
+                      [
+                        { name: 'Croquis coté annoté (PDF)', status: 'À produire', icon: FileCheck2, color: 'text-amber-500', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
+                        { name: 'Modèle STEP 3D paramétrique', status: 'À produire', icon: Cpu, color: 'text-amber-500', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
+                        { name: 'Programme CNC (G-code)', status: 'À générer', icon: Hammer, color: 'text-muted-foreground', border: 'border-border', bg: 'bg-muted/20' },
+                        { name: 'Plan de contrôle qualité', status: 'À définir', icon: BarChart3, color: 'text-muted-foreground', border: 'border-border', bg: 'bg-muted/20' },
+                      ].map((f) => {
+                        const Icon = f.icon;
+                        return (
+                          <div key={f.name} className={`flex items-center gap-3 rounded-xl border p-4 ${f.border} ${f.bg}`}>
+                            <Icon className={`h-5 w-5 ${f.color} shrink-0`} />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium">{f.name}</p>
+                              <p className={`text-[10px] ${f.color}`}>{f.status}</p>
+                            </div>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
 
                   <Separator />
@@ -495,10 +497,10 @@ export function ReverseEngineeringContent({ requestId }: { requestId?: string })
                     <Layers className="h-4 w-4 text-primary" />
                     <div>
                       <p className="font-medium">
-                        Référence à créer : {request.cloudId ? `RE-${request.cloudId}` : 'RE-NEW'}
+                        Référence projet : {project.id.slice(0, 8)}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        Sera archivée dans la BDD locale une fois validée
+                        Projet RE en base de données
                       </p>
                     </div>
                   </div>

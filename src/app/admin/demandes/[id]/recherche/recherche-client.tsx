@@ -10,6 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { CandidateCard } from '@/components/domain/candidate-card';
 import { SimilarityScore } from '@/components/domain/similarity-score';
 import {
@@ -30,6 +36,9 @@ import {
 } from 'lucide-react';
 import type { SearchCandidate } from '@/schemas/search';
 import { MOCK_SEARCH_CANDIDATES } from '@/lib/mock-data';
+import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
+import { useTransition } from 'react';
+import type { RequestStatus, RequestUrgency } from '@/schemas/request';
 
 const SOURCES = [
   {
@@ -73,12 +82,50 @@ const SOURCES = [
 type SearchState = 'idle' | 'running' | 'done';
 type SourceProgress = Record<string, { state: SearchState; found: number }>;
 
+const URGENCIES: { value: RequestUrgency; label: string }[] = [
+  { value: 'low', label: 'Standard (7-10 jours ouvrés)' },
+  { value: 'normal', label: 'Normale (4-6 jours ouvrés)' },
+  { value: 'high', label: 'Haute (48-72h)' },
+  { value: 'critical', label: 'Critique / Arrêt de ligne usine (24h)' },
+];
+
+const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
+  { value: 'new', label: 'Nouvelle demande' },
+  { value: 'searching', label: 'Recherche multi-sources' },
+  { value: 'candidate_found', label: 'Candidat identifié (≥ 70%)' },
+  { value: 'reverse_engineering', label: 'Rétro-ingénierie CAO' },
+  { value: 'validated', label: 'Validée pour usinage' },
+  { value: 'machining', label: 'Usinage CNC en cours' },
+  { value: 'completed', label: 'Terminée & Contrôlée' },
+  { value: 'archived', label: 'Archivée' },
+  { value: 'rejected', label: 'Refusée' },
+];
+
 interface RechercheClientProps {
   initialRequest: RequestWithRelations;
 }
 
 export default function RechercheClient({ initialRequest }: RechercheClientProps) {
   const request = mapRequestToUi(initialRequest);
+  const [isPending, startTransition] = useTransition();
+
+  const handleStatusChange = (status: RequestStatus) => {
+    startTransition(async () => {
+      const result = await updateRequestStatus({ id: request.id, status });
+      if (!result.success) {
+        alert(result.error || 'Erreur lors de la mise à jour du statut');
+      }
+    });
+  };
+
+  const handleUrgencyChange = (urgency: RequestUrgency) => {
+    startTransition(async () => {
+      const result = await updateRequestUrgency({ id: request.id, urgency });
+      if (!result.success) {
+        alert(result.error || "Erreur lors de la mise à jour de l'urgence");
+      }
+    });
+  };
 
   const [searchState, setSearchState] = React.useState<SearchState>('idle');
   const [sourceProgress, setSourceProgress] = React.useState<SourceProgress>({});
@@ -150,15 +197,51 @@ export default function RechercheClient({ initialRequest }: RechercheClientProps
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge
-              variant={request.urgency === 'critical' ? 'critical' : 'outline'}
-              className="text-xs"
-            >
-              {FR.urgencies[request.urgency]}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              {FR.statuses[request.status]}
-            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                  <Badge
+                    variant={request.urgency === 'critical' ? 'critical' : 'outline'}
+                    className="text-xs"
+                  >
+                    {FR.urgencies[request.urgency]}
+                  </Badge>
+                  {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {URGENCIES.map((u) => (
+                  <DropdownMenuItem
+                    key={u.value}
+                    onClick={() => handleUrgencyChange(u.value)}
+                    className="text-xs"
+                  >
+                    {u.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                  <Badge variant="secondary" className="text-xs">
+                    {FR.statuses[request.status]}
+                  </Badge>
+                  {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {REQUEST_STATUSES.map((s) => (
+                  <DropdownMenuItem
+                    key={s.value}
+                    onClick={() => handleStatusChange(s.value)}
+                    className="text-xs"
+                  >
+                    {s.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

@@ -5,11 +5,39 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PipelineStepper } from '@/components/domain/pipeline-stepper';
 import { ArrowLeft, Search, Wrench, Phone, Mail, Building } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-mappers';
 import { FR } from '@/i18n/fr';
+import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
+import { useTransition } from 'react';
+import type { RequestStatus, RequestUrgency } from '@/schemas/request';
+
+const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
+  { value: 'new', label: 'Nouvelle demande' },
+  { value: 'searching', label: 'Recherche multi-sources' },
+  { value: 'candidate_found', label: 'Candidat identifié (≥ 70%)' },
+  { value: 'reverse_engineering', label: 'Rétro-ingénierie CAO' },
+  { value: 'validated', label: 'Validée pour usinage' },
+  { value: 'machining', label: 'Usinage CNC en cours' },
+  { value: 'completed', label: 'Terminée & Contrôlée' },
+  { value: 'archived', label: 'Archivée' },
+  { value: 'rejected', label: 'Refusée' },
+];
+
+const URGENCIES: { value: RequestUrgency; label: string }[] = [
+  { value: 'low', label: 'Standard (7-10 jours ouvrés)' },
+  { value: 'normal', label: 'Normale (4-6 jours ouvrés)' },
+  { value: 'high', label: 'Haute (48-72h)' },
+  { value: 'critical', label: 'Critique / Arrêt de ligne usine (24h)' },
+];
 
 interface DemandeDetailClientProps {
   initialRequest: RequestWithRelations;
@@ -17,6 +45,25 @@ interface DemandeDetailClientProps {
 
 export default function DemandeDetailClient({ initialRequest }: DemandeDetailClientProps) {
   const request = mapRequestToUi(initialRequest);
+  const [isPending, startTransition] = useTransition();
+
+  const handleStatusChange = (status: RequestStatus) => {
+    startTransition(async () => {
+      const result = await updateRequestStatus({ id: request.id, status });
+      if (!result.success) {
+        alert(result.error || 'Erreur lors de la mise à jour du statut');
+      }
+    });
+  };
+
+  const handleUrgencyChange = (urgency: RequestUrgency) => {
+    startTransition(async () => {
+      const result = await updateRequestUrgency({ id: request.id, urgency });
+      if (!result.success) {
+        alert(result.error || "Erreur lors de la mise à jour de l'urgence");
+      }
+    });
+  };
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -35,15 +82,51 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
               <span className="font-mono text-2xl font-bold text-primary">
                 {request.id.slice(0, 8)}
               </span>
-              <Badge
-                variant={request.urgency === 'critical' ? 'critical' : 'outline'}
-                className="text-xs"
-              >
-                {FR.urgencies[request.urgency]}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                {FR.statuses[request.status]}
-              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                    <Badge
+                      variant={request.urgency === 'critical' ? 'critical' : 'outline'}
+                      className="text-xs"
+                    >
+                      {FR.urgencies[request.urgency]}
+                    </Badge>
+                    {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {URGENCIES.map((u) => (
+                    <DropdownMenuItem
+                      key={u.value}
+                      onClick={() => handleUrgencyChange(u.value)}
+                      className="text-xs"
+                    >
+                      {u.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                    <Badge variant="secondary" className="text-xs">
+                      {FR.statuses[request.status]}
+                    </Badge>
+                    {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {REQUEST_STATUSES.map((s) => (
+                    <DropdownMenuItem
+                      key={s.value}
+                      onClick={() => handleStatusChange(s.value)}
+                      className="text-xs"
+                    >
+                      {s.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <p className="text-sm text-muted-foreground">
               Reçue de {request.client.company || request.client.name} le{' '}

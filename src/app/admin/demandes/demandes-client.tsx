@@ -13,10 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { FilterBar } from '@/components/shared/filter-bar';
 import { Search } from 'lucide-react';
 import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-mappers';
 import { FR } from '@/i18n/fr';
+import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
+import { useTransition } from 'react';
+import type { RequestStatus, RequestUrgency } from '@/schemas/request';
 
 const STATUS_FILTERS = [
   { value: 'all', label: 'Toutes' },
@@ -26,6 +35,25 @@ const STATUS_FILTERS = [
   { value: 'machining', label: 'Usinage' },
 ];
 
+const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
+  { value: 'new', label: 'Nouvelle demande' },
+  { value: 'searching', label: 'Recherche multi-sources' },
+  { value: 'candidate_found', label: 'Candidat identifié (≥ 70%)' },
+  { value: 'reverse_engineering', label: 'Rétro-ingénierie CAO' },
+  { value: 'validated', label: 'Validée pour usinage' },
+  { value: 'machining', label: 'Usinage CNC en cours' },
+  { value: 'completed', label: 'Terminée & Contrôlée' },
+  { value: 'archived', label: 'Archivée' },
+  { value: 'rejected', label: 'Refusée' },
+];
+
+const URGENCIES: { value: RequestUrgency; label: string }[] = [
+  { value: 'low', label: 'Standard (7-10 jours ouvrés)' },
+  { value: 'normal', label: 'Normale (4-6 jours ouvrés)' },
+  { value: 'high', label: 'Haute (48-72h)' },
+  { value: 'critical', label: 'Critique / Arrêt de ligne usine (24h)' },
+];
+
 interface DemandesClientProps {
   initialRequests: RequestWithRelations[];
 }
@@ -33,6 +61,7 @@ interface DemandesClientProps {
 export default function DemandesClient({ initialRequests }: DemandesClientProps) {
   const [search, setSearch] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
+  const [isPending, startTransition] = useTransition();
 
   const requests = React.useMemo(() => initialRequests.map(mapRequestToUi), [initialRequests]);
 
@@ -47,6 +76,24 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
       return matchSearch && matchStatus;
     });
   }, [requests, search, statusFilter]);
+
+  const handleStatusChange = (requestId: string, status: RequestStatus) => {
+    startTransition(async () => {
+      const result = await updateRequestStatus({ id: requestId, status });
+      if (!result.success) {
+        alert(result.error || 'Erreur lors de la mise à jour du statut');
+      }
+    });
+  };
+
+  const handleUrgencyChange = (requestId: string, urgency: RequestUrgency) => {
+    startTransition(async () => {
+      const result = await updateRequestUrgency({ id: requestId, urgency });
+      if (!result.success) {
+        alert(result.error || "Erreur lors de la mise à jour de l'urgence");
+      }
+    });
+  };
 
   return (
     <div className="max-w-7xl space-y-6">
@@ -99,17 +146,53 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                       <div className="line-clamp-1 text-xs">{req.partDescription}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={req.urgency === 'critical' ? 'critical' : 'outline'}
-                        className="text-[10px]"
-                      >
-                        {FR.urgencies[req.urgency]}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                            <Badge
+                              variant={req.urgency === 'critical' ? 'critical' : 'outline'}
+                              className="text-[10px]"
+                            >
+                              {FR.urgencies[req.urgency]}
+                            </Badge>
+                            {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          {URGENCIES.map((u) => (
+                            <DropdownMenuItem
+                              key={u.value}
+                              onClick={() => handleUrgencyChange(req.id, u.value)}
+                              className="text-xs"
+                            >
+                              {u.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {FR.statuses[req.status]}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                            <Badge variant="secondary" className="text-[10px]">
+                              {FR.statuses[req.status]}
+                            </Badge>
+                            {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          {REQUEST_STATUSES.map((s) => (
+                            <DropdownMenuItem
+                              key={s.value}
+                              onClick={() => handleStatusChange(req.id, s.value)}
+                              className="text-xs"
+                            >
+                              {s.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
