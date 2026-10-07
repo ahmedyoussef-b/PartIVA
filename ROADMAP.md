@@ -113,8 +113,8 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | **E0-S02-4** | Scripts + validation finale + tailwind plugin | `prettier-plugin-tailwindcss` installé, scripts cohérents, build OK | ✅ Terminée |
 | **E0-S03** | Schéma Prisma réel (noyau métier) | User, Part, Request, Material, Machine, Status | 🔴 Critique |
 | **E0-S04** | Branchement DB réel (remplacement mocks par Prisma) | `mock-data.ts` supprimé, Server Components/Server Actions/API routes branchés sur Prisma | 🔴 Critique |
-| **E0-S05** | Auth réelle (BetterAuth) | Inscription, connexion, session persistante | 🔴 Critique |
-| **E0-S06** | Middleware & protection des routes | `/admin/*` et `/client/*` protégés | 🔴 Critique |
+| **E0-S05** | Auth réelle (BetterAuth) | Inscription, connexion, session persistante, filtrage user client | ✅ Terminée |
+| **E0-S06** | Middleware & protection des routes + remplacement mocks admin | `/admin/*` et `/client/*` protégés, mocks admin remplacés par DB | 🔴 Critique |
 | **E0-S07** | Remplacement des mocks par DB réelle | `mock-data.ts` supprimé, tout branche sur Prisma | 🔴 Critique |
 | **E0-S08** | Migration Next 14 → 16 | Upgrade Next.js + vérification compatibilité | 🟠 Haute |
 | **E0-S09** | Migration Tailwind 3 → 4 | Upgrade Tailwind + adaptation config | 🟡 Moyenne |

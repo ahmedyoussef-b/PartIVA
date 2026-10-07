@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | `[Vercel / VPS / Docker / À DÉFINIR]` |
 | **Phase actuelle** | `[Prototype / MVP / Beta / Prod — À REMPLIR]` |
-| **Dernière session** | `E0-S02c-8` |
-| **Session en cours** | `E0-S04` |
-| **Statut global** | 🟢 Fondation en cours — qualité nettoyée |
+| **Dernière session** | `E0-S05-6` |
+| **Session en cours** | `E0-S05` |
+| **Statut global** | 🟢 Fondation en cours — BetterAuth + filtrage user client implémentés |
 
 ---
 
@@ -34,7 +34,7 @@
 - [x] **Phase 1 — Fondations** : résorption erreurs ESLint (E0-S02c)
 - [ ] **Phase 1 — Fondations** : schéma Prisma réel (E0-S03)
 - [ ] **Phase 1 — Fondations** : migration + seed dev (E0-S04)
-- [ ] **Phase 1 — Fondations** : auth réelle (E0-S05)
+- [x] **Phase 1 — Fondations** : auth réelle (E0-S05)
 - [ ] **Phase 1 — Fondations** : middleware & protection routes (E0-S06)
 - [ ] **Phase 1 — Fondations** : remplacement mocks par DB réelle (E0-S07)
 - [ ] **Phase 1 — Fondations** : migration Next 14 → 16 (E0-S08)
@@ -190,6 +190,51 @@
 - **Reporté à E0-S04** :
   - Branchement DB réel (remplacement des mocks par Prisma)
 
+### Session E0-S05 — BetterAuth + filtrage user client
+- **Date** : `07/10/2026`
+- **Statut** : ✅ terminée (9/9 sous-sessions)
+- **Sous-sessions** :
+  - **E0-S05-0** : Cadrage initial + vérification BetterAuth
+  - **E0-S05-1** : Vérification `auth-client.ts` et route API `[...all]`
+  - **E0-S05-2** : Vérification `auth.ts` et configuration serveur
+  - **E0-S05-2-b** : Complément vérification configuration BetterAuth
+  - **E0-S05-3** : Tests E2E (6 tests : healthcheck, login, register, admin dashboard, admin demandes, client dashboard)
+  - **E0-S05-4** : Fix package.json `next dev` + commit `0bfd853`
+  - **E0-S05-4-octies** : Pin port dev 3000 + commit `0bfd853` (faux négatif `Test-Path` PowerShell avec `[...]`)
+  - **E0-S05-5** : Audit filtrage user (mocks `INITIAL_REQUESTS`, `WORKSHOP_MACHINES`, `MOCK_SEARCH_CANDIDATES`)
+  - **E0-S05-5-A** : Audit complémentaire (importateurs mocks, helpers data)
+  - **E0-S05-5-B** : Audit complémentaire (pages client, `auth.ts`, accès session)
+  - **E0-S05-5-C** : Implémentation filtrage user (`auth-server.ts`, remplacement mocks, corrections types)
+  - **E0-S05-6** : Tests E2E API + baseline + docs + commit `73261bb`
+- **Livrables** :
+  - `src/lib/auth-server.ts` — helper `getCurrentUser()` et `requireUser()`
+  - `src/app/client/dashboard/page.tsx` — Server Component, filtrage par `clientId`
+  - `src/app/client/dashboard/demandes/page.tsx` — suppression hardcode `user@partiva.dev`
+  - `src/app/client/dashboard/pieces-pretes/page.tsx` — TODO E1 (pas de relation Part-User)
+  - Commit `73261bb` — feat(auth): filter client pages by real session user
+- **Décisions techniques** :
+  - `auth.api.getSession({ headers: await headers() })` confirmé par doc BetterAuth
+  - Pages client converties en Server Components (RSC)
+  - `getRequests({ clientId })` déjà disponible, exploité
+  - `getParts` n'a pas de `clientId` — reporté à E1 (modélisation)
+- **Problèmes rencontrés** :
+  - Dérive méthodologique PCT pendant E0-S05-4-octies (5 inversions de rôle, hash inventé, rapports contradictoires)
+  - `Test-Path` PowerShell faux négatif avec `[...]` (wildcards)
+  - Décalages types mocks vs Prisma : `DELIVERED` → `COMPLETED`, `critical` → `URGENT`, champ `cloudId` absent
+- **Dettes techniques** :
+  - Mocks admin (`INITIAL_REQUESTS`, `WORKSHOP_MACHINES`) toujours présents — à traiter E0-S06
+  - Relation `Part`-`User` manquante — à traiter E1
+  - `getParts` n'accepte pas `clientId` — à ajouter quand relation existante
+- **Tests** :
+  - Build ✅, lint ✅, prettier ✅, typecheck ✅
+  - API sign-in E2E : ✅ `POST /api/auth/sign-in/email 200 in 2134ms`
+  - Isolation navigateur manuelle : ⚠️ non vérifiée (nécessite opérateur humain)
+- **Reporté à E0-S06** :
+  - Remplacement mocks admin par données DB réelles
+  - Middleware & protection routes
+
+<!-- ────────────────────────────────────────────────────────── -->
+
 ### Session S001 — `[Titre de la session]]`
 - **Date** : `[JJ/MM/AAAA]`
 - **Objectif** : `[...]`
@@ -219,7 +264,7 @@
 - **Route Handlers API** : `[à lister]`
 - **Server Actions** : `[à lister]`
 - **Schéma DB** : `[à décrire]`
-- **Auth** : `[à définir]`
+- **Auth** : BetterAuth configuré, `getCurrentUser()` opérationnel, filtrage client par `clientId`
 
 ### 🚀 Infra / DevOps
 - **Hosting** : `[à définir]`
@@ -267,9 +312,9 @@
 
 ## 🎯 PROCHAINE SESSION PRÉVUE
 
-- **Session** : `E0-S04`
-- **Objectif** : Branchement DB réel (remplacement des mocks par Prisma)
-- **Étapes prévues** : `[cadrage E0-S04-0 : audit mocks + cartographie branchements]`
+- **Session** : `E0-S06`
+- **Objectif** : Middleware & protection routes + remplacement mocks admin par DB réelle
+- **Étapes prévues** : `[cadrage E0-S06-0 : audit routes protégées + remplacement mocks admin]`
 
 ---
 
@@ -277,7 +322,10 @@
 
 > Zone pour remarques, idées, points de vigilance non classés.
 
-- `[...]`
+- **Incident méthodologique E0-S05-4-octies** : dérive PCT (Protocole de Contrôle Technique) — 5 inversions de rôle, hash inventé (`a1b2c3d`), commit annoncé puis démenti, rapports contradictoires. PCT abandonné. Règles de reprise : Coordinateur = humain, Superviseur = IA, Exécutant = Kilo Code (optionnel), toute sortie technique vient du terminal humain, aucun hash sans `git rev-parse`, un ordre = un périmètre.
+- Dette Part-User : modèle `Part` sans relation `User` → filtrage client impossible pour pièces prêtes (reporté E1)
+- Mocks admin (`INITIAL_REQUESTS`, `WORKSHOP_MACHINES`) toujours utilisés dans `admin/dashboard`, `admin/sync`, `admin/usinage` → à remplacer par DB réelle en E0-S06
+- Décalages types mocks vs Prisma découverts en E0-S05-5-C : `RequestStatus.DELIVERED` inexistant (`COMPLETED`), `UrgencyLevel.critical` inexistant (`URGENT`), champ `cloudId` absent du schéma — mocks incohérents avec le schéma réel
 
 ```
 ═══════════════════════════════════════════════════════════════
