@@ -317,6 +317,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
               <div className="grid grid-cols-2 gap-2">
                 {(request?.photos ? (Array.isArray(request.photos) ? request.photos.filter((p): p is string => typeof p === 'string') : []) : []).map((url, i) => (
                   <div key={i} className="aspect-square overflow-hidden rounded-lg border bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- user uploads, no optimized loader available */}
                     <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
                   </div>
                 ))}
