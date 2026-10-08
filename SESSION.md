@@ -321,30 +321,6 @@ En attendant : reporté, non bloquant.
 ---
 
 ## E0-S07 — Résorption dettes haute priorité (MOCK_SEARCH_CANDIDATES + tests runtime)
-**Statut :** 🟢 EN COURS
-**Date d'ouverture :** 2026-10-08
-**Séquencement :** 7 sous-sessions (E0-S07-1 → E0-S07-7)
-
-<!-- ────────────────────────────────────────────────────────── -->
-
-### Session S001 — `[Titre de la session]]`
-- **Date** : `[JJ/MM/AAAA]`
-- **Objectif** : `[...]`
-- **Statut** : ⏳ en cours / ✅ terminée / ⚠️ partielle / ❌ bloquée
-- **Livrables** :
-  - `[...]`
-- **Décisions techniques** :
-  - `[...]`
-- **Problèmes rencontrés** :
-  - `[...]`
-- **Reporté à S002** :
-  - `[...]`
-
-<!-- ────────────────────────────────────────────────────────── -->
-
----
-
-## E0-S07 — Résorption dettes haute priorité (MOCK_SEARCH_CANDIDATES + tests runtime)
 
 **Statut :** ✅ CLÔTURÉE
 **Date :** 2026-10-08
