@@ -35,6 +35,10 @@ function mapPartToUi(part: PartWithRelations) {
     ...part,
     reference: part.partNumber,
     status: part.status.toLowerCase(),
+    suppliers: part.suppliers.map((s) => ({
+      ...s,
+      price: s.price ? s.price.toString() : null,
+    })),
   };
 }
 
