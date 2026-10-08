@@ -348,7 +348,7 @@ En attendant : reporté, non bloquant.
 
 **Statut :** ✅ CLÔTURÉE
 **Date :** 2026-10-08
-**Commit final :** (à compléter après commit)
+**Commit final :** 6f0e132
 
 ### Sous-sessions
 
