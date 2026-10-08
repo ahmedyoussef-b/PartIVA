@@ -1,6 +1,8 @@
 /**
- * User role access tests.
+ * User role access tests — static routes only.
  * USER: ALLOW on public + /client, DENY on /admin (→ /client).
+ *
+ * Dynamic [id] routes are tested in user-dynamic.spec.ts.
  */
 
 import { test, expect } from '@playwright/test';
@@ -10,7 +12,9 @@ function urlPattern(path: string): RegExp {
   return new RegExp(`${path.replace(/\//g, '\\/')}$`);
 }
 
-for (const route of accessMatrix) {
+const staticRoutes = accessMatrix.filter((route) => route.dynamicId === undefined);
+
+for (const route of staticRoutes) {
   const expected = route.USER;
 
   if (expected === 'ALLOW') {

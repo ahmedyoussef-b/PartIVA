@@ -12,66 +12,54 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-  // Warmup — pre-warms Next.js dev server routes. Runs before auth setup.
-  {
-    name: 'warmup',
-    testMatch: /warmup\.setup\.ts/,
-  },
-
-  // Setup — generates .auth/*.json. Runs after warmup.
-  {
-    name: 'setup',
-    testMatch: /auth\.setup\.ts/,
-    dependencies: ['warmup'],
-  },
-
-  // Existing 33 tests — unchanged, no auth.
-  {
-    name: 'chromium',
-    use: { ...devices['Desktop Chrome'] },
-    testIgnore: [/fixtures\//, /setup\//, /public\//, /admin\//, /user\//, /viewer\//],
-    retries: 0,
-  },
-
-  // New role-based projects — matrix tests (written in E0-S07b-1-C).
-  {
-    name: 'public',
-    use: { ...devices['Desktop Chrome'] },
-    testDir: './e2e/public',
-    dependencies: ['setup'],
-    retries: 1,
-  },
-  {
-    name: 'admin',
-    use: {
-      ...devices['Desktop Chrome'],
-      storageState: '.auth/admin.json',
+    {
+      name: 'warmup',
+      testMatch: /warmup\.setup\.ts/,
     },
-    testDir: './e2e/admin',
-    dependencies: ['setup'],
-    retries: 1,
-  },
-  {
-    name: 'user',
-    use: {
-      ...devices['Desktop Chrome'],
-      storageState: '.auth/user.json',
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+      dependencies: ['warmup'],
     },
-    testDir: './e2e/user',
-    dependencies: ['setup'],
-    retries: 1,
-  },
-  {
-    name: 'viewer',
-    use: {
-      ...devices['Desktop Chrome'],
-      storageState: '.auth/viewer.json',
+    {
+      name: 'ids-setup',
+      testMatch: /ids\.setup\.ts/,
+      dependencies: ['warmup'],
     },
-    testDir: './e2e/viewer',
-    dependencies: ['setup'],
-    retries: 1,
-  },
-],
+    {
+      name: 'chromium',
+      testIgnore: [/fixtures\//, /setup\//, /public\//, /admin\//, /user\//, /viewer\//],
+      retries: 0,
+    },
+    {
+      name: 'public',
+      testDir: './e2e/public',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+      retries: 1,
+    },
+    {
+      name: 'admin',
+      testDir: './e2e/admin',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/admin.json' },
+      dependencies: ['setup', 'ids-setup'],
+      retries: 1,
+    },
+    {
+      name: 'user',
+      testDir: './e2e/user',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/user.json' },
+      dependencies: ['setup', 'ids-setup'],
+      retries: 1,
+    },
+    {
+      name: 'viewer',
+      testDir: './e2e/viewer',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/viewer.json' },
+      dependencies: ['setup', 'ids-setup'],
+      retries: 1,
+    },
+  ],
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',

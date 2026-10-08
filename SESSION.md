@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | `E0-S07-7` |
-| **Session en cours** | `E0-S07b` |
-| **Statut global** | 🟢 E0-S07 clôturée — E0-S07b en cours (baseline restaurée, 9b7d3ab) |
+| **Dernière session** | E0-S07b-2 (clôturée) |
+| **Session en cours** | — |
+| **Statut global** | E0-S07b clôturée — baseline 103/103 tests E2E verts, commit à venir |
 
 ---
 
@@ -405,7 +405,7 @@ En attendant : reporté, non bloquant.
 | TypeScript | ✅ 0 err |
 | Build | ✅ 34 pages (40 routes listées) |
 | Seed | ✅ idempotent, 4 searchCandidates |
-| Tests E2E | ✅ 33/33 verts |
+| Tests E2E | ✅ 103/103 verts (1 warmup + 3 setup + 1 ids-setup + 33 chromium + 14 public + 14 admin + 14 user + 14 viewer + 12 dynamiques) |
 
 ---
 
@@ -544,6 +544,98 @@ En attendant : reporté, non bloquant.
 | Tests `/api/auth/[...all]` (BetterAuth) | Moyenne | E0-S07b-1 |
 | Clarification contrat `/api/sync` | Faible | E0-S07b-1 |
 
+---
+
+## 🧪 E0-S07b-1 — Matrice E2E authentifiée (CLÔTURÉE)
+
+**Objet :** Tests E2E par rôle (ADMIN/USER/VIEWER) avec storageState par rôle, matrice d'accès source unique de vérité.
+
+### Livrables
+
+- `e2e/fixtures/users.ts` — credentials par rôle (env/fallback dev).
+- `e2e/fixtures/access-matrix.ts` — matrice source unique de vérité (15 routes statiques initialement).
+- `e2e/setup/auth.setup.ts` — login par rôle, storageState.
+- `e2e/setup/warmup.setup.ts` — pré-chauffage dev server.
+- 4 specs matrice : `public-access.spec.ts`, `admin-access.spec.ts`, `user-access.spec.ts`, `viewer-access.spec.ts`.
+- `.auth/` gitignoré (`.gitignore:55`).
+
+### Résultats
+
+- **93/93 tests verts** (1 warmup + 3 setup + 33 chromium + 56 matrice).
+- Commit : `f506ecc` (poussé).
+
+### Incidents PCT E0-S07b-1
+
+12 incidents tracés (n°6 à n°17), dont 6 violations de périmètre — d'où l'adoption de la **règle R21** (mode correction complète).
+
+### Dettes résolues
+
+- Tests E2E authentifiés (ADMIN/USER/VIEWER).
+- Setup storageState par rôle.
+- Matrice d'accès source unique de vérité.
+- Projets Playwright séparés.
+
+---
+
+## 🧪 E0-S07b-2 — Tests E2E routes dynamiques avec IDs (CLÔTURÉE)
+
+**Objet :** Tests E2E authentifiés sur routes dynamiques `[id]` (3 routes Request), IDs extraits dynamiquement via API applicative.
+
+### Livrables
+
+- `e2e/fixtures/dynamic-ids.ts` — extraction IDs via `GET /api/requests`, persistance `.auth/ids.json`.
+- `e2e/fixtures/dynamic-ids-fixture.ts` — fixture Playwright custom (résolution au runtime).
+- `e2e/setup/ids.setup.ts` — setup d'extraction d'IDs.
+- `e2e/admin/admin-dynamic.spec.ts` — 3 tests ALLOW.
+- `e2e/user/user-dynamic.spec.ts` — 2 DENY + 1 ALLOW.
+- `e2e/viewer/viewer-dynamic.spec.ts` — 3 DENY.
+- Matrice étendue (3 entrées `dynamicId`).
+- Projet Playwright `ids-setup` inséré entre `setup` et les projets rôle.
+- Warmup stabilisé (timeout 120s, suppression `waitForTimeout`).
+
+### Résultats
+
+- **103/103 tests verts** (1 warmup + 3 setup + 1 ids-setup + 33 chromium + 14 public + 14 admin + 14 user + 14 viewer + 12 dynamiques).
+- Cible D40 atteinte exactement.
+
+### Décisions verrouillées E0-S07b-2
+
+- **D21-bis :** E0-S07b-2 couvre uniquement les 3 routes `Request`. `/admin/reverse-engineering/[id]` exclu (absence API).
+- **D23 :** 404 / IDs inexistants → hors périmètre, reporté E0-S07b-3.
+- **D24 :** Routes imbriquées = même `id` parent.
+- **D25 :** Warning `Decimal` Prisma (serialisation RSC→Client) → dette tracée, cible E0-S08.
+- **D26 :** Commit documentaire E0-S07b-1-Doc fusionné dans la clôture E0-S07b-2.
+- **D27 :** Absence `GET /api/reverse-engineering` → dette tracée.
+- **D28–D29 :** Fixture `dynamic-ids.ts` + projet `ids-setup`.
+- **D30–D33 :** Assertions textuelles, 12 combinaisons, matrice paramétrée.
+- **D34–D36 :** Fixture Playwright custom (résolution runtime, pas top-level).
+- **D37 :** Warmup stable (timeout 120s).
+- **D38–D39 :** Filtre `dynamicId === undefined` dans specs hérités.
+- **D40 :** Cible 103 tests verts.
+- **D41 :** Patch uniforme sur 3 specs hérités.
+- **D42–D43 :** Mode patch ciblé documentaire + commit unique fusionné.
+
+### Incidents PCT E0-S07b-2
+
+- **n°18 :** `loadIds()` top-level → ENOENT à la collecte. Résolu par D34–D36. Responsabilité : Superviseur.
+- **n°19 :** Warmup timeout 30s vs 31.8s. Résolu par D37. Responsabilité : partagée.
+- **n°20 :** Extension matrice sans MAJ specs consommateurs. Résolu par D38–D41. Responsabilité : Superviseur.
+
+### Dettes résolues
+
+- Tests E2E routes dynamiques avec IDs (3 routes `Request`).
+- Warmup timeout fragile (D37).
+- `loadIds()` top-level → ENOENT (D34–D36).
+
+### Dettes ouvertes (E0-S07b-3 et au-delà)
+
+- Tests E2E `/admin/reverse-engineering/[id]` (bloqué par absence API).
+- **D-27 :** création `GET /api/reverse-engineering` → E0-S07b-3 (décision) → E1 (implémentation probable).
+- Tests cookie expiré/invalide (T2/T4).
+- Tests `/api/auth/[...all]` (BetterAuth).
+- Clarification contrat `/api/sync`.
+- **D-25 :** Warning `Decimal` Prisma (serialisation RSC→Client) → E0-S08.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — Prochaine MAJ en fin de session S001
+Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S07b-3
 ═══════════════════════════════════════════════════════════════

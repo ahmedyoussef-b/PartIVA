@@ -3,14 +3,19 @@
  *
  * Runs as a Playwright project BEFORE the auth setup, via dependencies.
  * Visits critical routes once and waits for network idle to force
- * compilation. Waits 2s at the end to let the dev server stabilize
- * before the auth setup begins.
+ * compilation. No trailing wait: the last networkidle guarantees the
+ * dev server has settled before downstream projects run.
  *
  * Unlike the previous globalSetup, this runs as a regular test project
  * so Playwright sequences it correctly (before auth setup).
+ *
+ * Global timeout is set to 120s (4x the observed 30s consumption) to
+ * absorb cold-cache compilation variability.
  */
 
-import { test as warmup, expect } from '@playwright/test';
+import { test as warmup } from '@playwright/test';
+
+warmup.setTimeout(120_000);
 
 const routesToWarm = [
   '/',
@@ -34,6 +39,4 @@ warmup('warm up dev server routes', async ({ page }) => {
       // still occurred. We're warming the compiler, not asserting.
     }
   }
-  // Let the dev server settle before auth setup runs.
-  await page.waitForTimeout(2_000);
 });

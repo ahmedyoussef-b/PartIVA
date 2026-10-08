@@ -1,8 +1,10 @@
 /**
- * Viewer role access tests.
+ * Viewer role access tests — static routes only.
  * VIEWER: ALLOW on public. DENY on /admin (→ /client → /) and
  * on /client (→ /). The middleware chain produces different final
  * URLs depending on the route — handled via redirectToViewer.
+ *
+ * Dynamic [id] routes are tested in viewer-dynamic.spec.ts.
  */
 
 import { test, expect } from '@playwright/test';
@@ -12,7 +14,9 @@ function urlPattern(path: string): RegExp {
   return new RegExp(`${path.replace(/\//g, '\\/')}$`);
 }
 
-for (const route of accessMatrix) {
+const staticRoutes = accessMatrix.filter((route) => route.dynamicId === undefined);
+
+for (const route of staticRoutes) {
   const expected = route.VIEWER;
 
   if (expected === 'ALLOW') {
