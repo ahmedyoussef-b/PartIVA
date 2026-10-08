@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | E0-S07b-2 (clôturée) |
+| **Dernière session** | E0-S07b-3 (clôturée) |
 | **Session en cours** | — |
-| **Statut global** | E0-S07b clôturée — baseline 103/103 tests E2E verts, commit à venir |
+| **Statut global** | E0-S07b-3 clôturée — baseline 110/110 tests E2E verts, commit à venir |
 
 ---
 
@@ -405,7 +405,7 @@ En attendant : reporté, non bloquant.
 | TypeScript | ✅ 0 err |
 | Build | ✅ 34 pages (40 routes listées) |
 | Seed | ✅ idempotent, 4 searchCandidates |
-| Tests E2E | ✅ 103/103 verts (1 warmup + 3 setup + 1 ids-setup + 33 chromium + 14 public + 14 admin + 14 user + 14 viewer + 12 dynamiques) |
+| Tests E2E | ✅ 110/110 verts (1 warmup + 3 setup + 1 ids-setup + 38 chromium + 16 public + 14 admin + 14 user + 14 viewer + 12 dynamiques + 4 auth-api + 1 sync) |
 
 ---
 
@@ -635,6 +635,66 @@ En attendant : reporté, non bloquant.
 - Tests `/api/auth/[...all]` (BetterAuth).
 - Clarification contrat `/api/sync`.
 - **D-25 :** Warning `Decimal` Prisma (serialisation RSC→Client) → E0-S08.
+
+---
+
+## 🧪 E0-S07b-3 — Dettes résiduelles E2E (CLÔTURÉE)
+
+**Objet :** Résorption des dettes E2E identifiées en fin E0-S07b-2 : tests cookies expiré/invalide, couverture API BetterAuth, contrat `/api/sync`, décision `/api/reverse-engineering`.
+
+### Livrables
+
+- `e2e/public/cookie-guard.spec.ts` — 2 tests (T2 cookie expiré, T4 cookie falsifié), redirection `/admin` et `/client` → `/login` (D46).
+- `e2e/auth-api.spec.ts` — 4 tests cycle de vie session BetterAuth (login OK, login KO 401, get-session null, sign-out + invalidation).
+- `e2e/api.spec.ts` — +1 test POST `/api/sync` contrat stub (D48).
+- `src/app/api/sync/route.ts` — en-tête JSDoc documentant le statut stub + dette vers E1 (D48).
+- `playwright.config.ts` — inchangé (projet `public` et `chromium` couvrent les nouveaux specs).
+
+### Résultats
+
+- **110/110 tests verts** (103 → 110 : +2 cookie +4 auth-api +1 sync).
+- Lint 0 err / 0 warn. Typecheck 0 erreur. Build 34 pages.
+- Aucun test instable, aucun timeout > 80% limite (règle #15).
+
+### Décisions verrouillées E0-S07b-3
+
+- **D46 :** T2 = storageState copié en mémoire avec `expires` passé ; T4 = cookie forgé (`forged.invalid.token.value`). `.auth/*.json` non touchés sur disque.
+- **D47 :** 4 tests API-only projet `chromium`, cycle de vie session minimal (hors sign-up / password reset / email).
+- **D48 :** `/api/sync` = test contrat + documentation JSDoc. Implémentation réelle → E1.
+- **D49 :** `GET /api/reverse-engineering` **reporté à E1** (D-27-bis). Aucun consommateur externe identifié. `/admin/reverse-engineering/[id]` reste hors périmètre E2E.
+- **D50 :** import `{ users }` (minuscule) conforme à l'export réel.
+- **D51 :** header `Origin` obligatoire sur POST BetterAuth (CSRF 1.7.7).
+- **D52 :** test sign-out avec session valide (option B).
+- **D53 :** assertions sur body JSON, pas sur parsing `set-cookie`.
+- **D54 :** sign-out requiert `Content-Type: application/json` + body `{}`.
+- **D55 :** `Origin` non requis sur routes Next.js pures (non-BetterAuth).
+- **D56 :** timestamp `/api/sync` assertion assouplie (string parsable, pas round-trip ISO).
+- **D57 :** JSDoc `route.ts` placé avant l'import.
+- **D58 :** ancrage SESSION.md = insertion avant pied `═══` (l.639).
+- **D59 :** métadonnées SESSION.md l.21–23 + baseline l.408 mises à jour.
+- **D60 :** coquille D-44 non régularisée (ROADMAP l.139), nouvelle ligne E0-S07b-3 en 3 colonnes strictes.
+
+### Incidents PCT E0-S07b-3
+
+- **n°22 :** import `USERS` erroné dans ordre E0-S07b-3-C (Superviseur). Résolu D50.
+- **n°23 :** contrat sign-out incomplet (415 observé vs 200 attendu) — Superviseur. Résolu D54.
+- **n°24 :** rupture de transmission Coordinateur → Exécutant sur correction R21. Résolu par réémission intégrale.
+
+### Dettes résolues E0-S07b-3
+
+- T2/T4 cookies expiré/invalide.
+- Couverture API BetterAuth (cycle de vie session).
+- Contrat `/api/sync` figé + dette documentée.
+
+### Dettes ouvertes (E0-S08 et au-delà)
+
+- **D-25 :** Warning `Decimal` Prisma (serialisation RSC→Client) → E0-S08.
+- **D-27-bis :** Création conditionnelle `GET /api/reverse-engineering` si consommateur externe émerge → E1 ou E7.
+- **D-44 :** Coquille Markdown ROADMAP.md l.139 (4 cellules / 3 colonnes) → session doc dédiée.
+- Warning pg sslmode (pg v9) → session dédiée.
+- 12 vulns npm → session dédiée.
+- Migrations Next 15→16, React 18→19 → E0-S08.
+- Tailwind 3→4 → E0-S09.
 
 ═══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S07b-3

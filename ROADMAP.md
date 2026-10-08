@@ -137,6 +137,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | E0-S06 | Middleware & protection + remplacement mocks | ✅ |
 | E0-S07 | SearchCandidate Prisma + Playwright E2E (103 tests E2E) | ✅ |
 | E0-S07b | Matrice E2E par rôle + routes dynamiques avec IDs | ✅ | 103 tests E2E |
+| E0-S07b-3 | Dettes résiduelles E2E (cookies, /api/auth, /api/sync) | ✅ | 110 tests E2E |
 
 ---
 
