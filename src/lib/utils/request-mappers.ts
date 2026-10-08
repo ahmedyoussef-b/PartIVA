@@ -25,10 +25,29 @@ export type MappedRequest = {
   projects: RequestWithRelations['projects'];
 };
 
+const UI_STATUS_MAP: Record<string, RequestStatus> = {
+  PENDING: 'new',
+  REVIEW: 'searching',
+  ACCEPTED: 'candidate_found',
+  IN_PROGRESS: 'reverse_engineering',
+  COMPLETED: 'completed',
+  REJECTED: 'rejected',
+};
+
+const UI_URGENCY_MAP: Record<string, RequestUrgency> = {
+  LOW: 'low',
+  MEDIUM: 'normal',
+  HIGH: 'high',
+  URGENT: 'critical',
+};
+
 export function mapRequestToUi(request: RequestWithRelations): MappedRequest {
   const photos = Array.isArray(request.photos)
     ? request.photos.filter((p): p is string => typeof p === 'string')
     : [];
+
+  const status = UI_STATUS_MAP[request.status] ?? 'new';
+  const urgency = UI_URGENCY_MAP[request.urgency] ?? 'normal';
 
   return {
     id: request.id,
@@ -38,8 +57,8 @@ export function mapRequestToUi(request: RequestWithRelations): MappedRequest {
     partFunction: request.partFunction ?? undefined,
     suspectedMaterial: request.suspectedMaterial ?? undefined,
     quantity: request.quantity,
-    status: request.status.toLowerCase() as RequestStatus,
-    urgency: request.urgency.toLowerCase() as RequestUrgency,
+    status,
+    urgency,
     photos,
     createdAt: request.createdAt.toISOString(),
     updatedAt: request.updatedAt.toISOString(),

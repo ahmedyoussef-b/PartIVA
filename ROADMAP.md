@@ -114,7 +114,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | **E0-S03** | Schéma Prisma réel (noyau métier) | User, Part, Request, Material, Machine, Status | 🔴 Critique |
 | **E0-S04** | Branchement DB réel (remplacement mocks par Prisma) | `mock-data.ts` supprimé, Server Components/Server Actions/API routes branchés sur Prisma | 🔴 Critique |
 | **E0-S05** | Auth réelle (BetterAuth) | Inscription, connexion, session persistante, filtrage user client | ✅ Terminée |
-| **E0-S06** | Middleware & protection des routes + remplacement mocks admin | `/admin/*` et `/client/*` protégés, mocks admin remplacés par DB | 🔴 Critique |
+| **E0-S06** | Middleware & protection des routes + remplacement mocks admin | `/admin/*` et `/client/*` protégés, mocks admin remplacés par DB | ✅ Terminée |
 | **E0-S07** | Remplacement des mocks par DB réelle | `mock-data.ts` supprimé, tout branche sur Prisma | 🔴 Critique |
 | **E0-S08** | Migration Next 14 → 16 | Upgrade Next.js + vérification compatibilité | 🟠 Haute |
 | **E0-S09** | Migration Tailwind 3 → 4 | Upgrade Tailwind + adaptation config | 🟡 Moyenne |
@@ -122,6 +122,19 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 **Définition de "E0 terminée"** : l'app démarre, un utilisateur peut s'inscrire, se connecter, créer une pièce, la voir persister en DB, et les zones admin/client sont inaccessibles sans rôle adéquat.
 
 **Durée estimée** : 2-3 semaines de sessions.
+
+### Sessions E0 complétées
+
+| Session | Objet | Statut |
+|---|---|---|
+| E0-S01 | Sécurisation infra | ✅ |
+| E0-S02 | Setup qualité | ✅ |
+| E0-S02b | Décision Prisma 7 | ✅ |
+| E0-S02c | Résorption qualité (138→0) | ✅ |
+| E0-S03 | Schéma Prisma + migration + seed | ✅ |
+| E0-S04 | Branchement DB réel | ✅ |
+| E0-S05 | Auth BetterAuth | ✅ |
+| E0-S06 | Middleware & protection + remplacement mocks | ✅ |
 
 ---
 

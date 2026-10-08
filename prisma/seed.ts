@@ -576,6 +576,7 @@ async function main() {
 
   const request4 = await prisma.request.create({
     data: {
+      clientId: user.id,
       partDescription:
         'Patin d’usure sous chariot de translation. Pièce usée jusqu’à la fixation métallique.',
       partFunction: 'Support de charge dynamique 500 kg en translation continue.',

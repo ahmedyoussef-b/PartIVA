@@ -235,6 +235,91 @@
 
 <!-- ────────────────────────────────────────────────────────── -->
 
+### Session E0-S06-2 — VALIDÉE ✅ (board_62f8579f)
+- **Date** : `08/10/2026`
+- **Objectif** : Audit robustesse session middleware
+- **Statut** : ✅ validée
+- **Tests dégradés** :
+  - T1 (cookie falsifié) ✅ — 307 → `/login`
+  - T4 (user supprimé) ✅ — 307 → `/login`
+  - T2 (cookie expiré) → reporté E0-S06-4 (secret HMAC indisponible)
+  - T3 (DB down) → REPORTÉ CONDITIONNEL (Docker local OU mock requis)
+- **Décision** : middleware inchangé (fail-safe observé)
+- **Aucun commit** (référence : `82220fb`)
+- **Reporté à E0-S06-4** :
+  - T2 cookie expiré
+  - T3 DB down (si environnement isolé disponible)
+
+### Règle de test T3
+T3 (DB down) ne sera exécuté que si :
+- Option A : Docker local disponible
+- Option B : Mock `auth.api.getSession` en test contrôlé
+En attendant : reporté, non bloquant.
+
+---
+
+## E0-S06 — Middleware & protection + remplacement mocks
+
+**Statut :** ✅ CLÔTURÉE
+**Date :** 2026-10-08
+**Commit final :** (à remplir après commit)
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut |
+|---|---|---|
+| E0-S06-0 | Audit middleware + inventaire routes | ✅ |
+| E0-S06-0b | Diagnostic typecheck (TS6053) | ✅ |
+| E0-S06-0c | Fix typecheck (polling + tsbuildinfo) | ✅ |
+| E0-S06-1 | Création `middleware.ts` + matcher | ✅ |
+| E0-S06-1b | Correction politique VIEWER | ✅ |
+| E0-S06-2 | Audit robustesse session middleware | ✅ |
+| E0-S06-3 | Correction seed `request4` (clientId NULL) | ✅ |
+| E0-S06-3a | Rapport FAUX — invalidé rétroactivement | ❌ |
+| E0-S06-3b | Rapport FAUX — invalidé rétroactivement | ❌ |
+| E0-S06-3c | Audit de vérité (référence officielle) | ✅ |
+| E0-S06-3d | Cartographie mocks + plan remplacement | ✅ |
+| E0-S06-3e1 | Lot 1 : `WORKSHOP_MACHINES` → `getMachines()` | ✅ |
+| E0-S06-3e2 | Lot 2 : `INITIAL_REQUESTS` → `getRequests()` | ✅ |
+| E0-S06-3f | Correction régression runtime (RSC + Client) | ✅ |
+| E0-S06-4 | Tests runtime + clôture | ✅ |
+
+### Réalisations
+
+- **Middleware** : protection routes `/admin/*` et `/client/*` avec politique d'accès (ADMIN/USER/VIEWER).
+- **Seed** : `request4` corrigé (`clientId: user.id`), 0 NULL en base.
+- **Mocks supprimés** :
+  - `WORKSHOP_MACHINES` → remplacé par `getMachines()` (Server Component + Client Component).
+  - `INITIAL_REQUESTS` → remplacé par `getRequests()` (mapping Prisma → UI via `request-mappers.ts`).
+- **Régression runtime corrigée** : pattern `React.use()` sur Server Action en Client Component (invalide React 18) → remplacé par RSC (fetch) + Client Component (props).
+- **`MOCK_SEARCH_CANDIDATES`** : seul mock restant, dette tracée E0-S07+.
+
+### Dettes ouvertes (E0-S06)
+
+| Dette | À traiter |
+|---|---|
+| `MOCK_SEARCH_CANDIDATES` (aucun modèle Prisma) | E0-S07+ |
+| Tests runtime automatiques (34 pages) | E0-S07 |
+| Matrice E2E complète (ADMIN/USER/VIEWER/Non-auth) | E0-S06-4b ou E0-S07 |
+| Tests cookie expiré/invalide | E0-S07 |
+| Mapping `urgency`/`status` mock → Prisma | Documenté, verrouillé |
+| `cloudId` absent du schéma Prisma | Retiré, dette tracée E1 |
+| Enums Prisma non utilisés (modèles en `String`) | E1 — modélisation métier |
+| Migration enum PG natif | E1 |
+| Double emplacement Server Actions | ✅ RÉSOLU (supprimé) |
+
+### Baseline finale E0-S06
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 34 pages |
+| Seed | ✅ idempotent, 0 NULL |
+| Runtime | ✅ 3 routes principales testées OK |
+
+<!-- ────────────────────────────────────────────────────────── -->
+
 ### Session S001 — `[Titre de la session]]`
 - **Date** : `[JJ/MM/AAAA]`
 - **Objectif** : `[...]`
@@ -326,6 +411,11 @@
 - Dette Part-User : modèle `Part` sans relation `User` → filtrage client impossible pour pièces prêtes (reporté E1)
 - Mocks admin (`INITIAL_REQUESTS`, `WORKSHOP_MACHINES`) toujours utilisés dans `admin/dashboard`, `admin/sync`, `admin/usinage` → à remplacer par DB réelle en E0-S06
 - Décalages types mocks vs Prisma découverts en E0-S05-5-C : `RequestStatus.DELIVERED` inexistant (`COMPLETED`), `UrgencyLevel.critical` inexistant (`URGENT`), champ `cloudId` absent du schéma — mocks incohérents avec le schéma réel
+
+### SESSION.md — État doc
+- Mise à jour E0-S06-2 appliquée (non commitée)
+- Commit docs reporté à clôture E0-S06
+- Règle : aucun commit docs isolé par sous-session
 
 ```
 ═══════════════════════════════════════════════════════════════
