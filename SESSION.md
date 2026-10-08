@@ -20,7 +20,7 @@
 | **Phase actuelle** | MVP — Fondation technique (E0) |
 | **Dernière session** | `E0-S07-7` |
 | **Session en cours** | `E0-S07b` |
-| **Statut global** | 🟢 E0-S07 clôturée (SearchCandidate Prisma + 33 tests E2E Playwright) — E0-S07b ouverte (tests authentifiés) |
+| **Statut global** | 🟢 E0-S07 clôturée — E0-S07b en cours (baseline restaurée, 9b7d3ab) |
 
 ---
 
@@ -491,6 +491,58 @@ En attendant : reporté, non bloquant.
 - Mise à jour E0-S06-2 appliquée (non commitée)
 - Commit docs reporté à clôture E0-S06
 - Règle : aucun commit docs isolé par sous-session
+
+---
+
+## E0-S07b — Résorption baseline + extension E2E
+
+**Statut :** 🟢 EN COURS
+**Date d'ouverture :** 2026-10-08
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut |
+|---|---|---|
+| E0-S07b-0 | Vérification d'état (git, SESSION, ROADMAP, baseline) | ✅ |
+| E0-S07b-0b | Diagnostic baseline (ESLint 14 err, typecheck wrapper KO) | ✅ |
+| E0-S07b-0c | Résorption baseline (eslint ignore + seed vars + wrapper) | ✅ (commit 9b7d3ab) |
+| E0-S07b-0c-R | Régularisation factuelle (diffs, baseline) | ✅ |
+| E0-S07b-0d | Nettoyage (annulation commit hors ordre ae83171) | ✅ |
+| E0-S07b-0e | Vérification baseline complète + clôture documentaire | 🟢 EN COURS |
+
+### Réalisations E0-S07b-0 (baseline)
+
+- ESLint : `next-env.d.ts` exclu (`.eslintignore`).
+- Seed : 13 bindings inutilisés supprimés (`prisma/seed.ts`).
+- Wrapper typecheck : résolution explicite `node_modules/.bin/next` et `tsc` (Windows).
+- ROADMAP.md : ligne E0-S07 ajoutée.
+
+### Incidents PCT tracés (E0-S07b)
+
+| Incident | Sous-session | Nature | Statut |
+|---|---|---|:---:|
+| Commit `ae83171` (docs E0-S07 + `PASSATION-E0-S07.md` auto-rédigé) | E0-S07b-0c | Commit hors ordre + violation règle 12 | Refusé, annulé par `git reset --hard HEAD~1` |
+
+**Règle renforcée E0-S07b :** toute commande qui échoue → STOP + rapport, sans exception. Le Superviseur fournit le contenu des docs. Aucun prompt de passation auto-rédigé.
+
+### Dettes résolues en E0-S07b-0
+
+| Dette | Résolution |
+|---|---|
+| ESLint 14 erreurs (préexistantes) | ✅ Résolu (commit 9b7d3ab) |
+| Wrapper typecheck cassé (PATH Windows) | ✅ Résolu (commit 9b7d3ab) |
+| ROADMAP.md incomplet (E0-S07 absente) | ✅ Résolu (commit 9b7d3ab) |
+| `PASSATION-E0-S07.md` hors ordre | ✅ Annulé (`ae83171` reset) |
+
+### Dettes ouvertes (E0-S07b-1 et au-delà)
+
+| Dette | Priorité | Cible |
+|---|---|---|
+| Tests E2E authentifiés (ADMIN/USER/VIEWER) | Haute | E0-S07b-1 |
+| Tests E2E routes dynamiques avec IDs | Haute | E0-S07b-1 |
+| Tests cookie expiré/invalide (T2/T4) | Moyenne | E0-S07b-1 |
+| Tests `/api/auth/[...all]` (BetterAuth) | Moyenne | E0-S07b-1 |
+| Clarification contrat `/api/sync` | Faible | E0-S07b-1 |
 
 ```
 ═══════════════════════════════════════════════════════════════
