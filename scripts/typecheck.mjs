@@ -47,7 +47,11 @@ if (existsSync(typesDir)) {
   }
 }
 
-execSync('next typegen', { stdio: 'inherit' });
+const nextBin =
+  process.platform === 'win32'
+    ? 'node_modules\\.bin\\next.cmd'
+    : 'node_modules/.bin/next';
+execSync(`${nextBin} typegen`, { stdio: 'inherit', shell: true });
 
 console.log('Waiting for type generation to stabilize...');
 if (!waitForStability(join(process.cwd(), '.next', 'types'))) {
@@ -61,4 +65,8 @@ if (existsSync(tsbuildinfo)) {
 }
 
 console.log('Running type check...');
-execSync('tsc --noEmit', { stdio: 'inherit' });
+const tscBin =
+  process.platform === 'win32'
+    ? 'node_modules\\.bin\\tsc.cmd'
+    : 'node_modules/.bin/tsc';
+execSync(`${tscBin} --noEmit`, { stdio: 'inherit', shell: true });

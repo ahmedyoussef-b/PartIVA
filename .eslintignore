@@ -7,3 +7,4 @@ src-tauri/target
 *.config.js
 *.config.ts
 coverage
+next-env.d.ts

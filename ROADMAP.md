@@ -135,6 +135,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | E0-S04 | Branchement DB réel | ✅ |
 | E0-S05 | Auth BetterAuth | ✅ |
 | E0-S06 | Middleware & protection + remplacement mocks | ✅ |
+| E0-S07 | SearchCandidate Prisma + Playwright E2E (33 tests) | ✅ |
 
 ---
 

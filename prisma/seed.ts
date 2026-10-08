@@ -111,7 +111,7 @@ async function main() {
 
   // ── Materials ────────────────────────────────────────────────────────
   console.log('🧪 Creating materials...');
-  const pomc = await prisma.material.create({
+  await prisma.material.create({
     data: {
       slug: 'pom-c',
       code: 'POM-C',
@@ -141,7 +141,7 @@ async function main() {
     },
   });
 
-  const pa6gf30 = await prisma.material.create({
+  await prisma.material.create({
     data: {
       slug: 'pa6-gf30',
       code: 'PA6-GF30',
@@ -171,7 +171,7 @@ async function main() {
     },
   });
 
-  const peek = await prisma.material.create({
+  await prisma.material.create({
     data: {
       slug: 'peek',
       code: 'PEEK',
@@ -201,7 +201,7 @@ async function main() {
     },
   });
 
-  const ptfe = await prisma.material.create({
+  await prisma.material.create({
     data: {
       slug: 'ptfe',
       code: 'PTFE',
@@ -231,7 +231,7 @@ async function main() {
     },
   });
 
-  const pehd = await prisma.material.create({
+  await prisma.material.create({
     data: {
       slug: 'pehd',
       code: 'PEHD',
@@ -263,7 +263,7 @@ async function main() {
 
   // ── Machines ─────────────────────────────────────────────────────────
   console.log('🏭 Creating machines...');
-  const cnc01 = await prisma.machine.create({
+  await prisma.machine.create({
     data: {
       code: 'CNC-01',
       name: 'Fraiseuse CNC 3 axes',
@@ -273,7 +273,7 @@ async function main() {
     },
   });
 
-  const cnc02 = await prisma.machine.create({
+  await prisma.machine.create({
     data: {
       code: 'CNC-02',
       name: 'Fraiseuse CNC 5 axes',
@@ -283,7 +283,7 @@ async function main() {
     },
   });
 
-  const tour01 = await prisma.machine.create({
+  await prisma.machine.create({
     data: {
       code: 'TOUR-01',
       name: 'Tour numérique',
@@ -293,7 +293,7 @@ async function main() {
     },
   });
 
-  const imp01 = await prisma.machine.create({
+  await prisma.machine.create({
     data: {
       code: 'IMP-01',
       name: 'Imprimante 3D industrielle',
@@ -523,7 +523,7 @@ async function main() {
 
   // ── Requests ────────────────────────────────────────────────────────
   console.log('📋 Creating requests...');
-  const request1 = await prisma.request.create({
+  await prisma.request.create({
     data: {
       clientId: user.id,
       partDescription:
@@ -543,7 +543,7 @@ async function main() {
     },
   });
 
-  const request2 = await prisma.request.create({
+  await prisma.request.create({
     data: {
       clientId: user.id,
       partDescription:
@@ -559,7 +559,7 @@ async function main() {
     },
   });
 
-  const request3 = await prisma.request.create({
+  await prisma.request.create({
     data: {
       clientId: viewer.id,
       partDescription:
@@ -575,7 +575,7 @@ async function main() {
     },
   });
 
-  const request4 = await prisma.request.create({
+  await prisma.request.create({
     data: {
       clientId: user.id,
       partDescription:
