@@ -544,8 +544,6 @@ En attendant : reporté, non bloquant.
 | Tests `/api/auth/[...all]` (BetterAuth) | Moyenne | E0-S07b-1 |
 | Clarification contrat `/api/sync` | Faible | E0-S07b-1 |
 
-```
 ═══════════════════════════════════════════════════════════════
 Fin SESSION.md — Prochaine MAJ en fin de session S001
 ═══════════════════════════════════════════════════════════════
-```
