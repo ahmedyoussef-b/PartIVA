@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MOCK_SEARCH_CANDIDATES } from '@/lib/mock-data';
+import { getSearchCandidates } from '@/lib/data/search-candidates';
 
 export async function POST(req: Request) {
   try {
@@ -7,14 +7,14 @@ export async function POST(req: Request) {
     const { source } = body;
 
     if (source && source !== 'all') {
-      const filtered = MOCK_SEARCH_CANDIDATES.filter((c) => c.source === source);
+      const filtered = await getSearchCandidates({ source });
       return NextResponse.json(filtered);
     }
 
-    // Default fused return sorted by global score descending
-    const sorted = [...MOCK_SEARCH_CANDIDATES].sort((a, b) => b.scores.global - a.scores.global);
+    const sorted = await getSearchCandidates();
+    sorted.sort((a, b) => b.scores.global - a.scores.global);
     return NextResponse.json(sorted);
   } catch {
-    return NextResponse.json({ message: 'Erreur moteur de recherche' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur moteur de recherche' }, { status: 500 });
   }
 }

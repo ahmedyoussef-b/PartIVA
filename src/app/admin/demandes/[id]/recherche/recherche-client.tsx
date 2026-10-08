@@ -35,7 +35,6 @@ import {
   Info,
 } from 'lucide-react';
 import type { SearchCandidate } from '@/schemas/search';
-import { MOCK_SEARCH_CANDIDATES } from '@/lib/mock-data';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
 import { useTransition } from 'react';
 import type { RequestStatus, RequestUrgency } from '@/schemas/request';
@@ -103,9 +102,13 @@ const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
 
 interface RechercheClientProps {
   initialRequest: RequestWithRelations;
+  initialCandidates: SearchCandidate[];
 }
 
-export default function RechercheClient({ initialRequest }: RechercheClientProps) {
+export default function RechercheClient({
+  initialRequest,
+  initialCandidates,
+}: RechercheClientProps) {
   const request = mapRequestToUi(initialRequest);
   const [isPending, startTransition] = useTransition();
 
@@ -129,7 +132,7 @@ export default function RechercheClient({ initialRequest }: RechercheClientProps
 
   const [searchState, setSearchState] = React.useState<SearchState>('idle');
   const [sourceProgress, setSourceProgress] = React.useState<SourceProgress>({});
-  const [candidates, setCandidates] = React.useState<SearchCandidate[]>([]);
+  const [candidates, setCandidates] = React.useState<SearchCandidate[]>(initialCandidates);
   const [selectedCandidate, setSelectedCandidate] = React.useState<SearchCandidate | null>(null);
   const [activeSource, setActiveSource] = React.useState<string>('all');
 
@@ -156,7 +159,12 @@ export default function RechercheClient({ initialRequest }: RechercheClientProps
         [src.id]: { state: 'running', found: 0 },
       }));
       await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
-      const found = MOCK_SEARCH_CANDIDATES.filter((c) => c.source === src.id);
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: src.id }),
+      });
+      const found: SearchCandidate[] = res.ok ? (await res.json()) : [];
       setSourceProgress((prev) => ({
         ...prev,
         [src.id]: { state: 'done', found: found.length },

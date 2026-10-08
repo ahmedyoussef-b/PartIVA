@@ -13,14 +13,14 @@
 | Champ | Valeur |
 |---|---|
 | **Nom du projet** | PartIVA |
-| **Type** | `[SaaS / Marketplace / Dashboard / Autre — À REMPLIR]` |
-| **Stack** | `[Next.js ? · TypeScript ? · Tailwind ? · Prisma ? · PostgreSQL ? — À REMPLIR]` |
+| **Type** | SaaS / Marketplace industriel (B2B) |
+| **Stack** | Next.js 15 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
-| **Hosting prévu** | `[Vercel / VPS / Docker / À DÉFINIR]` |
-| **Phase actuelle** | `[Prototype / MVP / Beta / Prod — À REMPLIR]` |
-| **Dernière session** | `E0-S05-6` |
-| **Session en cours** | `E0-S05` |
-| **Statut global** | 🟢 Fondation en cours — BetterAuth + filtrage user client implémentés |
+| **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
+| **Phase actuelle** | MVP — Fondation technique (E0) |
+| **Dernière session** | `E0-S07-7` |
+| **Session en cours** | `E0-S07b` |
+| **Statut global** | 🟢 E0-S07 clôturée (SearchCandidate Prisma + 33 tests E2E Playwright) — E0-S07b ouverte (tests authentifiés) |
 
 ---
 
@@ -28,15 +28,15 @@
 
 > À ajuster au fil des sessions. Cocher ✅ quand terminé.
 
-- [ ] **Phase 1 — Fondations** : sécurisation infra (E0-S01)
-- [ ] **Phase 1 — Fondations** : setup qualité ESLint/Prettier (E0-S02)
-- [ ] **Phase 1 — Fondations** : décision version Prisma (E0-S02b)
+- [x] **Phase 1 — Fondations** : sécurisation infra (E0-S01)
+- [x] **Phase 1 — Fondations** : setup qualité ESLint/Prettier (E0-S02)
+- [x] **Phase 1 — Fondations** : décision version Prisma (E0-S02b)
 - [x] **Phase 1 — Fondations** : résorption erreurs ESLint (E0-S02c)
-- [ ] **Phase 1 — Fondations** : schéma Prisma réel (E0-S03)
-- [ ] **Phase 1 — Fondations** : migration + seed dev (E0-S04)
+- [x] **Phase 1 — Fondations** : schéma Prisma réel (E0-S03)
+- [x] **Phase 1 — Fondations** : migration + seed dev (E0-S04)
 - [x] **Phase 1 — Fondations** : auth réelle (E0-S05)
-- [ ] **Phase 1 — Fondations** : middleware & protection routes (E0-S06)
-- [ ] **Phase 1 — Fondations** : remplacement mocks par DB réelle (E0-S07)
+- [x] **Phase 1 — Fondations** : middleware & protection routes (E0-S06)
+- [x] **Phase 1 — Fondations** : remplacement mocks par DB réelle (E0-S07)
 - [ ] **Phase 1 — Fondations** : migration Next 14 → 16 (E0-S08)
 - [ ] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [ ] **Phase 2 — Core Features** : `[à définir]`
@@ -262,7 +262,7 @@ En attendant : reporté, non bloquant.
 
 **Statut :** ✅ CLÔTURÉE
 **Date :** 2026-10-08
-**Commit final :** (à remplir après commit)
+**Commit final :** 9414c88
 
 ### Sous-sessions
 
@@ -318,6 +318,13 @@ En attendant : reporté, non bloquant.
 | Seed | ✅ idempotent, 0 NULL |
 | Runtime | ✅ 3 routes principales testées OK |
 
+---
+
+## E0-S07 — Résorption dettes haute priorité (MOCK_SEARCH_CANDIDATES + tests runtime)
+**Statut :** 🟢 EN COURS
+**Date d'ouverture :** 2026-10-08
+**Séquencement :** 7 sous-sessions (E0-S07-1 → E0-S07-7)
+
 <!-- ────────────────────────────────────────────────────────── -->
 
 ### Session S001 — `[Titre de la session]]`
@@ -334,6 +341,95 @@ En attendant : reporté, non bloquant.
   - `[...]`
 
 <!-- ────────────────────────────────────────────────────────── -->
+
+---
+
+## E0-S07 — Résorption dettes haute priorité (MOCK_SEARCH_CANDIDATES + tests runtime)
+
+**Statut :** ✅ CLÔTURÉE
+**Date :** 2026-10-08
+**Commit final :** (à compléter après commit)
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut |
+|---|---|---|
+| E0-S07-0 | Audit initial + état réel (rapport PCT) | ✅ |
+| E0-S07-1 | Mise à jour documentaire (SESSION.md divergent) | ✅ |
+| E0-S07-2 | Audit modèle SearchCandidate (mapping Zod → Prisma) | ✅ |
+| E0-S07-3 | Modèle Prisma + migration + seed (Axe 1) | ✅ |
+| E0-S07-4-A | Diagnostic typecheck (TS6053) | ✅ |
+| E0-S07-4-A' | Stabilisation `scripts/typecheck.mjs` | ✅ |
+| E0-S07-4-B | Remplacement `MOCK_SEARCH_CANDIDATES` (3 fichiers) | ✅ |
+| E0-S07-4-B' | Rapport PCT recomposé (conforme) | ✅ |
+| E0-S07-5 | Setup Playwright + 3 tests fumée (Axe 2) | ✅ |
+| E0-S07-6-A | Lecture préalable (pkg, warning, 40 routes) | ✅ |
+| E0-S07-6-B | 33 tests E2E (public + protected + API) | ✅ |
+| E0-S07-7 | Clôture + commit + passation | ✅ |
+
+### Réalisations
+
+- **Axe 1 — `MOCK_SEARCH_CANDIDATES` → Prisma**
+  - Modèle `SearchCandidate` créé (migration `20261008100000_add_search_candidate`)
+  - Seed idempotent (4 candidats)
+  - Helper `src/lib/data/search-candidates.ts` (Prisma + Zod parse strict)
+  - API `/api/search` branchée Prisma + tri conservé
+  - Page admin `/admin/demandes/[id]/recherche` branchée RSC + props
+  - `MOCK_SEARCH_CANDIDATES` supprimé (0 référence)
+  - `src/lib/mock-data.ts` supprimé (résidu vide)
+
+- **Axe 2 — Tests runtime automatisés**
+  - Playwright 1.64.0 + Chromium installés
+  - `playwright.config.ts` (workers:1, reuseExistingServer)
+  - `scripts/typecheck.mjs` stabilisé (sleepSync + nettoyage .next/types)
+  - **33 tests E2E** : 3 smoke + 12 public + 14 protected + 4 API
+  - Couverture : toutes les routes non-authentifiées (29 routes sur 40 listées)
+
+### Décisions verrouillées E0-S07
+
+- **Typecheck** : `scripts/typecheck.mjs` nettoie `.next/types` avant `next typegen`. Comportement accepté malgré récurrence (dette Next.js, réévaluation E0-S08).
+- **Modèle `SearchCandidate`** : `scores` et `metadata` en `Json`. Tri en mémoire applicative (pas d'index JSONB). Dette E1 (colonne dénormalisée si volume).
+- **Helper `getSearchCandidates`** : parse strict via `CandidateScoresSchema.parse()`. Échoue si données invalides (signal, pas masquage).
+- **Playwright** : Chromium uniquement, pas de CI, workers:1.
+- **`mock-data.ts`** : supprimé (résidu vide).
+
+### Dettes ouvertes (E0-S07b et au-delà)
+
+| Dette | Priorité | Cible |
+|---|---|---|
+| Tests E2E authentifiés (ADMIN, USER, VIEWER) | Haute | E0-S07b |
+| Tests E2E routes dynamiques avec IDs valides | Haute | E0-S07b |
+| Tests cookie expiré/invalide (T2/T4) | Moyenne | E0-S07b |
+| Matrice E2E complète (4 rôles) | Moyenne | E0-S07b |
+| Warning `pg` sslmode (pg-connection-string) | Moyenne | Avant migration pg v9 |
+| Conflit peer `zod 3 vs 4` (better-call) | Moyenne | E0-S08 |
+| `/api/sync` : contrat POST à clarifier | Faible | E0-S07b |
+| Migration Next 15 → 16 | Haute | E0-S08 |
+| React 18 → 19 | Haute | E0-S08 |
+| Migration Tailwind 3 → 4 | Moyenne | E0-S09 |
+| 12 vulns npm | Moyenne | Session dédiée |
+| Nettoyage `.next/types` récurrent | Faible | E0-S08 (réévaluation) |
+| `cloudId` absent du schéma Prisma | Faible | E1 |
+| Enums Prisma non utilisés (String) | Faible | E1 |
+| Migration enum PG natif | Faible | E1 |
+
+### Incidents PCT tracés
+
+- **E0-S07-3** : contournement `prisma migrate dev` (P3006/P3018) sans STOP préalable → accepté rétroactivement.
+- **E0-S07-5** : `--legacy-peer-deps` utilisé sans STOP préalable → accepté rétroactivement.
+- **E0-S07-6-B** : 2 ajustements de tests (toHaveTitle, /api/sync 405) effectués sans STOP → acceptés rétroactivement (ajustements mineurs, dans le périmètre).
+
+**Règle renforcée** : toute commande qui échoue (Prisma, npm, git, Playwright) → STOP + rapport, sans exception.
+
+### Baseline finale E0-S07
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 34 pages (40 routes listées) |
+| Seed | ✅ idempotent, 4 searchCandidates |
+| Tests E2E | ✅ 33/33 verts |
 
 ---
 
@@ -397,9 +493,12 @@ En attendant : reporté, non bloquant.
 
 ## 🎯 PROCHAINE SESSION PRÉVUE
 
-- **Session** : `E0-S06`
-- **Objectif** : Middleware & protection routes + remplacement mocks admin par DB réelle
-- **Étapes prévues** : `[cadrage E0-S06-0 : audit routes protégées + remplacement mocks admin]`
+- **Session** : E0-S07b
+- **Objectif** : Tests E2E authentifiés + routes dynamiques + cookies expirés
+  (1) Matrice E2E ADMIN/USER/VIEWER (auth Playwright)
+  (2) Tests routes dynamiques avec IDs valides (admin/[id], client/dashboard/[id], materiaux/[slug])
+  (3) Tests cookie expiré/invalide (T2/T4)
+  (4) Clarification contrat /api/sync
 
 ---
 

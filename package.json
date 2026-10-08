@@ -10,8 +10,9 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "node scripts/typecheck.js",
-    "db:seed": "tsx prisma/seed.ts"
+    "typecheck": "node scripts/typecheck.mjs",
+    "db:seed": "tsx prisma/seed.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.7.7",
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@neon/config": "^1.8.3",
     "@neon/env": "^1.5.0",
+    "@playwright/test": "^1.64.0",
     "@types/node": "^22.13.4",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

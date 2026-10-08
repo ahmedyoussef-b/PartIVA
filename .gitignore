@@ -44,3 +44,9 @@ Thumbs.db
 
 # Generated
 src/generated/
+
+# Playwright
+/e2e/test-results/
+/e2e/playwright-report/
+/playwright-report/
+/test-results/

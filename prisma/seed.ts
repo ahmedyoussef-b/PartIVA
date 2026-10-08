@@ -40,6 +40,7 @@ async function main() {
   await prisma.machine.deleteMany();
   await prisma.material.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.searchCandidate.deleteMany();
 
   // ── Users ───────────────────────────────────────────────────────────
   console.log('👤 Creating users...');
@@ -693,6 +694,58 @@ async function main() {
     ],
   });
 
+  // ── SearchCandidates ──────────────────────────────────────────────
+  console.log('🔍 Creating search candidates...');
+  await prisma.searchCandidate.deleteMany({
+    where: { source: { in: ['local_db', 'traceparts', 'cadenas', 'geometric_search'] } },
+  });
+  await prisma.searchCandidate.createMany({
+    data: [
+      {
+        source: 'local_db',
+        reference: 'PL-004812',
+        name: 'Pignon d\'entraînement POM-C 24 dents',
+        manufacturer: 'Atelier Usinage Sfax (Archives)',
+        imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80',
+        cadAvailable: true,
+        datasheetAvailable: true,
+        scores: { global: 0.88, geometry: 0.92, dimensions: 0.85, material: 0.9 },
+        metadata: { usinageTime: '45 min', matiereBrute: 'Barre ronde POM-C Ø90 mm' },
+      },
+      {
+        source: 'traceparts',
+        reference: 'TP-948210-EN',
+        name: 'Spur Gear Module 2.5 - 24 Teeth',
+        manufacturer: 'KHK Standard Gears Inc.',
+        imageUrl: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=400&q=80',
+        cadAvailable: true,
+        datasheetAvailable: true,
+        scores: { global: 0.76, geometry: 0.82, dimensions: 0.74, material: 0.7 },
+        metadata: { standard: 'DIN 867', stepFileUrl: 'https://traceparts.com/export/step/TP-948210.step' },
+      },
+      {
+        source: 'cadenas',
+        reference: 'CAD-MISUMI-GEAR-84',
+        name: 'Polyacetal Spur Gear Hub Type A',
+        manufacturer: 'Misumi Industrial Europe',
+        imageUrl: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=400&q=80',
+        cadAvailable: true,
+        datasheetAvailable: false,
+        scores: { global: 0.71, geometry: 0.75, dimensions: 0.69, material: 0.85 },
+      },
+      {
+        source: 'geometric_search',
+        reference: 'GEO-CLUSTER-591',
+        name: 'Modèle similaire géométrie rotative crantée',
+        manufacturer: 'Index 3D IA Local',
+        imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80',
+        cadAvailable: true,
+        datasheetAvailable: false,
+        scores: { global: 0.64, geometry: 0.68, dimensions: 0.6, material: 0.5 },
+      },
+    ],
+  });
+
   // ── Summary ────────────────────────────────────────────────────────
   console.log('\n✅ Seed completed successfully!');
   console.log('─────────────────────────────────────────');
@@ -713,6 +766,7 @@ async function main() {
     materials: await prisma.material.count(),
     machines: await prisma.machine.count(),
     requests: await prisma.request.count(),
+    searchCandidates: await prisma.searchCandidate.count(),
   };
 
   for (const [table, count] of Object.entries(counts)) {

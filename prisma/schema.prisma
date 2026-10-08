@@ -360,3 +360,22 @@ enum MachineStatus {
   MAINTENANCE
   OFFLINE
 }
+
+model SearchCandidate {
+  id                 String   @id @default(cuid())
+  source             String
+  reference          String
+  name               String
+  manufacturer       String?
+  imageUrl           String?
+  cadAvailable       Boolean  @default(false)
+  datasheetAvailable Boolean @default(false)
+  scores             Json
+  metadata           Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([source])
+  @@index([reference])
+  @@index([createdAt])
+}

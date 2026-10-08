@@ -1,4 +1,5 @@
 import { getRequestById } from '@/lib/data/requests';
+import { getSearchCandidates } from '@/lib/data/search-candidates';
 import RechercheClient from './recherche-client';
 
 export default async function RechercheMultiSourcePage({
@@ -8,10 +9,11 @@ export default async function RechercheMultiSourcePage({
 }) {
   const { id } = await params;
   const request = await getRequestById(id);
+  const initialCandidates = await getSearchCandidates();
 
   if (!request) {
     return <div className="p-8 text-center text-muted-foreground">Demande introuvable</div>;
   }
 
-  return <RechercheClient initialRequest={request} />;
+  return <RechercheClient initialRequest={request} initialCandidates={initialCandidates} />;
 }
