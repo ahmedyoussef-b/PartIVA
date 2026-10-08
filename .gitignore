@@ -50,3 +50,6 @@ src/generated/
 /e2e/playwright-report/
 /playwright-report/
 /test-results/
+
+# Playwright auth storage
+.auth/
