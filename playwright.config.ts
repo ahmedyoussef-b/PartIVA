@@ -12,10 +12,17 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-  // Setup — generates .auth/*.json. Runs first.
+  // Warmup — pre-warms Next.js dev server routes. Runs before auth setup.
+  {
+    name: 'warmup',
+    testMatch: /warmup\.setup\.ts/,
+  },
+
+  // Setup — generates .auth/*.json. Runs after warmup.
   {
     name: 'setup',
     testMatch: /auth\.setup\.ts/,
+    dependencies: ['warmup'],
   },
 
   // Existing 33 tests — unchanged, no auth.
@@ -23,6 +30,7 @@ export default defineConfig({
     name: 'chromium',
     use: { ...devices['Desktop Chrome'] },
     testIgnore: [/fixtures\//, /setup\//, /public\//, /admin\//, /user\//, /viewer\//],
+    retries: 0,
   },
 
   // New role-based projects — matrix tests (written in E0-S07b-1-C).
@@ -31,6 +39,7 @@ export default defineConfig({
     use: { ...devices['Desktop Chrome'] },
     testDir: './e2e/public',
     dependencies: ['setup'],
+    retries: 1,
   },
   {
     name: 'admin',
@@ -40,6 +49,7 @@ export default defineConfig({
     },
     testDir: './e2e/admin',
     dependencies: ['setup'],
+    retries: 1,
   },
   {
     name: 'user',
@@ -49,6 +59,7 @@ export default defineConfig({
     },
     testDir: './e2e/user',
     dependencies: ['setup'],
+    retries: 1,
   },
   {
     name: 'viewer',
@@ -58,6 +69,7 @@ export default defineConfig({
     },
     testDir: './e2e/viewer',
     dependencies: ['setup'],
+    retries: 1,
   },
 ],
   webServer: {

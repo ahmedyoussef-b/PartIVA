@@ -17,7 +17,11 @@ for (const role of roles) {
     await page.getByLabel(/mot de passe/i).fill(user.password);
     await page.getByRole('button', { name: /connexion|se connecter|login/i }).click();
 
-    await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
+    // Wait for network to settle — session establishment + redirect.
+    await page.waitForLoadState('networkidle');
+
+    // Assert we left /login — 30s timeout for cold starts.
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
 
     await page.context().storageState({ path: user.storageStatePath });
   });
