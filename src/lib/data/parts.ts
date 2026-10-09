@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma';
+import { generatePtvReference } from '@/lib/ptv-reference';
+import { Prisma } from '@/generated/prisma/client';
 import type {
   Part,
   PartCategory,
@@ -117,4 +119,37 @@ export async function getPartsCount(options?: { status?: string }): Promise<numb
     ? { status: options.status.toUpperCase() as Part['status'] }
     : undefined;
   return prisma.part.count({ where });
+}
+
+const PTV_RETRY_DELAYS_MS = [50, 100, 200];
+
+export async function createPartWithPtvReference(
+  data: Prisma.PartCreateInput,
+  maxRetries = 3,
+): Promise<Part> {  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const ptvReference = await generatePtvReference();
+
+    try {
+      return await prisma.part.create({
+        data: { ...data, ptvReference },
+      });
+    } catch (error) {
+      lastError = error;
+
+      const isUniqueViolation =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002';
+
+      if (!isUniqueViolation || attempt === maxRetries) {
+        throw error;
+      }
+
+      const delay = PTV_RETRY_DELAYS_MS[attempt] ?? 200;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
 }
