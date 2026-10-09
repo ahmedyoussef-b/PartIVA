@@ -30,6 +30,7 @@ export type PartWithSerializedSuppliers = Omit<PartWithRelations, 'suppliers'> &
 export async function getParts(options?: {
   status?: string;
   categoryId?: string;
+  clientId?: string;
   limit?: number;
 }): Promise<PartWithSerializedSuppliers[]> {
   const where: Record<string, unknown> = {};
@@ -40,6 +41,10 @@ export async function getParts(options?: {
 
   if (options?.categoryId) {
     where.categoryId = options.categoryId;
+  }
+
+  if (options?.clientId) {
+    where.clientId = options.clientId;
   }
 
   const raw = (await prisma.part.findMany({
