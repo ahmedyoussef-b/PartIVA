@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) |
-| **Dernière session** | E1-S04 (clôturée) |
-| **Session en cours** | E1-S05 (à cadrer) |
-| **Statut global** | E1-S01 + E1-S02 + E1-S03 + E1-S04 clôturées (historique & versions PartVersion), baseline 6/6 tenue, E2E 119/124 (3 skips) |
+| **Dernière session** | E1-S05 (clôturée) |
+| **Session en cours** | E1-S06 (à cadrer) |
+| **Statut global** | E1-S01 + E1-S02 + E1-S03 + E1-S04 + E1-S05 clôturées (upload Cloudinary), baseline 6/6 tenue, E2E 127/129 (2 skips) |
 
 ---
 
@@ -1285,6 +1285,80 @@ La migration E1-S03-B (`20261009190000_complete_part_status_workflow`) ne rejoua
 - **Test skip multi-tenant** : le test USER-sur-pièce-d'un-autre-client est skip (seed mono-client, `D-e2e-multitenant` Haute). La logique `NOT_OWNER` est couverte par le code et le test 403 de l'API.
 - E1-S05 (upload Cloudinary) peut être cadrée.
 
+## E1-S05 — Upload Cloudinary (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commits :** 30fcaa8, 2fc4322, 85cdb16, <hash E1-S05-C>
+**Baseline :** lint 0/0, typecheck 0, build 34/34, seed idempotent, E2E 127/129 (2 skips), format 0.
+
+### Objet
+
+Remplacer le stockage local temporaire (`public/uploads/parts/`) par Cloudinary : SDK, lib upload, API `POST /api/upload`, migration `PartImage`/`Attachment` vers Cloudinary.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| A.1 | Vérifications préalables + traçage dettes E2E | ✅ | 30fcaa8 |
+| A.2 | Setup Cloudinary + lib upload + API `POST /api/upload` | ✅ | 2fc4322 |
+| B | Migration `PartImage`/`Attachment` vers Cloudinary (`publicId`) | ✅ | 85cdb16 |
+| C | Tests E2E + clôture documentaire | ✅ | <hash E1-S05-C> |
+
+### Décisions verrouillées
+
+- **D1** : Fournisseur **Cloudinary** (déjà mentionné ROADMAP E1-S05).
+- **D2** : Portée = remplacement stockage local E1-S02-D. `PartImage` + `Attachment` utilisent Cloudinary.
+- **D3** : Upload **server-side** (`POST /api/upload`) — le fichier passe par le serveur Next.js, pas d'upload direct navigateur → Cloudinary (credentials non exposés).
+- **D4** : `CLOUDINARY_URL` côté serveur uniquement. Upload signé (pas d'unsigned preset). Validation Zod : mime, taille (5 Mo).
+- **D5** : Nettoyage Cloudinary à la suppression d'un `PartImage`/`Attachment` — **reporté** (tracé en dette, voir ci-dessous).
+
+### Réalisations
+
+- **A.1** : vérification `_prisma_migrations` post-dérogation T10 (`finished_at` non-null, `rolled_back_at` null, checksum `821221d0...` cohérent). Identification des 3 skips E2E (2 × `D-e2e-multitenant`, 1 skip conditionnel `part-versions.spec.ts:68`). Traçage `D-e2e-isolation` + `D-e2e-skip-conditional` dans `DEBT.md`.
+- **A.2** : `npm install cloudinary` (8 packages). `src/lib/cloudinary.ts` (config depuis env). `src/lib/upload.ts` — `uploadToCloudinary(buffer, folder, resourceType, mimeType)` : validation mime (image : jpeg/png/webp ; raw : pdf/step/stl/obj), taille 5 Mo, upload signé `folder/<uuid>`, retour `{url, publicId, format, size}`. `UploadError` avec codes `INVALID_MIME`/`TOO_LARGE`/`UPLOAD_FAILED`. API `POST /api/upload` — auth 401, Zod `UploadRequestSchema` 400, mapping `UploadError`→400/502.
+- **B** : migration `20261009222903_add_public_id_to_part_image_and_attachment` — `publicId String?` sur `PartImage` et `Attachment`. API `POST /api/parts/[id]/images` adaptée : stockage local supprimé, upload Cloudinary (`parts/<partId>/<uuid>`), `publicId` persisté. `.gitignore` : ligne `public/uploads/` retirée (répertoire absent).
+- **C** : `e2e/cloudinary-upload.spec.ts` — 5 tests (401 sans auth, 400 mime invalide, 400 payload invalide, 401 images sans auth, 400 images mime invalide). **Total : 127/129 (2 skips)**.
+
+### Incidents PCT E1-S05
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E1-S05-n°1 | Typecheck échoue après migration `publicId` — client Prisma généré non régénéré. Résolu par `npx prisma generate`. | Tracé. Non bloquant (étape standard post-migration). |
+
+### Dettes résolues
+
+- `D-cloudinary` — Cloudinary implémenté (SDK, lib, API, migration).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-cloudinary-cleanup` (D5) — suppression fichier Cloudinary à la suppression PartImage/Attachment | E1-S06 ou session dédiée |
+| `D-cloudinary-attachment-upload` — UI d'upload d'Attachment (aucune UI existante, modèle prêt) | E1-S06 |
+| `D-e2e-isolation`, `D-e2e-skip-conditional` | Session E2E dédiée |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée |
+| Diff sémantique entre versions | E1-S06 |
+| Mesures (`PartSpecification`) UI, Docs (`Attachment`) UI | E1-S06 |
+| `D-enums-non-utilises`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D117`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E1-S05
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 34/34 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 127/129 verts (2 skips : USER sur pièce d'un autre client ×2 — seed mono-client, `D-e2e-multitenant`) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 11 migrations, 0 drift (`migrate diff` : empty) |
+
+### Notes
+
+- **Upload réel non testé en E2E** : les tests E2E valident les chemins d'erreur (401/400) sans pousser de vrai fichier vers Cloudinary (pas de credentials valides en environnement de test). Le chemin succès est couvert par le code (`uploadToCloudinary`) — à valider manuellement avec de vrais credentials.
+- **Seed inchangé** : les URLs seed restent des fixtures (pas de vrais uploads Cloudinary dans le seed).
+- E1-S06 (mesures + docs UI, diff sémantique) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S05
+Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S06
 ═══════════════════════════════════════════════════════════════

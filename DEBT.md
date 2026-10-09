@@ -28,6 +28,8 @@
 | `D-s03-t3-ecart` | Interprétation de l'écart `SUBMITTED`/`IDENTIFYING` (E1-S03-F T3) non prouvée par un SELECT avant/après. Plausible, non vérifié. | Faible | Session E2E dédiée | Non | Ajouter un SELECT avant/après tests E2E pour confirmer |
 | `D-e2e-isolation` | Effets d'ordre entre specs E2E (DB partagée) + instabilité dev server Windows. Les specs passent seules, échouent en run complet. | Moyenne | Session E2E dédiée | Non | Ajouter reset DB entre specs ou isoler les données par spec |
 | `D-e2e-skip-conditional` | Skip conditionnel `part-versions.spec.ts:68` (test transition crée version) — skip si aucune pièce SUBMITTED en seed (consommée par un test antérieur). | Faible | Session E2E dédiée | Non | Rendre le test déterministe (fixture dédiée ou reset DB) |
+| `D-cloudinary-cleanup` | Suppression du fichier Cloudinary à la suppression d'un `PartImage`/`Attachment` (D5 E1-S05) — non implémenté. | Moyenne | E1-S06 ou session dédiée | Non | Ajouter `cloudinary.uploader.destroy(publicId)` dans les DELETE PartImage/Attachment |
+| `D-cloudinary-attachment-upload` | UI d'upload d'`Attachment` absente — modèle `Attachment.publicId` prêt mais aucun endpoint d'upload d'attachment. | Faible | E1-S06 | Non | Créer l'UI + endpoint d'upload d'attachment (docs techniques) |
 
 ---
 
