@@ -71,21 +71,25 @@ export function CadViewer({
   partName = 'Composant CAO 3D',
   materialColor = '#38bdf8',
 }: CadViewerProps) {
-  const [mounted, setMounted] = React.useState(false);
+  // D74 — initialisation paresseuse SSR-safe : mounted et webGlAvailable sont
+  // calculés au premier rendu client uniquement (document indisponible en SSR).
+  // Évite le setState synchrone dans useEffect (react-hooks/set-state-in-effect,
+  // react-hooks@7) qui déclenche des rendus en cascade. Ces valeurs sont
+  // constantes après le montage : pas de setter nécessaire.
+  const [mounted] = React.useState(() => typeof window !== 'undefined');
   const [wireframe, setWireframe] = React.useState(false);
   const [autorotate, setAutorotate] = React.useState(true);
-  const [webGlAvailable, setWebGlAvailable] = React.useState(true);
-
-  React.useEffect(() => {
-    setMounted(true);
+  const [webGlAvailable] = React.useState(() => {
+    if (typeof document === 'undefined') return true;
     try {
       const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (!gl) setWebGlAvailable(false);
+      const gl =
+        canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      return Boolean(gl);
     } catch {
-      setWebGlAvailable(false);
+      return false;
     }
-  }, []);
+  });
 
   if (!mounted) {
     return (

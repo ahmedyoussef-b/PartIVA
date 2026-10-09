@@ -29,13 +29,17 @@ export function isTauriEnvironment(): boolean {
 }
 
 export function useAppMode() {
-  const [isTauri, setIsTauri] = React.useState<boolean>(false);
-  const [isClient, setIsClient] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    setIsClient(true);
-    setIsTauri(isTauriEnvironment());
-  }, []);
+  // D74 — initialisation paresseuse SSR-safe : isTauri est calculé au premier
+  // rendu client uniquement (isTauriEnvironment() retourne false en SSR car
+  // typeof window === 'undefined'). Cela évite le setState synchrone dans
+  // useEffect (react-hooks/set-state-in-effect, react-hooks@7 embarqué par
+  // eslint-config-next@16) qui déclenche des rendus en cascade.
+  // isClient est une constante dérivée : le hook n'est appelé que depuis des
+  // composants 'use client', donc côté client isClient est toujours vrai.
+  const [isTauri, setIsTauri] = React.useState<boolean>(() =>
+    isTauriEnvironment(),
+  );
+  const isClient = true;
 
   const setManualMode = (mode: 'web' | 'tauri') => {
     if (typeof window !== 'undefined') {

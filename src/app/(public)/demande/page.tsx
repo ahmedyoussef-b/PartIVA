@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDropzone } from 'react-dropzone';
 import { useTransition } from 'react';
@@ -41,10 +41,10 @@ export default function DemandePage() {
   const [photoPreviews, setPhotoPreviews] = React.useState<string[]>([]);
 
   const {
+    control,
     register,
     handleSubmit,
     setValue,
-    watch,
     trigger,
     formState: { errors },
   } = useForm<CreateRequest>({
@@ -61,7 +61,11 @@ export default function DemandePage() {
     },
   });
 
-  const formValues = watch();
+  // D73 — useWatch au lieu de watch() : watch() retourne une fonction qui ne
+  // peut pas être mémorisée sans UI stale (react-hooks/incompatible-library,
+  // react-hooks@7 / React Compiler). useWatch s'abonne au control et retourne
+  // une valeur réactive mémoinisable.
+  const formValues = useWatch({ control });
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[]) => {
