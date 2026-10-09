@@ -364,6 +364,7 @@ async function main() {
   const part1 = await prisma.part.create({
     data: {
       partNumber: 'SKF-6205-2RS',
+      ptvReference: 'PTV-2026-000001',
       name: 'Roulement à billes SKF 6205-2RS',
       description: 'Roulement rigide à billes, joints 2RS, dimensions 25x52x15 mm',
       status: 'ACTIVE',
@@ -375,6 +376,7 @@ async function main() {
   const part2 = await prisma.part.create({
     data: {
       partNumber: 'SKF-6305-2RS',
+      ptvReference: 'PTV-2026-000002',
       name: 'Roulement à billes SKF 6305-2RS',
       description: 'Roulement rigide à billes, joints 2RS, dimensions 62x130x31 mm',
       status: 'ACTIVE',
@@ -386,6 +388,7 @@ async function main() {
   const part3 = await prisma.part.create({
     data: {
       partNumber: 'NSK-6206-2RS',
+      ptvReference: 'PTV-2026-000003',
       name: 'Roulement à billes NSK 6206-2RS',
       description: 'Roulement rigide à billes, joints 2RS, dimensions 30x62x16 mm',
       status: 'ACTIVE',
@@ -397,6 +400,7 @@ async function main() {
   const part4 = await prisma.part.create({
     data: {
       partNumber: 'ENG-M2-Z20',
+      ptvReference: 'PTV-2026-000004',
       name: 'Engrenage droit module 2, 20 dents',
       description: 'Engrenage droit en acier, module 2, 20 dents, trou 12 mm',
       status: 'ACTIVE',
@@ -408,6 +412,7 @@ async function main() {
   const part5 = await prisma.part.create({
     data: {
       partNumber: 'SKF-7205-BEP',
+      ptvReference: 'PTV-2026-000005',
       name: 'Roulement à contact oblique SKF 7205 BEP',
       description: 'Roulement à contact oblique, angle 40°, dimensions 25x52x15 mm',
       status: 'DRAFT',
