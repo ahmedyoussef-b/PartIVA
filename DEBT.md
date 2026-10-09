@@ -12,7 +12,7 @@
 | `D-format-E0` | `format:check` — 83 fichiers non conformes (origine : E0-S10-B) | Moyenne | E0-S11-B | Non | Résorbé en E0-S11-B (commit dédié) |
 | `D-audit-mysql2` | `npm audit` — 4 high prod / 9 high total via `mysql2` transitif de `prisma` | Haute | Attente Prisma 8 | Non | Accepté et tracé. `mysql2` non utilisé (PostgreSQL). Fix = downgrade Prisma 6.19.3 (breaking) → refusé. Attente Prisma 8 (D116) |
 | `D-part-user` | Relation `Part` ↔ `User` absente — filtrage client impossible | Haute | E1-S01 | Oui (E1) | Prérequis E1-S01. Ajout `clientId` sur `Part` + migration |
-| `D-enums-non-utilises` | Enums Prisma définis mais statuts en `String` sur certains modèles | Moyenne | E1-S01 | Non | Reporté E1-S01 (application des enums) |
+| `D-enums-non-utilises` | Enums Prisma non appliqués sur `AuditLog.action`, `AuditLog.entityType`, `SearchCandidate.source` (champs techniques, valeurs ouvertes) | Faible | Session ultérieure | Non | `Machine.type` + `Material.category` convertis en enum en E1-S01 (D3). `AuditLog.*` + `SearchCandidate.source` reportés (champs techniques, valeurs ouvertes) |
 | `D-ui-orphelins` | `alert.tsx`, `select.tsx`, `skeleton.tsx` non consommés | Faible | E1-S01 | Non | Décision usage ou suppression en E1-S01 |
 | `D-docs-template` | `PCT.md` en template non rempli | Faible | Session doc dédiée | Non | Accepté si intentionnel (document générique). À confirmer par le Coordinateur |
 | `D-roadmap-retard` | `ROADMAP.md` — table E0 incomplète, libellés inexacts, sessions E0-S07b-1/2/3 + E0-S10 manquantes | Faible | Session doc dédiée | Non | Reporté session doc dédiée (groupée avec D-44) |

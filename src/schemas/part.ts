@@ -28,7 +28,10 @@ export type PartDimensions = z.infer<typeof PartDimensionsSchema>;
 export const PartSchema = z.object({
   id: z.string().uuid(),
   partNumber: z.string().min(1),
-  ptvReference: z.string().regex(/^PTV-\d{4}-\d{6}$/).optional(),
+  ptvReference: z
+    .string()
+    .regex(/^PTV-\d{4}-\d{6}$/)
+    .optional(),
   reference: z.string().regex(/^PL-\d{6}$/),
   name: z.string().min(3).max(200),
   description: z.string().optional(),

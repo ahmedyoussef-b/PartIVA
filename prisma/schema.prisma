@@ -280,7 +280,7 @@ model Machine {
   id        String        @id @default(cuid())
   code      String        @unique
   name      String
-  type      String
+  type      MachineType
   status    MachineStatus @default(IDLE)
   location  String?
   createdAt DateTime      @default(now())
@@ -295,7 +295,7 @@ model Material {
   slug                String   @unique
   code                String   @unique
   name                String
-  category            String
+  category            MaterialCategory
   density             Float?
   maxTemp             Int?
   tensileStrength     Int?
@@ -364,6 +364,20 @@ enum MachineStatus {
   RUNNING
   MAINTENANCE
   OFFLINE
+}
+
+enum MachineType {
+  CNC
+  LATHE
+  PRINTER_3D
+}
+
+enum MaterialCategory {
+  THERMOSTABLE_TECHNIQUE
+  THERMOPLASTIQUE_RENFORCE
+  POLYMERE_TECHNIQUE_POINT
+  FLUOROPOLYMERE_HAUTE_TEMP
+  POLYOLEFINE_POLYVALENTE
 }
 
 model SearchCandidate {

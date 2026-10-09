@@ -9,10 +9,12 @@ type MachineWithRelations = Machine;
 
 const MachineStatusSchema = z.enum(['IDLE', 'RUNNING', 'MAINTENANCE', 'OFFLINE']);
 
+const MachineTypeSchema = z.enum(['CNC', 'LATHE', 'PRINTER_3D']);
+
 const CreateMachineSchema = z.object({
   code: z.string().min(1, 'Le code est requis'),
   name: z.string().min(1, 'Le nom est requis'),
-  type: z.string().min(1, 'Le type est requis'),
+  type: MachineTypeSchema,
   status: MachineStatusSchema.default('IDLE'),
   location: z.string().optional(),
 });
@@ -21,7 +23,7 @@ const UpdateMachineSchema = z.object({
   id: z.string().uuid(),
   code: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
-  type: z.string().min(1).optional(),
+  type: MachineTypeSchema.optional(),
   status: MachineStatusSchema.optional(),
   location: z.string().optional(),
 });
