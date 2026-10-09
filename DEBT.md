@@ -26,6 +26,8 @@
 | `D-e2e-multitenant` | Test E2E « USER sur pièce d'un autre client → 403 » skippé — seed mono-client. Sécurité multi-tenant (`NOT_OWNER`) non couverte par test E2E. | Haute | E1-S03-G | Oui | Enrichir le seed avec un 2ᵉ client (Sophie Martin + un autre user) pour activer le test |
 | `D-e2e-auth-dual` | Deux mécanismes d'auth E2E coexistent : `authRequest` (chromium) et `storageState` (admin/user/viewer). Unification à envisager si les storageStates produisent des 401 stales. | Faible | Session E2E dédiée | Non | Vérifier la stabilité des storageStates sur plusieurs runs consécutifs |
 | `D-s03-t3-ecart` | Interprétation de l'écart `SUBMITTED`/`IDENTIFYING` (E1-S03-F T3) non prouvée par un SELECT avant/après. Plausible, non vérifié. | Faible | Session E2E dédiée | Non | Ajouter un SELECT avant/après tests E2E pour confirmer |
+| `D-e2e-isolation` | Effets d'ordre entre specs E2E (DB partagée) + instabilité dev server Windows. Les specs passent seules, échouent en run complet. | Moyenne | Session E2E dédiée | Non | Ajouter reset DB entre specs ou isoler les données par spec |
+| `D-e2e-skip-conditional` | Skip conditionnel `part-versions.spec.ts:68` (test transition crée version) — skip si aucune pièce SUBMITTED en seed (consommée par un test antérieur). | Faible | Session E2E dédiée | Non | Rendre le test déterministe (fixture dédiée ou reset DB) |
 
 ---
 
