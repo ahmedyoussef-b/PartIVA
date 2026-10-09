@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { getMachineTypeLabel } from '@/lib/enum-labels';
 import {
   Cpu,
   Hammer,
@@ -143,7 +144,7 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
                       <CardTitle className="text-sm leading-snug font-bold">
                         {machine.name}
                       </CardTitle>
-                      <CardDescription className="mt-0.5 text-xs">{machine.type}</CardDescription>
+                      <CardDescription className="mt-0.5 text-xs">{getMachineTypeLabel(machine.type)}</CardDescription>
                     </div>
                   </div>
                   <Badge

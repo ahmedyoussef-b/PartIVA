@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import type { MaterialWithDetails } from '@/lib/data/materials';
+import { getMaterialCategoryLabel } from '@/lib/enum-labels';
 
 const MATERIAL_COLORS: Record<string, { accent: string; bg: string; border: string }> = {
   'POM-C': { accent: 'text-blue-500', bg: 'bg-blue-500/8', border: 'border-blue-500/20' },
@@ -113,7 +114,7 @@ export default function AdminMateriauxPageClient({
                       <div className="text-foreground text-xs leading-tight font-bold">
                         {mat.name.split(' (')[0]}
                       </div>
-                      <div className="text-muted-foreground text-[10px]">{mat.category}</div>
+                      <div className="text-muted-foreground text-[10px]">{getMaterialCategoryLabel(mat.category)}</div>
                     </div>
                   </div>
                   <ArrowRight
@@ -170,7 +171,7 @@ export default function AdminMateriauxPageClient({
                   </span>
                   <div>
                     <CardTitle className="text-base font-bold">{selectedMat.name}</CardTitle>
-                    <CardDescription>{selectedMat.category}</CardDescription>
+                    <CardDescription>{getMaterialCategoryLabel(selectedMat.category)}</CardDescription>
                   </div>
                 </div>
               </CardHeader>

@@ -2,6 +2,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMaterialBySlug } from '@/lib/data/materials';
+import { getMaterialCategoryLabel } from '@/lib/enum-labels';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,7 @@ export default async function MaterialDetailPage({
                 {material.code}
               </h1>
               <Badge variant="outline" className="text-xs">
-                {material.category}
+                {getMaterialCategoryLabel(material.category)}
               </Badge>
               {material.foodGrade && (
                 <Badge variant="success" className="text-xs">
