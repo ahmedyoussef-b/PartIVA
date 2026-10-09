@@ -1192,6 +1192,15 @@ Système d'états complet pour `Part.status` : enum 11 états, matrice de transi
 - **Test skip** : le test USER-sur-pièce-d'un-autre-client est skip car le seed ne crée qu'un seul client (toutes les parts appartiennent au même user). La logique `NOT_OWNER` est couverte par le code.
 - E1-S04 (historique & versions `PartVersion`) peut être cadrée.
 
+### Incidents PCT E1-S03
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E1-S03-n°1 | Migration `20261009190000` échouée ×2 (ordre d'opérations inversé, DEFAULT non castable), puis hotfix DB manuel (drop default → cast → recreate default → drop old type) + `migrate resolve --rolled-back` puis `--applied`. **Violation règle #10.** | Tracé. Règle #10 renforcée (voir T11). Intégrité données vérifiée (T3). |
+| E1-S03-n°2 | Build Turbopack panic en D — import `@/generated/prisma/client` dans des Client Components. Résolu par basculement vers `@/generated/prisma/browser`. | Tracé. Usage vérifié (T4). Non bloquant. |
+| E1-S03-n°3 | E2E 401 sur tests authentifiés — storageStates `.auth/*.json` stales. Résolu par sign-in API frais via `authRequest`. | Tracé. Mécanisme E2E modifié (T6). |
+| E1-S03-n°4 | Seed P1017 transitoire — connexion DB fermée. Résolu par réessai immédiat. | Tracé. Non bloquant. |
+
 ═══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S04
 ═══════════════════════════════════════════════════════════════

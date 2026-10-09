@@ -23,6 +23,7 @@
 | `D-cloudinary` | Cloudinary mentionné ROADMAP E1-S05 mais non implémenté | Faible | E1-S05 | Non | Décision d'usage en E1-S05 |
 | `D-ptv-race` | Race condition génération PTV — deux POST simultanés sur `/api/parts` peuvent produire la même `ptvReference` (conflit `@unique`) | Moyenne | E1-S02-A | Non | Résolu en E1-S02-A : retry applicatif (3 tentatives, backoff 50/100/200ms) dans `createPartWithPtvReference()` |
 | `D-ux-enum-labels` | Affichage UI des codes bruts d'enum (`PRINTER_3D`, `THERMOSTABLE_TECHNIQUE`) sans mapping libellé lisible | Faible | E1-S02-B | Non | Résolu en E1-S02-B : mapping FR dans `src/lib/enum-labels.ts` appliqué aux 5 composants d'affichage |
+| `D-e2e-multitenant` | Test E2E « USER sur pièce d'un autre client → 403 » skippé — seed mono-client. Sécurité multi-tenant (`NOT_OWNER`) non couverte par test E2E. | Haute | E1-S03-G | Oui | Enrichir le seed avec un 2ᵉ client (Sophie Martin + un autre user) pour activer le test |
 
 ---
 
