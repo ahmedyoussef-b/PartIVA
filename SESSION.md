@@ -413,23 +413,24 @@ En attendant : reporté, non bloquant.
 ## 🏗️ ÉTAT ACTUEL DE L'ARCHITECTURE
 
 ### 🎨 Front-end
-- **Pages existantes** : `[à lister]`
-- **Composants clés** : `[à lister]`
-- **State management** : `[à définir]`
-- **Styling** : `[à définir]`
+- **Pages existantes** : 32 pages (7 publiques, 3 auth, 7 client, 12 admin, + pages dynamiques `/materiaux/[slug]`, `/admin/demandes/[id]`, `/client/dashboard/demandes/[id]`, `/admin/reverse-engineering/[id]`)
+- **Composants clés** : 18 fichiers UI (`src/components/ui/`) — tous migrés `ref` comme prop (E0-S10)
+- **State management** : Zustand (partiel), TanStack Query (1 usage)
+- **Styling** : Tailwind CSS 4.3.3 (CSS-first, @theme), `tw-animate-css`, Radix UI
 
 ### ⚙️ Back-end
-- **Route Handlers API** : `[à lister]`
-- **Server Actions** : `[à lister]`
-- **Schéma DB** : `[à décrire]`
-- **Auth** : BetterAuth configuré, `getCurrentUser()` opérationnel, filtrage client par `clientId`
+- **Route Handlers API** : 7 routes (`/api/auth/[...all]`, `/api/parts`, `/api/parts/[id]`, `/api/requests`, `/api/requests/[id]`, `/api/search`, `/api/sync`)
+- **Server Actions** : Server Components + Server Actions (RSC par défaut)
+- **Schéma DB** : 17 modèles Prisma, 8 enums — `User`, `Session`, `Account`, `Verification`, `Part`, `PartCategory`, `PartImage`, `PartSpecification`, `PartSupplier`, `ReverseEngineeringProject`, `ReverseEngineeringStep`, `CadFile`, `Supplier`, `Attachment`, `AuditLog`, `Request`, `Machine`, `Material`, `SearchCandidate`
+- **Auth** : BetterAuth 1.7.7 — `getCurrentUser()` opérationnel, filtrage client par `clientId`, protection routes via `src/proxy.ts`
 
 ### 🚀 Infra / DevOps
-- **Hosting** : `[à définir]`
-- **CI/CD** : `[à définir]`
+- **Hosting** : Vercel (web, prévu) + Tauri (desktop, E7)
+- **CI/CD** : non configuré (E8)
+- **Base** : Neon PostgreSQL (serverless), Prisma 7.10.0 avec `@prisma/adapter-pg`
 - **Sécurité repo** : ✅ auditée (E0-S01)
-- **Vulnérabilités npm** : 12 identifiées, report documenté
-- **Variables d'environnement** : `[à lister]`
+- **Vulnérabilités npm** : 4 high prod / 9 high total — cluster `mysql2` via `prisma` (accepté, tracé)
+- **Variables d'environnement** : `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `SHADOW_DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_APP_MODE`, `NEON_API_KEY`, `NEON_PROJECT_ID`, `DIRECT_URL`, `CLOUDINARY_*` (E1-S05)
 
 ---
 
@@ -460,22 +461,31 @@ En attendant : reporté, non bloquant.
 
 ## 🔑 DÉCISIONS D'ARCHITECTURE FIGÉES
 
-> ⚠️ Ne pas contredire sans validation explicite du Superviseur.
+> ⚠️ Ne pas contredire sans validation explicite.
 
-- `[ex: "Zod obligatoire pour toute validation d'input"]`
-- `[ex: "Server Components par défaut, 'use client' justifié"]`
-- `[ex: "Nommage fichiers : kebab-case | Composants : PascalCase"]`
+- **Stack verrouillée** : Next.js 16.4.0, React 19.3.0, Prisma 7.10.0, Tailwind 4.3.3, BetterAuth 1.7.7, TypeScript 5.9.3, Zod 4.6.5, Playwright 1.64.0 (D62, D65, D67, D86, D115)
+- **Zod obligatoire** pour toute validation d'input utilisateur (règle sécurité #6)
+- **Server Components par défaut** — `'use client'` justifié
+- **Prisma** : driver adapter `@prisma/adapter-pg`, pas de fallback mémoire
+- **BetterAuth** : header `Origin` obligatoire sur POST (D51)
+- **Protection routes** : `src/proxy.ts` source de vérité (ex-middleware, D72)
+- **Nommage fichiers** : kebab-case | Composants : PascalCase
+- **`next-env.d.ts`** : restauré via `git checkout`, jamais commité (règle #32)
+- **Prisma 8** : attente GA (D116) — non intégré
+- **pg v9** : sans objet, n'existe pas sur npm (D117)
 
 ---
 
 ## 🎯 PROCHAINE SESSION PRÉVUE
 
-- **Session** : E0-S07b
-- **Objectif** : Tests E2E authentifiés + routes dynamiques + cookies expirés
-  (1) Matrice E2E ADMIN/USER/VIEWER (auth Playwright)
-  (2) Tests routes dynamiques avec IDs valides (admin/[id], client/dashboard/[id], materiaux/[slug])
-  (3) Tests cookie expiré/invalide (T2/T4)
-  (4) Clarification contrat /api/sync
+- **Session** : E0-S11-C (après clôture E0-S11-B)
+- **Objectif** : Selon verdict E0-S11-B :
+  - **Scénario A** (conditions 1-4 résolues) : prononcer la clôture officielle E0 + lancer E1-S01 (modélisation métier cœur)
+  - **Scénario B** (condition bloquante identifiée) : résorption ciblée avant clôture
+- **Périmètre E1-S01 (si scénario A)** :
+  - Relation `Part` ↔ `User` (`clientId`) + migration Prisma
+  - Système d'ID pièce `PTV-AAAA-NNNNNN`
+  - Application des enums Prisma (remplacer les `String` sur statuts)
 
 ---
 
