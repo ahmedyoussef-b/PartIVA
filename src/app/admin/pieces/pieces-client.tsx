@@ -16,6 +16,8 @@ import { KPICard } from '@/components/shared/kpi-card';
 import { FilterBar } from '@/components/shared/filter-bar';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
+import { PartVersionHistory } from '@/components/part-version-history';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, FileDown } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import type { UserRole } from '@/generated/prisma/browser';
@@ -40,6 +42,8 @@ function mapPartToUi(part: PartWithSerializedSuppliers) {
 export default function PiecesClient({ initialParts, actorRole }: PiecesClientProps) {
   const [search, setSearch] = React.useState('');
   const [matFilter, setMatFilter] = React.useState('all');
+
+  const [selectedPartId, setSelectedPartId] = React.useState<string | null>(null);
 
   const parts = React.useMemo(() => initialParts.map(mapPartToUi), [initialParts]);
 
@@ -103,90 +107,111 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
       />
 
       {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">Réf.</TableHead>
-                  <TableHead>Pièce</TableHead>
-                  <TableHead>Matière</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Fichiers</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((part) => {
-                  const hasCad = (part.files?.cad?.length ?? 0) > 0;
-                  const hasPlan = (part.files?.plans?.length ?? 0) > 0;
-                  return (
-                    <TableRow key={part.id} className="hover:bg-muted/30">
-                      <TableCell className="text-primary font-mono text-xs font-bold">
-                        {part.reference}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-xs font-medium">{part.name}</div>
-                        <div className="text-muted-foreground line-clamp-1 text-[11px]">
-                          {part.description}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono text-[10px]">
-                          {part.material}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <PartStatusBadge status={part.status} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {hasCad && (
-                            <Badge
-                              variant="outline"
-                              className="border-blue-500/40 font-mono text-[9px] text-blue-600"
-                            >
-                              CAO
-                            </Badge>
-                          )}
-                          {hasPlan && (
-                            <Badge
-                              variant="outline"
-                              className="border-violet-500/40 font-mono text-[9px] text-violet-600"
-                            >
-                              PLAN
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs">
-                            <Eye className="h-3.5 w-3.5" />
-                            Voir
-                          </Button>
-                          {hasCad && (
-                            <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
-                              <FileDown className="h-3.5 w-3.5" />
-                              STEP
-                            </Button>
-                          )}
-                          <PartTransitionDialog
-                            partId={part.id}
-                            currentStatus={part.status}
-                            actorRole={actorRole}
-                          />
-                        </div>
-                      </TableCell>
+      <Tabs
+        value={selectedPartId ?? 'catalogue'}
+        onValueChange={(v) => setSelectedPartId(v === 'catalogue' ? null : v)}
+      >
+        <TabsList>
+          <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
+          {selectedPartId && <TabsTrigger value={selectedPartId}>Historique pièce</TabsTrigger>}
+        </TabsList>
+        <TabsContent value="catalogue">
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">Réf.</TableHead>
+                      <TableHead>Pièce</TableHead>
+                      <TableHead>Matière</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Fichiers</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((part) => {
+                      const hasCad = (part.files?.cad?.length ?? 0) > 0;
+                      const hasPlan = (part.files?.plans?.length ?? 0) > 0;
+                      return (
+                        <TableRow key={part.id} className="hover:bg-muted/30">
+                          <TableCell className="text-primary font-mono text-xs font-bold">
+                            {part.reference}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs font-medium">{part.name}</div>
+                            <div className="text-muted-foreground line-clamp-1 text-[11px]">
+                              {part.description}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono text-[10px]">
+                              {part.material}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <PartStatusBadge status={part.status} />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {hasCad && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-blue-500/40 font-mono text-[9px] text-blue-600"
+                                >
+                                  CAO
+                                </Badge>
+                              )}
+                              {hasPlan && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-violet-500/40 font-mono text-[9px] text-violet-600"
+                                >
+                                  PLAN
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 gap-1 text-xs"
+                                onClick={() => setSelectedPartId(part.id)}
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                Voir
+                              </Button>
+                              {hasCad && (
+                                <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
+                                  <FileDown className="h-3.5 w-3.5" />
+                                  STEP
+                                </Button>
+                              )}
+                              <PartTransitionDialog
+                                partId={part.id}
+                                currentStatus={part.status}
+                                actorRole={actorRole}
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        {selectedPartId && (
+          <TabsContent value={selectedPartId}>
+            <PartVersionHistory partId={selectedPartId} />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
