@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { PART_STATUS_TRANSITIONS, PART_TRANSITION_ROLES } from '@/lib/part-status';
+import { createPartVersion } from '@/lib/data/part-versions';
 import { PartStatus, Prisma, UserRole } from '@/generated/prisma/client';
 
 export class TransitionError extends Error {
@@ -51,7 +52,7 @@ export async function transitionPartStatus(
     });
 
     // AuditLog append-only (D4) — même transaction
-    await tx.auditLog.create({
+    const auditLog = await tx.auditLog.create({
       data: {
         userId: actor.id,
         action: 'PART_STATUS_TRANSITION',
@@ -64,6 +65,9 @@ export async function transitionPartStatus(
         } as Prisma.InputJsonValue,
       },
     });
+
+    // PartVersion (E1-S04 D2 option B) — même transaction, snapshot post-update
+    await createPartVersion(tx, updated, actor.id, auditLog.id);
 
     return updated;
   });
