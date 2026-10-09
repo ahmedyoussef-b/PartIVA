@@ -7,13 +7,7 @@ import {
   ALLOWED_IMAGE_MIME_TYPES,
   MAX_IMAGE_SIZE_BYTES,
 } from '@/schemas/part';
-import { promises as fs } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-
-// TODO(E1-S05): remplacer le stockage local par Cloudinary (upload réel).
-// Le stockage local `public/uploads/parts/<partId>/` est temporaire pour E1-S02-D.
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads', 'parts');
+import { uploadToCloudinary, UploadError } from '@/lib/upload';
 
 function isImageMimeType(value: string): value is (typeof ALLOWED_IMAGE_MIME_TYPES)[number] {
   return (ALLOWED_IMAGE_MIME_TYPES as readonly string[]).includes(value);
@@ -60,23 +54,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
 
-    const extension = validated.mimeType.split('/')[1] ?? 'bin';
-    const uniqueName = `${crypto.randomUUID()}.${extension}`;
-    const partDir = path.join(UPLOADS_DIR, part.id);
-    await fs.mkdir(partDir, { recursive: true });
-
     const buffer = Buffer.from(validated.data, 'base64');
-    const filePath = path.join(partDir, uniqueName);
-    await fs.writeFile(filePath, buffer);
 
-    const url = `/uploads/parts/${part.id}/${uniqueName}`;
+    const uploaded = await uploadToCloudinary(
+      buffer,
+      `parts/${part.id}`,
+      'image',
+      validated.mimeType,
+    );
 
     const imageCount = await prisma.partImage.count({ where: { partId: part.id } });
 
     const newImage = await prisma.partImage.create({
       data: {
         partId: part.id,
-        url,
+        url: uploaded.url,
+        publicId: uploaded.publicId,
         altText: validated.altText ?? validated.filename,
         caption: validated.caption,
         order: imageCount,
@@ -86,6 +79,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     return NextResponse.json(newImage, { status: 201 });
   } catch (error) {
+    if (error instanceof UploadError) {
+      const statusMap: Record<UploadError['code'], number> = {
+        INVALID_MIME: 400,
+        TOO_LARGE: 400,
+        UPLOAD_FAILED: 502,
+      };
+      return NextResponse.json({ message: error.message }, { status: statusMap[error.code] });
+    }
+
     console.error('Error uploading part image:', error);
     return NextResponse.json({ message: 'Erreur upload image' }, { status: 400 });
   }

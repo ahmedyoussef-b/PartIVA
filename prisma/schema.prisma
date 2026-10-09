@@ -119,6 +119,7 @@ model PartImage {
   id        String   @id @default(cuid())
   partId    String
   url       String
+  publicId  String?
   altText   String?
   caption   String?
   order     Int      @default(0)
@@ -235,6 +236,7 @@ model Attachment {
   partId    String?
   name      String
   url       String
+  publicId  String?
   fileType  FileType
   mimeType  String
   kind      AttachmentKind @default(DOCUMENT)
