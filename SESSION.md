@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | E0-S09 (clôturée) |
-| **Session en cours** | E0-S10 |
-| **Statut global** | E0-S09 clôturée — baseline 110/110 tests E2E verts, push 341f0e4 effectif |
+| **Dernière session** | E0-S10 (clôturée) |
+| **Session en cours** | E0-S11 (à cadrer) |
+| **Statut global** | E0-S10 clôturée — baseline 5/5 tenue (lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110), push d48704c effectif |
 
 ---
 
@@ -37,8 +37,9 @@
 - [x] **Phase 1 — Fondations** : auth réelle (E0-S05)
 - [x] **Phase 1 — Fondations** : middleware & protection routes (E0-S06)
 - [x] **Phase 1 — Fondations** : remplacement mocks par DB réelle (E0-S07)
-- [ ] **Phase 1 — Fondations** : migration Next 14 → 16 (E0-S08)
-- [ ] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
+- [x] **Phase 1 — Fondations** : migration Next 14 → 16 (E0-S08)
+- [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
+- [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [ ] **Phase 2 — Core Features** : `[à définir]`
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
@@ -821,6 +822,76 @@ Règles #24-#29 (regroupement npm, résidus wasm Windows, sérialisation RSC→C
 
 Push des 6 commits E0-S09 (`b222b70..341f0e4`) validé par le Superviseur.
 
+---
+
+## E0-S10 — Migration `forwardRef` → `ref` comme prop (React 19) (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commit final :** d48704c (poussé sur origin/master, push 54f91d8..d48704c)
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110.
+
+### Objet
+
+Migration des 15 fichiers UI de `React.forwardRef` vers `ref` comme prop
+(React 19), sans altération fonctionnelle. 53 composants migrés,
+53 `displayName` supprimés (React 19 déduit le nom automatiquement).
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut | Commit |
+|---|---|---|---|
+| E0-S10-A | Audit préalable (lecture seule) | ✅ | — |
+| E0-S10-B | Migration forwardRef → ref (15 fichiers, 53 composants) | ✅ | d48704c |
+| E0-S10-C | Clôture documentaire + passation | ✅ | (ce commit) |
+
+### Décisions verrouillées
+
+- **D115 :** Migration **incrémentale** — isolée dans une session E0-S10-B dédiée, exécutée en un seul lot (15 fichiers, 53 composants), distincte de toute migration Prisma/pg. Rollback propre (git revert du lot unique).
+- **D116 :** Prisma 8 — **ATTENTE GA**. Non intégré. Condition de réouverture : GA Prisma 8 + `@prisma/adapter-pg` 8.x stable + validation `@better-auth/prisma-adapter`. Session dédiée ultérieure, hors périmètre E0.
+- **D117 :** pg v9 — **SANS OBJET**. pg v9 n'existe pas sur npm (E404, dernière version 8.23.1 déjà installée). Dette **annulée** (pas reportée). Réévaluation uniquement si `pg@9` est publié, couplée à Prisma 8 si l'adapter l'exige.
+- **D118 :** Périmètre E0-S10 verrouillé = E0-S10-B uniquement. Prisma 8 et pg v9 sortent du périmètre E0-S10.
+- **D119 :** E0-S10 clôturée. Migration achevée, baseline tenue, commit unique poussé. Aucune dette résiduelle E0-S10.
+- **D120 :** Clôture documentaire — SESSION.md + ROADMAP.md mis à jour, prompt de passation E0-S10 → E0-S11 préparé.
+
+### Réalisations
+
+- **15 fichiers UI migrés** : alert (3), button (1), card (6), dialog (4), dropdown-menu (6), input (1), label (1), progress (1), select (7), separator (1), sidebar (9), table (8), tabs (3), textarea (1), tooltip (1).
+- **Pattern appliqué** : `function X({ className, ref, ...props }: PropsType & { ref?: React.Ref<RefType> })` — `ref` destructuré des props, typé via intersection, `React.forwardRef` et `displayName` supprimés, types Radix conservés (`React.ElementRef<typeof Primitive.X>`).
+- **Diff** : 500 insertions, 610 suppressions (gain net 110 lignes).
+- **API publique inchangée** — aucun fichier consommateur touché.
+
+### Dettes résolues
+
+- `forwardRef` → `ref` comme prop (D111) — migré (D115).
+
+### Dettes annulées
+
+- pg v9 (D117) — n'existe pas sur npm.
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| Prisma 8 (D116) | Session dédiée après GA + adapter-pg 8.x stable + validation auth adapter |
+| D-27-bis (GET /api/reverse-engineering) | E1 ou E7 |
+| D-44 (coquille ROADMAP.md) | Session doc dédiée |
+
+### Baseline finale E0-S10
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 33/33 routes |
+| Seed | ✅ idempotent |
+| Tests E2E | ✅ 110/110 verts |
+
+### Notes
+
+- `next-env.d.ts` non modifié (règle #32 respectée).
+- Dev server pré-démarré port 3000 pour E2E (règle #31), arrêté après tests.
+- Push `54f91d8..d48704c` effectif sur origin/master.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S10
+Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S11
 ═══════════════════════════════════════════════════════════════
