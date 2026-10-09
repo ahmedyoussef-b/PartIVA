@@ -24,6 +24,8 @@
 | `D-ptv-race` | Race condition génération PTV — deux POST simultanés sur `/api/parts` peuvent produire la même `ptvReference` (conflit `@unique`) | Moyenne | E1-S02-A | Non | Résolu en E1-S02-A : retry applicatif (3 tentatives, backoff 50/100/200ms) dans `createPartWithPtvReference()` |
 | `D-ux-enum-labels` | Affichage UI des codes bruts d'enum (`PRINTER_3D`, `THERMOSTABLE_TECHNIQUE`) sans mapping libellé lisible | Faible | E1-S02-B | Non | Résolu en E1-S02-B : mapping FR dans `src/lib/enum-labels.ts` appliqué aux 5 composants d'affichage |
 | `D-e2e-multitenant` | Test E2E « USER sur pièce d'un autre client → 403 » skippé — seed mono-client. Sécurité multi-tenant (`NOT_OWNER`) non couverte par test E2E. | Haute | E1-S03-G | Oui | Enrichir le seed avec un 2ᵉ client (Sophie Martin + un autre user) pour activer le test |
+| `D-e2e-auth-dual` | Deux mécanismes d'auth E2E coexistent : `authRequest` (chromium) et `storageState` (admin/user/viewer). Unification à envisager si les storageStates produisent des 401 stales. | Faible | Session E2E dédiée | Non | Vérifier la stabilité des storageStates sur plusieurs runs consécutifs |
+| `D-s03-t3-ecart` | Interprétation de l'écart `SUBMITTED`/`IDENTIFYING` (E1-S03-F T3) non prouvée par un SELECT avant/après. Plausible, non vérifié. | Faible | Session E2E dédiée | Non | Ajouter un SELECT avant/après tests E2E pour confirmer |
 
 ---
 
