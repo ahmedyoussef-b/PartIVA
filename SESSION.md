@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | E0-S10 (clôturée) |
-| **Session en cours** | E0-S11 (à cadrer) |
-| **Statut global** | E0-S10 clôturée — baseline 5/5 tenue (lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110), push d48704c effectif |
+| **Dernière session** | E0-S11 (clôturée) |
+| **Session en cours** | E1-S01 (à cadrer) |
+| **Statut global** | E0 clôturée — baseline 5/5 + format tenue, 8 dettes tracées |
 
 ---
 
@@ -902,6 +902,70 @@ Migration des 15 fichiers UI de `React.forwardRef` vers `ref` comme prop
 - Dev server pré-démarré port 3000 pour E2E (règle #31), arrêté après tests.
 - Push `54f91d8..d48704c` effectif sur origin/master.
 
+---
+
+## E0-S11 — Audit de clôture E0 + résorption conditions (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commits :** cf7d035, 4a8fcdc, b3357f1, 22d19e5, dace048, <hash C1.2>
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110, format 0.
+
+### Objet
+
+Audit de clôture E0 (E0-S11-A) + résorption des conditions de clôture (E0-S11-B) + clôture officielle (E0-S11-C).
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut | Commit |
+|---|---|---|---|
+| E0-S11-A | Audit de clôture E0 (10 critères, baseline, dettes) | ✅ | — |
+| E0-S11-B | Résorption conditions (format, .env.example, SESSION.md, DEBT.md) | ✅ | cf7d035, 4a8fcdc, b3357f1, 22d19e5 |
+| E0-S11-C | Clôture officielle E0 + cadrage E1-S01 | ✅ | dace048, <hash C1.2> |
+
+### Décisions verrouillées
+
+- **D121** : E0 clôturée. 10/10 critères de sortie tenus, baseline 5/5 + format verts, dettes résiduelles tracées dans `DEBT.md`.
+- **D122** : Périmètre E1 verrouillé en 7 sous-sessions (voir ROADMAP E1).
+- **D123** : Critères de sortie E1 verrouillés (7 critères — voir rapport E0-S11-C).
+
+### Dettes résolues
+
+- `D-format-E0` — 83 fichiers non conformes (résorbé, origine E0-S10-B confirmée).
+- `.env.example` incomplet — 2 variables ajoutées.
+- Sections template SESSION.md — régularisées.
+- `next-env.d.ts` — exclu de Prettier (généré, règle #32).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-part-user` (relation Part ↔ User) | E1-S01 |
+| `D-enums-non-utilises` | E1-S01 |
+| `D-ui-orphelins` | E1-S01 |
+| `D-roadmap-retard` | Session doc dédiée |
+| `D-44` (coquille ROADMAP) | Session doc dédiée |
+| `D-27-bis` (GET /api/reverse-engineering) | E1 ou E7 |
+| `D116` (Prisma 8) | Session dédiée après GA |
+| `D117` (pg v9) | Annulée |
+| `D-audit-mysql2` | Attente Prisma 8 |
+
+### Baseline finale E0-S11
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 33/33 routes |
+| Seed | ✅ idempotent |
+| Tests E2E | ✅ 110/110 verts |
+| Format | ✅ 0 non conforme |
+
+### Notes
+
+- **E0 est officiellement clôturée.** Le socle de fondations est établi : app démarre, auth réelle, DB réelle, protection routes, baseline tenue.
+- Push `c540e1a..22d19e5` effectif sur origin/master.
+- E1-S01 peut être lancée (modélisation métier cœur).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S11
+Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S01
 ═══════════════════════════════════════════════════════════════
