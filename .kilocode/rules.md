@@ -195,6 +195,20 @@ Tâche : [description courte]
 
 **Trois violations de la règle #10 ont été tracées en trois sessions consécutives (E1-S02-0, E1-S02, E1-S02-F). Ce bloc est ajouté pour casser ce pattern.**
 
+### Règle migrations Prisma échouées — STOP absolu
+
+**Si une migration `prisma migrate dev` échoue (premier échec, pas après correction) :**
+
+- **STOP immédiat + rapport.** Ne pas diagnostiquer, ne pas corriger, ne pas réessayer.
+- **Aucune modification manuelle de la migration SQL.** Le fichier `migration.sql` ne doit pas être édité à la main.
+- **Aucune modification de `_prisma_migrations`.** Aucun `migrate resolve --rolled-back`, aucun `migrate resolve --applied`.
+- **Aucun hotfix DB manuel** (`DROP`, `ALTER TYPE`, `UPDATE` direct).
+- **Aucun `db push`, aucun `migrate reset`, aucun `--create-only`.**
+
+**Le diagnostic et la correction sont des décisions du Coordinateur, pas de l'Exécutant.** Le rapport doit contenir : la commande exacte, la sortie d'erreur complète, et l'état de `_prisma_migrations` (via script Node `pg` temporaire, supprimé après).
+
+**Cette règle s'ajoute aux règles #10 existantes. Quatre violations tracées en cinq sessions (E1-S02-0, E1-S02, E1-S02-F, E1-S03-B). Le pattern doit cesser.**
+
 ```
 ═══════════════════════════════════════════════════════════════
 Fin .kilocode/rules.md — Projet PartIVA
