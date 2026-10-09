@@ -17,6 +17,7 @@ import { FilterBar } from '@/components/shared/filter-bar';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
 import { PartVersionHistory } from '@/components/part-version-history';
+import { PartSpecificationTable } from '@/components/part-specification-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, FileDown } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
@@ -44,6 +45,7 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
   const [matFilter, setMatFilter] = React.useState('all');
 
   const [selectedPartId, setSelectedPartId] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = React.useState('catalogue');
 
   const parts = React.useMemo(() => initialParts.map(mapPartToUi), [initialParts]);
 
@@ -109,11 +111,14 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
       {/* Table */}
       <Tabs
         value={selectedPartId ?? 'catalogue'}
-        onValueChange={(v) => setSelectedPartId(v === 'catalogue' ? null : v)}
+        onValueChange={(v) => {
+          setSelectedPartId(v === 'catalogue' ? null : v);
+          setActiveTab('catalogue');
+        }}
       >
         <TabsList>
           <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
-          {selectedPartId && <TabsTrigger value={selectedPartId}>Historique pièce</TabsTrigger>}
+          {selectedPartId && <TabsTrigger value={selectedPartId}>Pièce</TabsTrigger>}
         </TabsList>
         <TabsContent value="catalogue">
           <Card>
@@ -208,7 +213,23 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
         </TabsContent>
         {selectedPartId && (
           <TabsContent value={selectedPartId}>
-            <PartVersionHistory partId={selectedPartId} />
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="historique">Historique</TabsTrigger>
+                <TabsTrigger value="mesures">Mesures</TabsTrigger>
+              </TabsList>
+              <TabsContent value="historique">
+                <PartVersionHistory partId={selectedPartId} />
+              </TabsContent>
+              <TabsContent value="mesures">
+                <PartSpecificationTable
+                  partId={selectedPartId}
+                  initialSpecifications={
+                    parts.find((p) => p.id === selectedPartId)?.specifications ?? []
+                  }
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         )}
       </Tabs>
