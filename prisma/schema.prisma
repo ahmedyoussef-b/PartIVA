@@ -21,6 +21,7 @@ model User {
   requests  Request[]                   @relation("UserRequests")
   projects  ReverseEngineeringProject[]
   sessions  Session[]
+  parts     Part[]                      @relation("PartClient")
 
   @@map("users")
 }
@@ -74,10 +75,12 @@ model Verification {
 model Part {
   id             String                      @id @default(cuid())
   partNumber     String                      @unique
+  ptvReference   String?                     @unique
   name           String
   description    String?
   status         PartStatus                  @default(DRAFT)
   categoryId     String?
+  clientId       String?
   createdAt      DateTime                    @default(now())
   updatedAt      DateTime                    @updatedAt
   attachments    Attachment[]
@@ -85,11 +88,13 @@ model Part {
   specifications PartSpecification[]
   suppliers      PartSupplier[]
   category       PartCategory?               @relation(fields: [categoryId], references: [id])
+  client         User?                       @relation("PartClient", fields: [clientId], references: [id], onDelete: SetNull)
   projects       ReverseEngineeringProject[]
 
   @@index([partNumber])
   @@index([status])
   @@index([categoryId])
+  @@index([clientId])
   @@map("parts")
 }
 
@@ -378,4 +383,5 @@ model SearchCandidate {
   @@index([source])
   @@index([reference])
   @@index([createdAt])
+  @@map("search_candidates")
 }

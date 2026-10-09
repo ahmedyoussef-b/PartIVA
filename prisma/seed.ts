@@ -368,6 +368,7 @@ async function main() {
       description: 'Roulement rigide à billes, joints 2RS, dimensions 25x52x15 mm',
       status: 'ACTIVE',
       categoryId: roulementsABilles.id,
+      clientId: user.id,
     },
   });
 
@@ -378,6 +379,7 @@ async function main() {
       description: 'Roulement rigide à billes, joints 2RS, dimensions 62x130x31 mm',
       status: 'ACTIVE',
       categoryId: roulementsABilles.id,
+      clientId: user.id,
     },
   });
 
@@ -388,6 +390,7 @@ async function main() {
       description: 'Roulement rigide à billes, joints 2RS, dimensions 30x62x16 mm',
       status: 'ACTIVE',
       categoryId: roulementsABilles.id,
+      clientId: user.id,
     },
   });
 
@@ -398,6 +401,7 @@ async function main() {
       description: 'Engrenage droit en acier, module 2, 20 dents, trou 12 mm',
       status: 'ACTIVE',
       categoryId: engrenages.id,
+      clientId: user.id,
     },
   });
 
@@ -408,6 +412,7 @@ async function main() {
       description: 'Roulement à contact oblique, angle 40°, dimensions 25x52x15 mm',
       status: 'DRAFT',
       categoryId: roulements.id,
+      clientId: user.id,
     },
   });
 
