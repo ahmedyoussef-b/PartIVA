@@ -327,9 +327,16 @@ enum UserRole {
 
 enum PartStatus {
   DRAFT
-  ACTIVE
+  SUBMITTED
+  ON_HOLD
+  IDENTIFYING
+  IDENTIFIED
+  MEASURING
+  READY
+  ORDERED
+  DELIVERED
   ARCHIVED
-  DEPRECATED
+  CANCELLED
 }
 
 enum ProjectStatus {

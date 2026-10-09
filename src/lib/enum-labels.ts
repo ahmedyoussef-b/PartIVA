@@ -1,4 +1,4 @@
-import type { MachineType, MaterialCategory } from '@/generated/prisma/client';
+import type { MachineType, MaterialCategory, PartStatus } from '@/generated/prisma/client';
 
 export const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   CNC: 'Commande numérique (CNC)',
@@ -20,4 +20,22 @@ export function getMachineTypeLabel(type: MachineType): string {
 
 export function getMaterialCategoryLabel(category: MaterialCategory): string {
   return MATERIAL_CATEGORY_LABELS[category] ?? category;
+}
+
+export const PART_STATUS_LABELS: Record<PartStatus, string> = {
+  DRAFT: 'Brouillon',
+  SUBMITTED: 'Soumise',
+  ON_HOLD: 'En attente',
+  IDENTIFYING: 'Identification en cours',
+  IDENTIFIED: 'Identifiée',
+  MEASURING: 'Mesures en cours',
+  READY: 'Prête',
+  ORDERED: 'Commandée',
+  DELIVERED: 'Livrée',
+  ARCHIVED: 'Archivée',
+  CANCELLED: 'Annulée',
+};
+
+export function getPartStatusLabel(status: PartStatus): string {
+  return PART_STATUS_LABELS[status] ?? status;
 }
