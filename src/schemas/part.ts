@@ -78,3 +78,21 @@ export type NewPart = z.infer<typeof NewPartSchema>;
 
 export const UpdatePartSchema = NewPartSchema.partial();
 export type UpdatePart = z.infer<typeof UpdatePartSchema>;
+
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
+export const ALLOWED_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+] as const;
+
+export const PartImageUploadSchema = z.object({
+  filename: z.string().min(1).max(255),
+  mimeType: z.enum(ALLOWED_IMAGE_MIME_TYPES),
+  sizeBytes: z.number().int().positive().max(MAX_IMAGE_SIZE_BYTES),
+  data: z.string().min(1),
+  caption: z.string().max(500).optional(),
+  altText: z.string().max(255).optional(),
+});
+export type PartImageUpload = z.infer<typeof PartImageUploadSchema>;

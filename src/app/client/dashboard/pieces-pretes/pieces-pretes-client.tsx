@@ -5,19 +5,17 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import {
   PackageCheck,
   Truck,
   CheckCircle2,
-  Camera,
-  Eye,
   Download,
   ShieldCheck,
   PlusCircle,
 } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
+import PartImageGallery from '@/components/part-image-gallery';
 
 interface ReadyPartItem {
   id: string;
@@ -35,6 +33,13 @@ interface ReadyPartItem {
     url: string;
     title: string;
     desc: string;
+  }[];
+  images: {
+    id: string;
+    url: string;
+    altText: string | null;
+    caption: string | null;
+    isPrimary: boolean;
   }[];
   metrics: {
     label: string;
@@ -73,6 +78,13 @@ function mapPartToReadyPart(part: PartWithSerializedSuppliers, index: number): R
       title: `${part.name} - Vue ${idx + 1}`,
       desc: part.description || 'Photo de contrôle qualité',
     })),
+    images: part.images.map((img) => ({
+      id: img.id,
+      url: img.url,
+      altText: img.altText,
+      caption: img.caption,
+      isPrimary: img.isPrimary,
+    })),
     metrics: [
       { label: 'Référence', value: part.partNumber },
       {
@@ -89,12 +101,6 @@ function mapPartToReadyPart(part: PartWithSerializedSuppliers, index: number): R
 }
 
 export default function PiecesPretesClient({ initialParts }: PiecesPretesClientProps) {
-  const [activePhoto, setActivePhoto] = React.useState<{
-    url: string;
-    title: string;
-    desc: string;
-  } | null>(null);
-
   const readyParts = React.useMemo(
     () => initialParts.slice(0, 2).map(mapPartToReadyPart),
     [initialParts],
@@ -247,55 +253,10 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
             <CardContent className="space-y-6 p-6">
               {/* Galerie photo haute résolution de la pièce finie */}
               <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase">
-                    <Camera className="text-primary h-4 w-4" />
-                    Photographies de la pièce terminée et contrôlée à l’atelier
-                  </span>
-                  <span className="text-muted-foreground text-xs">
-                    Cliquez sur une photo pour l’agrandir
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {part.photos.map((photo, pIdx) => (
-                    <div
-                      key={pIdx}
-                      onClick={() => setActivePhoto(photo)}
-                      className="group bg-background hover:border-primary/60 flex cursor-pointer flex-col overflow-hidden rounded-xl border transition-all hover:shadow-md"
-                    >
-                      <div className="bg-muted relative aspect-[16/10] w-full overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={photo.url}
-                          alt={photo.title}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                          <Eye className="h-5 w-5" />
-                          <span className="text-xs font-semibold">Agrandir la photo</span>
-                        </div>
-                        <div className="absolute bottom-2 left-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-black/60 text-[10px] text-white backdrop-blur-xs"
-                          >
-                            Vue #{pIdx + 1}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1 p-3">
-                        <p className="text-foreground line-clamp-1 text-xs font-semibold">
-                          {photo.title}
-                        </p>
-                        <p className="text-muted-foreground line-clamp-2 text-[11px]">
-                          {photo.desc}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PartImageGallery
+                  images={part.images}
+                  partName={part.name}
+                />
               </div>
 
               {/* Détails logistiques & Métrologie */}
@@ -347,30 +308,6 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
           </Card>
         ))}
       </div>
-
-      {/* Lightbox Modal pour photo agrandie */}
-      {activePhoto && (
-        <Dialog open={Boolean(activePhoto)} onOpenChange={() => setActivePhoto(null)}>
-          <DialogContent className="max-w-4xl overflow-hidden border-zinc-800 bg-black/95 p-0 text-white">
-            <div className="relative flex aspect-[16/10] w-full items-center justify-center bg-black">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={activePhoto.url}
-                alt={activePhoto.title}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-            <div className="space-y-1 border-t border-zinc-800 bg-zinc-950 p-6">
-              <DialogTitle className="text-lg font-bold text-white">
-                {activePhoto.title}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-zinc-300">
-                {activePhoto.desc}
-              </DialogDescription>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }
