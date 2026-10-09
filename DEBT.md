@@ -21,6 +21,8 @@
 | `D116` | Prisma 8 — attente GA | Faible | Session dédiée | Non | Condition : GA Prisma 8 + adapter-pg 8.x stable + validation auth adapter |
 | `D117` | pg v9 — sans objet | — | — | — | Annulée. pg v9 n'existe pas sur npm (E404) |
 | `D-cloudinary` | Cloudinary mentionné ROADMAP E1-S05 mais non implémenté | Faible | E1-S05 | Non | Décision d'usage en E1-S05 |
+| `D-ptv-race` | Race condition génération PTV — deux POST simultanés sur `/api/parts` peuvent produire la même `ptvReference` (conflit `@unique`) | Moyenne | E1-S02 | Non | Génération séquentielle `findFirst` + `create` — fenêtre de concurrence. Solution robuste : séquence PostgreSQL dédiée ou retry applicatif |
+| `D-ux-enum-labels` | Affichage UI des codes bruts d'enum (`PRINTER_3D`, `THERMOSTABLE_TECHNIQUE`) sans mapping libellé lisible | Faible | E1-S02 | Non | Ajouter un mapping de libellés (FR) pour `Machine.type` et `Material.category` dans les composants d'affichage |
 
 ---
 
