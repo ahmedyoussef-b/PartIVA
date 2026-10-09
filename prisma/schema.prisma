@@ -22,6 +22,7 @@ model User {
   projects  ReverseEngineeringProject[]
   sessions  Session[]
   parts     Part[]                      @relation("PartClient")
+  partVersions PartVersion[]
 
   @@map("users")
 }
@@ -90,6 +91,7 @@ model Part {
   category       PartCategory?               @relation(fields: [categoryId], references: [id])
   client         User?                       @relation("PartClient", fields: [clientId], references: [id], onDelete: SetNull)
   projects       ReverseEngineeringProject[]
+  versions       PartVersion[]
 
   @@index([partNumber])
   @@index([status])
@@ -253,11 +255,29 @@ model AuditLog {
   metadata   Json?
   createdAt  DateTime @default(now())
   user       User?    @relation(fields: [userId], references: [id])
+  partVersions PartVersion[]
 
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model PartVersion {
+  id            String   @id @default(cuid())
+  partId        String
+  part          Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  snapshot      Json
+  auditLogId    String?
+  auditLog      AuditLog? @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
+  createdById   String?
+  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@unique([partId, versionNumber])
+  @@index([partId])
+  @@map("part_versions")
 }
 
 model Request {

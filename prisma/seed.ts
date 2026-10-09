@@ -27,6 +27,7 @@ async function main() {
   // ── Cleanup (reverse dependency order) ──────────────────────────────
   console.log('🧹 Cleaning existing data...');
   await prisma.auditLog.deleteMany();
+  await prisma.partVersion.deleteMany();
   await prisma.cadFile.deleteMany();
   await prisma.reverseEngineeringStep.deleteMany();
   await prisma.reverseEngineeringProject.deleteMany();
@@ -421,6 +422,24 @@ async function main() {
       clientId: user.id,
     },
   });
+
+  // ── PartVersions ──────────────────────────────────────────────
+  console.log('📜 Creating initial part versions...');
+  for (const part of [part1, part2, part3, part4, part5]) {
+    await prisma.partVersion.create({
+      data: {
+        partId: part.id,
+        versionNumber: 1,
+        snapshot: {
+          status: part.status,
+          ptvReference: part.ptvReference,
+          partNumber: part.partNumber,
+          name: part.name,
+          description: part.description,
+        },
+      },
+    });
+  }
 
   // ── PartSpecifications ──────────────────────────────────────────────
   console.log('📏 Creating part specifications...');
@@ -852,6 +871,7 @@ async function main() {
     reverseEngineeringSteps: await prisma.reverseEngineeringStep.count(),
     cadFiles: await prisma.cadFile.count(),
     auditLogs: await prisma.auditLog.count(),
+    partVersions: await prisma.partVersion.count(),
     attachments: await prisma.attachment.count(),
     materials: await prisma.material.count(),
     machines: await prisma.machine.count(),
