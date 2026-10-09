@@ -14,13 +14,13 @@
 |---|---|
 | **Nom du projet** | PartIVA |
 | **Type** | SaaS / Marketplace industriel (B2B) |
-| **Stack** | Next.js 15 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
+| **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | E0-S07b-3 (clôturée) |
-| **Session en cours** | — |
-| **Statut global** | E0-S07b-3 clôturée — baseline 110/110 tests E2E verts, commit à venir |
+| **Dernière session** | E0-S08 (clôturée) |
+| **Session en cours** | E0-S09 |
+| **Statut global** | E0-S08 clôturée — baseline 110/110 tests E2E verts, push 5505744 effectif |
 
 ---
 
@@ -696,6 +696,70 @@ En attendant : reporté, non bloquant.
 - Migrations Next 15→16, React 18→19 → E0-S08.
 - Tailwind 3→4 → E0-S09.
 
+---
+
+## E0-S08 — Dettes techniques transverses (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commit final :** 5505744 (poussé sur origin/master)
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110.
+
+### Objet
+
+Résorption des dettes techniques transverses bloquantes pour E0-S09 :
+Zod 3 → 4, ESLint 8 → 9 (flat config), Next 15 → 16, pg sslmode,
+middleware → proxy (dépréciation Next 16).
+
+### Commits
+
+| Commit | Objet | Décision |
+|---|---|---|
+| a7c5db9 | Decimal `toString()` (D61) | D61 |
+| 007cd85 | Zod 3 → 4 (D67) | D67 |
+| 63d8e0d | ESLint 8 → 9 + flat config (D65) | D65 |
+| 9df4931 | Next 15 → 16 + lint rules (D62/D69-D76) | D62 |
+| a9e87fa | pg sslmode (D64) | D64 |
+| 5505744 | middleware → proxy (D72) | D72 |
+
+### Décisions verrouillées
+
+D61-D83 (voir passation E0-S08 → E0-S09).
+
+### Dettes résolues
+
+D61, D62, D64, D65, D67, D72, lint rules Next 16 (7).
+
+### Dettes annulées
+
+L4 — pas de fix non-major `postcss-nested` (D82).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| React 19 + @react-three/fiber@9 + @react-three/drei@10 | E0-S09 (annulée — cf. D84) |
+| Tailwind 3 → 4 | E0-S09 (D81) |
+| 14 vulns npm | E0-S09 + session dédiée (D82) |
+| D-25-bis — Warning Decimal persistant | E0-S09 |
+| D-25-ter — Hydration mismatch pieces-pretes-client.tsx:315 | E0-S09 |
+| Prisma 6.19.3 vs 8.0.0-rc | Session dédiée |
+| pg v9 | Session dédiée |
+
+### Incidents PCT
+
+14 incidents tracés (n°25 à n°38) — voir passation E0-S08 → E0-S09.
+
+### Règles intégrées
+
+Règles #19-#23 (vérifier pas déduire ; cadrer les fichiers de sonde ;
+anticiper l'outillage embarqué ; revert immédiat si `invalid` ;
+rafraîchir les audits).
+
+### Notes
+
+Push `63d8e0d..5505744` validé et effectif (D88).
+La mention « à pousser » dans la passation était un résidu rédactionnel.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S07b-3
+Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S09
 ═══════════════════════════════════════════════════════════════
