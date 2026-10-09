@@ -34,8 +34,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isPending || !isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
-        <Card className="w-full max-w-2xl border-border/80 shadow-2xl">
+      <div className="bg-muted/20 flex min-h-screen items-center justify-center p-4">
+        <Card className="border-border/80 w-full max-w-2xl shadow-2xl">
           <CardHeader className="pb-2 text-center">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
               <ShieldAlert className="h-8 w-8" />
@@ -54,9 +54,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </CardHeader>
 
           <CardContent className="space-y-6 pt-2">
-            <div className="space-y-3 rounded-xl border bg-card p-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-2 font-semibold text-foreground">
-                <Lock className="h-4 w-4 text-primary" />
+            <div className="bg-card text-muted-foreground space-y-3 rounded-xl border p-4 text-xs">
+              <div className="text-foreground flex items-center gap-2 font-semibold">
+                <Lock className="text-primary h-4 w-4" />
                 Règles d’accès :
               </div>
               <ul className="list-inside list-disc space-y-2">
@@ -90,14 +90,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
 
             <div className="border-t pt-4 text-center">
-              <p className="mb-2 text-[11px] text-muted-foreground">
+              <p className="text-muted-foreground mb-2 text-[11px]">
                 Environnement de développement & démonstration :
               </p>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setManualMode('tauri')}
-                className="gap-1.5 text-xs text-primary"
+                className="text-primary gap-1.5 text-xs"
               >
                 <Monitor className="h-3.5 w-3.5" />
                 Simuler le mode Hybride Tauri
@@ -113,14 +113,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-card/60 px-6 backdrop-blur">
+        <header className="bg-card/60 sticky top-0 z-20 flex h-16 items-center justify-between border-b px-6 backdrop-blur">
           <div className="flex items-center gap-3">
             <SidebarTrigger />
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">Poste de Contrôle Atelier</span>
               <Badge
                 variant="outline"
-                className="border-primary/40 font-mono text-[10px] text-primary"
+                className="border-primary/40 text-primary font-mono text-[10px]"
               >
                 {isTauri ? 'Hybride Tauri • Atelier Local' : 'Mode Web Admin'}
               </Badge>
@@ -129,7 +129,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="flex items-center gap-4">
             <SyncStatusIndicator />
-            <div className="hidden h-4 w-px bg-border sm:block" />
+            <div className="bg-border hidden h-4 w-px sm:block" />
             <NotificationBell />
             <ThemeToggle />
             <div className="flex items-center gap-2.5 border-l pl-2">
@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 await signOut();
                 router.push('/login');
               }}
-              className="h-7 px-2 text-[10px] text-muted-foreground"
+              className="text-muted-foreground h-7 px-2 text-[10px]"
               title="Déconnexion"
             >
               <LogOut className="mr-1 h-3.5 w-3.5" />
@@ -156,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-muted/10 p-6 md:p-8">{children}</main>
+        <main className="bg-muted/10 flex-1 overflow-y-auto p-6 md:p-8">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

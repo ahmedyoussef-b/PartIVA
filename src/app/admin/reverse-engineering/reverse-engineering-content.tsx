@@ -189,7 +189,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
       <div>
         <Link
           href="/admin/demandes"
-          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-xs transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           File des demandes
@@ -200,7 +200,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
               Reverse Engineering CAO
             </h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mt-0.5 text-sm">
               Relevé de cotes, identification matière et reconstruction 3D à partir de la pièce
               d&apos;origine.
             </p>
@@ -212,7 +212,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                   <Badge variant={statusStyle.variant} className="text-xs">
                     {statusStyle.label}
                   </Badge>
-                  {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                  {isPending && <span className="text-muted-foreground text-[10px]">...</span>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
@@ -229,7 +229,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <span className="font-mono text-xs font-bold text-primary">
+            <span className="text-primary font-mono text-xs font-bold">
               {project.id.slice(0, 8)}
             </span>
           </div>
@@ -240,32 +240,32 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
         <CardContent className="p-4">
           <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-4">
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Projet
               </span>
               <span className="font-semibold">{project.name}</span>
             </div>
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Description
               </span>
               <span className="font-semibold">{project.description || '—'}</span>
             </div>
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Demandes liées
               </span>
-              <span className="font-bold text-primary">{project.requests.length} demande(s)</span>
+              <span className="text-primary font-bold">{project.requests.length} demande(s)</span>
             </div>
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Fichiers CAO
               </span>
-              <span className="font-bold text-primary">{project.cadFiles.length} fichier(s)</span>
+              <span className="text-primary font-bold">{project.cadFiles.length} fichier(s)</span>
             </div>
           </div>
           {request && (
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
               {request.partDescription}
             </p>
           )}
@@ -277,15 +277,15 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                <Wrench className="h-4 w-4 text-primary" />
+                <Wrench className="text-primary h-4 w-4" />
                 Avancement RE
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+                <div className="text-muted-foreground flex items-center justify-between font-mono text-[10px]">
                   <span>Complété</span>
-                  <span className="font-bold text-foreground">{progressPct}%</span>
+                  <span className="text-foreground font-bold">{progressPct}%</span>
                 </div>
                 <Progress value={progressPct} className="h-2" />
               </div>
@@ -345,7 +345,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <CardTitle className="text-muted-foreground flex items-center gap-1 text-xs font-semibold tracking-wider uppercase">
                 <Camera className="h-3.5 w-3.5" />
                 Photos reçues
               </CardTitle>
@@ -358,7 +358,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                     : []
                   : []
                 ).map((url, i) => (
-                  <div key={i} className="aspect-square overflow-hidden rounded-lg border bg-muted">
+                  <div key={i} className="bg-muted aspect-square overflow-hidden rounded-lg border">
                     {/* eslint-disable-next-line @next/next/no-img-element -- user uploads, no optimized loader available */}
                     <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
                   </div>
@@ -404,16 +404,16 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                     <table className="w-full min-w-[400px] text-xs">
                       <thead className="bg-muted/50">
                         <tr>
-                          <th className="px-3 py-2 text-left font-semibold text-muted-foreground">
+                          <th className="text-muted-foreground px-3 py-2 text-left font-semibold">
                             Côte
                           </th>
-                          <th className="px-3 py-2 text-left font-semibold text-muted-foreground">
+                          <th className="text-muted-foreground px-3 py-2 text-left font-semibold">
                             Valeur (mm)
                           </th>
-                          <th className="px-3 py-2 text-left font-semibold text-muted-foreground">
+                          <th className="text-muted-foreground px-3 py-2 text-left font-semibold">
                             Tolérance
                           </th>
-                          <th className="px-3 py-2 text-left font-semibold text-muted-foreground">
+                          <th className="text-muted-foreground px-3 py-2 text-left font-semibold">
                             Note
                           </th>
                           <th className="w-8" />
@@ -421,9 +421,9 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                       </thead>
                       <tbody>
                         {mesures.map((m, i) => (
-                          <tr key={i} className="border-t hover:bg-muted/20">
+                          <tr key={i} className="hover:bg-muted/20 border-t">
                             <td className="px-3 py-2.5 font-medium">{m.cote}</td>
-                            <td className="px-3 py-2.5 font-mono font-bold text-primary">
+                            <td className="text-primary px-3 py-2.5 font-mono font-bold">
                               {m.valeur}
                             </td>
                             <td className="px-3 py-2.5 font-mono">
@@ -431,13 +431,13 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                                 {m.tolerance || '—'}
                               </Badge>
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{m.note}</td>
+                            <td className="text-muted-foreground px-3 py-2.5">{m.note}</td>
                             <td className="px-2 py-2.5">
                               <button
                                 onClick={() =>
                                   setMesures((prev) => prev.filter((_, idx) => idx !== i))
                                 }
-                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                                className="text-muted-foreground rounded p-1 transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -448,8 +448,8 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                     </table>
                   </div>
 
-                  <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-                    <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <div className="bg-muted/20 space-y-3 rounded-lg border p-4">
+                    <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold">
                       <Plus className="h-3.5 w-3.5" />
                       Ajouter une cote
                     </p>
@@ -540,8 +540,8 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                         color: '',
                       },
                     ].map((prop) => (
-                      <div key={prop.label} className="rounded-lg border bg-muted/20 p-3">
-                        <span className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">
+                      <div key={prop.label} className="bg-muted/20 rounded-lg border p-3">
+                        <span className="text-muted-foreground mb-1 block text-[10px] font-semibold uppercase">
                           {prop.label}
                         </span>
                         <span className={`text-xs font-bold ${prop.color || 'text-foreground'}`}>
@@ -557,7 +557,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                       <p className="text-xs font-bold text-emerald-700">
                         Matière confirmée : PTFE standard
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-muted-foreground text-[10px]">
                         Concordance densité + dureté + inertie chimique → PTFE non chargé
                       </p>
                     </div>
@@ -605,15 +605,15 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                         ra: 'Ra 3.2 µm',
                       },
                     ].map((t) => (
-                      <div key={t.surface} className="space-y-2 rounded-xl border bg-muted/20 p-4">
-                        <div className="font-semibold text-foreground">{t.surface}</div>
+                      <div key={t.surface} className="bg-muted/20 space-y-2 rounded-xl border p-4">
+                        <div className="text-foreground font-semibold">{t.surface}</div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="font-mono text-[11px]">
                             {t.fit}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground">{t.ra}</span>
+                          <span className="text-muted-foreground text-[10px]">{t.ra}</span>
                         </div>
-                        <p className="text-[10px] leading-snug text-muted-foreground">
+                        <p className="text-muted-foreground text-[10px] leading-snug">
                           {t.description}
                         </p>
                       </div>
@@ -652,14 +652,14 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                           return (
                             <div
                               key={file.id}
-                              className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-4"
+                              className="border-border bg-muted/20 flex items-center gap-3 rounded-xl border p-4"
                             >
-                              <Icon className="h-5 w-5 shrink-0 text-primary" />
+                              <Icon className="text-primary h-5 w-5 shrink-0" />
                               <div className="min-w-0 flex-1">
                                 <p className="truncate text-xs font-medium">{file.name}</p>
-                                <p className="text-[10px] text-primary">{file.fileType}</p>
+                                <p className="text-primary text-[10px]">{file.fileType}</p>
                               </div>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              <ChevronRight className="text-muted-foreground h-4 w-4 shrink-0" />
                             </div>
                           );
                         })
@@ -708,7 +708,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                                 <p className="truncate text-xs font-medium">{f.name}</p>
                                 <p className={`text-[10px] ${f.color}`}>{f.status}</p>
                               </div>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              <ChevronRight className="text-muted-foreground h-4 w-4 shrink-0" />
                             </div>
                           );
                         })}
@@ -726,11 +726,11 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                     Ajouter un fichier CAO
                   </Button>
 
-                  <div className="flex items-center gap-2 rounded-lg border bg-muted/20 p-3 text-xs">
-                    <Layers className="h-4 w-4 text-primary" />
+                  <div className="bg-muted/20 flex items-center gap-2 rounded-lg border p-3 text-xs">
+                    <Layers className="text-primary h-4 w-4" />
                     <div>
                       <p className="font-medium">Référence projet : {project.id.slice(0, 8)}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-muted-foreground text-[10px]">
                         Projet RE en base de données
                       </p>
                     </div>

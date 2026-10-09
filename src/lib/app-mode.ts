@@ -36,9 +36,7 @@ export function useAppMode() {
   // eslint-config-next@16) qui déclenche des rendus en cascade.
   // isClient est une constante dérivée : le hook n'est appelé que depuis des
   // composants 'use client', donc côté client isClient est toujours vrai.
-  const [isTauri, setIsTauri] = React.useState<boolean>(() =>
-    isTauriEnvironment(),
-  );
+  const [isTauri, setIsTauri] = React.useState<boolean>(() => isTauriEnvironment());
   const isClient = true;
 
   const setManualMode = (mode: 'web' | 'tauri') => {

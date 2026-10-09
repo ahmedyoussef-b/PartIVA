@@ -70,7 +70,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
       <div>
         <Link
           href="/admin/demandes"
-          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-xs transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Retour à la file des demandes
@@ -79,7 +79,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <span className="font-mono text-2xl font-bold text-primary">
+              <span className="text-primary font-mono text-2xl font-bold">
                 {request.id.slice(0, 8)}
               </span>
               <DropdownMenu>
@@ -91,7 +91,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                     >
                       {FR.urgencies[request.urgency]}
                     </Badge>
-                    {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                    {isPending && <span className="text-muted-foreground text-[10px]">...</span>}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48">
@@ -112,7 +112,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                     <Badge variant="secondary" className="text-xs">
                       {FR.statuses[request.status]}
                     </Badge>
-                    {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                    {isPending && <span className="text-muted-foreground text-[10px]">...</span>}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48">
@@ -128,7 +128,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Reçue de {request.client.company || request.client.name} le{' '}
               {formatDate(request.createdAt)}
             </p>
@@ -153,7 +153,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
 
       {/* Stepper Card */}
       <Card className="p-6">
-        <h3 className="mb-4 text-xs font-semibold uppercase text-muted-foreground">
+        <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase">
           Pipeline de Fabrication Actuel
         </h3>
         <PipelineStepper currentStep={request.status} />
@@ -166,28 +166,28 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
               <CardTitle className="text-base font-semibold">Cahier des Charges Pièce</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <p className="leading-relaxed text-foreground">{request.partDescription}</p>
+              <p className="text-foreground leading-relaxed">{request.partDescription}</p>
 
               <div className="grid grid-cols-2 gap-4 border-t pt-4 font-mono text-xs">
                 <div>
-                  <span className="block text-[10px] text-muted-foreground">MACHINE CLIENT</span>
-                  <span className="font-semibold text-foreground">{request.machineRef || '—'}</span>
+                  <span className="text-muted-foreground block text-[10px]">MACHINE CLIENT</span>
+                  <span className="text-foreground font-semibold">{request.machineRef || '—'}</span>
                 </div>
                 <div>
-                  <span className="block text-[10px] text-muted-foreground">RÔLE MÉCANIQUE</span>
-                  <span className="font-semibold text-foreground">
+                  <span className="text-muted-foreground block text-[10px]">RÔLE MÉCANIQUE</span>
+                  <span className="text-foreground font-semibold">
                     {request.partFunction || '—'}
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[10px] text-muted-foreground">MATIÈRE SUSPECTÉE</span>
-                  <span className="font-bold text-primary">
+                  <span className="text-muted-foreground block text-[10px]">MATIÈRE SUSPECTÉE</span>
+                  <span className="text-primary font-bold">
                     {request.suspectedMaterial || 'Non précisée'}
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[10px] text-muted-foreground">VOLUME DEMANDÉ</span>
-                  <span className="font-bold text-foreground">{request.quantity} pièce(s)</span>
+                  <span className="text-muted-foreground block text-[10px]">VOLUME DEMANDÉ</span>
+                  <span className="text-foreground font-bold">{request.quantity} pièce(s)</span>
                 </div>
               </div>
             </CardContent>
@@ -206,7 +206,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 {request.photos.map((url, i) => (
                   <div
                     key={i}
-                    className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
+                    className="group bg-muted relative aspect-square overflow-hidden rounded-lg border"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -229,25 +229,25 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               <div className="flex items-center gap-2.5">
-                <Building className="h-4 w-4 shrink-0 text-primary" />
-                <span className="font-semibold text-foreground">
+                <Building className="text-primary h-4 w-4 shrink-0" />
+                <span className="text-foreground font-semibold">
                   {request.client.company || 'Société non spécifiée'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="flex h-4 w-4 items-center justify-center font-bold text-muted-foreground">
+                <span className="text-muted-foreground flex h-4 w-4 items-center justify-center font-bold">
                   •
                 </span>
                 <span>{request.client.name}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Mail className="h-4 w-4 shrink-0 text-primary" />
+                <Mail className="text-primary h-4 w-4 shrink-0" />
                 <a href={`mailto:${request.client.email}`} className="text-primary hover:underline">
                   {request.client.email}
                 </a>
               </div>
               <div className="flex items-center gap-2.5">
-                <Phone className="h-4 w-4 shrink-0 text-primary" />
+                <Phone className="text-primary h-4 w-4 shrink-0" />
                 <a href={`tel:${request.client.phone}`} className="font-mono">
                   {request.client.phone || 'Non renseigné'}
                 </a>
@@ -265,7 +265,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 de données SQLite de l&apos;atelier ou dans les bibliothèques TraceParts.
               </p>
               <Link href={`/admin/demandes/${request.id}/recherche`}>
-                <Button className="shadow-xs w-full gap-2 text-xs font-bold">
+                <Button className="w-full gap-2 text-xs font-bold shadow-xs">
                   <Search className="h-3.5 w-3.5" />
                   Ouvrir l&apos;Écran de Recherche Multi-Sources
                 </Button>

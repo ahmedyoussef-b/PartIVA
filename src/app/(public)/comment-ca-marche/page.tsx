@@ -50,7 +50,7 @@ export default function CommentCaMarchePage() {
       <div className="max-w-3xl space-y-3">
         <Badge variant="outline">Le Flux Métier</Badge>
         <h1 className="text-4xl font-extrabold tracking-tight">Comment ça marche ?</h1>
-        <p className="text-base leading-relaxed text-muted-foreground">
+        <p className="text-muted-foreground text-base leading-relaxed">
           De votre photo prise sur votre smartphone jusqu’à la réception d’une pièce neuve usinée
           aux tolérances exactes de votre machine.
         </p>
@@ -62,11 +62,11 @@ export default function CommentCaMarchePage() {
           return (
             <div
               key={st.num}
-              className="flex flex-col gap-6 rounded-2xl border bg-card/60 p-6 transition-colors hover:border-primary/40 md:flex-row"
+              className="bg-card/60 hover:border-primary/40 flex flex-col gap-6 rounded-2xl border p-6 transition-colors md:flex-row"
             >
               <div className="flex shrink-0 items-center gap-4 md:w-28 md:flex-col md:items-center md:justify-center">
-                <span className="font-mono text-4xl font-black text-primary">{st.num}</span>
-                <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                <span className="text-primary font-mono text-4xl font-black">{st.num}</span>
+                <div className="bg-primary/10 text-primary rounded-xl p-3">
                   <Icon className="h-6 w-6" />
                 </div>
               </div>
@@ -77,8 +77,8 @@ export default function CommentCaMarchePage() {
                     {st.tag}
                   </Badge>
                 </div>
-                <h3 className="text-xl font-bold text-foreground">{st.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{st.desc}</p>
+                <h3 className="text-foreground text-xl font-bold">{st.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{st.desc}</p>
               </div>
             </div>
           );

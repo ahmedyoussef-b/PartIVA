@@ -62,7 +62,7 @@ export function PageHeader({
             <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
             {badge && <Badge variant={badge.variant || 'secondary'}>{badge.label}</Badge>}
           </div>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && <p className="text-muted-foreground text-sm">{description}</p>}
         </div>
 
         {(actions.length > 0 || children) && (

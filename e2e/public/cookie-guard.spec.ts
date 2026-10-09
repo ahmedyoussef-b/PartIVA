@@ -36,7 +36,10 @@ function loadAdminStorageState(): StorageState {
 }
 
 test.describe('Cookie guard — unauthenticated fallback', () => {
-  test('T2 — expired session cookie redirects /admin and /client to /login', async ({ context, page }) => {
+  test('T2 — expired session cookie redirects /admin and /client to /login', async ({
+    context,
+    page,
+  }) => {
     const state = loadAdminStorageState();
     const sessionCookie = state.cookies.find((c) => c.name === SESSION_COOKIE_NAME);
     expect(sessionCookie, 'admin storageState must contain a session cookie').toBeDefined();
@@ -55,7 +58,10 @@ test.describe('Cookie guard — unauthenticated fallback', () => {
     }
   });
 
-  test('T4 — forged session cookie redirects /admin and /client to /login', async ({ context, page }) => {
+  test('T4 — forged session cookie redirects /admin and /client to /login', async ({
+    context,
+    page,
+  }) => {
     const state = loadAdminStorageState();
     const sessionCookie = state.cookies.find((c) => c.name === SESSION_COOKIE_NAME);
     expect(sessionCookie, 'admin storageState must contain a session cookie').toBeDefined();

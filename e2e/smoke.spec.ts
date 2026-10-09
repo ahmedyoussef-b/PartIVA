@@ -20,7 +20,9 @@ test('smoke: /api/search returns 4 candidates sorted by score desc', async ({ re
   expect(body[0].reference).toBe('PL-004812');
 });
 
-test('smoke: /api/search with source filter returns 1 traceparts candidate', async ({ request }) => {
+test('smoke: /api/search with source filter returns 1 traceparts candidate', async ({
+  request,
+}) => {
   const response = await request.post('/api/search', {
     data: { source: 'traceparts' },
   });

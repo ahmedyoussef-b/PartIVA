@@ -30,7 +30,7 @@ export default function AdminParametresPage() {
     <div className="max-w-5xl space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Paramètres</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-0.5 text-sm">
           Configuration de la plateforme admin — connexion cloud, notifications et préférences
           atelier.
         </p>
@@ -49,7 +49,7 @@ export default function AdminParametresPage() {
                   onClick={() => setActiveSection(s.id)}
                   className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-xs font-medium transition-colors ${
                     active
-                      ? 'border border-primary/20 bg-primary/10 text-primary'
+                      ? 'border-primary/20 bg-primary/10 text-primary border'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
@@ -98,9 +98,9 @@ export default function AdminParametresPage() {
                   </div>
                 </div>
                 <Separator />
-                <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3">
-                  <Info className="h-4 w-4 shrink-0 text-primary" />
-                  <p className="text-xs text-muted-foreground">
+                <div className="bg-muted/40 flex items-center gap-3 rounded-lg border p-3">
+                  <Info className="text-primary h-4 w-4 shrink-0" />
+                  <p className="text-muted-foreground text-xs">
                     Ces informations apparaissent dans les devis PDF et les notifications envoyées
                     aux clients.
                   </p>
@@ -194,11 +194,11 @@ export default function AdminParametresPage() {
                 ].map((notif) => (
                   <div
                     key={notif.label}
-                    className="flex items-center justify-between gap-4 rounded-lg border bg-muted/20 p-3"
+                    className="bg-muted/20 flex items-center justify-between gap-4 rounded-lg border p-3"
                   >
                     <div>
                       <p className="text-xs font-medium">{notif.label}</p>
-                      <p className="text-[10px] text-muted-foreground">{notif.desc}</p>
+                      <p className="text-muted-foreground text-[10px]">{notif.desc}</p>
                     </div>
                     <div
                       className={`h-5 w-9 cursor-pointer rounded-full border transition-colors ${
@@ -233,10 +233,10 @@ export default function AdminParametresPage() {
                 <Separator />
                 <div className="space-y-2">
                   <p className="text-xs font-semibold">Session active</p>
-                  <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-3 text-xs">
+                  <div className="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-xs">
                     <div>
                       <p className="font-medium">Poste Atelier Local</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-muted-foreground text-[10px]">
                         192.168.1.10 — Connecté depuis 2h
                       </p>
                     </div>
@@ -271,7 +271,7 @@ export default function AdminParametresPage() {
                   ].map((pref) => (
                     <div
                       key={pref.label}
-                      className="flex items-center justify-between rounded-lg border bg-muted/20 p-3"
+                      className="bg-muted/20 flex items-center justify-between rounded-lg border p-3"
                     >
                       <span className="text-xs font-medium">{pref.label}</span>
                       <Badge variant="outline" className="font-mono text-[10px]">

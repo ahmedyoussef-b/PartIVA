@@ -4,10 +4,7 @@ import { mapRequestToUi } from '@/lib/utils/request-mappers';
 import AdminDashboardClient from './dashboard-client';
 
 export default async function AdminDashboardPage() {
-  const [requests, machines] = await Promise.all([
-    getRequests(),
-    getMachinesData(),
-  ]);
+  const [requests, machines] = await Promise.all([getRequests(), getMachinesData()]);
 
   const mappedRequests = requests.map(mapRequestToUi);
 

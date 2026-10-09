@@ -99,7 +99,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
     <div className="max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">File de fabrication</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-0.5 text-sm">
           Recherche multi-sources → Validation → Usinage CNC.
         </p>
       </div>
@@ -134,7 +134,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
               <TableBody>
                 {filtered.map((req) => (
                   <TableRow key={req.id} className="hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs font-bold text-primary">
+                    <TableCell className="text-primary font-mono text-xs font-bold">
                       {req.id.slice(0, 8)}
                     </TableCell>
                     <TableCell>
@@ -156,7 +156,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                               {FR.urgencies[req.urgency]}
                             </Badge>
                             {isPending && (
-                              <span className="text-[10px] text-muted-foreground">...</span>
+                              <span className="text-muted-foreground text-[10px]">...</span>
                             )}
                           </Button>
                         </DropdownMenuTrigger>
@@ -181,7 +181,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                               {FR.statuses[req.status]}
                             </Badge>
                             {isPending && (
-                              <span className="text-[10px] text-muted-foreground">...</span>
+                              <span className="text-muted-foreground text-[10px]">...</span>
                             )}
                           </Button>
                         </DropdownMenuTrigger>

@@ -4,10 +4,7 @@ import { mapRequestToUi } from '@/lib/utils/request-mappers';
 import AdminUsinageClient from './usinage-client';
 
 export default async function AdminUsinagePage() {
-  const [requests, machines] = await Promise.all([
-    getRequests(),
-    getMachinesData(),
-  ]);
+  const [requests, machines] = await Promise.all([getRequests(), getMachinesData()]);
 
   const mappedRequests = requests.map(mapRequestToUi);
 

@@ -51,15 +51,15 @@ export function AdminSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/admin/dashboard" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+          <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm">
             <Cog className="h-5 w-5" />
           </div>
           {open && (
             <div className="flex flex-col">
-              <span className="text-sm font-bold leading-none tracking-tight text-foreground">
+              <span className="text-foreground text-sm leading-none font-bold tracking-tight">
                 Atelier Admin
               </span>
-              <span className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+              <span className="text-muted-foreground mt-0.5 font-mono text-[10px]">
                 BDD Locale • SQLite
               </span>
             </div>
@@ -70,7 +70,7 @@ export function AdminSidebar() {
       <SidebarContent>
         <div className="px-2 pb-2">
           {open && (
-            <span className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="text-muted-foreground px-2 text-[10px] font-semibold tracking-wider uppercase">
               Opérations Atelier
             </span>
           )}
@@ -103,7 +103,7 @@ export function AdminSidebar() {
         <div className="flex w-full flex-col gap-1">
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-md p-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="text-muted-foreground hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md p-2 text-xs transition-colors"
             title="Aller sur le site public"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />

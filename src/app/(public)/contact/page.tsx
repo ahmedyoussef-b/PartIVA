@@ -27,7 +27,7 @@ export default function ContactPage() {
       <div className="max-w-3xl space-y-3">
         <Badge variant="outline">Atelier & Métrologie</Badge>
         <h1 className="text-4xl font-extrabold tracking-tight">Contact & Nos Ateliers</h1>
-        <p className="text-base leading-relaxed text-muted-foreground">
+        <p className="text-muted-foreground text-base leading-relaxed">
           Une urgence d’arrêt de ligne ou un projet d’usinage de série ? Contactez directement nos
           ingénieurs méthodes et régleurs CNC.
         </p>
@@ -95,21 +95,21 @@ export default function ContactPage() {
                 Atelier Principal (Usinage & CAO)
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <CardContent className="text-muted-foreground space-y-4 text-sm">
               <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <MapPin className="text-primary mt-0.5 h-5 w-5 shrink-0" />
                 <span>Zone Industrielle Poudrière II, Route de Gabès km 3, Sfax, Tunisie</span>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 shrink-0 text-primary" />
+                <Phone className="text-primary h-5 w-5 shrink-0" />
                 <span>+216 74 123 456 / +216 98 765 432</span>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 shrink-0 text-primary" />
+                <Mail className="text-primary h-5 w-5 shrink-0" />
                 <span>sfax@atelier-pieces.tn</span>
               </div>
               <div className="flex items-center gap-3">
-                <Clock className="h-5 w-5 shrink-0 text-primary" />
+                <Clock className="text-primary h-5 w-5 shrink-0" />
                 <span>Lun - Sam : 07h30 - 18h00 (Astreinte week-end)</span>
               </div>
             </CardContent>
@@ -121,13 +121,13 @@ export default function ContactPage() {
                 Bureau Commercial & Dépôt Tunis
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <CardContent className="text-muted-foreground space-y-4 text-sm">
               <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <MapPin className="text-primary mt-0.5 h-5 w-5 shrink-0" />
                 <span>Parc Technologique El Ghazela, Raoued, Ariana / Tunis</span>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 shrink-0 text-primary" />
+                <Phone className="text-primary h-5 w-5 shrink-0" />
                 <span>+216 71 890 123</span>
               </div>
             </CardContent>

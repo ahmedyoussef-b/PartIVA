@@ -38,7 +38,7 @@ export default function ClientNotificationsPage() {
     <div className="max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Notifications</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-0.5 text-sm">
           Alertes de fabrication, validation de modèles et expéditions.
         </p>
       </div>
@@ -62,15 +62,15 @@ export default function ClientNotificationsPage() {
               <div className="flex-1 space-y-1">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold">{notif.title}</h4>
-                  <span className="font-mono text-[11px] text-muted-foreground">{notif.time}</span>
+                  <span className="text-muted-foreground font-mono text-[11px]">{notif.time}</span>
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">{notif.desc}</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">{notif.desc}</p>
                 <div className="pt-1">
                   <Link href={notif.href}>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 gap-1 px-2 text-xs text-primary"
+                      className="text-primary h-7 gap-1 px-2 text-xs"
                     >
                       Voir le dossier <ArrowRight className="h-3 w-3" />
                     </Button>

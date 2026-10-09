@@ -25,7 +25,7 @@ function DemandeConfirmationContent() {
         <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
           Votre demande est en cours de traitement
         </h1>
-        <p className="mx-auto max-w-md text-sm text-muted-foreground">
+        <p className="text-muted-foreground mx-auto max-w-md text-sm">
           Nos ingénieurs méthodes ont reçu vos photos et commencent la recherche multi-sources et
           l’analyse dimensionnelle de la pièce.
         </p>
@@ -34,23 +34,23 @@ function DemandeConfirmationContent() {
       <Card className="border-border/60 bg-card/60 text-left backdrop-blur">
         <CardHeader className="border-b pb-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">
+            <span className="text-muted-foreground text-xs font-semibold uppercase">
               Référence du dossier
             </span>
-            <span className="font-mono text-sm font-bold text-primary">{reqId}</span>
+            <span className="text-primary font-mono text-sm font-bold">{reqId}</span>
           </div>
         </CardHeader>
         <CardContent className="space-y-4 pt-4 text-sm">
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">
+            <h4 className="text-muted-foreground text-xs font-semibold uppercase">
               Prochaines étapes :
             </h4>
             <div className="space-y-2">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-xs font-bold text-primary">
+                <div className="bg-primary/10 text-primary mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold">
                   1
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   <strong className="text-foreground">Recherche automatisée (15 min) :</strong>{' '}
                   Comparaison avec nos 50 000 modèles 3D indexés et bibliothèques
                   TraceParts/CADENAS.
@@ -58,20 +58,20 @@ function DemandeConfirmationContent() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-xs font-bold text-primary">
+                <div className="bg-primary/10 text-primary mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold">
                   2
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   <strong className="text-foreground">Validation matière & faisabilité :</strong>{' '}
                   Confirmation du plastique (POM-C, PTFE, PE1000) et tolérances d’usinage requises.
                 </p>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-xs font-bold text-primary">
+                <div className="bg-primary/10 text-primary mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold">
                   3
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   <strong className="text-foreground">Devis & Lancement :</strong> Envoi du devis
                   sous 2h ouvrées et mise en fabrication sur nos tours/fraiseuses CNC.
                 </p>
@@ -111,7 +111,7 @@ export default function DemandeConfirmationPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="container max-w-2xl py-16 text-center text-sm text-muted-foreground">
+        <div className="text-muted-foreground container max-w-2xl py-16 text-center text-sm">
           Chargement de la confirmation...
         </div>
       }

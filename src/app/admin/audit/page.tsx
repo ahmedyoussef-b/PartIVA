@@ -141,7 +141,7 @@ export default function AdminAuditPage() {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Journal d&apos;Audit
           </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Traçabilité complète de toutes les actions métier et opérations système.
           </p>
         </div>
@@ -153,7 +153,7 @@ export default function AdminAuditPage() {
 
       {/* Search */}
       <div className="relative w-full sm:w-80">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
         <Input
           placeholder="Filtrer les événements…"
           className="pl-9 text-xs"
@@ -172,7 +172,7 @@ export default function AdminAuditPage() {
         <CardContent>
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute bottom-0 left-[18px] top-0 w-px bg-border" />
+            <div className="bg-border absolute top-0 bottom-0 left-[18px] w-px" />
 
             <div className="space-y-0">
               {filtered.map((entry, i) => {
@@ -182,7 +182,7 @@ export default function AdminAuditPage() {
                   <div key={entry.id} className="group relative flex gap-4">
                     {/* Dot */}
                     <div
-                      className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-background ${
+                      className={`border-background z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${
                         entry.severity === 'success'
                           ? 'bg-emerald-500/15'
                           : entry.severity === 'warning'
@@ -199,7 +199,7 @@ export default function AdminAuditPage() {
                         <Badge variant="outline" className="font-mono text-[9px]">
                           {cfg.label}
                         </Badge>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-muted-foreground text-[10px]">
                           {new Date(entry.ts).toLocaleString('fr-FR', {
                             day: '2-digit',
                             month: '2-digit',
@@ -207,12 +207,12 @@ export default function AdminAuditPage() {
                             minute: '2-digit',
                           })}
                         </span>
-                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <span className="text-muted-foreground flex items-center gap-1 text-[10px]">
                           <User className="h-2.5 w-2.5" />
                           {entry.actor}
                         </span>
                       </div>
-                      <p className="text-xs leading-snug text-foreground">{entry.description}</p>
+                      <p className="text-foreground text-xs leading-snug">{entry.description}</p>
                     </div>
                   </div>
                 );

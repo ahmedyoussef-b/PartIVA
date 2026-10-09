@@ -32,7 +32,7 @@ export function CandidateCard({
 
   return (
     <Card
-      className={`cursor-pointer shadow-sm transition-all hover:border-primary/50 ${
+      className={`hover:border-primary/50 cursor-pointer shadow-sm transition-all ${
         isSelected ? 'border-emerald-500 bg-emerald-500/5 ring-1 ring-emerald-500/30' : ''
       }`}
       onClick={onSelect}
@@ -40,14 +40,14 @@ export function CandidateCard({
       <CardHeader className="flex flex-row items-start justify-between pb-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-primary">{candidate.reference}</span>
-            <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider">
+            <span className="text-primary font-mono text-xs font-bold">{candidate.reference}</span>
+            <Badge variant="outline" className="font-mono text-[10px] tracking-wider uppercase">
               {sourceLabel ?? candidate.source.replace('_', ' ')}
             </Badge>
           </div>
           <h3 className="line-clamp-1 text-sm font-semibold">{candidate.name}</h3>
           {candidate.manufacturer && (
-            <p className="text-xs text-muted-foreground">{candidate.manufacturer}</p>
+            <p className="text-muted-foreground text-xs">{candidate.manufacturer}</p>
           )}
         </div>
         <div className="shrink-0 text-right">
@@ -58,12 +58,12 @@ export function CandidateCard({
           >
             {Math.round(candidate.scores.global * 100)}%
           </div>
-          <div className="text-[10px] text-muted-foreground">score global</div>
+          <div className="text-muted-foreground text-[10px]">score global</div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
         {candidate.imageUrl && (
-          <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-md border bg-muted/50">
+          <div className="bg-muted/50 relative flex aspect-video items-center justify-center overflow-hidden rounded-md border">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={candidate.imageUrl}
@@ -114,7 +114,7 @@ export function CandidateCard({
             onClick={() => onReject?.(candidate)}
             aria-label="Rejeter"
           >
-            <X className="h-4 w-4 text-muted-foreground" />
+            <X className="text-muted-foreground h-4 w-4" />
           </Button>
           <Button
             size="sm"
@@ -122,7 +122,7 @@ export function CandidateCard({
             onClick={() => onView?.(candidate)}
             aria-label="Voir détails"
           >
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+            <ExternalLink className="text-muted-foreground h-4 w-4" />
           </Button>
         </div>
       </CardContent>

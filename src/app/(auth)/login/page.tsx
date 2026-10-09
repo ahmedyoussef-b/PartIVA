@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="mx-auto max-w-md border-border/60 shadow-xl">
+    <Card className="border-border/60 mx-auto max-w-md shadow-xl">
       <CardHeader className="space-y-1 text-center">
         <div className="mb-1 flex justify-center">
           <Badge variant="outline" className="border-primary/30 text-primary">
@@ -62,7 +62,7 @@ export default function LoginPage() {
         <div className="flex justify-start">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Retour
@@ -70,7 +70,7 @@ export default function LoginPage() {
         </div>
 
         {error ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+          <div className="border-destructive/40 bg-destructive/10 text-destructive rounded-md border p-3 text-xs">
             {error}
           </div>
         ) : null}
@@ -90,7 +90,7 @@ export default function LoginPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Mot de passe</Label>
-              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+              <Link href="/forgot-password" className="text-primary text-xs hover:underline">
                 Mot de passe oublié ?
               </Link>
             </div>
@@ -109,14 +109,14 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="space-y-2 border-t pt-4 text-center text-xs text-muted-foreground">
+        <div className="text-muted-foreground space-y-2 border-t pt-4 text-center text-xs">
           <p>
             Pas encore de compte ?{' '}
-            <Link href="/register" className="font-semibold text-primary hover:underline">
+            <Link href="/register" className="text-primary font-semibold hover:underline">
               S’enregistrer
             </Link>
           </p>
-          <p className="text-[11px] text-muted-foreground/80">
+          <p className="text-muted-foreground/80 text-[11px]">
             Accès admin restreint au personnel habilité.
           </p>
         </div>

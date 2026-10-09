@@ -50,7 +50,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Atelier Usinage</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Suivi temps réel des pièces plastiques en fabrication.
           </p>
         </div>
@@ -61,11 +61,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
         <KPICard title="En usinage" value={activeJobs.length} variant="success" />
         <KPICard title="En attente" value={waiting.length} variant="warning" />
         <KPICard title="Terminées (mois)" value={3} variant="default" />
-        <KPICard
-          title="Machines"
-          value={machines.length}
-          variant="info"
-        />
+        <KPICard title="Machines" value={machines.length} variant="info" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -87,7 +83,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-primary">
+                      <span className="text-primary font-mono text-xs font-bold">
                         {job.cloudId ? `#REQ-${job.cloudId}` : job.requestId.slice(0, 8)}
                       </span>
                       <Badge
@@ -96,11 +92,11 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                       >
                         {FR.urgencies[job.urgency]}
                       </Badge>
-                      <span className="font-mono text-[10px] text-muted-foreground">
+                      <span className="text-muted-foreground font-mono text-[10px]">
                         {job.suspectedMaterial}
                       </span>
                     </div>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                    <p className="text-muted-foreground mt-1 truncate text-xs">
                       {job.clientCompany} — {job.partDescription}
                     </p>
                   </div>
@@ -119,7 +115,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-3 text-[11px]">
                   <span>{job.machineName}</span>
                   <span>•</span>
                   <span>~{job.estimatedTime} min</span>
@@ -137,7 +133,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
 
                 {job.progressPercent > 0 ? (
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center justify-between font-mono text-[10px]">
                       <span>Avancement</span>
                       <span className="font-bold">{job.progressPercent}%</span>
                     </div>
@@ -174,13 +170,13 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                   </Badge>
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center justify-between font-mono text-[10px]">
                     <span>Type</span>
                     <span className="font-bold">{m.type}</span>
                   </div>
                 </div>
                 {m.location ? (
-                  <p className="truncate text-[10px] text-muted-foreground">{m.location}</p>
+                  <p className="text-muted-foreground truncate text-[10px]">{m.location}</p>
                 ) : null}
               </CardContent>
             </Card>

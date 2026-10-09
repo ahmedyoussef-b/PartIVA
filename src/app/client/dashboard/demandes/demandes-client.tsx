@@ -46,7 +46,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Mes Demandes</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Historique complet des pièces soumises pour modélisation et usinage CNC.
           </p>
         </div>
@@ -59,9 +59,9 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
       </div>
 
       {/* Filter toolbar */}
-      <div className="flex flex-col items-center justify-between gap-4 rounded-xl border bg-card/60 p-4 backdrop-blur sm:flex-row">
+      <div className="bg-card/60 flex flex-col items-center justify-between gap-4 rounded-xl border p-4 backdrop-blur sm:flex-row">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
           <Input
             placeholder="Rechercher par mot-clé, machine, référence..."
             className="pl-9 text-xs"
@@ -71,7 +71,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <Filter className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
+          <Filter className="text-muted-foreground mr-1 h-3.5 w-3.5" />
           <Button
             size="sm"
             variant={statusFilter === 'all' ? 'default' : 'outline'}
@@ -127,16 +127,16 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
               <TableBody>
                 {filtered.map((req) => (
                   <TableRow key={req.id} className="hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs font-bold text-primary">
+                    <TableCell className="text-primary font-mono text-xs font-bold">
                       {req.id.slice(0, 8)}
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="line-clamp-1 text-xs font-medium">{req.partDescription}</div>
-                      <span className="font-mono text-[11px] text-muted-foreground">
+                      <span className="text-muted-foreground font-mono text-[11px]">
                         Matière : {req.suspectedMaterial || 'Non précisée'}
                       </span>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-muted-foreground text-xs">
                       {req.machineRef || '—'}
                     </TableCell>
                     <TableCell className="text-center font-mono text-xs font-bold">
@@ -155,7 +155,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                         {FR.statuses[req.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                    <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
                       {formatDate(req.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">

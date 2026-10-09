@@ -137,7 +137,7 @@ export default function CreerPiecePage() {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Créer une nouvelle pièce à fabriquer
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm">
             Uploadez autant de photos que vous le souhaitez de la pièce cassée ou usée. Nos régleurs
             se chargent de la rétro-ingénierie et de l’usinage.
           </p>
@@ -158,7 +158,7 @@ export default function CreerPiecePage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Camera className="h-5 w-5 text-primary" />
+                  <Camera className="text-primary h-5 w-5" />
                   1. Photographies de la pièce souhaitée
                 </CardTitle>
                 <CardDescription>
@@ -179,13 +179,13 @@ export default function CreerPiecePage() {
               {...getRootProps()}
               className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200 ${
                 isDragActive
-                  ? 'scale-[1.005] border-primary bg-primary/5'
+                  ? 'border-primary bg-primary/5 scale-[1.005]'
                   : 'border-border/80 hover:border-primary/50 hover:bg-muted/40'
               }`}
             >
               <input {...getInputProps()} />
               <div className="flex flex-col items-center justify-center gap-3">
-                <div className="shadow-xs flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <div className="bg-primary/10 text-primary flex h-14 w-14 items-center justify-center rounded-full shadow-xs">
                   <UploadCloud className="h-7 w-7" />
                 </div>
                 <div className="space-y-1">
@@ -193,7 +193,7 @@ export default function CreerPiecePage() {
                     Glissez-déposez vos photos ici, ou{' '}
                     <span className="text-primary underline">parcourez vos fichiers</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Nombre illimité de photos • Formats JPG, PNG, WEBP acceptés jusqu’à 15 Mo par
                     image
                   </p>
@@ -204,7 +204,7 @@ export default function CreerPiecePage() {
             {/* Galerie des photos chargées */}
             {photos.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold tracking-wider uppercase">
                   <span>Photos prêtes pour l’analyse atelier</span>
                   <span>Précisez l’angle de prise de vue pour chaque photo</span>
                 </div>
@@ -213,10 +213,10 @@ export default function CreerPiecePage() {
                   {photos.map((photo) => (
                     <div
                       key={photo.id}
-                      className="shadow-xs group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all hover:border-primary/40"
+                      className="group bg-card hover:border-primary/40 relative flex flex-col overflow-hidden rounded-xl border shadow-xs transition-all"
                     >
                       {/* Image Thumbnail */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+                      <div className="bg-muted relative aspect-[4/3] w-full overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo.url}
@@ -226,14 +226,14 @@ export default function CreerPiecePage() {
                         <button
                           type="button"
                           onClick={() => removePhoto(photo.id)}
-                          className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white shadow-sm transition-colors hover:bg-rose-600"
+                          className="absolute top-2 right-2 rounded-full bg-black/60 p-1.5 text-white shadow-sm transition-colors hover:bg-rose-600"
                           title="Supprimer la photo"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
 
                         <div className="absolute bottom-2 left-2">
-                          <span className="backdrop-blur-xs rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white">
+                          <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs">
                             {photo.size}
                           </span>
                         </div>
@@ -242,20 +242,20 @@ export default function CreerPiecePage() {
                       {/* Tag selector */}
                       <div className="flex flex-1 flex-col justify-between space-y-2 p-3">
                         <div
-                          className="truncate text-xs font-medium text-foreground"
+                          className="text-foreground truncate text-xs font-medium"
                           title={photo.name}
                         >
                           {photo.name}
                         </div>
 
                         <div className="space-y-1">
-                          <Label className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <Tag className="h-3 w-3 text-primary" /> Angle / Vue :
+                          <Label className="text-muted-foreground flex items-center gap-1 text-[10px]">
+                            <Tag className="text-primary h-3 w-3" /> Angle / Vue :
                           </Label>
                           <select
                             value={photo.tag}
                             onChange={(e) => updateTag(photo.id, e.target.value)}
-                            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-2 py-1.5 text-xs focus:ring-1 focus:outline-none"
                           >
                             {PHOTO_TAGS.map((t) => (
                               <option key={t} value={t}>
@@ -277,7 +277,7 @@ export default function CreerPiecePage() {
         <Card className="border-border shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Layers className="h-5 w-5 text-primary" />
+              <Layers className="text-primary h-5 w-5" />
               2. Caractéristiques & Spécifications de la pièce
             </CardTitle>
             <CardDescription>
@@ -319,7 +319,7 @@ export default function CreerPiecePage() {
                   id="material"
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
                 >
                   {MATERIAL_OPTIONS.map((mat) => (
                     <option key={mat.value} value={mat.value}>
@@ -349,7 +349,7 @@ export default function CreerPiecePage() {
                   id="urgency"
                   value={urgency}
                   onChange={(e) => setUrgency(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
                 >
                   <option value="normal">Délai standard (4-6 jours)</option>
                   <option value="urgent">Urgent (48-72h)</option>
@@ -374,16 +374,16 @@ export default function CreerPiecePage() {
         </Card>
 
         {/* RECAPITULATIF & SOUMISSION */}
-        <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row">
+        <div className="border-primary/20 bg-primary/5 flex flex-col items-center justify-between gap-4 rounded-xl border p-4 sm:flex-row">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-semibold">
                 Engagement Atelier PartIVA pour les clients permanents
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Prise en charge prioritaire • Rétro-conception CAO sous 4h • Validation avant
                 usinage
               </p>

@@ -47,11 +47,11 @@ export function KPICard({
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
               {title}
             </p>
             <p className={cn('font-mono text-2xl font-bold', valueStyles[variant])}>{value}</p>
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+            {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
             {trend && (
               <p
                 className={cn(
@@ -64,7 +64,7 @@ export function KPICard({
               </p>
             )}
           </div>
-          {icon && <div className="rounded-lg bg-muted/50 p-2 text-muted-foreground">{icon}</div>}
+          {icon && <div className="bg-muted/50 text-muted-foreground rounded-lg p-2">{icon}</div>}
         </div>
       </CardContent>
     </Card>

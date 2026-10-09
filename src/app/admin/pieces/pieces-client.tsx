@@ -78,7 +78,7 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Catalogue pièces</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Pièces usinées, indexées et disponibles pour réutilisation.
           </p>
         </div>
@@ -132,12 +132,12 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
                   const hasPlan = (part.files?.plans?.length ?? 0) > 0;
                   return (
                     <TableRow key={part.id} className="hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs font-bold text-primary">
+                      <TableCell className="text-primary font-mono text-xs font-bold">
                         {part.reference}
                       </TableCell>
                       <TableCell>
                         <div className="text-xs font-medium">{part.name}</div>
-                        <div className="line-clamp-1 text-[11px] text-muted-foreground">
+                        <div className="text-muted-foreground line-clamp-1 text-[11px]">
                           {part.description}
                         </div>
                       </TableCell>

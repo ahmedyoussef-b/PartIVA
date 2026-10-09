@@ -12,7 +12,7 @@ export default async function RechercheMultiSourcePage({
   const initialCandidates = await getSearchCandidates();
 
   if (!request) {
-    return <div className="p-8 text-center text-muted-foreground">Demande introuvable</div>;
+    return <div className="text-muted-foreground p-8 text-center">Demande introuvable</div>;
   }
 
   return <RechercheClient initialRequest={request} initialCandidates={initialCandidates} />;

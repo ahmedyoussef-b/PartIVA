@@ -33,7 +33,7 @@ export default async function ClientDashboardPage() {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Espace Maintenance & Commandes
           </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Suivez la numérisation CAO, l&apos;usinage et l&apos;expédition de vos pièces
             industrielles.
           </p>
@@ -50,49 +50,49 @@ export default async function ClientDashboardPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-            <span className="text-xs font-medium text-muted-foreground">Demandes actives</span>
-            <FileText className="h-4 w-4 text-primary" />
+            <span className="text-muted-foreground text-xs font-medium">Demandes actives</span>
+            <FileText className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="font-mono text-2xl font-black">{requests.length}</div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Votre espace client</p>
+            <p className="text-muted-foreground mt-0.5 text-[11px]">Votre espace client</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-            <span className="text-xs font-medium text-muted-foreground">Usinage en cours</span>
+            <span className="text-muted-foreground text-xs font-medium">Usinage en cours</span>
             <Hammer className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="font-mono text-2xl font-black text-amber-500">
               {requests.filter((req) => req.status === 'IN_PROGRESS').length}
             </div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Sur vos demandes</p>
+            <p className="text-muted-foreground mt-0.5 text-[11px]">Sur vos demandes</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-            <span className="text-xs font-medium text-muted-foreground">Pièces livrées</span>
+            <span className="text-muted-foreground text-xs font-medium">Pièces livrées</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="font-mono text-2xl font-black text-emerald-500">
               {requests.filter((req) => req.status === 'COMPLETED').length}
             </div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Année en cours</p>
+            <p className="text-muted-foreground mt-0.5 text-[11px]">Année en cours</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-            <span className="text-xs font-medium text-muted-foreground">Délai moyen constaté</span>
-            <Clock className="h-4 w-4 text-primary" />
+            <span className="text-muted-foreground text-xs font-medium">Délai moyen constaté</span>
+            <Clock className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="font-mono text-2xl font-black">3.4 j</div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">vs 8 semaines import</p>
+            <p className="text-muted-foreground mt-0.5 text-[11px]">vs 8 semaines import</p>
           </CardContent>
         </Card>
       </div>
@@ -103,7 +103,7 @@ export default async function ClientDashboardPage() {
           <h2 className="text-lg font-bold">Vos demandes en cours de traitement</h2>
           <Link
             href="/client/dashboard/demandes"
-            className="text-xs font-semibold text-primary hover:underline"
+            className="text-primary text-xs font-semibold hover:underline"
           >
             Voir l&apos;historique complet →
           </Link>
@@ -111,11 +111,11 @@ export default async function ClientDashboardPage() {
 
         <div className="space-y-4">
           {requests.map((req) => (
-            <Card key={req.id} className="transition-all hover:border-primary/50">
+            <Card key={req.id} className="hover:border-primary/50 transition-all">
               <CardContent className="space-y-4 p-5">
                 <div className="flex flex-col justify-between gap-2 border-b pb-3 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs font-bold text-primary">
+                    <span className="text-primary font-mono text-xs font-bold">
                       {req.id.slice(0, 8)}
                     </span>
                     <Badge
@@ -125,7 +125,7 @@ export default async function ClientDashboardPage() {
                       Urgence : {URGENCY_LABELS[req.urgency] ?? req.urgency}
                     </Badge>
                   </div>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     Soumise le {formatDate(req.createdAt.toISOString())}
                   </span>
                 </div>
@@ -133,7 +133,7 @@ export default async function ClientDashboardPage() {
                 <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-12">
                   <div className="space-y-1 md:col-span-8">
                     <h3 className="line-clamp-1 text-sm font-semibold">{req.partDescription}</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       <strong className="text-foreground">Machine :</strong>{' '}
                       {req.machineRef || 'Non spécifiée'} •{' '}
                       <strong className="text-foreground">Quantité :</strong> {req.quantity}{' '}

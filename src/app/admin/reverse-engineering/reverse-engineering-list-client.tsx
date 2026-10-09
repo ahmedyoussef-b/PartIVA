@@ -52,7 +52,7 @@ export default function ReverseEngineeringListClient({
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Reverse Engineering</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Projets de rétro-ingénierie CAO — {projects.length} projet(s)
           </p>
         </div>
@@ -82,12 +82,12 @@ export default function ReverseEngineeringListClient({
                   const completedSteps = project.steps.filter((s) => s.completed).length;
                   return (
                     <TableRow key={project.id} className="hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs font-bold text-primary">
+                      <TableCell className="text-primary font-mono text-xs font-bold">
                         {project.id.slice(0, 8)}
                       </TableCell>
                       <TableCell>
                         <div className="text-xs font-medium">{project.name}</div>
-                        <div className="line-clamp-1 text-[11px] text-muted-foreground">
+                        <div className="text-muted-foreground line-clamp-1 text-[11px]">
                           {project.description || '—'}
                         </div>
                       </TableCell>

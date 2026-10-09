@@ -26,7 +26,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             File de fabrication, recherche multi-sources et parc machines.
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             <h2 className="text-lg font-semibold">File d&apos;attente</h2>
             <Link
               href="/admin/demandes"
-              className="text-xs font-medium text-primary hover:underline"
+              className="text-primary text-xs font-medium hover:underline"
             >
               Voir tout ({requests.length}) →
             </Link>
@@ -83,11 +83,11 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
 
           <div className="space-y-2">
             {requests.slice(0, 5).map((req) => (
-              <Card key={req.id} className="transition-colors hover:border-primary/40">
+              <Card key={req.id} className="hover:border-primary/40 transition-colors">
                 <CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-primary">
+                      <span className="text-primary font-mono text-xs font-bold">
                         {req.id.slice(0, 8)}
                       </span>
                       <Badge
@@ -101,7 +101,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
                       </Badge>
                     </div>
                     <p className="truncate text-sm font-medium">{req.partDescription}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-3 text-xs">
                       <span className="truncate">{req.client.company || req.client.name}</span>
                       <span className="text-border">•</span>
                       <span className="truncate">{req.suspectedMaterial || 'Non précisée'}</span>
@@ -141,7 +141,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
               </div>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
-              <div className="space-y-2 rounded-lg border bg-muted/30 p-3 font-mono">
+              <div className="bg-muted/30 space-y-2 rounded-lg border p-3 font-mono">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Dernier Pull :</span>
                   <span className="font-semibold">
@@ -169,7 +169,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold">Parc machines</CardTitle>
-                <Link href="/admin/machines" className="text-xs text-primary hover:underline">
+                <Link href="/admin/machines" className="text-primary text-xs hover:underline">
                   Gérer
                 </Link>
               </div>
@@ -181,9 +181,9 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
                     <span className="max-w-[160px] truncate font-medium">{m.name}</span>
                     <span className="font-mono text-[10px] font-bold">{m.status}</span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
                     <div
-                      className={`h-full transition-all bg-emerald-500`}
+                      className={`h-full bg-emerald-500 transition-all`}
                       style={{ width: '100%' }}
                     />
                   </div>

@@ -164,7 +164,7 @@ export default function RechercheClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ source: src.id }),
       });
-      const found: SearchCandidate[] = res.ok ? (await res.json()) : [];
+      const found: SearchCandidate[] = res.ok ? await res.json() : [];
       setSourceProgress((prev) => ({
         ...prev,
         [src.id]: { state: 'done', found: found.length },
@@ -189,7 +189,7 @@ export default function RechercheClient({
       <div>
         <Link
           href={`/admin/demandes/${request.id}`}
-          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-xs transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Retour au dossier {request.id.slice(0, 8)}
@@ -200,7 +200,7 @@ export default function RechercheClient({
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
               Recherche Multi-Sources
             </h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mt-0.5 text-sm">
               Interrogation simultanée : BDD locale → TraceParts → CADENAS → Index géométrique IA
             </p>
           </div>
@@ -214,7 +214,7 @@ export default function RechercheClient({
                   >
                     {FR.urgencies[request.urgency]}
                   </Badge>
-                  {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                  {isPending && <span className="text-muted-foreground text-[10px]">...</span>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
@@ -235,7 +235,7 @@ export default function RechercheClient({
                   <Badge variant="secondary" className="text-xs">
                     {FR.statuses[request.status]}
                   </Badge>
-                  {isPending && <span className="text-[10px] text-muted-foreground">...</span>}
+                  {isPending && <span className="text-muted-foreground text-[10px]">...</span>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
@@ -259,19 +259,19 @@ export default function RechercheClient({
         <CardContent className="p-4">
           <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-4">
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Client
               </span>
               <span className="font-semibold">{request.client.name}</span>
             </div>
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Machine
               </span>
               <span className="font-mono">{request.machineRef || '—'}</span>
             </div>
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Matière suspectée
               </span>
               <Badge variant="outline" className="font-mono text-[10px]">
@@ -279,14 +279,14 @@ export default function RechercheClient({
               </Badge>
             </div>
             <div>
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-muted-foreground mb-0.5 block text-[10px] font-semibold tracking-wider uppercase">
                 Quantité
               </span>
-              <span className="font-bold text-primary">{request.quantity} pièce(s)</span>
+              <span className="text-primary font-bold">{request.quantity} pièce(s)</span>
             </div>
           </div>
           <Separator className="my-3" />
-          <p className="text-xs leading-relaxed text-muted-foreground">{request.partDescription}</p>
+          <p className="text-muted-foreground text-xs leading-relaxed">{request.partDescription}</p>
         </CardContent>
       </Card>
 
@@ -297,7 +297,7 @@ export default function RechercheClient({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                <Search className="h-4 w-4 text-primary" />
+                <Search className="text-primary h-4 w-4" />
                 Sources de Recherche
               </CardTitle>
               <CardDescription className="text-xs">
@@ -324,11 +324,11 @@ export default function RechercheClient({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-xs font-semibold">{src.label}</div>
-                      <div className="text-[10px] text-muted-foreground">{src.description}</div>
+                      <div className="text-muted-foreground text-[10px]">{src.description}</div>
                     </div>
                     <div className="shrink-0">
                       {prog?.state === 'running' && (
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <Loader2 className="text-primary h-4 w-4 animate-spin" />
                       )}
                       {prog?.state === 'done' && (
                         <div className="flex items-center gap-1">
@@ -339,7 +339,7 @@ export default function RechercheClient({
                         </div>
                       )}
                       {(!prog || prog.state === 'idle') && (
-                        <div className="h-4 w-4 rounded-full border-2 border-border" />
+                        <div className="border-border h-4 w-4 rounded-full border-2" />
                       )}
                     </div>
                   </div>
@@ -349,7 +349,7 @@ export default function RechercheClient({
               {/* Progress bar */}
               {searchState !== 'idle' && (
                 <div className="space-y-1.5 pt-2">
-                  <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center justify-between font-mono text-[10px]">
                     <span>Progression globale</span>
                     <span>{totalProgress}%</span>
                   </div>
@@ -392,8 +392,8 @@ export default function RechercheClient({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-xs">
-                <p className="font-bold text-foreground">{bestCandidate.name}</p>
-                <p className="font-mono text-muted-foreground">{bestCandidate.reference}</p>
+                <p className="text-foreground font-bold">{bestCandidate.name}</p>
+                <p className="text-muted-foreground font-mono">{bestCandidate.reference}</p>
                 <SimilarityScore score={bestCandidate.scores.global} label="Score global" />
                 <div className="space-y-2 pt-2">
                   <Button
@@ -439,13 +439,13 @@ export default function RechercheClient({
         {/* Results panel */}
         <div className="space-y-4 lg:col-span-2">
           {searchState === 'idle' && (
-            <div className="flex h-64 flex-col items-center justify-center gap-4 rounded-xl border border-dashed bg-muted/20 text-center">
-              <div className="rounded-full bg-primary/10 p-4">
-                <Search className="h-8 w-8 text-primary/60" />
+            <div className="bg-muted/20 flex h-64 flex-col items-center justify-center gap-4 rounded-xl border border-dashed text-center">
+              <div className="bg-primary/10 rounded-full p-4">
+                <Search className="text-primary/60 h-8 w-8" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Aucune recherche lancée</p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-sm font-medium">Aucune recherche lancée</p>
+                <p className="text-muted-foreground mt-1 text-xs">
                   Cliquez sur «&nbsp;Lancer la Recherche&nbsp;» pour interroger les 4 sources
                 </p>
               </div>
@@ -473,13 +473,13 @@ export default function RechercheClient({
                 <TabsContent value={activeSource} className="mt-4">
                   {filtered.length === 0 && searchState === 'running' ? (
                     <div className="flex flex-col items-center gap-3 py-12">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">Interrogation en cours…</p>
+                      <Loader2 className="text-primary h-6 w-6 animate-spin" />
+                      <p className="text-muted-foreground text-sm">Interrogation en cours…</p>
                     </div>
                   ) : filtered.length === 0 ? (
                     <div className="flex flex-col items-center gap-3 py-12 text-center">
-                      <Info className="h-6 w-6 text-muted-foreground/50" />
-                      <p className="text-sm text-muted-foreground">
+                      <Info className="text-muted-foreground/50 h-6 w-6" />
+                      <p className="text-muted-foreground text-sm">
                         Aucun résultat pour cette source
                       </p>
                     </div>
@@ -512,7 +512,7 @@ export default function RechercheClient({
                         <p className="font-bold text-emerald-700">
                           Candidat sélectionné : {selectedCandidate.reference}
                         </p>
-                        <p className="mt-0.5 text-muted-foreground">
+                        <p className="text-muted-foreground mt-0.5">
                           Score global : {Math.round(selectedCandidate.scores.global * 100)}% —{' '}
                           {sourceLabel(selectedCandidate.source)}
                         </p>

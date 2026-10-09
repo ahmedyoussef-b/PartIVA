@@ -20,7 +20,9 @@ const ORIGIN = 'http://localhost:3000';
 const JSON_HEADERS = { Origin: ORIGIN, 'Content-Type': 'application/json' };
 
 test.describe('BetterAuth API — session lifecycle', () => {
-  test('POST /api/auth/sign-in/email — valid credentials establish session', async ({ request }) => {
+  test('POST /api/auth/sign-in/email — valid credentials establish session', async ({
+    request,
+  }) => {
     const res = await request.post('/api/auth/sign-in/email', {
       headers: JSON_HEADERS,
       data: { email: users.ADMIN.email, password: users.ADMIN.password },

@@ -34,19 +34,24 @@ export function SidebarProvider({
 
   return (
     <SidebarContext.Provider value={{ open, setOpen, toggleSidebar }}>
-      <div className={cn('flex min-h-screen w-full bg-background', className)}>{children}</div>
+      <div className={cn('bg-background flex min-h-screen w-full', className)}>{children}</div>
     </SidebarContext.Provider>
   );
 }
 
-export function Sidebar({ className, children, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+export function Sidebar({
+  className,
+  children,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
   const { open } = useSidebar();
 
   return (
     <aside
       ref={ref}
       className={cn(
-        'relative z-30 flex shrink-0 flex-col border-r bg-card/60 text-card-foreground backdrop-blur transition-all duration-300 ease-in-out',
+        'bg-card/60 text-card-foreground relative z-30 flex shrink-0 flex-col border-r backdrop-blur transition-all duration-300 ease-in-out',
         open ? 'w-64' : 'w-16',
         className,
       )}
@@ -57,7 +62,11 @@ export function Sidebar({ className, children, ref, ...props }: React.HTMLAttrib
   );
 }
 
-export function SidebarHeader({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+export function SidebarHeader({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
   return (
     <div
       ref={ref}
@@ -67,7 +76,11 @@ export function SidebarHeader({ className, ref, ...props }: React.HTMLAttributes
   );
 }
 
-export function SidebarContent({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+export function SidebarContent({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
   return (
     <div
       ref={ref}
@@ -77,22 +90,28 @@ export function SidebarContent({ className, ref, ...props }: React.HTMLAttribute
   );
 }
 
-export function SidebarFooter({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
-  return (
-    <div ref={ref} className={cn('flex items-center border-t p-3', className)} {...props} />
-  );
+export function SidebarFooter({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+  return <div ref={ref} className={cn('flex items-center border-t p-3', className)} {...props} />;
 }
 
-export function SidebarMenu({ className, ref, ...props }: React.HTMLAttributes<HTMLUListElement> & { ref?: React.Ref<HTMLUListElement> }) {
-  return (
-    <ul ref={ref} className={cn('flex flex-col gap-1', className)} {...props} />
-  );
+export function SidebarMenu({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLUListElement> & { ref?: React.Ref<HTMLUListElement> }) {
+  return <ul ref={ref} className={cn('flex flex-col gap-1', className)} {...props} />;
 }
 
-export function SidebarMenuItem({ className, ref, ...props }: React.LiHTMLAttributes<HTMLLIElement> & { ref?: React.Ref<HTMLLIElement> }) {
-  return (
-    <li ref={ref} className={cn('list-none', className)} {...props} />
-  );
+export function SidebarMenuItem({
+  className,
+  ref,
+  ...props
+}: React.LiHTMLAttributes<HTMLLIElement> & { ref?: React.Ref<HTMLLIElement> }) {
+  return <li ref={ref} className={cn('list-none', className)} {...props} />;
 }
 
 interface SidebarMenuButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -100,15 +119,22 @@ interface SidebarMenuButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
   asChild?: boolean;
 }
 
-export function SidebarMenuButton({ className, active, children, href, ref, ...props }: SidebarMenuButtonProps & { ref?: React.Ref<HTMLAnchorElement> }) {
+export function SidebarMenuButton({
+  className,
+  active,
+  children,
+  href,
+  ref,
+  ...props
+}: SidebarMenuButtonProps & { ref?: React.Ref<HTMLAnchorElement> }) {
   return (
     <a
       ref={ref}
       href={href}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+        'hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
         active
-          ? 'shadow-xs bg-accent font-semibold text-accent-foreground'
+          ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
           : 'text-muted-foreground',
         className,
       )}
@@ -119,13 +145,21 @@ export function SidebarMenuButton({ className, active, children, href, ref, ...p
   );
 }
 
-export function SidebarInset({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+export function SidebarInset({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
   return (
     <div ref={ref} className={cn('flex flex-1 flex-col overflow-hidden', className)} {...props} />
   );
 }
 
-export function SidebarTrigger({ className, ref, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { ref?: React.Ref<HTMLButtonElement> }) {
+export function SidebarTrigger({
+  className,
+  ref,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { ref?: React.Ref<HTMLButtonElement> }) {
   const { toggleSidebar } = useSidebar();
   return (
     <button
@@ -133,7 +167,7 @@ export function SidebarTrigger({ className, ref, ...props }: React.ButtonHTMLAtt
       type="button"
       onClick={toggleSidebar}
       className={cn(
-        'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+        'text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border transition-colors',
         className,
       )}
       {...props}

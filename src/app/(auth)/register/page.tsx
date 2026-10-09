@@ -43,7 +43,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="mx-auto max-w-md border-border/60 shadow-xl">
+    <Card className="border-border/60 mx-auto max-w-md shadow-xl">
       <CardHeader className="space-y-1 text-center">
         <div className="mb-1 flex justify-center">
           <Badge variant="outline" className="border-primary/30 text-primary">
@@ -58,7 +58,7 @@ export default function RegisterPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {error ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+          <div className="border-destructive/40 bg-destructive/10 text-destructive rounded-md border p-3 text-xs">
             {error}
           </div>
         ) : null}
@@ -116,9 +116,9 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        <div className="border-t pt-4 text-center text-xs text-muted-foreground">
+        <div className="text-muted-foreground border-t pt-4 text-center text-xs">
           Déjà client permanent ?{' '}
-          <Link href="/login" className="font-semibold text-primary hover:underline">
+          <Link href="/login" className="text-primary font-semibold hover:underline">
             Se connecter
           </Link>
         </div>

@@ -35,8 +35,8 @@ export function PipelineStepper({ currentStep, className }: PipelineStepperProps
                 'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
                 done &&
                   'border border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
-                active && 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20',
-                !done && !active && 'border border-border/40 bg-muted/60 text-muted-foreground',
+                active && 'bg-primary text-primary-foreground ring-primary/20 shadow-sm ring-2',
+                !done && !active && 'border-border/40 bg-muted/60 text-muted-foreground border',
               )}
             >
               {done ? (
