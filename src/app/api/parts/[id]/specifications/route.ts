@@ -50,7 +50,21 @@ function checkOwnership(
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { session, response: authError } = await getSessionOr401();
+  if (authError) return authError;
+
   const { id } = await params;
+  const part = await prisma.part.findUnique({
+    where: { id },
+    select: { id: true, clientId: true },
+  });
+  if (!part) {
+    return NextResponse.json({ message: 'Pièce non trouvée' }, { status: 404 });
+  }
+
+  const ownershipError = checkOwnership(session!, part);
+  if (ownershipError) return ownershipError;
+
   const specifications = await prisma.partSpecification.findMany({
     where: { partId: id },
     orderBy: { key: 'asc' },

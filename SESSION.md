@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) |
-| **Dernière session** | E1-S05 (clôturée) |
-| **Session en cours** | E1-S06 (à cadrer) |
-| **Statut global** | E1-S01 + E1-S02 + E1-S03 + E1-S04 + E1-S05 clôturées (upload Cloudinary), baseline 6/6 tenue, E2E 127/129 (2 skips) |
+| **Dernière session** | E1-S06 (clôturée) |
+| **Session en cours** | E1-S07 (à cadrer) |
+| **Statut global** | E1-S01 + E1-S02 + E1-S03 + E1-S04 + E1-S05 + E1-S06 clôturées (mesures UI + docs UI + cleanup Cloudinary), baseline 6/6 tenue, E2E 143/145 (2 skips) |
 
 ---
 
@@ -1359,6 +1359,82 @@ Remplacer le stockage local temporaire (`public/uploads/parts/`) par Cloudinary 
 - **Seed inchangé** : les URLs seed restent des fixtures (pas de vrais uploads Cloudinary dans le seed).
 - E1-S06 (mesures + docs UI, diff sémantique) peut être cadrée.
 
+## E1-S06 — Mesures UI (`PartSpecification`) + Docs UI (`Attachment`) + cleanup Cloudinary (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commits :** b4ca34a, 72368a4, 7f44155, <hash E1-S06-D>
+**Baseline :** lint 0/0, typecheck 0, build 34/34, seed idempotent, E2E 143/145 (2 skips), format 0.
+
+### Objet
+
+UI de gestion des mesures (`PartSpecification`) et des documents techniques (`Attachment` via Cloudinary), résolution des dettes Cloudinary (validation chemin succès, cleanup, upload attachment).
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| A | Validation Cloudinary chemin succès (`scripts/test-cloudinary.mjs`) | ✅ | b4ca34a |
+| B | UI Mesures `PartSpecification` (CRUD + API + onglet) | ✅ | 72368a4 |
+| C | UI Docs `Attachment` (upload Cloudinary + cleanup) | ✅ | 7f44155 |
+| D | Tests E2E (8) + baseline complète + clôture documentaire | ✅ | <hash E1-S06-D> |
+
+### Décisions verrouillées
+
+- **D1** : UI mesures = `PartSpecificationTable` (Client Component, CRUD complet : ajout Dialog, édition inline, suppression avec confirm) intégrée dans `/admin/pieces` via sous-onglet « Mesures » de l'onglet détail pièce.
+- **D2** : UI docs = `PartAttachmentList` (Client Component, liste + upload via `uploadToCloudinary` + download lien Cloudinary + suppression) intégrée dans `/admin/pieces` via sous-onglet « Documents ».
+- **D3** : Diff sémantique entre versions **reporté à E1-S07** (hors périmètre E1-S06).
+- **D4** : Cleanup Cloudinary = `cloudinary.uploader.destroy(publicId)` dans les DELETE `PartImage` (`images/[imageId]`) et `Attachment` (`attachments/[attachmentId]`) — non bloquant si échec (catch + console.error). Résout `D-cloudinary-cleanup`.
+- **D5** : Validation chemin succès Cloudinary (bloc A, bloquant) — `scripts/test-cloudinary.mjs` avec vrais credentials : upload réel réussi (cloud `dl8ngmflh`, png, 70 bytes, cleanup OK).
+
+### Réalisations
+
+- **A** : `scripts/test-cloudinary.mjs` — lit `CLOUDINARY_CLOUD_NAME ?? NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (correction : la var réelle est `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`), upload réel `parts/e1-s06-validation/<uuid>`, assert format/size, cleanup `destroy`. `D-cloudinary-validation` résolue.
+- **B** : `src/components/part-specification-table.tsx` (CRUD complet, Zod, Sonner toast) + API `GET/POST /api/parts/[id]/specifications` (409 sur doublon `partId_key`) + `PATCH/DELETE /api/parts/[id]/specifications/[specId]` (404 si absent) + `getAttachmentKindLabel` non concernée ici. Auth 401, ownership USER 403, Zod 400 sur tous. Onglet « Mesures » dans `/admin/pieces`.
+- **C** : `src/components/part-attachment-list.tsx` (upload base64 → `POST /api/parts/[id]/attachments` → Cloudinary `raw`, download via `window.open(url)`, suppression) + API `POST /api/parts/[id]/attachments` (upload Cloudinary `parts/<id>/attachments/<uuid>`, `publicId` persisté) + `DELETE /api/parts/[id]/attachments/[attachmentId]` (cleanup Cloudinary) + `DELETE /api/parts/[id]/images/[imageId]` (nouveau, avec cleanup Cloudinary + réassignation `isPrimary`). `Attachment` ajouté à `PartWithRelations` + includes `getParts`/`getPartById`. `getAttachmentKindLabel` ajouté à `src/lib/enum-labels.ts`. Onglet « Documents » dans `/admin/pieces`.
+- **D** : `e2e/part-specifications.spec.ts` (8 tests : 401 GET, 200 GET auth, 201 POST, 409 doublon, 200 PATCH, 204 DELETE, 400 payload invalide, 404 PATCH spec inconnue) + `e2e/part-attachments.spec.ts` (8 tests : 401 GET, 200 GET auth, 201 POST upload réel Cloudinary, 400 payload, 204 DELETE + cleanup, 404 DELETE inconnu, 401 POST sans auth, 404 DELETE image inconnue). **Total : 143/145 (2 skips `D-e2e-multitenant`)**.
+
+### Incidents PCT E1-S06
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E1-S06-n°1 | E2E POST attachment → 400 « Must supply cloud_name » — `cloudinary.config()` lit `CLOUDINARY_CLOUD_NAME` (absent de `.env`) alors que la var réelle est `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`. | Résolu : fallback `CLOUDINARY_CLOUD_NAME ?? NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` dans `src/lib/cloudinary.ts`. |
+| E1-S06-n°2 | E2E GET specs/attachments sans auth → 200 (GET publics) au lieu de 401 attendu. | Résolu : GET rendus auth-requis (cohérent avec `versions` GET), ownership USER 403. |
+
+### Dettes résolues
+
+- `D-cloudinary-validation` — chemin succès `uploadToCloudinary()` validé avec vrais credentials.
+- `D-cloudinary-cleanup` — `cloudinary.uploader.destroy(publicId)` dans les DELETE `PartImage` et `Attachment`.
+- `D-cloudinary-attachment-upload` — UI `PartAttachmentList` + API `POST /api/parts/[id]/attachments`.
+- Mesures (`PartSpecification`) UI + API CRUD.
+- Docs (`Attachment`) UI + API upload/download/delete.
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| Diff sémantique entre versions | E1-S07 |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée |
+| `D-e2e-isolation`, `D-e2e-skip-conditional`, `D-e2e-auth-dual`, `D-s03-t3-ecart` | Session E2E dédiée |
+| `D-enums-non-utilises`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D117`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E1-S06
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 34/34 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 143/145 verts (2 skips : USER sur pièce d'un autre client ×2 — seed mono-client, `D-e2e-multitenant`) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 11 migrations, 0 drift |
+
+### Notes
+
+- **Validation Cloudinary réelle** : `node scripts/test-cloudinary.mjs` → `OK — upload Cloudinary réussi` (cloud `dl8ngmflh`).
+- **`next-env.d.ts`** non modifié (règle #32 respectée).
+- E1-S07 (diff sémantique entre versions) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S06
+Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S07
 ═══════════════════════════════════════════════════════════════
