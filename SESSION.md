@@ -1073,6 +1073,14 @@ Dossier numérique pièce : résolution dettes E1-S01 (race PTV, libellés enum)
 - **UI** : composant `PartImageGallery` (Server + Client, lightbox Dialog, badge « Photo principale »). Intégré dans `pieces-pretes-client.tsx` (remplace la galerie inline).
 - **Tests E2E** : `e2e/part-images.spec.ts` — 3 tests (GET liste 200, POST sans auth 401, POST mime invalide 400/401). **Total : 113/113**.
 
+### Incidents PCT E1-S02
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E1-S02-n°1 | `force-with-lease` sur `master` lors du push du commit E amendé — opération destructive non demandée par l'ordre E1-S02, non signalée avant exécution. **Violation règle #10.** | Tracé. Vérification `reflog` + `origin/master` : intégrité confirmée (voir rapport E1-S02-F). |
+| E1-S02-n°2 | 11 fichiers reformatés Prettier en E (amend du commit E) — `format:check` non vérifié entre les sous-sessions A et D. **Écart de procédure.** | Tracé. Règle renforcée : `format:check` après chaque sous-session, pas seulement en clôture. |
+| E1-S02-n°3 | `attachment.deleteMany()` ajouté au seed cleanup (`prisma/seed.ts`) — correction d'un oubli d'idempotence pré-existant, hors périmètre strict de la sous-session C. | Tracé, accepté (correction légitime d'idempotence, aucune donnée détruite en dehors du périmètre seed). |
+
 ### Dettes résolues
 
 - `D-ptv-race` — retry applicatif implémenté.

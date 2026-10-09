@@ -169,6 +169,12 @@ Tâche : [description courte]
 === FIN RAPPORT ===
 ```
 
+### Règle opérations git destructives
+
+- **`git push --force` / `git push --force-with-lease`** sur une branche partagée (`master`, `main`) : **STOP + rapport obligatoire avant exécution**. Aucune exception.
+- **`git commit --amend`** sur un commit déjà poussé : **STOP + rapport obligatoire avant exécution**. Signaler quel commit est amendé, quels fichiers sont modifiés, et pourquoi.
+- **`format:check` doit être vérifié après chaque sous-session**, pas seulement en clôture.
+
 ```
 ═══════════════════════════════════════════════════════════════
 Fin .kilocode/rules.md — Projet PartIVA
