@@ -40,6 +40,8 @@ const config = [
       'coverage/**',
       'next-env.d.ts',
       'e2e/**',
+      'test-results/**',
+      'playwright-report/**',
     ],
   },
 
