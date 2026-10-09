@@ -20,11 +20,18 @@ export type PartWithRelations = Part & {
   };
 };
 
+export type PartWithSerializedSuppliers = Omit<PartWithRelations, 'suppliers'> & {
+  suppliers: (Omit<PartSupplier, 'price'> & {
+    price: string | null;
+    supplier: { id: string; name: string; code: string };
+  })[];
+};
+
 export async function getParts(options?: {
   status?: string;
   categoryId?: string;
   limit?: number;
-}): Promise<PartWithRelations[]> {
+}): Promise<PartWithSerializedSuppliers[]> {
   const where: Record<string, unknown> = {};
 
   if (options?.status) {
@@ -35,7 +42,7 @@ export async function getParts(options?: {
     where.categoryId = options.categoryId;
   }
 
-  return prisma.part.findMany({
+  const raw = (await prisma.part.findMany({
     where,
     include: {
       category: true,
@@ -55,11 +62,19 @@ export async function getParts(options?: {
     },
     orderBy: { createdAt: 'desc' },
     ...(options?.limit ? { take: options.limit } : {}),
-  }) as Promise<PartWithRelations[]>;
+  })) as PartWithRelations[];
+
+  return raw.map((part) => ({
+    ...part,
+    suppliers: part.suppliers.map((s) => ({
+      ...s,
+      price: s.price ? s.price.toString() : null,
+    })),
+  }));
 }
 
-export async function getPartById(id: string): Promise<PartWithRelations | null> {
-  return prisma.part.findUnique({
+export async function getPartById(id: string): Promise<PartWithSerializedSuppliers | null> {
+  const raw = (await prisma.part.findUnique({
     where: { id },
     include: {
       category: true,
@@ -77,7 +92,19 @@ export async function getPartById(id: string): Promise<PartWithRelations | null>
         },
       },
     },
-  }) as Promise<PartWithRelations | null>;
+  })) as PartWithRelations | null;
+
+  if (!raw) {
+    return null;
+  }
+
+  return {
+    ...raw,
+    suppliers: raw.suppliers.map((s) => ({
+      ...s,
+      price: s.price ? s.price.toString() : null,
+    })),
+  };
 }
 
 export async function getPartsCount(options?: { status?: string }): Promise<number> {

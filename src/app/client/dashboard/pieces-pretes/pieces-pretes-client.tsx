@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   PlusCircle,
 } from 'lucide-react';
-import type { PartWithRelations } from '@/lib/data/parts';
+import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 
 interface ReadyPartItem {
   id: string;
@@ -43,10 +43,10 @@ interface ReadyPartItem {
 }
 
 interface PiecesPretesClientProps {
-  initialParts: PartWithRelations[];
+  initialParts: PartWithSerializedSuppliers[];
 }
 
-function mapPartToReadyPart(part: PartWithRelations, index: number): ReadyPartItem {
+function mapPartToReadyPart(part: PartWithSerializedSuppliers, index: number): ReadyPartItem {
   const statuses: Array<'prete' | 'expediee' | 'en_transit'> = ['prete', 'expediee', 'en_transit'];
   const status = statuses[index % statuses.length] as 'prete' | 'expediee' | 'en_transit';
 
@@ -65,7 +65,7 @@ function mapPartToReadyPart(part: PartWithRelations, index: number): ReadyPartIt
       minute: '2-digit',
     }),
     status,
-    trackingNumber: `TN-EXP-${Math.floor(100000 + Math.random() * 900000)}`,
+    trackingNumber: `TN-EXP-${part.id.slice(-6).toUpperCase()}`,
     carrier: 'Navette Express Atelier PartIVA',
     destination: 'Usine Soliman - Service Maintenance',
     photos: part.images.slice(0, 3).map((img, idx) => ({

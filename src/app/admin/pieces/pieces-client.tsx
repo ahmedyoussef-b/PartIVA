@@ -15,7 +15,7 @@ import {
 import { KPICard } from '@/components/shared/kpi-card';
 import { FilterBar } from '@/components/shared/filter-bar';
 import { Eye, FileDown } from 'lucide-react';
-import type { PartWithRelations } from '@/lib/data/parts';
+import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 
 const STATUS_STYLES: Record<
   string,
@@ -27,10 +27,10 @@ const STATUS_STYLES: Record<
 };
 
 interface PiecesClientProps {
-  initialParts: PartWithRelations[];
+  initialParts: PartWithSerializedSuppliers[];
 }
 
-function mapPartToUi(part: PartWithRelations) {
+function mapPartToUi(part: PartWithSerializedSuppliers) {
   return {
     ...part,
     reference: part.partNumber,
