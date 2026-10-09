@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { PackageCheck, Truck, CheckCircle2, Download, ShieldCheck, PlusCircle } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import PartImageGallery from '@/components/part-image-gallery';
+import { PartDossier } from '@/components/part-dossier';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
 import type { PartStatus, UserRole } from '@/generated/prisma/browser';
@@ -249,6 +250,19 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
               <div>
                 <PartImageGallery images={part.images} partName={part.name} />
               </div>
+
+              {/* Dossier pièce centralisé (E1-S07-C) */}
+              <PartDossier
+                part={{
+                  ...initialParts.find((p) => p.id === part.id)!,
+                  attachments: initialParts
+                    .find((p) => p.id === part.id)!
+                    .attachments.map((a) => ({
+                      ...a,
+                      createdAt: a.createdAt.toISOString(),
+                    })),
+                }}
+              />
 
               {/* Détails logistiques & Métrologie */}
               <div className="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-2">

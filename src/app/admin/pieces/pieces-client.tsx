@@ -16,9 +16,7 @@ import { KPICard } from '@/components/shared/kpi-card';
 import { FilterBar } from '@/components/shared/filter-bar';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
-import { PartVersionHistory } from '@/components/part-version-history';
-import { PartSpecificationTable } from '@/components/part-specification-table';
-import { PartAttachmentList } from '@/components/part-attachment-list';
+import { PartDossier } from '@/components/part-dossier';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, FileDown } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
@@ -50,7 +48,6 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
   const [matFilter, setMatFilter] = React.useState('all');
 
   const [selectedPartId, setSelectedPartId] = React.useState<string | null>(null);
-  const [detailTab, setDetailTab] = React.useState('historique');
 
   const parts = React.useMemo(() => initialParts.map(mapPartToUi), [initialParts]);
 
@@ -118,7 +115,6 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
         value={selectedPartId ?? 'catalogue'}
         onValueChange={(v) => {
           setSelectedPartId(v === 'catalogue' ? null : v);
-          setDetailTab('historique');
         }}
       >
         <TabsList>
@@ -218,30 +214,7 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
         </TabsContent>
         {selectedPartId && (
           <TabsContent value={selectedPartId}>
-            <Tabs value={detailTab} onValueChange={setDetailTab}>
-              <TabsList>
-                <TabsTrigger value="historique">Historique</TabsTrigger>
-                <TabsTrigger value="mesures">Mesures</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-              </TabsList>
-              <TabsContent value="historique">
-                <PartVersionHistory partId={selectedPartId} />
-              </TabsContent>
-              <TabsContent value="mesures">
-                <PartSpecificationTable
-                  partId={selectedPartId}
-                  initialSpecifications={
-                    parts.find((p) => p.id === selectedPartId)?.specifications ?? []
-                  }
-                />
-              </TabsContent>
-              <TabsContent value="documents">
-                <PartAttachmentList
-                  partId={selectedPartId}
-                  initialAttachments={parts.find((p) => p.id === selectedPartId)?.attachments ?? []}
-                />
-              </TabsContent>
-            </Tabs>
+            <PartDossier part={parts.find((p) => p.id === selectedPartId)!} />
           </TabsContent>
         )}
       </Tabs>
