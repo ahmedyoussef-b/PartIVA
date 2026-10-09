@@ -39,111 +39,93 @@ export function SidebarProvider({
   );
 }
 
-export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, children, ...props }, ref) => {
-    const { open } = useSidebar();
+export function Sidebar({ className, children, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+  const { open } = useSidebar();
 
-    return (
-      <aside
-        ref={ref}
-        className={cn(
-          'relative z-30 flex shrink-0 flex-col border-r bg-card/60 text-card-foreground backdrop-blur transition-all duration-300 ease-in-out',
-          open ? 'w-64' : 'w-16',
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </aside>
-    );
-  },
-);
-Sidebar.displayName = 'Sidebar';
+  return (
+    <aside
+      ref={ref}
+      className={cn(
+        'relative z-30 flex shrink-0 flex-col border-r bg-card/60 text-card-foreground backdrop-blur transition-all duration-300 ease-in-out',
+        open ? 'w-64' : 'w-16',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </aside>
+  );
+}
 
-export const SidebarHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+export function SidebarHeader({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+  return (
     <div
       ref={ref}
       className={cn('flex h-16 items-center gap-3 border-b px-4 font-semibold', className)}
       {...props}
     />
-  ),
-);
-SidebarHeader.displayName = 'SidebarHeader';
+  );
+}
 
-export const SidebarContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('flex-1 space-y-1 overflow-y-auto px-3 py-4', className)}
-    {...props}
-  />
-));
-SidebarContent.displayName = 'SidebarContent';
+export function SidebarContent({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+  return (
+    <div
+      ref={ref}
+      className={cn('flex-1 space-y-1 overflow-y-auto px-3 py-4', className)}
+      {...props}
+    />
+  );
+}
 
-export const SidebarFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+export function SidebarFooter({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+  return (
     <div ref={ref} className={cn('flex items-center border-t p-3', className)} {...props} />
-  ),
-);
-SidebarFooter.displayName = 'SidebarFooter';
+  );
+}
 
-export const SidebarMenu = React.forwardRef<
-  HTMLUListElement,
-  React.HTMLAttributes<HTMLUListElement>
->(({ className, ...props }, ref) => (
-  <ul ref={ref} className={cn('flex flex-col gap-1', className)} {...props} />
-));
-SidebarMenu.displayName = 'SidebarMenu';
+export function SidebarMenu({ className, ref, ...props }: React.HTMLAttributes<HTMLUListElement> & { ref?: React.Ref<HTMLUListElement> }) {
+  return (
+    <ul ref={ref} className={cn('flex flex-col gap-1', className)} {...props} />
+  );
+}
 
-export const SidebarMenuItem = React.forwardRef<
-  HTMLLIElement,
-  React.LiHTMLAttributes<HTMLLIElement>
->(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn('list-none', className)} {...props} />
-));
-SidebarMenuItem.displayName = 'SidebarMenuItem';
+export function SidebarMenuItem({ className, ref, ...props }: React.LiHTMLAttributes<HTMLLIElement> & { ref?: React.Ref<HTMLLIElement> }) {
+  return (
+    <li ref={ref} className={cn('list-none', className)} {...props} />
+  );
+}
 
 interface SidebarMenuButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   active?: boolean;
   asChild?: boolean;
 }
 
-export const SidebarMenuButton = React.forwardRef<HTMLAnchorElement, SidebarMenuButtonProps>(
-  ({ className, active, children, href, ...props }, ref) => {
-    return (
-      <a
-        ref={ref}
-        href={href}
-        className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
-          active
-            ? 'shadow-xs bg-accent font-semibold text-accent-foreground'
-            : 'text-muted-foreground',
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </a>
-    );
-  },
-);
-SidebarMenuButton.displayName = 'SidebarMenuButton';
+export function SidebarMenuButton({ className, active, children, href, ref, ...props }: SidebarMenuButtonProps & { ref?: React.Ref<HTMLAnchorElement> }) {
+  return (
+    <a
+      ref={ref}
+      href={href}
+      className={cn(
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+        active
+          ? 'shadow-xs bg-accent font-semibold text-accent-foreground'
+          : 'text-muted-foreground',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+}
 
-export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+export function SidebarInset({ className, ref, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
+  return (
     <div ref={ref} className={cn('flex flex-1 flex-col overflow-hidden', className)} {...props} />
-  ),
-);
-SidebarInset.displayName = 'SidebarInset';
+  );
+}
 
-export const SidebarTrigger = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, ...props }, ref) => {
+export function SidebarTrigger({ className, ref, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { ref?: React.Ref<HTMLButtonElement> }) {
   const { toggleSidebar } = useSidebar();
   return (
     <button
@@ -160,5 +142,4 @@ export const SidebarTrigger = React.forwardRef<
       <span className="sr-only">Toggle Sidebar</span>
     </button>
   );
-});
-SidebarTrigger.displayName = 'SidebarTrigger';
+}
