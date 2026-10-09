@@ -118,7 +118,9 @@ model PartImage {
   partId    String
   url       String
   altText   String?
+  caption   String?
   order     Int      @default(0)
+  isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
   part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
 
@@ -127,14 +129,16 @@ model PartImage {
 }
 
 model PartSpecification {
-  id        String   @id @default(cuid())
-  partId    String
-  key       String
-  value     String
-  unit      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  partId        String
+  key           String
+  value         String
+  unit          String?
+  toleranceMin  Float?
+  toleranceMax  Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  part          Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@unique([partId, key])
   @@map("part_specifications")
@@ -225,14 +229,16 @@ model PartSupplier {
 }
 
 model Attachment {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   partId    String?
   name      String
   url       String
   fileType  FileType
+  mimeType  String
+  kind      AttachmentKind @default(DOCUMENT)
   sizeBytes Int?
-  createdAt DateTime @default(now())
-  part      Part?    @relation(fields: [partId], references: [id])
+  createdAt DateTime       @default(now())
+  part      Part?          @relation(fields: [partId], references: [id])
 
   @@index([partId])
   @@map("attachments")
@@ -340,6 +346,13 @@ enum FileType {
   CAD_STL
   CAD_STEP
   CAD_OBJ
+  OTHER
+}
+
+enum AttachmentKind {
+  DOCUMENT
+  CAD
+  SCAN
   OTHER
 }
 

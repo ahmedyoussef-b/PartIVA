@@ -32,6 +32,7 @@ async function main() {
   await prisma.reverseEngineeringProject.deleteMany();
   await prisma.request.deleteMany();
   await prisma.partSupplier.deleteMany();
+  await prisma.attachment.deleteMany();
   await prisma.partImage.deleteMany();
   await prisma.partSpecification.deleteMany();
   await prisma.part.deleteMany();
@@ -424,12 +425,12 @@ async function main() {
   // ── PartSpecifications ──────────────────────────────────────────────
   console.log('📏 Creating part specifications...');
   const specs = [
-    { partId: part1.id, key: 'diameter_ext', value: '52', unit: 'mm' },
-    { partId: part1.id, key: 'diameter_int', value: '25', unit: 'mm' },
+    { partId: part1.id, key: 'diameter_ext', value: '52', unit: 'mm', toleranceMax: 52.05, toleranceMin: 51.95 },
+    { partId: part1.id, key: 'diameter_int', value: '25', unit: 'mm', toleranceMax: 25.02, toleranceMin: 24.98 },
     { partId: part1.id, key: 'width', value: '15', unit: 'mm' },
     { partId: part1.id, key: 'material', value: 'Acier trempé', unit: null },
     { partId: part1.id, key: 'weight', value: '95', unit: 'g' },
-    { partId: part2.id, key: 'diameter_ext', value: '130', unit: 'mm' },
+    { partId: part2.id, key: 'diameter_ext', value: '130', unit: 'mm', toleranceMax: 130.1, toleranceMin: 129.9 },
     { partId: part2.id, key: 'diameter_int', value: '62', unit: 'mm' },
     { partId: part2.id, key: 'width', value: '31', unit: 'mm' },
     { partId: part2.id, key: 'material', value: 'Acier cémenté', unit: null },
@@ -439,7 +440,7 @@ async function main() {
     { partId: part3.id, key: 'width', value: '16', unit: 'mm' },
     { partId: part3.id, key: 'material', value: 'Acier trempé', unit: null },
     { partId: part3.id, key: 'weight', value: '140', unit: 'g' },
-    { partId: part4.id, key: 'module', value: '2', unit: 'mm' },
+    { partId: part4.id, key: 'module', value: '2', unit: 'mm', toleranceMax: 2.02, toleranceMin: 1.98 },
     { partId: part4.id, key: 'teeth', value: '20', unit: null },
     { partId: part4.id, key: 'bore', value: '12', unit: 'mm' },
     { partId: part4.id, key: 'material', value: 'Acier 42CrMo4', unit: null },
@@ -465,31 +466,75 @@ async function main() {
         partId: part1.id,
         url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800',
         altText: `Photo de ${part1.name}`,
+        caption: 'Vue de face du roulement SKF 6205-2RS',
         order: 0,
+        isPrimary: true,
       },
       {
         partId: part2.id,
         url: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800',
         altText: `Photo de ${part2.name}`,
+        caption: 'Vue de face du roulement SKF 6305-2RS',
         order: 0,
+        isPrimary: true,
       },
       {
         partId: part3.id,
         url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800',
         altText: `Photo de ${part3.name}`,
+        caption: 'Vue de face du roulement NSK 6206-2RS',
         order: 0,
+        isPrimary: true,
       },
       {
         partId: part4.id,
         url: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800',
         altText: `Photo de ${part4.name}`,
+        caption: 'Engrenage droit module 2, vue de face',
         order: 0,
+        isPrimary: true,
       },
       {
         partId: part1.id,
         url: 'https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=800',
         altText: `Photo de ${part1.name} - vue latérale`,
+        caption: 'Vue latérale du roulement SKF 6205-2RS',
         order: 1,
+        isPrimary: false,
+      },
+    ],
+  });
+
+  // ── Attachments ──────────────────────────────────────────────────
+  console.log('📎 Creating part attachments...');
+  await prisma.attachment.createMany({
+    data: [
+      {
+        partId: part1.id,
+        name: 'SKF-6205-2RS-fiche-technique.pdf',
+        url: 'https://placeholder.dev/attachments/skf-6205-2rs-ft.pdf',
+        fileType: 'PDF',
+        mimeType: 'application/pdf',
+        kind: 'DOCUMENT',
+        sizeBytes: 245760,
+      },
+      {
+        partId: part4.id,
+        name: 'ENG-M2-Z20-modele-ca.step',
+        url: 'https://placeholder.dev/attachments/eng-m2-z20.step',
+        fileType: 'CAD_STEP',
+        mimeType: 'application/step',
+        kind: 'CAD',
+        sizeBytes: 1048576,
+      },
+      {
+        partId: part4.id,
+        name: 'ENG-M2-Z20-scan-3d.stl',
+        url: 'https://placeholder.dev/attachments/eng-m2-z20.stl',
+        fileType: 'CAD_STL',
+        mimeType: 'model/stl',
+        kind: 'SCAN',
+        sizeBytes: 2457600,
       },
     ],
   });
