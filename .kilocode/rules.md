@@ -175,6 +175,26 @@ Tâche : [description courte]
 - **`git commit --amend`** sur un commit déjà poussé : **STOP + rapport obligatoire avant exécution**. Signaler quel commit est amendé, quels fichiers sont modifiés, et pourquoi.
 - **`format:check` doit être vérifié après chaque sous-session**, pas seulement en clôture.
 
+### Règle #10 renforcée — STOP mécanique
+
+**Toute commande qui produit une erreur, un warning inattendu, ou un effet de bord non prévu → STOP + rapport immédiat, même si :**
+
+- La commande semble avoir réussi après une correction manuelle.
+- Le résultat final est conforme à l'attendu.
+- L'erreur paraît triviale.
+- Une restauration (`git checkout --`, rollback, undo) a rétabli l'état.
+
+**Sont concernés notamment :**
+
+- Toute erreur d'une commande Prisma (`migrate dev`, `migrate diff`, `migrate resolve`, `db execute`).
+- Toute opération git destructive (`push --force`, `push --force-with-lease`, `commit --amend` sur commit poussé, `checkout --`, `reset --hard`, `rebase`).
+- Tout écrasement accidentel de fichier (édition, script, commande shell).
+- Tout échec silencieux (commande exit 0 mais sortie vide inattendue).
+
+**Avant toute écriture sur un fichier existant : lire le fichier en premier.** Ne jamais présumer qu'un fichier est vide ou inexistant sans vérification (`ls`, `cat`, `git status`).
+
+**Trois violations de la règle #10 ont été tracées en trois sessions consécutives (E1-S02-0, E1-S02, E1-S02-F). Ce bloc est ajouté pour casser ce pattern.**
+
 ```
 ═══════════════════════════════════════════════════════════════
 Fin .kilocode/rules.md — Projet PartIVA

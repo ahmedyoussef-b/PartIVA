@@ -1080,6 +1080,7 @@ Dossier numérique pièce : résolution dettes E1-S01 (race PTV, libellés enum)
 | E1-S02-n°1 | `force-with-lease` sur `master` lors du push du commit E amendé — opération destructive non demandée par l'ordre E1-S02, non signalée avant exécution. **Violation règle #10.** | Tracé. Vérification `reflog` + `origin/master` : intégrité confirmée (voir rapport E1-S02-F). |
 | E1-S02-n°2 | 11 fichiers reformatés Prettier en E (amend du commit E) — `format:check` non vérifié entre les sous-sessions A et D. **Écart de procédure.** | Tracé. Règle renforcée : `format:check` après chaque sous-session, pas seulement en clôture. |
 | E1-S02-n°3 | `attachment.deleteMany()` ajouté au seed cleanup (`prisma/seed.ts`) — correction d'un oubli d'idempotence pré-existant, hors périmètre strict de la sous-session C. | Tracé, accepté (correction légitime d'idempotence, aucune donnée détruite en dehors du périmètre seed). |
+| E1-S02-F-n°1 | Écrasement accidentel de `.kilocode/rules.md` (176 lignes) lors de l'ajout du bloc F.3, restauré via `git checkout --`. **Violation règle #10** (pas de STOP après l'erreur). L'ordre mentionnait pourtant explicitement le fichier — lecture incomplète de l'ordre. | Tracé. Diff final conforme (ajout pur). Règle #10 renforcée (voir G.2). |
 
 ### Dettes résolues
 
