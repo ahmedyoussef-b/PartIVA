@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) |
-| **Dernière session** | E1-S02 (clôturée) |
-| **Session en cours** | E1-S03 (à cadrer) |
-| **Statut global** | E1-S01 + E1-S02 clôturées (dossier numérique : photos), baseline 6/6 tenue, E2E 113/113 |
+| **Dernière session** | E1-S03 (clôturée) |
+| **Session en cours** | E1-S04 (à cadrer) |
+| **Statut global** | E1-S01 + E1-S02 + E1-S03 clôturées (système d'états workflow), baseline 6/6 tenue, E2E 118/119 (1 skip) |
 
 ---
 
@@ -1118,6 +1118,80 @@ Dossier numérique pièce : résolution dettes E1-S01 (race PTV, libellés enum)
 - **Stockage local temporaire** : `public/uploads/` gitignoré. Cloudinary en E1-S05 (TODO explicite dans `src/app/api/parts/[id]/images/route.ts`).
 - E1-S03 (dossier numérique : mesures + docs) peut être cadrée.
 
+## E1-S03 — Système d'états (workflow pièce) (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commits :** 1a72bea, 8c49e6a, f5349ca, <hash E1-S03-E>
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 118/119 (1 skip), format 0.
+
+### Objet
+
+Système d'états complet pour `Part.status` : enum 11 états, matrice de transitions, service transactionnel + AuditLog, API de transition, UI (badge + dialog), tests E2E.
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut | Commit |
+|---|---|---|---|
+| E1-S03-A | Audit `Part.status` existant + mapping legacy | ✅ | (lecture seule) |
+| E1-S03-B | Migration enum `PartStatus` + constante transitions + libellés FR | ✅ | 1a72bea |
+| E1-S03-C | Service `transitionPartStatus()` + transaction + AuditLog | ✅ | 8c49e6a |
+| E1-S03-D | API `/api/parts/[id]/transition` + UI + tests E2E | ✅ | f5349ca |
+| E1-S03-E | Baseline + clôture documentaire | ✅ | <hash E1-S03-E> |
+
+### Décisions verrouillées
+
+- **D1** : `PartStatus` = **11 états** (`DRAFT`, `SUBMITTED`, `ON_HOLD`, `IDENTIFYING`, `IDENTIFIED`, `MEASURING`, `READY`, `ORDERED`, `DELIVERED`, `ARCHIVED`, `CANCELLED`). États écartés : `REJECTED` (redondant `CANCELLED`+`AuditLog.reason`), `REPAIRED`/`QUALITY_CHECK`/`SHIPPED` (réservés E6).
+- **D2** : Matrice de transitions dans constante TS `PART_STATUS_TRANSITIONS` (`src/lib/part-status.ts`). Portable web+desktop (principe #9). Pas de table DB.
+- **D3** : Acteurs × transitions dans `PART_TRANSITION_ROLES`. `USER` limité à ses propres pièces (vérification `NOT_OWNER` côté serveur). Pas de rôle workshop/operator.
+- **D4** : Une entrée `AuditLog` par transition, **même transaction Prisma** que la mise à jour `Part.status`. `action`=`PART_STATUS_TRANSITION`, `entityType`=`Part`, `metadata`=`{from, to, reason}`. Append-only.
+
+### Réalisations
+
+- **Audit (A)** : enum existant 4 valeurs (`DRAFT`, `ACTIVE`, `ARCHIVED`, `DEPRECATED`). DB : `ACTIVE` (4) + `DRAFT` (1). **Mapping legacy** : `ACTIVE`→`SUBMITTED`, `DEPRECATED`→`CANCELLED`, `ARCHIVED`→`ARCHIVED`.
+- **Migration (B)** : `20261009190000_complete_part_status_workflow` — renomme l'ancien type, crée le nouveau enum 11 valeurs, caste la colonne avec `CASE` (mapping legacy), recrée le DEFAULT. 9 migrations, 0 drift.
+- **Constantes (B)** : `src/lib/part-status.ts` — `PART_STATUS_TRANSITIONS`, `PART_TRANSITION_ROLES`, `isTransitionAllowed()`.
+- **Libellés FR (B)** : `PART_STATUS_LABELS` + `getPartStatusLabel()` dans `src/lib/enum-labels.ts`.
+- **Service (C)** : `src/lib/data/part-transitions.ts` — `transitionPartStatus()` dans `prisma.$transaction` : vérification NOT_FOUND, NOT_OWNER (USER), transition (D2→409), rôle (D3→403), update + AuditLog atomiques. `TransitionError` avec codes.
+- **API (D)** : `POST /api/parts/[id]/transition` — auth 401, Zod `PartTransitionSchema` 400, mapping `TransitionError`→404/403/409. Retour `{id, status}`.
+- **UI (D)** : `PartStatusBadge` (variant par état), `PartTransitionDialog` (dialog transitions autorisées + raison optionnelle, Sonner toast). Intégrés dans `/admin/pieces` (colonne Statut + bouton Transition) et `/client/dashboard/pieces-pretes` (badge statut réel + bouton Transition).
+- **Tests E2E (D)** : `e2e/part-transitions.spec.ts` — 6 tests (401, 400, 200 ADMIN, 403 VIEWER, 409 impossible, 403 USER autre client [skip]). **Total : 118/119 (1 skip)**.
+
+### Dettes résolues
+
+- Système d'états `Part.status` implémenté (11 états + transitions + audit).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-enums-non-utilises` (AuditLog.*, SearchCandidate.source) | Session ultérieure |
+| Versionnage `PartVersion` | E1-S04 |
+| Mesures (`PartSpecification`) UI | E1-S06 |
+| Docs (`Attachment`) UI | E1-S06 |
+| Upload Cloudinary réel | E1-S05 |
+| `D-roadmap-retard`, `D-44` | Session doc dédiée |
+| `D-27-bis` | E3 ou E7 |
+| `D116`, `D117`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E1-S03
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 33/33 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments) |
+| Tests E2E | ✅ 118/119 verts (1 skip : USER sur pièce d'un autre client — seed mono-client) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 9 migrations, 0 drift (`migrate diff` : empty) |
+
+### Notes
+
+- **Mapping legacy** : `ACTIVE`→`SUBMITTED` appliqué en migration (4 parts). `DEPRECATED`→`CANCELLED` (aucune en DB).
+- **Import Prisma browser** : les modules client (Client Components, schemas, lib partagés) importent depuis `@/generated/prisma/browser` (pas `client` qui tire `node:*` et fait paniquer Turbopack).
+- **Test skip** : le test USER-sur-pièce-d'un-autre-client est skip car le seed ne crée qu'un seul client (toutes les parts appartiennent au même user). La logique `NOT_OWNER` est couverte par le code.
+- E1-S04 (historique & versions `PartVersion`) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S03
+Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S04
 ═══════════════════════════════════════════════════════════════

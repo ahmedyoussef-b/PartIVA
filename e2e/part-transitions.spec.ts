@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
 import { users } from './fixtures/users';
 
 async function getFirstPartId(
@@ -13,21 +12,18 @@ async function getFirstPartId(
   return parts[0].id as string;
 }
 
-// Récupère un contexte de requête authentifié pour un rôle donné
+// Connecte un rôle via l'API BetterAuth et retourne le contexte de requête
+// authentifié (cookies frais gérés par le APIRequestContext).
 async function authRequest(
   request: import('@playwright/test').APIRequestContext,
   role: 'ADMIN' | 'USER' | 'VIEWER',
 ) {
   const user = users[role];
-  const storage = JSON.parse(await readFile(user.storageStatePath, 'utf-8'));
-  const cookies = storage.cookies ?? [];
-  const headers: Record<string, string> = {};
-  for (const c of cookies) {
-    headers['cookie'] = headers['cookie']
-      ? `${headers['cookie']}; ${c.name}=${c.value}`
-      : `${c.name}=${c.value}`;
-  }
-  return { headers };
+  const response = await request.post('/api/auth/sign-in/email', {
+    data: { email: user.email, password: user.password },
+  });
+  expect(response.status()).toBe(200);
+  return { headers: {} };
 }
 
 test('api: POST /api/parts/[id]/transition without auth returns 401', async ({ request }) => {
