@@ -9,6 +9,9 @@ import { toast } from 'sonner';
 import { PackageCheck, Truck, CheckCircle2, Download, ShieldCheck, PlusCircle } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import PartImageGallery from '@/components/part-image-gallery';
+import { PartStatusBadge } from '@/components/part-status-badge';
+import { PartTransitionDialog } from '@/components/part-transition-dialog';
+import type { PartStatus, UserRole } from '@/generated/prisma/browser';
 
 interface ReadyPartItem {
   id: string;
@@ -19,6 +22,7 @@ interface ReadyPartItem {
   quantity: number;
   completionDate: string;
   status: 'prete' | 'expediee' | 'en_transit';
+  partStatus: PartStatus;
   trackingNumber: string;
   carrier: string;
   destination: string;
@@ -42,6 +46,7 @@ interface ReadyPartItem {
 
 interface PiecesPretesClientProps {
   initialParts: PartWithSerializedSuppliers[];
+  actorRole: UserRole;
 }
 
 function mapPartToReadyPart(part: PartWithSerializedSuppliers, index: number): ReadyPartItem {
@@ -63,6 +68,7 @@ function mapPartToReadyPart(part: PartWithSerializedSuppliers, index: number): R
       minute: '2-digit',
     }),
     status,
+    partStatus: part.status,
     trackingNumber: `TN-EXP-${part.id.slice(-6).toUpperCase()}`,
     carrier: 'Navette Express Atelier PartIVA',
     destination: 'Usine Soliman - Service Maintenance',
@@ -93,7 +99,7 @@ function mapPartToReadyPart(part: PartWithSerializedSuppliers, index: number): R
   };
 }
 
-export default function PiecesPretesClient({ initialParts }: PiecesPretesClientProps) {
+export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPretesClientProps) {
   const readyParts = React.useMemo(
     () => initialParts.slice(0, 2).map(mapPartToReadyPart),
     [initialParts],
@@ -201,17 +207,7 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
                     <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 font-mono text-xs font-bold">
                       {part.reference}
                     </span>
-                    {part.status === 'prete' ? (
-                      <Badge className="gap-1 bg-emerald-500 text-xs font-medium text-white">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Prête à l’envoi
-                      </Badge>
-                    ) : (
-                      <Badge className="gap-1 bg-blue-600 text-xs font-medium text-white">
-                        <Truck className="h-3.5 w-3.5" />
-                        En cours de livraison
-                      </Badge>
-                    )}
+                    <PartStatusBadge status={part.partStatus} />
                   </div>
                   <CardTitle className="text-xl font-bold">{part.name}</CardTitle>
                   <CardDescription className="text-xs">
@@ -239,6 +235,11 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Accuser réception
                   </Button>
+                  <PartTransitionDialog
+                    partId={part.id}
+                    currentStatus={part.partStatus}
+                    actorRole={actorRole}
+                  />
                 </div>
               </div>
             </CardHeader>

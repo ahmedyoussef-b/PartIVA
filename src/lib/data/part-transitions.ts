@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { isTransitionAllowed } from '@/lib/part-status';
+import { PART_STATUS_TRANSITIONS, PART_TRANSITION_ROLES } from '@/lib/part-status';
 import { PartStatus, Prisma, UserRole } from '@/generated/prisma/client';
 
 export class TransitionError extends Error {
@@ -27,11 +27,21 @@ export async function transitionPartStatus(
       throw new TransitionError('Pièce non détenue par cet utilisateur', 'NOT_OWNER');
     }
 
-    // Vérifier la transition (D2 + D3)
-    if (!isTransitionAllowed(part.status, toStatus, actor.role)) {
+    // Vérifier la transition (D2) : la cible est-elle autorisée depuis l'état source ?
+    const allowedTargets = PART_STATUS_TRANSITIONS[part.status] ?? [];
+    if (!allowedTargets.includes(toStatus)) {
+      throw new TransitionError(
+        `Transition ${part.status} → ${toStatus} impossible`,
+        'INVALID_TRANSITION',
+      );
+    }
+
+    // Vérifier le rôle (D3) : l'acteur est-il autorisé pour cette transition ?
+    const roles = PART_TRANSITION_ROLES[`${part.status}->${toStatus}`] ?? [];
+    if (!roles.includes(actor.role)) {
       throw new TransitionError(
         `Transition ${part.status} → ${toStatus} non autorisée pour ${actor.role}`,
-        'INVALID_TRANSITION',
+        'FORBIDDEN',
       );
     }
 

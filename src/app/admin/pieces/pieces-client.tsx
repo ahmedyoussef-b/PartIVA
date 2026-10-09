@@ -14,27 +14,22 @@ import {
 } from '@/components/ui/table';
 import { KPICard } from '@/components/shared/kpi-card';
 import { FilterBar } from '@/components/shared/filter-bar';
+import { PartStatusBadge } from '@/components/part-status-badge';
+import { PartTransitionDialog } from '@/components/part-transition-dialog';
 import { Eye, FileDown } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
-
-const STATUS_STYLES: Record<
-  string,
-  { label: string; variant: 'default' | 'secondary' | 'outline' | 'critical' }
-> = {
-  active: { label: 'Validée', variant: 'default' },
-  draft: { label: 'Brouillon', variant: 'outline' },
-  archived: { label: 'Archivée', variant: 'secondary' },
-};
+import type { UserRole } from '@/generated/prisma/browser';
 
 interface PiecesClientProps {
   initialParts: PartWithSerializedSuppliers[];
+  actorRole: UserRole;
 }
 
 function mapPartToUi(part: PartWithSerializedSuppliers) {
   return {
     ...part,
     reference: part.partNumber,
-    status: part.status.toLowerCase(),
+    status: part.status,
     suppliers: part.suppliers.map((s) => ({
       ...s,
       price: s.price ? s.price.toString() : null,
@@ -42,7 +37,7 @@ function mapPartToUi(part: PartWithSerializedSuppliers) {
   };
 }
 
-export default function PiecesClient({ initialParts }: PiecesClientProps) {
+export default function PiecesClient({ initialParts, actorRole }: PiecesClientProps) {
   const [search, setSearch] = React.useState('');
   const [matFilter, setMatFilter] = React.useState('all');
 
@@ -67,8 +62,8 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
 
   const stats = React.useMemo(() => {
     const total = parts.length;
-    const validated = parts.filter((p) => p.status === 'active').length;
-    const draft = parts.filter((p) => p.status === 'draft').length;
+    const validated = parts.filter((p) => p.status === 'READY').length;
+    const draft = parts.filter((p) => p.status === 'DRAFT').length;
     const withCad = parts.filter((p) => (p.files?.cad?.length ?? 0) > 0).length;
     return { total, validated, draft, withCad };
   }, [parts]);
@@ -124,10 +119,6 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
               </TableHeader>
               <TableBody>
                 {filtered.map((part) => {
-                  const st = STATUS_STYLES[part.status] ?? {
-                    label: part.status,
-                    variant: 'outline' as const,
-                  };
                   const hasCad = (part.files?.cad?.length ?? 0) > 0;
                   const hasPlan = (part.files?.plans?.length ?? 0) > 0;
                   return (
@@ -147,9 +138,7 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={st.variant} className="text-[10px]">
-                          {st.label}
-                        </Badge>
+                        <PartStatusBadge status={part.status} />
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
@@ -183,6 +172,11 @@ export default function PiecesClient({ initialParts }: PiecesClientProps) {
                               STEP
                             </Button>
                           )}
+                          <PartTransitionDialog
+                            partId={part.id}
+                            currentStatus={part.status}
+                            actorRole={actorRole}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>

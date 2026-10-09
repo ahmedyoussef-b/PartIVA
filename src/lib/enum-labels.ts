@@ -1,4 +1,4 @@
-import type { MachineType, MaterialCategory, PartStatus } from '@/generated/prisma/client';
+import type { MachineType, MaterialCategory, PartStatus } from '@/generated/prisma/browser';
 
 export const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   CNC: 'Commande numérique (CNC)',

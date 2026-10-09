@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PartStatus } from '@/generated/prisma/browser';
 
 export const MaterialSchema = z.enum([
   'POM-C',
@@ -92,3 +93,9 @@ export const PartImageUploadSchema = z.object({
   altText: z.string().max(255).optional(),
 });
 export type PartImageUpload = z.infer<typeof PartImageUploadSchema>;
+
+export const PartTransitionSchema = z.object({
+  toStatus: z.nativeEnum(PartStatus),
+  reason: z.string().max(500).optional(),
+});
+export type PartTransition = z.infer<typeof PartTransitionSchema>;

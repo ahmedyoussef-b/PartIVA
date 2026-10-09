@@ -1,4 +1,4 @@
-import { PartStatus, UserRole } from '@/generated/prisma/client';
+import { PartStatus, UserRole } from '@/generated/prisma/browser';
 
 /**
  * Transitions autorisées entre états de pièce (D2).
