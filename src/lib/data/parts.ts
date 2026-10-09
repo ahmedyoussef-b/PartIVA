@@ -126,7 +126,8 @@ const PTV_RETRY_DELAYS_MS = [50, 100, 200];
 export async function createPartWithPtvReference(
   data: Prisma.PartCreateInput,
   maxRetries = 3,
-): Promise<Part> {  let lastError: unknown;
+): Promise<Part> {
+  let lastError: unknown;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const ptvReference = await generatePtvReference();
@@ -139,8 +140,7 @@ export async function createPartWithPtvReference(
       lastError = error;
 
       const isUniqueViolation =
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002';
+        error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 
       if (!isUniqueViolation || attempt === maxRetries) {
         throw error;

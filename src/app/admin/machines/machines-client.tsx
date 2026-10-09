@@ -144,7 +144,9 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
                       <CardTitle className="text-sm leading-snug font-bold">
                         {machine.name}
                       </CardTitle>
-                      <CardDescription className="mt-0.5 text-xs">{getMachineTypeLabel(machine.type)}</CardDescription>
+                      <CardDescription className="mt-0.5 text-xs">
+                        {getMachineTypeLabel(machine.type)}
+                      </CardDescription>
                     </div>
                   </div>
                   <Badge

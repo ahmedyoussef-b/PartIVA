@@ -101,7 +101,9 @@ export default function MateriauxPageClient({ initialMaterials }: MateriauxPageC
                 </Badge>
               </div>
               <CardTitle className="mt-1 text-base leading-tight">{mat.name}</CardTitle>
-              <span className="text-muted-foreground font-mono text-xs">{getMaterialCategoryLabel(mat.category)}</span>
+              <span className="text-muted-foreground font-mono text-xs">
+                {getMaterialCategoryLabel(mat.category)}
+              </span>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col justify-between space-y-4 text-sm">
               <p className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">

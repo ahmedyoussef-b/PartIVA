@@ -6,14 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import {
-  PackageCheck,
-  Truck,
-  CheckCircle2,
-  Download,
-  ShieldCheck,
-  PlusCircle,
-} from 'lucide-react';
+import { PackageCheck, Truck, CheckCircle2, Download, ShieldCheck, PlusCircle } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import PartImageGallery from '@/components/part-image-gallery';
 
@@ -253,10 +246,7 @@ export default function PiecesPretesClient({ initialParts }: PiecesPretesClientP
             <CardContent className="space-y-6 p-6">
               {/* Galerie photo haute résolution de la pièce finie */}
               <div>
-                <PartImageGallery
-                  images={part.images}
-                  partName={part.name}
-                />
+                <PartImageGallery images={part.images} partName={part.name} />
               </div>
 
               {/* Détails logistiques & Métrologie */}

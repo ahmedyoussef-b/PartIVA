@@ -114,7 +114,9 @@ export default function AdminMateriauxPageClient({
                       <div className="text-foreground text-xs leading-tight font-bold">
                         {mat.name.split(' (')[0]}
                       </div>
-                      <div className="text-muted-foreground text-[10px]">{getMaterialCategoryLabel(mat.category)}</div>
+                      <div className="text-muted-foreground text-[10px]">
+                        {getMaterialCategoryLabel(mat.category)}
+                      </div>
                     </div>
                   </div>
                   <ArrowRight
@@ -171,7 +173,9 @@ export default function AdminMateriauxPageClient({
                   </span>
                   <div>
                     <CardTitle className="text-base font-bold">{selectedMat.name}</CardTitle>
-                    <CardDescription>{getMaterialCategoryLabel(selectedMat.category)}</CardDescription>
+                    <CardDescription>
+                      {getMaterialCategoryLabel(selectedMat.category)}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>

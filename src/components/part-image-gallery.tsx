@@ -3,12 +3,7 @@
 import * as React from 'react';
 import { Camera, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 export interface PartImageItem {
   id: string;
@@ -23,20 +18,11 @@ interface PartImageGalleryProps {
   partName: string;
 }
 
-export default function PartImageGallery({
-  images,
-  partName,
-}: PartImageGalleryProps) {
-  const [activeImage, setActiveImage] = React.useState<PartImageItem | null>(
-    null,
-  );
+export default function PartImageGallery({ images, partName }: PartImageGalleryProps) {
+  const [activeImage, setActiveImage] = React.useState<PartImageItem | null>(null);
 
   if (images.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        Aucune photo pour cette pièce.
-      </p>
-    );
+    return <p className="text-muted-foreground text-sm">Aucune photo pour cette pièce.</p>;
   }
 
   return (

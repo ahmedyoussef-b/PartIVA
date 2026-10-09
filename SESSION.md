@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) |
-| **Dernière session** | E1-S01 (clôturée) |
-| **Session en cours** | E1-S02 (à cadrer) |
-| **Statut global** | E0 clôturée — E1-S01 clôturée (Part↔User, PTV, enums), baseline 6/6 tenue |
+| **Dernière session** | E1-S02 (clôturée) |
+| **Session en cours** | E1-S03 (à cadrer) |
+| **Statut global** | E1-S01 + E1-S02 clôturées (dossier numérique : photos), baseline 6/6 tenue, E2E 113/113 |
 
 ---
 
@@ -1035,6 +1035,80 @@ Première session E1 — modélisation métier cœur : relation Part↔User, fil
 - **Dépassement périmètre mineur** : réparation octets nulls dans migration `20261007010000` (corruption pré-existante bloquante) + `@@map("search_candidates")` sur `SearchCandidate` (alignement schéma/migration historique) — nécessaires au déblocage de `prisma migrate dev`, sans impact données.
 - E1-S02 (dossier numérique) peut être cadrée.
 
+---
+
+## E1-S02 — Dossier numérique pièce (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commits :** bac7b79, 5e24216, fafb30c, 5490c26, <hash E1-S02-E>
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 113/113, format 0.
+
+### Objet
+
+Dossier numérique pièce : résolution dettes E1-S01 (race PTV, libellés enum) + extension schéma dossier numérique + upload/affichage photos.
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut | Commit |
+|---|---|---|---|
+| E1-S02-A | Résolution `D-ptv-race` (retry applicatif) | ✅ | bac7b79 |
+| E1-S02-B | Résolution `D-ux-enum-labels` (mapping FR) | ✅ | 5e24216 |
+| E1-S02-C | Extension schéma dossier numérique | ✅ | fafb30c |
+| E1-S02-D | API + UI PartImage (upload + galerie) | ✅ | 5490c26 |
+| E1-S02-E | Baseline + clôture documentaire | ✅ | <hash E1-S02-E> |
+
+### Décisions verrouillées
+
+- **D1** : `D-ptv-race` résolu par **Option B (retry applicatif)** — `createPartWithPtvReference()` dans `src/lib/data/parts.ts`, 3 tentatives, backoff 50/100/200ms sur `P2002`. Portable web + desktop (principe #9). Séquence PostgreSQL (Option A) reportée si la concurrence devient problématique en production.
+- **D2** : Versionnage **reporté à E1-S04** (pas de `PartVersion` en E1-S02). E1-S02-C étend uniquement `PartImage`, `PartSpecification`, `Attachment`.
+- **D3** : Périmètre E1-S02-D **Option B (incrémental, `PartImage` uniquement)**. Mesures (`PartSpecification`) et docs (`Attachment`) en session ultérieure. Stockage local `public/uploads/parts/<partId>/` temporaire — Cloudinary reporté E1-S05 (TODO explicite dans `route.ts`).
+
+### Réalisations
+
+- **Race PTV** : `createPartWithPtvReference(data, maxRetries=3)` — retry sur `Prisma.PrismaClientKnownRequestError` code `P2002`, backoff exponentiel court. `POST /api/parts` utilise la fonction (création + `findUnique` avec include pour le retour).
+- **Libellés enum** : `src/lib/enum-labels.ts` — `MACHINE_TYPE_LABELS` (CNC/LATHE/PRINTER_3D → FR), `MATERIAL_CATEGORY_LABELS` (5 valeurs → FR), `getMachineTypeLabel()`, `getMaterialCategoryLabel()`. Appliqué aux 5 composants d'affichage (machines, materiaux, materiaux admin).
+- **Schéma dossier numérique** : `PartImage` + `caption`, `isPrimary` ; `PartSpecification` + `toleranceMin`, `toleranceMax` ; `Attachment` + `mimeType` (NOT NULL), `kind` (enum `AttachmentKind` : DOCUMENT/CAD/SCAN/OTHER). Migration `20261009172217_extend_part_dossier_numerique` via `migrate dev` (standard, drift résolu en E1-S02-0).
+- **Seed** : 5 images (avec caption, isPrimary), 3 attachments (PDF, CAD_STEP, SCAN), 25 specs (dont 5 avec tolérances). `attachment.deleteMany()` ajouté au cleanup (idempotence).
+- **API PartImage** : `GET /api/parts/[id]/images` (liste), `POST /api/parts/[id]/images` (upload base64, validation Zod `PartImageUploadSchema`, mime JPEG/PNG/WebP, max 5 Mo, stockage local `public/uploads/parts/<partId>/`, `isPrimary` sur première image).
+- **UI** : composant `PartImageGallery` (Server + Client, lightbox Dialog, badge « Photo principale »). Intégré dans `pieces-pretes-client.tsx` (remplace la galerie inline).
+- **Tests E2E** : `e2e/part-images.spec.ts` — 3 tests (GET liste 200, POST sans auth 401, POST mime invalide 400/401). **Total : 113/113**.
+
+### Dettes résolues
+
+- `D-ptv-race` — retry applicatif implémenté.
+- `D-ux-enum-labels` — mapping FR appliqué.
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-enums-non-utilises` (AuditLog.*, SearchCandidate.source) | Session ultérieure |
+| Versionnage `PartVersion` | E1-S04 |
+| Mesures (`PartSpecification`) UI | Session ultérieure |
+| Docs (`Attachment`) UI | Session ultérieure |
+| Upload Cloudinary réel | E1-S05 |
+| `D-roadmap-retard`, `D-44` | Session doc dédiée |
+| `D-27-bis` | E3 ou E7 |
+| `D116` (Prisma 8) | Session dédiée après GA |
+
+### Baseline finale E1-S02
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 33/33 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments) |
+| Tests E2E | ✅ 113/113 verts |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 8 migrations, 0 drift |
+
+### Notes
+
+- **`migrate dev` opérationnel** (drift résolu en E1-S02-0) — migration C créée en standard, sans contournement.
+- **Stockage local temporaire** : `public/uploads/` gitignoré. Cloudinary en E1-S05 (TODO explicite dans `src/app/api/parts/[id]/images/route.ts`).
+- E1-S03 (dossier numérique : mesures + docs) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S02
+Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S03
 ═══════════════════════════════════════════════════════════════

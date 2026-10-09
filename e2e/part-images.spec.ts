@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-async function getFirstPartId(request: import('@playwright/test').APIRequestContext): Promise<string> {
+async function getFirstPartId(
+  request: import('@playwright/test').APIRequestContext,
+): Promise<string> {
   const response = await request.get('/api/parts');
   expect(response.status()).toBe(200);
   const parts = await response.json();

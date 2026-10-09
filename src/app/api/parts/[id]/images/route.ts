@@ -19,10 +19,7 @@ function isImageMimeType(value: string): value is (typeof ALLOWED_IMAGE_MIME_TYP
   return (ALLOWED_IMAGE_MIME_TYPES as readonly string[]).includes(value);
 }
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const images = await prisma.partImage.findMany({
     where: { partId: id },
@@ -31,10 +28,7 @@ export async function GET(
   return NextResponse.json(images);
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
