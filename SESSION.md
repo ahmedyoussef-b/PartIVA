@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | E0-S11 (clôturée) |
-| **Session en cours** | E1-S01 (à cadrer) |
-| **Statut global** | E0 clôturée — baseline 5/5 + format tenue, 8 dettes tracées |
+| **Phase actuelle** | MVP — Modélisation métier (E1) |
+| **Dernière session** | E1-S01 (clôturée) |
+| **Session en cours** | E1-S02 (à cadrer) |
+| **Statut global** | E0 clôturée — E1-S01 clôturée (Part↔User, PTV, enums), baseline 6/6 tenue |
 
 ---
 
@@ -966,6 +966,75 @@ Audit de clôture E0 (E0-S11-A) + résorption des conditions de clôture (E0-S11
 - Push `c540e1a..22d19e5` effectif sur origin/master.
 - E1-S01 peut être lancée (modélisation métier cœur).
 
+---
+
+## E1-S01 — Modélisation métier cœur (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commits :** ddf1b4c, 31f99ba, 59d68ff, 17ffbaf, <hash E1-S01-E>
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110, format 0.
+
+### Objet
+
+Première session E1 — modélisation métier cœur : relation Part↔User, filtrage client, système d'ID PTV, application enums.
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut | Commit |
+|---|---|---|---|
+| E1-S01-A | Migration `Part.clientId` + relation User | ✅ | ddf1b4c |
+| E1-S01-B | Filtrage client `getParts({ clientId })` + `pieces-pretes` | ✅ | 31f99ba |
+| E1-S01-C | Système d'ID `PTV-AAAA-NNNNNN` | ✅ | 59d68ff |
+| E1-S01-D | Application enums `Machine.type` + `Material.category` | ✅ | 17ffbaf |
+| E1-S01-E | Baseline + clôture documentaire | ✅ | <hash E1-S01-E> |
+
+### Décisions verrouillées
+
+- **D1** : `ptvReference String @unique` ajouté sur `Part`, `partNumber` conservé (legacy, dépréciation session ultérieure).
+- **D2** : Format `PTV-AAAA-NNNNNN` = `PTV-` + année 4 chiffres + `-` + séquence 6 chiffres. Ex : `PTV-2026-000001`.
+- **D3** : E1-S01-D traite `Machine.type` + `Material.category`. `AuditLog.action`, `AuditLog.entityType`, `SearchCandidate.source` reportés (champs techniques, valeurs ouvertes).
+
+### Réalisations
+
+- **Relation Part↔User** : `clientId` sur `Part` (FK → `users.id`, ON DELETE SET NULL), relation `PartClient`, index `clientId`. Migration `20261009153819_add_part_client_relation`.
+- **Filtrage client** : `getParts({ clientId })` étendu, page `pieces-pretes` filtre par `user.id` (TODO résolu), `POST /api/parts` injecte `clientId` depuis session auth.
+- **Système PTV** : `src/lib/ptv-reference.ts` (générateur séquentiel par année), `ptvReference` sur `Part` (@unique), seed backfill `PTV-2026-000001` à `PTV-2026-000005`, schéma Zod regex `^PTV-\d{4}-\d{6}$`.
+- **Enums** : `MachineType` (CNC, LATHE, PRINTER_3D), `MaterialCategory` (5 valeurs), migration `20261009161856_apply_machine_material_enums` avec conversion données existantes.
+
+### Dettes résolues
+
+- `D-part-user` — relation Part↔User ajoutée, filtrage client opérationnel.
+- `D-enums-non-utilises` (partiel) — `Machine.type` + `Material.category` convertis en enum.
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-enums-non-utilises` (AuditLog.*, SearchCandidate.source) | Session ultérieure |
+| `D-ui-orphelins` | E1-S01 (décision usage/suppression) |
+| `D-roadmap-retard` | Session doc dédiée |
+| `D-44` (coquille ROADMAP) | Session doc dédiée |
+| `D-27-bis` (GET /api/reverse-engineering) | E1 ou E7 |
+| `D116` (Prisma 8) | Session dédiée après GA |
+| `D-audit-mysql2` | Attente Prisma 8 |
+
+### Baseline finale E1-S01
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 33/33 routes |
+| Seed | ✅ idempotent |
+| Tests E2E | ✅ 110/110 verts |
+| Format | ✅ 0 non conforme |
+
+### Notes
+
+- **Race condition PTV** : génération séquentielle par année — deux POST simultanés peuvent lire la même dernière référence et l'un échoue sur `@unique`. Non bloquant (cas rare, aucun test E2E ne le révèle). Solution robuste (séquence PostgreSQL dédiée ou retry applicatif) à traiter en E1-S02 ou session dédiée.
+- **Dépassement périmètre mineur** : réparation octets nulls dans migration `20261007010000` (corruption pré-existante bloquante) + `@@map("search_candidates")` sur `SearchCandidate` (alignement schéma/migration historique) — nécessaires au déblocage de `prisma migrate dev`, sans impact données.
+- E1-S02 (dossier numérique) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S01
+Fin SESSION.md — **Prochaine MAJ :** fin de session E1-S02
 ═══════════════════════════════════════════════════════════════
