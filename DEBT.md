@@ -30,6 +30,7 @@
 | `D-e2e-skip-conditional` | Skip conditionnel `part-versions.spec.ts:68` (test transition crée version) — skip si aucune pièce SUBMITTED en seed (consommée par un test antérieur). | Faible | Session E2E dédiée | Non | Rendre le test déterministe (fixture dédiée ou reset DB) |
 | `D-cloudinary-cleanup` | Suppression du fichier Cloudinary à la suppression d'un `PartImage`/`Attachment` (D5 E1-S05) — non implémenté. | Moyenne | E1-S06 ou session dédiée | Non | Ajouter `cloudinary.uploader.destroy(publicId)` dans les DELETE PartImage/Attachment |
 | `D-cloudinary-attachment-upload` | UI d'upload d'`Attachment` absente — modèle `Attachment.publicId` prêt mais aucun endpoint d'upload d'attachment. | Faible | E1-S06 | Non | Créer l'UI + endpoint d'upload d'attachment (docs techniques) |
+| `D-cloudinary-validation` | Chemin succès `uploadToCloudinary()` non testé en E1-S05 (caveat) — E2E ne couvrait que les chemins d'erreur. | Haute | E1-S06-A | Oui | Test d'intégration `scripts/test-cloudinary.mjs` avec vrais credentials |
 
 ---
 
