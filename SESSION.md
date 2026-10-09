@@ -1397,8 +1397,8 @@ UI de gestion des mesures (`PartSpecification`) et des documents techniques (`At
 
 | Incident | Nature | Statut |
 |---|---|---|
-| E1-S06-n°1 | E2E POST attachment → 400 « Must supply cloud_name » — `cloudinary.config()` lit `CLOUDINARY_CLOUD_NAME` (absent de `.env`) alors que la var réelle est `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`. | Résolu : fallback `CLOUDINARY_CLOUD_NAME ?? NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` dans `src/lib/cloudinary.ts`. |
-| E1-S06-n°2 | E2E GET specs/attachments sans auth → 200 (GET publics) au lieu de 401 attendu. | Résolu : GET rendus auth-requis (cohérent avec `versions` GET), ownership USER 403. |
+| E1-S06-n°1 | E2E POST attachment → 400 « Must supply cloud_name » — `cloudinary.config()` lit `CLOUDINARY_CLOUD_NAME` (absent de `.env`) alors que la var réelle est `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`. Incohérence `.env.example` ↔ réel. | Résolu : fallback `CLOUDINARY_CLOUD_NAME ?? NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` dans `src/lib/cloudinary.ts`. `.env.example` corrigé en E1-S07-A (`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` + commentaires sémantiques). Audit sécurité E1-S07-A : aucun secret exposé côté client (`API_KEY`/`API_SECRET` serveur uniquement, jamais `NEXT_PUBLIC_` — sécurité #7 respectée). |
+| E1-S06-n°2 | E2E GET specs/attachments sans auth → 200 (GET publics) au lieu de 401 attendu. | Résolu : GET rendus auth-requis (cohérent avec `versions` GET), ownership USER 403. Tests E2E 401 déjà présents (`part-specifications.spec.ts:27`, `part-attachments.spec.ts:27`) — pas de dette supplémentaire. |
 
 ### Dettes résolues
 
