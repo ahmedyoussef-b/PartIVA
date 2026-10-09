@@ -22,3 +22,6 @@ tailwind.config.js
 postcss.config.js
 postcss.config.mjs
 prisma7.config.ts
+
+# Fichier généré par Next.js (restauré via git checkout, jamais commité — règle #32)
+next-env.d.ts
