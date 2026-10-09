@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { generatePtvReference } from '@/lib/ptv-reference';
 import { Prisma } from '@/generated/prisma/client';
 import type {
+  Attachment,
   Part,
   PartCategory,
   PartImage,
@@ -13,6 +14,7 @@ export type PartWithRelations = Part & {
   category: PartCategory | null;
   images: PartImage[];
   specifications: PartSpecification[];
+  attachments: Attachment[];
   suppliers: (PartSupplier & { supplier: { id: string; name: string; code: string } })[];
   material?: string;
   files?: {
@@ -55,6 +57,7 @@ export async function getParts(options?: {
       category: true,
       images: { orderBy: { order: 'asc' } },
       specifications: true,
+      attachments: { orderBy: { createdAt: 'asc' } },
       suppliers: {
         include: {
           supplier: {
@@ -87,6 +90,7 @@ export async function getPartById(id: string): Promise<PartWithSerializedSupplie
       category: true,
       images: { orderBy: { order: 'asc' } },
       specifications: true,
+      attachments: { orderBy: { createdAt: 'asc' } },
       suppliers: {
         include: {
           supplier: {

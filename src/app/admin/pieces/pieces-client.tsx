@@ -18,6 +18,7 @@ import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
 import { PartVersionHistory } from '@/components/part-version-history';
 import { PartSpecificationTable } from '@/components/part-specification-table';
+import { PartAttachmentList } from '@/components/part-attachment-list';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, FileDown } from 'lucide-react';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
@@ -33,6 +34,10 @@ function mapPartToUi(part: PartWithSerializedSuppliers) {
     ...part,
     reference: part.partNumber,
     status: part.status,
+    attachments: part.attachments.map((a) => ({
+      ...a,
+      createdAt: a.createdAt.toISOString(),
+    })),
     suppliers: part.suppliers.map((s) => ({
       ...s,
       price: s.price ? s.price.toString() : null,
@@ -45,7 +50,7 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
   const [matFilter, setMatFilter] = React.useState('all');
 
   const [selectedPartId, setSelectedPartId] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState('catalogue');
+  const [detailTab, setDetailTab] = React.useState('historique');
 
   const parts = React.useMemo(() => initialParts.map(mapPartToUi), [initialParts]);
 
@@ -113,7 +118,7 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
         value={selectedPartId ?? 'catalogue'}
         onValueChange={(v) => {
           setSelectedPartId(v === 'catalogue' ? null : v);
-          setActiveTab('catalogue');
+          setDetailTab('historique');
         }}
       >
         <TabsList>
@@ -213,10 +218,11 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
         </TabsContent>
         {selectedPartId && (
           <TabsContent value={selectedPartId}>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={detailTab} onValueChange={setDetailTab}>
               <TabsList>
                 <TabsTrigger value="historique">Historique</TabsTrigger>
                 <TabsTrigger value="mesures">Mesures</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
               <TabsContent value="historique">
                 <PartVersionHistory partId={selectedPartId} />
@@ -227,6 +233,12 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
                   initialSpecifications={
                     parts.find((p) => p.id === selectedPartId)?.specifications ?? []
                   }
+                />
+              </TabsContent>
+              <TabsContent value="documents">
+                <PartAttachmentList
+                  partId={selectedPartId}
+                  initialAttachments={parts.find((p) => p.id === selectedPartId)?.attachments ?? []}
                 />
               </TabsContent>
             </Tabs>

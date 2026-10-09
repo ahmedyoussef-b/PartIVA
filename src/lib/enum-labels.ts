@@ -1,4 +1,9 @@
-import type { MachineType, MaterialCategory, PartStatus } from '@/generated/prisma/browser';
+import type {
+  AttachmentKind,
+  MachineType,
+  MaterialCategory,
+  PartStatus,
+} from '@/generated/prisma/browser';
 
 export const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   CNC: 'Commande numérique (CNC)',
@@ -38,4 +43,15 @@ export const PART_STATUS_LABELS: Record<PartStatus, string> = {
 
 export function getPartStatusLabel(status: PartStatus): string {
   return PART_STATUS_LABELS[status] ?? status;
+}
+
+export const ATTACHMENT_KIND_LABELS: Record<AttachmentKind, string> = {
+  DOCUMENT: 'Document',
+  CAD: 'CAO',
+  SCAN: 'Scan',
+  OTHER: 'Autre',
+};
+
+export function getAttachmentKindLabel(kind: AttachmentKind): string {
+  return ATTACHMENT_KIND_LABELS[kind] ?? kind;
 }
