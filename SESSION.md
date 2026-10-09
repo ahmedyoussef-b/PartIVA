@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Fondation technique (E0) |
-| **Dernière session** | E0-S08 (clôturée) |
-| **Session en cours** | E0-S09 |
-| **Statut global** | E0-S08 clôturée — baseline 110/110 tests E2E verts, push 5505744 effectif |
+| **Dernière session** | E0-S09 (clôturée) |
+| **Session en cours** | E0-S10 |
+| **Statut global** | E0-S09 clôturée — baseline 110/110 tests E2E verts, push 341f0e4 effectif |
 
 ---
 
@@ -760,6 +760,67 @@ rafraîchir les audits).
 Push `63d8e0d..5505744` validé et effectif (D88).
 La mention « à pousser » dans la passation était un résidu rédactionnel.
 
+---
+
+## E0-S09 — Migration React 19 + Tailwind 4 + résorption poids morts (CLÔTURÉE)
+
+**Date :** 2026-10-09
+**Commit final :** 341f0e4 (à pousser sur origin/master)
+**Baseline :** lint 0/0, typecheck 0, build 33/33, seed idempotent, E2E 110/110.
+
+### Objet
+
+Migration majeure React 18.3.1 → 19.3.0 + Tailwind 3.4.x → 4.3.3,
+résorption des poids morts (CadViewer, three.js stack, recharts),
+élimination des dettes D-25-bis (warnings Decimal) et D-25-ter (hydration mismatch).
+
+### Sous-sessions
+
+| Sous-session | Objet | Statut | Commit |
+|---|---|---|---|
+| E0-S09-0 | Régularisation documentaire (SESSION.md + ROADMAP.md) | ✅ | b222b70 |
+| E0-S09-1 | Audit de vérité des poids morts | ✅ | — |
+| E0-S09-2 | Suppression poids morts (CadViewer, three.js, recharts) | ✅ | a30014a |
+| E0-S09-3 | Nettoyage résiduel + migration Tailwind 3 → 4 | ✅ | 5c6cdd4 |
+| E0-S09-4 | Correction D-25-bis + D-25-ter (Decimal + hydration) | ✅ | 4d09224 |
+| E0-S09-5 | Audit préalable React 19 | ✅ | — |
+| E0-S09-6 | Migration React 18 → 19 | ✅ | 341f0e4 |
+| E0-S09-7 | Validation finale + clôture | ✅ | (ce commit) |
+
+### Décisions verrouillées
+
+D84-D111 (voir passation E0-S09 → E0-S10).
+
+### Dettes résolues
+
+- D-25-bis — Warning Decimal persistant (D97).
+- D-25-ter — Hydration mismatch pieces-pretes-client.tsx (D99).
+- React 19 + fiber v9 + drei v10 — migration annulée (D84 : CadViewer orphelin supprimé).
+- Tailwind 3 → 4 — migré (D86).
+- 14 vulns npm — majoritairement résolues par Tailwind 4.
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `forwardRef` → `ref` comme prop (D111) | E0-S10 |
+| Prisma 6.19.3 vs 8.0.0-rc | Session dédiée |
+| pg v9 | Session dédiée |
+| D-27-bis (GET /api/reverse-engineering) | E1 ou E7 |
+| D-44 (coquille ROADMAP.md) | Session doc dédiée |
+
+### Incidents PCT
+
+9 incidents tracés (n°39 à n°47) — voir passation E0-S09 → E0-S10.
+
+### Règles intégrées
+
+Règles #24-#29 (regroupement npm, résidus wasm Windows, sérialisation RSC→Client en amont, cascade de type, R21 assouplie, `npm install -D` contrainte).
+
+### Notes
+
+Push des 6 commits E0-S09 (`b222b70..341f0e4`) validé par le Superviseur.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S09
+Fin SESSION.md — **Prochaine MAJ :** fin de session E0-S10
 ═══════════════════════════════════════════════════════════════

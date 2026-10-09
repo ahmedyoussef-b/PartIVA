@@ -139,7 +139,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | E0-S07b | Matrice E2E par rôle + routes dynamiques avec IDs | ✅ | 103 tests E2E |
 | E0-S07b-3 | Dettes résiduelles E2E (cookies, /api/auth, /api/sync) | ✅ | 110 tests E2E |
 | E0-S08 | Dettes techniques transverses (Zod 4, ESLint 9, Next 16, pg sslmode, middleware→proxy) | ✅ | 5505744 |
-| E0-S09 | React 19 + Tailwind 4 + résorption poids morts (CadViewer, recharts) | 🟢 EN COURS | — |
+| E0-S09 | React 19 + Tailwind 4 + résorption poids morts | ✅ | 341f0e4 |
 
 ---
 
