@@ -1,15 +1,30 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
 
-async function getFirstPartId(
-  request: import('@playwright/test').APIRequestContext,
-): Promise<string> {
-  const response = await request.get('/api/parts');
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  expect(Array.isArray(parts)).toBe(true);
-  expect(parts.length).toBeGreaterThan(0);
-  return parts[0].id as string;
+async function listPartsAsAdmin(
+  playwright: any,
+): Promise<Array<{ id: string; status: string; clientId?: string | null }>> {
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+    return parts;
+  } finally {
+    await ctx.dispose();
+  }
+}
+
+async function getFirstPartId(playwright: any): Promise<string> {
+  const parts = await listPartsAsAdmin(playwright);
+  return parts[0]?.id as string;
 }
 
 async function authRequest(
@@ -38,15 +53,16 @@ async function getVersionNumbers(
 }
 
 test('api: GET /api/parts/[id]/versions/diff without auth returns 401', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+  const partId = '00000000-0000-0000-0000-000000000000';
   const response = await request.get(`/api/parts/${partId}/versions/diff?from=1&to=2`);
   expect(response.status()).toBe(401);
 });
 
 test('api: GET /api/parts/[id]/versions/diff with invalid query returns 400', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const missing = await request.get(`/api/parts/${partId}/versions/diff`, { headers });
@@ -63,8 +79,9 @@ test('api: GET /api/parts/[id]/versions/diff with invalid query returns 400', as
 
 test('api: GET /api/parts/[id]/versions/diff with two different versions returns 200', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const numbers = await getVersionNumbers(request, partId, headers);
@@ -88,8 +105,9 @@ test('api: GET /api/parts/[id]/versions/diff with two different versions returns
 
 test('api: GET /api/parts/[id]/versions/diff with identical versions returns empty diffs', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const numbers = await getVersionNumbers(request, partId, headers);
@@ -112,8 +130,9 @@ test('api: GET /api/parts/[id]/versions/diff with identical versions returns emp
 
 test('api: GET /api/parts/[id]/versions/diff with unknown version returns 404', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.get(`/api/parts/${partId}/versions/diff?from=1&to=999999`, {
     headers,
@@ -123,10 +142,9 @@ test('api: GET /api/parts/[id]/versions/diff with unknown version returns 404', 
 
 test('api: GET /api/parts/[id]/versions/diff USER on another client part returns 403', async ({
   request,
+  playwright,
 }) => {
-  const partsResponse = await request.get('/api/parts');
-  expect(partsResponse.status()).toBe(200);
-  const parts = await partsResponse.json();
+  const parts = await listPartsAsAdmin(playwright);
 
   const { headers } = await authRequest(request, 'USER');
   const sessionResponse = await request.get('/api/auth/get-session', {

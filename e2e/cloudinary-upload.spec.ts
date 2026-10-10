@@ -51,10 +51,7 @@ test('api: POST /api/upload with invalid payload returns 400', async ({ request 
 });
 
 test('api: POST /api/parts/[id]/images without auth returns 401', async ({ request }) => {
-  const partsResponse = await request.get('/api/parts');
-  expect(partsResponse.status()).toBe(200);
-  const parts = await partsResponse.json();
-  const partId = parts[0].id as string;
+  const partId = '00000000-0000-0000-0000-000000000000';
 
   const response = await request.post(`/api/parts/${partId}/images`, {
     data: {
@@ -68,12 +65,12 @@ test('api: POST /api/parts/[id]/images without auth returns 401', async ({ reque
 });
 
 test('api: POST /api/parts/[id]/images with invalid mime returns 400', async ({ request }) => {
-  const partsResponse = await request.get('/api/parts');
+  const { headers } = await authRequest(request, 'ADMIN');
+  const partsResponse = await request.get('/api/parts', { headers });
   expect(partsResponse.status()).toBe(200);
   const parts = await partsResponse.json();
   const partId = parts[0].id as string;
 
-  const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post(`/api/parts/${partId}/images`, {
     headers,
     data: {

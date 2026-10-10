@@ -1,15 +1,23 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
 
-async function getFirstPartId(
-  request: import('@playwright/test').APIRequestContext,
-): Promise<string> {
-  const response = await request.get('/api/parts');
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  expect(Array.isArray(parts)).toBe(true);
-  expect(parts.length).toBeGreaterThan(0);
-  return parts[0].id as string;
+async function getFirstPartId(playwright: any): Promise<string> {
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+    return parts[0].id as string;
+  } finally {
+    await ctx.dispose();
+  }
 }
 
 async function authRequest(
@@ -24,16 +32,20 @@ async function authRequest(
   return { headers: {} };
 }
 
-test('api: GET /api/parts/[id]/attachments without auth returns 401', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: GET /api/parts/[id]/attachments without auth returns 401', async ({
+  request,
+  playwright,
+}) => {
+  const partId = '00000000-0000-0000-0000-000000000000';
   const response = await request.get(`/api/parts/${partId}/attachments`);
   expect(response.status()).toBe(401);
 });
 
 test('api: GET /api/parts/[id]/attachments with auth returns 200 and JSON array', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.get(`/api/parts/${partId}/attachments`, {
     headers,
@@ -43,8 +55,11 @@ test('api: GET /api/parts/[id]/attachments with auth returns 200 and JSON array'
   expect(Array.isArray(body)).toBe(true);
 });
 
-test('api: POST /api/parts/[id]/attachments creates an attachment', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: POST /api/parts/[id]/attachments creates an attachment', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const name = `e2e-att-${Date.now()}.pdf`;
@@ -71,8 +86,9 @@ test('api: POST /api/parts/[id]/attachments creates an attachment', async ({ req
 
 test('api: POST /api/parts/[id]/attachments with invalid payload returns 400', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post(`/api/parts/${partId}/attachments`, {
     headers,
@@ -81,8 +97,11 @@ test('api: POST /api/parts/[id]/attachments with invalid payload returns 400', a
   expect(response.status()).toBe(400);
 });
 
-test('api: DELETE /api/parts/[id]/attachments/[attachmentId] returns 204', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: DELETE /api/parts/[id]/attachments/[attachmentId] returns 204', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const created = await request.post(`/api/parts/${partId}/attachments`, {
@@ -113,8 +132,9 @@ test('api: DELETE /api/parts/[id]/attachments/[attachmentId] returns 204', async
 
 test('api: DELETE /api/parts/[id]/attachments/[attachmentId] unknown returns 404', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.delete(
     `/api/parts/${partId}/attachments/00000000-0000-0000-0000-000000000000`,
@@ -123,8 +143,11 @@ test('api: DELETE /api/parts/[id]/attachments/[attachmentId] unknown returns 404
   expect(response.status()).toBe(404);
 });
 
-test('api: POST /api/parts/[id]/attachments without auth returns 401', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: POST /api/parts/[id]/attachments without auth returns 401', async ({
+  request,
+  playwright,
+}) => {
+  const partId = '00000000-0000-0000-0000-000000000000';
   const response = await request.post(`/api/parts/${partId}/attachments`, {
     data: {
       name: 'no-auth.pdf',
@@ -139,8 +162,9 @@ test('api: POST /api/parts/[id]/attachments without auth returns 401', async ({ 
 
 test('api: GET /api/parts/[id]/images/[imageId] DELETE unknown image returns 404', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.delete(
     `/api/parts/${partId}/images/00000000-0000-0000-0000-000000000000`,

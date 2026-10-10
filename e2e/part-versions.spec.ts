@@ -1,15 +1,30 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
 
-async function getFirstPartId(
-  request: import('@playwright/test').APIRequestContext,
-): Promise<string> {
-  const response = await request.get('/api/parts');
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  expect(Array.isArray(parts)).toBe(true);
-  expect(parts.length).toBeGreaterThan(0);
-  return parts[0].id as string;
+async function listPartsAsAdmin(
+  playwright: any,
+): Promise<Array<{ id: string; status: string; clientId?: string | null }>> {
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+    return parts;
+  } finally {
+    await ctx.dispose();
+  }
+}
+
+async function getFirstPartId(playwright: any): Promise<string> {
+  const parts = await listPartsAsAdmin(playwright);
+  return parts[0]?.id as string;
 }
 
 async function authRequest(
@@ -25,15 +40,16 @@ async function authRequest(
 }
 
 test('api: GET /api/parts/[id]/versions without auth returns 401', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+  const partId = '00000000-0000-0000-0000-000000000000';
   const response = await request.get(`/api/parts/${partId}/versions`);
   expect(response.status()).toBe(401);
 });
 
 test('api: GET /api/parts/[id]/versions with auth returns 200 and non-empty list', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.get(`/api/parts/${partId}/versions`, {
     headers,
@@ -47,8 +63,11 @@ test('api: GET /api/parts/[id]/versions with auth returns 200 and non-empty list
   expect(body.versions[0].snapshot).toBeTruthy();
 });
 
-test('api: GET /api/parts/[id]/versions respects pageSize pagination', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: GET /api/parts/[id]/versions respects pageSize pagination', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.get(`/api/parts/${partId}/versions?page=1&pageSize=1`, {
     headers,
@@ -59,8 +78,12 @@ test('api: GET /api/parts/[id]/versions respects pageSize pagination', async ({ 
   expect(body.versions.length).toBeLessThanOrEqual(1);
 });
 
-test('api: ADMIN transition SUBMITTED->IDENTIFYING creates a new version', async ({ request }) => {
-  const response = await request.get('/api/parts');
+test('api: ADMIN transition SUBMITTED->IDENTIFYING creates a new version', async ({
+  request,
+  playwright,
+}) => {
+  const { headers: listHeaders } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/parts', { headers: listHeaders });
   expect(response.status()).toBe(200);
   const parts = await response.json();
   const part = parts.find((p: { status: string }) => p.status === 'SUBMITTED');
@@ -69,23 +92,21 @@ test('api: ADMIN transition SUBMITTED->IDENTIFYING creates a new version', async
     return;
   }
 
-  const { headers } = await authRequest(request, 'ADMIN');
-
   const beforeResponse = await request.get(`/api/parts/${part.id}/versions`, {
-    headers,
+    headers: listHeaders,
   });
   expect(beforeResponse.status()).toBe(200);
   const before = await beforeResponse.json();
   const beforeCount = before.total as number;
 
   const transitionResponse = await request.post(`/api/parts/${part.id}/transition`, {
-    headers,
+    headers: listHeaders,
     data: { toStatus: 'IDENTIFYING', reason: 'E2E version creation test' },
   });
   expect(transitionResponse.status()).toBe(200);
 
   const afterResponse = await request.get(`/api/parts/${part.id}/versions`, {
-    headers,
+    headers: listHeaders,
   });
   expect(afterResponse.status()).toBe(200);
   const after = await afterResponse.json();
@@ -98,10 +119,9 @@ test('api: ADMIN transition SUBMITTED->IDENTIFYING creates a new version', async
 
 test('api: GET /api/parts/[id]/versions USER on another client part returns 403', async ({
   request,
+  playwright,
 }) => {
-  const partsResponse = await request.get('/api/parts');
-  expect(partsResponse.status()).toBe(200);
-  const parts = await partsResponse.json();
+  const parts = await listPartsAsAdmin(playwright);
 
   const { headers } = await authRequest(request, 'USER');
   const sessionResponse = await request.get('/api/auth/get-session', {

@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S07-D (clôturée) |
-| **Session en cours** | D-parts-list-public (sécurité /api/parts/*) — à cadrer, avant E2-S08 |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E), baseline 6/6 tenue, E2E 17/17 sur les 3 specs multi-tenant (0 skip), D-parts-list-public (Moyenne) à traiter avant E2-S08 |
+| **Dernière session** | E2-S07-E (clôturée) |
+| **Session en cours** | E2-S08 — à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id]), baseline 6/6 tenue, E2E 195 passed (0 failed, 0 skip), E2-S08 à cadrer |
 
 ---
 
@@ -2427,6 +2427,52 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **`D-parts-list-public`** : découverte lors de la vérification Q-B — la session dédiée doit auditer `/api/parts/*` complet + mettre à jour les 14 tests E2E + appelants UI.
 - **`next-env.d.ts`** non modifié (règle #32).
 - Ordre sessions : E2-S07-D ✅ → `D-parts-list-public` (session sécurité dédiée) → E2-S08.
+
+### Session E2-S07-E — Sécurisation GET /api/parts + /api/parts/[id] (D-parts-list-public)
+
+- **Date** : `10/10/2026`
+- **Objectif** : Sécuriser `GET /api/parts` et `GET /api/parts/[id]` (auth VIEWER+ + filtre `clientId` pour USER + ownership 403 sur `[id]`) — clôture de la dette `D-parts-list-public` (Moyenne) avant E2-S08.
+- **Arbitrages validés** :
+  - **1a** : auth VIEWER+ sur les 2 routes GET (ADMIN/USER/VIEWER autorisés, anonyme 401).
+  - **2a** : USER ne voit que ses pièces (`getParts({ clientId: session.user.id })`), ADMIN/VIEWER voient tout.
+  - **3a+3b** : `/api/parts/[id]` — auth VIEWER+ puis ownership USER (403 si `part.clientId !== session.user.id`), pattern `versions/route.ts:29-35`.
+  - **4a** : ADMIN dans les helpers E2E (pas USER) pour lister les parts.
+  - **5** : aucun appelant UI à mettre à jour (RSC utilise `getParts()` directement, pas l'API).
+- **Modifications** :
+  - `src/app/api/parts/route.ts` GET : `auth.api.getSession` → 401 si anonyme ; `isUser ? getParts({ clientId: session.user.id }) : getParts()`.
+  - `src/app/api/parts/[id]/route.ts` GET : `auth.api.getSession` → 401 si anonyme ; ownership USER → 403 ; imports `headers` + `auth` ajoutés.
+  - `e2e/api.spec.ts` : 1 test remplacé par 5 (401 sans auth, ADMIN 200, USER 200 filtré `clientId === userId`, VIEWER 200, `[id]` 401 sans auth).
+  - **14 tests E2E mis à jour** (8 specs) : `getFirstPartId(playwright)` / `listPartsAsAdmin(playwright)` / `getPartIdByStatus(playwright, status)` utilisent un **contexte isolé** (`playwright.request.newContext()`) pour ne pas authentifier le `request` du test (BetterAuth retourne 403 sur un 2ᵉ sign-in quand une session existe). Tests "without auth" → id bidon `00000000-...` (la route vérifie l'auth avant le lookup). Tests multi-rôle (USER sur part d'un autre client) → `listPartsAsAdmin(playwright)` pour lister + `authRequest(request, 'USER')` (1ᵉʳ sign-in sur le `request`).
+  - Specs impactés : `api.spec.ts`, `part-versions.spec.ts`, `part-version-diff.spec.ts`, `part-specifications.spec.ts`, `part-attachments.spec.ts`, `part-transitions.spec.ts`, `part-images.spec.ts`, `cloudinary-upload.spec.ts`, `admin/part-dossier.spec.ts` (storageState admin hérité par le `request` fixture — pas d'`authRequest` nécessaire).
+- **Cause racine E2E** : le `request` fixture Playwright **conserve les cookies** du sign-in dans son cookie jar. `getFirstPartId(request)` (qui sign-in ADMIN) **authentifiait** le `request` du test → les tests "without auth" (appel sans headers) obtenaient 200 au lieu de 401, et les 2ᵉ sign-ins (même ou différent rôle) obtenaient 403 (BetterAuth refuse un 2ᵉ sign-in quand une session existe). Solution : contexte isolé via `playwright.request.newContext()` pour les helpers de récupération d'id.
+- **Baseline finale E2-S07-E** :
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err (`playwright: any` — type `Playwright` non exporté de `@playwright/test`) |
+| Build | ✅ 54 routes (inchangé) |
+| Seed | ✅ users: 4, parts: 6 (part6 SUBMITTED client2) |
+| Tests E2E | ✅ 195 passed / 0 failed / 0 skip (baseline E2-S07-D 191 + 4 nouveaux tests net) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 14 migrations (inchangées), drift GIN + HNSW |
+
+### Points de rapport E2-S07-E
+
+1. **Baseline mesurée** : E2E 195 passed (191 E2-S07-D + 4 net : 1 test remplacé + 5 créés dans `api.spec.ts`), 0 failed, 0 skip — mesuré, non déduit.
+2. **Routes sécurisées** : `GET /api/parts` (auth VIEWER+ + filtre `clientId` USER) et `GET /api/parts/[id]` (auth VIEWER+ + ownership 403 USER) — vérifiées par 5 tests E2E.
+3. **Filtre `clientId` strict** : `getParts({ clientId })` (`src/lib/data/parts.ts:50-52`) — `where.clientId = options.clientId` (pas de `OR IS NULL`).
+4. **Aucun appelant UI** : RSC utilise `getParts()` directement (pas l'API `/api/parts`) — aucune mise à jour UI nécessaire (arbitrage 5).
+5. **Isolation E2E** : contexte isolé `playwright.request.newContext()` pour `getFirstPartId`/`listPartsAsAdmin`/`getPartIdByStatus` — ne pollue pas le `request` du test (cookie jar séparé).
+6. **Dettes** : `D-parts-list-public` résolue (historique DEBT.md), aucune dette créée.
+7. **Aucune déviation** — tous les arbitrages 1a-5a appliqués tels que validés.
+
+### Notes E2-S07-E
+
+- **Seed destructif** : `deleteMany` sur toutes les tables — exécuté avant la suite E2E (les tests transitionnent les parts SUBMITTED → stock épuisé sans reseed).
+- **`playwright: any`** : le type `Playwright` n'est pas exporté du namespace `@playwright/test` (TS2694) — `any` utilisé pour les paramètres `playwright` des helpers (le fixture est typé par Playwright dans les tests).
+- **`next-env.d.ts`** non modifié (règle #32).
+- Ordre sessions : E2-S07-E ✅ → E2-S08.
 
 ═══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session D-parts-list-public

@@ -1,15 +1,23 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
 
-async function getFirstPartId(
-  request: import('@playwright/test').APIRequestContext,
-): Promise<string> {
-  const response = await request.get('/api/parts');
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  expect(Array.isArray(parts)).toBe(true);
-  expect(parts.length).toBeGreaterThan(0);
-  return parts[0].id as string;
+async function getFirstPartId(playwright: any): Promise<string> {
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+    return parts[0].id as string;
+  } finally {
+    await ctx.dispose();
+  }
 }
 
 async function authRequest(
@@ -24,16 +32,20 @@ async function authRequest(
   return { headers: {} };
 }
 
-test('api: GET /api/parts/[id]/specifications without auth returns 401', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: GET /api/parts/[id]/specifications without auth returns 401', async ({
+  request,
+  playwright,
+}) => {
+  const partId = '00000000-0000-0000-0000-000000000000';
   const response = await request.get(`/api/parts/${partId}/specifications`);
   expect(response.status()).toBe(401);
 });
 
 test('api: GET /api/parts/[id]/specifications with auth returns 200 and JSON array', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.get(`/api/parts/${partId}/specifications`, {
     headers,
@@ -43,8 +55,11 @@ test('api: GET /api/parts/[id]/specifications with auth returns 200 and JSON arr
   expect(Array.isArray(body)).toBe(true);
 });
 
-test('api: POST /api/parts/[id]/specifications creates a specification', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: POST /api/parts/[id]/specifications creates a specification', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const key = `e2e-spec-${Date.now()}`;
@@ -68,8 +83,11 @@ test('api: POST /api/parts/[id]/specifications creates a specification', async (
   expect(body.partId).toBe(partId);
 });
 
-test('api: POST /api/parts/[id]/specifications duplicate key returns 409', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: POST /api/parts/[id]/specifications duplicate key returns 409', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const key = `e2e-dup-${Date.now()}`;
@@ -86,8 +104,11 @@ test('api: POST /api/parts/[id]/specifications duplicate key returns 409', async
   expect(second.status()).toBe(409);
 });
 
-test('api: PATCH /api/parts/[id]/specifications/[specId] updates value', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: PATCH /api/parts/[id]/specifications/[specId] updates value', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const key = `e2e-patch-${Date.now()}`;
@@ -108,8 +129,11 @@ test('api: PATCH /api/parts/[id]/specifications/[specId] updates value', async (
   expect(body.key).toBe(key);
 });
 
-test('api: DELETE /api/parts/[id]/specifications/[specId] returns 204', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+test('api: DELETE /api/parts/[id]/specifications/[specId] returns 204', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
   const key = `e2e-del-${Date.now()}`;
@@ -135,8 +159,9 @@ test('api: DELETE /api/parts/[id]/specifications/[specId] returns 204', async ({
 
 test('api: POST /api/parts/[id]/specifications with invalid payload returns 400', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post(`/api/parts/${partId}/specifications`, {
     headers,
@@ -147,8 +172,9 @@ test('api: POST /api/parts/[id]/specifications with invalid payload returns 400'
 
 test('api: GET /api/parts/[id]/specifications/[specId] unknown spec returns 404 on PATCH', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.patch(
     `/api/parts/${partId}/specifications/00000000-0000-0000-0000-000000000000`,

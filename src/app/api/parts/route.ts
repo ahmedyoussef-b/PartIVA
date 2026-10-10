@@ -7,7 +7,16 @@ import { NewPartSchema, type NewPart } from '@/schemas/part';
 import type { Part } from '@/generated/prisma/client';
 
 export async function GET() {
-  const parts = await getParts();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
+  }
+
+  const isUser = session.user.role === 'USER';
+  const parts = await getParts(isUser ? { clientId: session.user.id } : undefined);
   return NextResponse.json(parts);
 }
 

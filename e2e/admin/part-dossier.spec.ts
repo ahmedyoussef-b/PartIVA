@@ -1,4 +1,17 @@
 import { test, expect } from '@playwright/test';
+import { users } from '../fixtures/users';
+
+async function authRequest(
+  request: import('@playwright/test').APIRequestContext,
+  role: 'ADMIN' | 'USER' | 'VIEWER',
+) {
+  const user = users[role];
+  const response = await request.post('/api/auth/sign-in/email', {
+    data: { email: user.email, password: user.password },
+  });
+  expect(response.status()).toBe(200);
+  return { headers: {} };
+}
 
 async function getFirstPartId(
   request: import('@playwright/test').APIRequestContext,

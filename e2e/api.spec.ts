@@ -21,11 +21,52 @@ test('api: /api/search POST with empty body returns 200 and JSON array', async (
   expect(Array.isArray(body)).toBe(true);
 });
 
-test('api: /api/parts GET returns JSON', async ({ request }) => {
+test('api: /api/parts GET without auth returns 401', async ({ request }) => {
   const response = await request.get('/api/parts');
+  expect(response.status()).toBe(401);
+});
+
+test('api: /api/parts GET with ADMIN returns all parts', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/parts', { headers });
   expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(typeof body).toBe('object');
+  const parts = await response.json();
+  expect(Array.isArray(parts)).toBe(true);
+  expect(parts.length).toBeGreaterThan(0);
+});
+
+test('api: /api/parts GET with USER returns only own parts', async ({ request }) => {
+  const { headers } = await authRequest(request, 'USER');
+  const response = await request.get('/api/parts', { headers });
+  expect(response.status()).toBe(200);
+  const parts = await response.json();
+  expect(Array.isArray(parts)).toBe(true);
+
+  const sessionResponse = await request.get('/api/auth/get-session', {
+    headers,
+  });
+  const session = await sessionResponse.json();
+  const userId = session?.user?.id;
+
+  expect(parts.length).toBeGreaterThan(0);
+  for (const part of parts) {
+    expect(part.clientId).toBe(userId);
+  }
+});
+
+test('api: /api/parts GET with VIEWER returns all parts', async ({ request }) => {
+  const { headers } = await authRequest(request, 'VIEWER');
+  const response = await request.get('/api/parts', { headers });
+  expect(response.status()).toBe(200);
+  const parts = await response.json();
+  expect(Array.isArray(parts)).toBe(true);
+  expect(parts.length).toBeGreaterThan(0);
+});
+
+test('api: /api/parts/[id] GET without auth returns 401', async ({ request }) => {
+  const partId = '00000000-0000-0000-0000-000000000000';
+  const response = await request.get(`/api/parts/${partId}`);
+  expect(response.status()).toBe(401);
 });
 
 test('api: /api/requests GET returns JSON or 401', async ({ request }) => {

@@ -1,15 +1,23 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
 
-async function getFirstPartId(
-  request: import('@playwright/test').APIRequestContext,
-): Promise<string> {
-  const response = await request.get('/api/parts');
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  expect(Array.isArray(parts)).toBe(true);
-  expect(parts.length).toBeGreaterThan(0);
-  return parts[0].id as string;
+async function getFirstPartId(playwright: any): Promise<string> {
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+    return parts[0].id as string;
+  } finally {
+    await ctx.dispose();
+  }
 }
 
 // Connecte un rôle via l'API BetterAuth et retourne le contexte de requête
@@ -27,7 +35,7 @@ async function authRequest(
 }
 
 test('api: POST /api/parts/[id]/transition without auth returns 401', async ({ request }) => {
-  const partId = await getFirstPartId(request);
+  const partId = '00000000-0000-0000-0000-000000000000';
   const response = await request.post(`/api/parts/${partId}/transition`, {
     data: { toStatus: 'IDENTIFYING' },
   });
@@ -36,8 +44,9 @@ test('api: POST /api/parts/[id]/transition without auth returns 401', async ({ r
 
 test('api: POST /api/parts/[id]/transition with invalid toStatus returns 400', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post(`/api/parts/${partId}/transition`, {
     data: { toStatus: 'NOT_A_REAL_STATUS' },
@@ -47,23 +56,55 @@ test('api: POST /api/parts/[id]/transition with invalid toStatus returns 400', a
 });
 
 async function getPartIdByStatus(
-  request: import('@playwright/test').APIRequestContext,
+  playwright: any,
   status: string,
 ): Promise<string> {
-  const response = await request.get('/api/parts');
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  const part = parts.find((p: { status: string }) => p.status === status);
-  if (!part) {
-    throw new Error(`No part with status ${status} in seed`);
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    const part = parts.find((p: { status: string }) => p.status === status);
+    if (!part) {
+      throw new Error(`No part with status ${status} in seed`);
+    }
+    return part.id as string;
+  } finally {
+    await ctx.dispose();
   }
-  return part.id as string;
+}
+
+async function listPartsAsAdmin(
+  playwright: any,
+): Promise<Array<{ id: string; status: string; clientId?: string | null }>> {
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const response = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(response.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = await partsResponse.json();
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+    return parts;
+  } finally {
+    await ctx.dispose();
+  }
 }
 
 test('api: POST /api/parts/[id]/transition ADMIN SUBMITTED->IDENTIFYING returns 200', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getPartIdByStatus(request, 'SUBMITTED');
+  const partId = await getPartIdByStatus(playwright, 'SUBMITTED');
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post(`/api/parts/${partId}/transition`, {
     data: { toStatus: 'IDENTIFYING', reason: 'E2E test admin transition' },
@@ -74,8 +115,8 @@ test('api: POST /api/parts/[id]/transition ADMIN SUBMITTED->IDENTIFYING returns 
   expect(body.status).toBe('IDENTIFYING');
 });
 
-test('api: POST /api/parts/[id]/transition VIEWER returns 403', async ({ request }) => {
-  const partId = await getPartIdByStatus(request, 'SUBMITTED');
+test('api: POST /api/parts/[id]/transition VIEWER returns 403', async ({ request, playwright }) => {
+  const partId = await getPartIdByStatus(playwright, 'SUBMITTED');
   const { headers } = await authRequest(request, 'VIEWER');
   const response = await request.post(`/api/parts/${partId}/transition`, {
     data: { toStatus: 'IDENTIFYING' },
@@ -86,8 +127,9 @@ test('api: POST /api/parts/[id]/transition VIEWER returns 403', async ({ request
 
 test('api: POST /api/parts/[id]/transition impossible DRAFT->DELIVERED returns 409', async ({
   request,
+  playwright,
 }) => {
-  const partId = await getFirstPartId(request);
+  const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post(`/api/parts/${partId}/transition`, {
     data: { toStatus: 'DELIVERED' },
@@ -98,11 +140,10 @@ test('api: POST /api/parts/[id]/transition impossible DRAFT->DELIVERED returns 4
 
 test('api: POST /api/parts/[id]/transition USER on another client part returns 403', async ({
   request,
+  playwright,
 }) => {
   // Récupérer une pièce qui n'appartient pas au USER (clientId différent de user.id)
-  const partsResponse = await request.get('/api/parts');
-  expect(partsResponse.status()).toBe(200);
-  const parts = await partsResponse.json();
+  const parts = await listPartsAsAdmin(playwright);
 
   const { headers } = await authRequest(request, 'USER');
   const sessionResponse = await request.get('/api/auth/get-session', {
