@@ -82,6 +82,7 @@ model Part {
   status         PartStatus                  @default(DRAFT)
   categoryId     String?
   clientId       String?
+  searchVector   Unsupported("tsvector")?    @map("search_vector")
   createdAt      DateTime                    @default(now())
   updatedAt      DateTime                    @updatedAt
   attachments    Attachment[]
