@@ -20,7 +20,7 @@
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
 | **Dernière session** | E2-S04 (clôturée) |
 | **Session en cours** | E2-S05 (recherche par photo — à cadrer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications + recherche par dimensions), baseline 6/6 tenue, E2E 171-174/173 (fourchette), E2-S05 à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications + recherche par dimensions), baseline 6/6 tenue, E2E 172/173 (fourchette 171-174), E2-S05 à cadrer |
 
 ---
 
@@ -1847,8 +1847,8 @@ Recherche **textuelle** sur `PartSpecification.value` (matière, valeurs techniq
 ## E2-S04 — Recherche par dimensions (CLÔTURÉE)
 
 **Date :** 2026-10-10
-**Commits :** `1749828` (PR), `a8218b4` (A), `13763ec` (B), `<hash E2-S04-C>` (C), `<hash E2-S04-D>` (D)
-**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 171-174/173 (3 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible — contrainte environnementale acceptée), format 0, 12 migrations (inchangées — aucune migration créée), drift = index GIN uniquement (attendu R.4.1).
+**Commits :** `1749828` (PR), `a8218b4` (A), `13763ec` (B), `d0540f1` (C), `<hash E2-S04-D>` (D)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 172/173 (4 skips, 2 échecs intermittents `part-transitions` « No part with status SUBMITTED » — `D-e2e-isolation` Faible, contrainte environnementale acceptée), format 0, 12 migrations (inchangées — aucune migration créée), drift = index GIN uniquement (attendu R.4.1).
 
 ### Objet
 
@@ -1896,13 +1896,17 @@ Extension de `GET /api/search` avec `mode=dimensions` + `matchMode` (`nominal` d
 - **A.5 — Route** : handler `GET` étendu — dispatch `mode='dimensions'` → `searchPartsByDimensions({min, max, key, matchMode, clientId, limit})`. **Règle renforcée E2-S03-n°1 respectée** : les 7 champs (`q`, `limit`, `mode`, `key`, `min`, `max`, `matchMode`) explicitement passés depuis `searchParams` dans `PartSearchQuerySchema.parse()`. `validated.q!` (non-null assertion sûre — garanti par `superRefine` en mode non-dimensions), `matchMode ?? 'nominal'` (`.nullish()` peut produire `null` avant `.default()`). **`POST` E0-S07 intouché**.
 - **B** : `src/components/search-bar.tsx` — 4ᵉ onglet « Dimensions » (`role="tab"`, `aria-selected`). État `min`/`max` (inputs number), `specKey` (dropdown 8 clés + « Toutes »), `matchMode` (dropdown « Nominal (valeur) » | « Tolérance (plage) »). Le champ texte `q` est masqué en mode dimensions. `useEffect` dépend de `[query, mode, min, max, specKey, matchMode]` — construction d'URL conditionnelle (`URLSearchParams` : `min`/`max`/`key`/`matchMode` en dimensions, `q` sinon). Affichage résultats : `specKey : specValue unit` + `(tolérance min – max)` si tolérances présentes. Modes `text`/`reference`/`specs` inchangés.
 - **C** : ROADMAP.md l.174 amendée (3 colonnes strictes) — « Recherche par dimensions | Prédicats range sur `PartSpecification` (`value` nominal + `toleranceMin/Max`) — précisé 2026-10-10 (cf. memo E2-S04 Q1–Q10) : deux `matchMode` `nominal` (range valeur) / `tolerance` (tolérance couvrante), cast sécurisé `value ~ '^[0-9.]+$'` ». Coquille D-44 (l.139) non touchée.
-- **D** : `e2e/search.spec.ts` — 8 tests ajoutés (23 total) : range nominal avec key (20-30 `diameter_ext`), match exact nominal (52 `diameter_ext`), tolérance couvrante point (25 `diameter_int` ± [24.98, 25.02]), tolérance couvrante borne (130 `diameter_ext` ± [129.9, 130.1]), sans min/max → 400 (`superRefine`), `min=abc` → 400 (cast Zod), sans key → toutes clés, `key=material` → 0 (non numérique, exclu par regex). **Stratégie anti-résidus (D.1)** : `key` exclusif au seed (`diameter_ext`, `diameter_int`), assertions sur valeurs du seed (pas de counts absolus).
+- **D** : `e2e/search.spec.ts` — 9 tests ajoutés (24 total) : range nominal avec key (`diameter_int` dans [20,30] — seed : 25, 30), match exact nominal (52 `diameter_ext`), tolérance couvrante point (25 `diameter_int` ± [24.98, 25.02]), tolérance couvrante borne (130 `diameter_ext` ± [129.9, 130.1]), sans min/max → 400 (`superRefine`), `min=abc` → 400 (cast Zod), sans key → toutes clés (assertion `specKey` ∈ 8 clés numériques), `key=material` → 0 (non numérique, exclu par regex), `min=9999` → 0 (aucun résultat). **Stratégie anti-résidus (D.1)** : `key` exclusif au seed (`diameter_int`, `diameter_ext`), assertions sur valeurs du seed (pas de counts absolus). **9/9 tests dimensions passent** (ok 91-99).
 
 ### Incidents PCT E2-S04
 
 | Incident | Nature | Statut |
 |---|---|---|
 | E2-S04-n°1 | Typecheck TS2345/TS2322 ×4 dans `route.ts` — `validated.q` devenu `string \| undefined` (optionnel après E2-S04) mais `searchParts`/`searchPartsByReference`/`searchPartsBySpecs` attendent `string` ; `matchMode` `.nullish()` produit `null` avant `.default()`. | Résolu : `validated.q!` (non-null assertion sûre — garanti par `superRefine` en mode non-dimensions) + `matchMode ?? 'nominal'`. Typecheck EXIT=0. |
+| E2-S04-n°2 | E2E 7 échecs `mode=dimensions` (400 « Payload invalide » sur requêtes valides) — `ZodError path:["q"] "expected string, received null"`. Cause : `q: z.string().optional()` accepte `undefined` mais pas `null`, et la route passait `q: searchParams.get('q)` (retourne `null` quand absent, pas `undefined`). Avant E2-S04, `q` était requis (non-null) donc le `null` n'était jamais atteint. | Résolu : `q: searchParams.get('q') ?? undefined` (`route.ts:42`) — normalise `null` → `undefined` pour les 7 champs. Diagnostic via log temporaire `ZodError details` (retiré après fix). Vérifié : 9/9 tests dimensions passent. |
+| E2-S04-n°3 | E2E test 1 (`diameter_ext` dans [20,30]) → `count: 0` — les `diameter_ext` du seed sont 52, 130, 62, 52 (aucun dans [20,30]). Erreur de test (plage invalide pour la clé choisie), pas de code. | Résolu : test 1 changé en `key=diameter_int` (seed : 25, 30 — dans [20,30]). |
+| E2-S04-n°4 | `route.ts` syntaxiquement invalide (`Expected '}', got '<eof>'` l.92) — un edit intermédiaire a supprimé les deux `}` fermantes (catch + fonction GET). Le dev server retournait 500 (page erreur Next.js HTML). | Résolu : restauration des `}` fermantes. Typecheck + Prettier verts. |
+| E2-S04-n°5 | 2 échecs `part-transitions.spec.ts` (« No part with status SUBMITTED in seed ») — préexistants, intermittents (`D-e2e-isolation` Faible) : les 4 parts SUBMITTED du seed sont consommées par des tests antérieurs dans le run partagé. Non lié à E2-S04. | Tracé : contrainte environnementale acceptée (R.4). Les 9 tests dimensions passent tous. |
 
 ### Dettes résolues
 
@@ -1932,7 +1936,7 @@ Extension de `GET /api/search` avec `mode=dimensions` + `matchMode` (`nominal` d
 | TypeScript | ✅ 0 err |
 | Build | ✅ 36/36 routes |
 | Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
-| Tests E2E | ✅ 171-174/173 (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) — 8 nouveaux tests dimensions. Fourchette 171-174 selon instabilité `D-e2e-isolation` |
+| Tests E2E | ✅ 172/173 (4 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel + 1 `part-transitions` SUBMITTED consommé) — 9 nouveaux tests dimensions (9/9 passent). 2 échecs intermittents `part-transitions` (`D-e2e-isolation` Faible, préexistants). Fourchette 171-174 selon instabilité |
 | Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json` — fichier infra non commité) |
 | Prisma migrate | ✅ 12 migrations (inchangées — aucune migration E2-S04), drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu R.4.1) |
 

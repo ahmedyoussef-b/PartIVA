@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const validated = PartSearchQuerySchema.parse({
-      q: searchParams.get('q'),
+      q: searchParams.get('q') ?? undefined,
       limit: searchParams.get('limit') ?? undefined,
       mode: searchParams.get('mode') ?? undefined,
       key: searchParams.get('key') ?? undefined,

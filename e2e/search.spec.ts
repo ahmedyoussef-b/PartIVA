@@ -177,3 +177,146 @@ test('api: GET /api/search mode=specs with no match returns 200 and count 0', as
   expect(body.count).toBe(0);
   expect(body.results).toEqual([]);
 });
+
+test('api: GET /api/search mode=dimensions nominal range returns 200 with spec results', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?mode=dimensions&min=20&max=30&key=diameter_int', {
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.mode).toBe('dimensions');
+  expect(body.count).toBeGreaterThan(0);
+  for (const result of body.results) {
+    expect(result.specKey).toBe('diameter_int');
+    expect(result).toHaveProperty('specValue');
+    expect(result).toHaveProperty('unit');
+    const numericValue = Number(result.specValue);
+    expect(numericValue).toBeGreaterThanOrEqual(20);
+    expect(numericValue).toBeLessThanOrEqual(30);
+  }
+});
+
+test('api: GET /api/search mode=dimensions nominal exact match returns 200', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get(
+    '/api/search?mode=dimensions&min=52&max=52&key=diameter_ext&matchMode=nominal',
+    { headers },
+  );
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  const exact = body.results.find(
+    (r: { ptvReference: string | null }) => r.ptvReference === 'PTV-2026-000001',
+  );
+  expect(exact).toBeTruthy();
+  expect(exact.specKey).toBe('diameter_ext');
+  expect(exact.specValue).toBe('52');
+});
+
+test('api: GET /api/search mode=dimensions tolerance covering point returns 200', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get(
+    '/api/search?mode=dimensions&min=25&max=25&key=diameter_int&matchMode=tolerance',
+    { headers },
+  );
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  const covering = body.results.find(
+    (r: { ptvReference: string | null }) => r.ptvReference === 'PTV-2026-000001',
+  );
+  expect(covering).toBeTruthy();
+  expect(covering.specKey).toBe('diameter_int');
+  expect(covering.specValue).toBe('25');
+  expect(covering.toleranceMin).toBe(24.98);
+  expect(covering.toleranceMax).toBe(25.02);
+});
+
+test('api: GET /api/search mode=dimensions tolerance covering bound returns 200', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get(
+    '/api/search?mode=dimensions&min=130&key=diameter_ext&matchMode=tolerance',
+    { headers },
+  );
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  const covering = body.results.find(
+    (r: { ptvReference: string | null }) => r.ptvReference === 'PTV-2026-000002',
+  );
+  expect(covering).toBeTruthy();
+  expect(covering.toleranceMin).toBe(129.9);
+  expect(covering.toleranceMax).toBe(130.1);
+});
+
+test('api: GET /api/search mode=dimensions without min/max returns 400', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?mode=dimensions', {
+    headers,
+  });
+  expect(response.status()).toBe(400);
+});
+
+test('api: GET /api/search mode=dimensions with non-numeric min returns 400', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?mode=dimensions&min=abc', { headers });
+  expect(response.status()).toBe(400);
+});
+
+test('api: GET /api/search mode=dimensions without key returns all numeric keys', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?mode=dimensions&min=20&max=30', { headers });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  const numericKeys = [
+    'diameter_ext',
+    'diameter_int',
+    'width',
+    'weight',
+    'module',
+    'teeth',
+    'bore',
+    'contact_angle',
+  ];
+  for (const result of body.results) {
+    expect(numericKeys).toContain(result.specKey);
+  }
+});
+
+test('api: GET /api/search mode=dimensions with key=material returns 200 and count 0', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?mode=dimensions&min=20&max=30&key=material', {
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBe(0);
+  expect(body.results).toEqual([]);
+});
+
+test('api: GET /api/search mode=dimensions with no match returns 200 and count 0', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?mode=dimensions&min=9999', { headers });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBe(0);
+  expect(body.results).toEqual([]);
+});
