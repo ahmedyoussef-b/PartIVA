@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S04 (clôturée) |
-| **Session en cours** | E2-S05 (recherche par photo — pgvector + HNSW + API) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications + recherche par dimensions + recherche par photo), baseline 6/6 tenue, E2E 172/178 (fourchette 171-174, 2 échecs intermittents `D-e2e-isolation`), E2-S06 à cadrer |
+| **Dernière session** | E2-S06 (clôturée) |
+| **Session en cours** | E2-S07 (détection des informations manquantes) — à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères), baseline 6/6 tenue, E2E 176/182 (2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S07 à cadrer |
 
 ---
 
@@ -41,8 +41,8 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`)
-- [ ] **Phase 2 — Core Features** : E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`) + E2-S06 (score multi-critères unifié, `ScoringWeights` DB, `GET /api/search?mode=multi`, UI onglet Multi + badge score + breakdown repliable)
+- [ ] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -2037,6 +2037,90 @@ Recherche **visuelle** sur `PartImage` — colonne `embedding vector(768)` (pgve
 - **`next-env.d.ts`** non modifié (règle #32 respectée, restauré via `git checkout`).
 - E2-S06 (système de score multi-critères) peut être cadré.
 
+## E2-S06 — Score multi-critères unifié (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `<hash E2-S06-C>` (clôture documentaire)
+**Baseline :** lint 0/0, typecheck 0, build 53 routes (inchangé — `mode=multi` intégré dans `/api/search` existante), seed idempotent, E2E 176/182 (27/27 `search.spec.ts` dont 4 nouveaux multi ; 2 échecs `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), format 0, 14 migrations, drift = GIN + HNSW uniquement (attendu R.4.1 + R.4.1-bis).
+
+### Objet
+
+Combiner les 5 modes de recherche (texte, référence, specs, dimensions, photo) en un **score unifié** par part, pondéré et normalisé (D125-bis, D131, D132, D133, D134, D135).
+
+### Blocs
+
+| Bloc | Objet | Statut |
+|---|---|---|
+| A.1 | `ScoringWeights` (schema.prisma) | ✅ |
+| A.2 | Migration `20261010160000_add_scoring_weights` (créée manuellement — `migrate dev --create-only` bloqué par le drift GIN R.4.1) | ✅ |
+| B.1 | `src/lib/scoring.ts` (min-max, renormalisation, `computeScore`, `loadScoringWeights`) | ✅ |
+| B.2 | `src/lib/data/multi-search.ts` (`multiSearch` — agrégation Map, signaux, tri score) | ✅ |
+| C.1 | `GET /api/search` — branchement `mode=multi` (POST E0-S07 intouché) | ✅ |
+| C.2 | `MultiSearchQuerySchema` + retrait `photo` de l'enum `PartSearchQuerySchema.mode` (D133, option C2-a) | ✅ |
+| D.1 | UI `search-bar.tsx` — 5ᵉ onglet « Multi » (q, reference, min/max), badge score `toFixed(2)`, `<details>` breakdown repliable | ✅ |
+| D.2 | 4 tests E2E multi-critères (`e2e/search.spec.ts`) | ✅ |
+| 12 | Validation complète (lint, tsc, format, prisma, build, E2E) | ✅ |
+| 13 | Clôture documentaire (SESSION, DEBT, ROADMAP) | ✅ |
+
+### Décisions verrouillées
+
+- **D131** : poids égaux (0.2), min-max sur text/specs/photo, dimensions binaire 1/0, référence exact=1.0 / préfixe=0.5, renormalisation si critère absent (photo exclue silencieusement si `HF_API_TOKEN` absent — `EmbeddingError` `MISSING_TOKEN` interceptée).
+- **D132** : route unifiée `GET /api/search?mode=multi` — `POST` E0-S07 préservé (candidats fournisseurs, public).
+- **D133** : `MultiSearchQuerySchema` (superRefine : au moins un critère parmi q/reference/specs/min/max) + **C2-a** : `photo` retiré de l'enum `PartSearchQuerySchema.mode` (le GET ne le gère pas — `mode=photo` → 400).
+- **D134** : UI score + détail repliable (`<details>` natif) — version minimale 3 signaux (q, reference, min/max) ; UI complète photo + poids → `D-scoring-weights-ui`.
+- **D135** : 4 tests E2E multi (q seul 200, reference seule 200, sans critère 400, score + breakdown + tri décroissant).
+
+### Incidents PCT E2-S06
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S06-n°1 | `prisma migrate dev --name scoring_weights --create-only` bloqué par le drift GIN (R.4.1) — Prisma refuse toute migration tant que le drift existe. | Résolu : migration SQL créée manuellement (contenu standard, aucun `Unsupported` impliqué) + `prisma migrate deploy`. 14 migrations, 0 drift hors GIN+HNSW. |
+| E2-S06-n°2 | `tsc` TS2339 `scoringWeights` sur `PrismaClient` — client généré avant l'ajout du modèle. | Résolu : `npx prisma generate`. Typecheck EXIT=0. |
+| E2-S06-n°3 | `format:check` — 3 fichiers modifiés non conformes Prettier. | Résolu : `prettier --write` sur les fichiers modifiés. Format 0 (hors `.kilo/agent-manager.json`, fichier infra non commité). |
+| E2-S06-n°4 | 2 échecs `part-transitions.spec.ts` (« No part with status SUBMITTED in seed ») — **préexistants à E2-S05** (vérifié par `git stash` sur `b63d444` : même échec sans les modifications E2-S06). | Tracé : `D-e2e-isolation` Faible, contrainte environnementale acceptée. Non lié à E2-S06. |
+
+### Dettes résolues
+
+- Score multi-critères unifié (E2-S06) — implémenté (schéma + migration + scoring + multi-search + route + UI + tests).
+- Écart D133 (`mode=photo` dans l'enum mais absent du dispatch GET) — résolu par C2-a.
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-embedding-model-catalog` (nouvelle, Faible) | Documenter modèles alternatifs (SigLIP, OpenVision, Franca) + UI admin future |
+| `D-scoring-weights-ui` (nouvelle, Faible) | UI admin d'ajustement des poids (`scoring_weights`) |
+| `D-photo-embedding-backfill`, `D-photo-ui`, `D-hnsw-drift`, `D-embedding-model-deviation`, `D-embedding-api-cost`, `D-pgvector-prisma8`, `D-photo-threshold-tuning`, `D-photo-e2e-token`, `D-e2e-isolation` | inchangés |
+
+### Baseline finale E2-S06
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 53 routes (inchangé — `mode=multi` intégré dans `/api/search` existante, aucune nouvelle route) |
+| Seed | ✅ idempotent |
+| Tests E2E | ✅ 176/182 (27/27 `search.spec.ts` dont 4 nouveaux multi ; 2 échecs `part-transitions` préexistants `D-e2e-isolation` ; 4 skips `D-e2e-multitenant` + conditionnels) |
+| Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json`) |
+| Prisma migrate | ✅ 14 migrations, drift = GIN + HNSW uniquement (attendu R.4.1 + R.4.1-bis) |
+
+### Points de rapport obligatoires (§3 du rapport E2-S06)
+
+1. **Baseline mesurée** : build 53 routes, E2E 176/182 (mesurés, non déduits — leçon n°6).
+2. **Drift** : GIN (`parts_search_vector_idx`) + HNSW (`part_images_embedding_hnsw`) uniquement — confirmé via `migrate diff --from-config-datasource --to-schema`.
+3. **`mode=photo`** : C2-a appliqué — `photo` retiré de l'enum `PartSearchQuerySchema.mode`.
+4. **`POST` E0-S07** : non modifié (vérifié `git diff src/app/api/search/route.ts` — seul le GET change).
+5. **Score dimensions** : binaire 1/0 confirmé (`entry.signals.dimensions = 1`).
+6. **Renormalisation** : photo absente (token HF manquant) → `EmbeddingError` `MISSING_TOKEN` interceptée, signal photo exclu, poids renormalisés sur les critères présents par `computeScore`.
+7. **Déviation** : migration A.2 créée manuellement (au lieu de `migrate dev --create-only` bloqué par le drift GIN) — contenu SQL standard, aucun `Unsupported`, appliquée via `migrate deploy`. Aucune autre déviation.
+
+### Notes
+
+- **`multiSearch`** agrège par `Map<partId, IntermediateEntry>` — une part apparaissant dans plusieurs critères cumule ses signaux ; le score global est la somme pondérée renormalisée.
+- **`limit * 2`** candidats par critère avant agrégation (marge de fusion), tranché à `limit` final après tri.
+- **`next-env.d.ts`** non modifié (règle #32).
+- E2-S07 (détection des informations manquantes) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S06
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S07
 ═══════════════════════════════════════════════════════════════

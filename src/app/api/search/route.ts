@@ -8,7 +8,8 @@ import {
   searchPartsBySpecs,
   searchPartsByDimensions,
 } from '@/lib/data/search';
-import { PartSearchQuerySchema } from '@/schemas/search';
+import { PartSearchQuerySchema, MultiSearchQuerySchema } from '@/schemas/search';
+import { multiSearch } from '@/lib/data/multi-search';
 
 export async function POST(req: Request) {
   try {
@@ -38,18 +39,53 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url);
+    const modeParam = searchParams.get('mode');
+
+    const isUser = session.user.role === 'USER';
+    const clientId = isUser ? session.user.id : undefined;
+
+    if (modeParam === 'multi') {
+      const validatedMulti = MultiSearchQuerySchema.parse({
+        q: searchParams.get('q') ?? undefined,
+        reference: searchParams.get('reference') ?? undefined,
+        specs: searchParams.get('specs') ?? undefined,
+        specKey: searchParams.get('specKey') ?? undefined,
+        min: searchParams.get('min') ?? undefined,
+        max: searchParams.get('max') ?? undefined,
+        dimensionKey: searchParams.get('dimensionKey') ?? undefined,
+        matchMode: searchParams.get('matchMode') ?? undefined,
+        limit: searchParams.get('limit') ?? undefined,
+      });
+
+      const results = await multiSearch({
+        q: validatedMulti.q,
+        reference: validatedMulti.reference,
+        specs: validatedMulti.specs,
+        specKey: validatedMulti.specKey,
+        min: validatedMulti.min,
+        max: validatedMulti.max,
+        dimensionKey: validatedMulti.dimensionKey,
+        matchMode: validatedMulti.matchMode,
+        clientId,
+        limit: validatedMulti.limit,
+      });
+
+      return NextResponse.json({
+        mode: 'multi',
+        count: results.length,
+        results,
+      });
+    }
+
     const validated = PartSearchQuerySchema.parse({
       q: searchParams.get('q') ?? undefined,
       limit: searchParams.get('limit') ?? undefined,
-      mode: searchParams.get('mode') ?? undefined,
+      mode: modeParam ?? undefined,
       key: searchParams.get('key') ?? undefined,
       min: searchParams.get('min') ?? undefined,
       max: searchParams.get('max') ?? undefined,
       matchMode: searchParams.get('matchMode') ?? undefined,
     });
-
-    const isUser = session.user.role === 'USER';
-    const clientId = isUser ? session.user.id : undefined;
 
     const results =
       validated.mode === 'reference'

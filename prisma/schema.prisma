@@ -8,21 +8,21 @@ datasource db {
 }
 
 model User {
-  id        String                      @id @default(cuid())
-  email     String                      @unique
-  name      String?
-  role      UserRole                    @default(USER)
-  image     String?
-  emailVerified Boolean @default(false)
-  createdAt DateTime                    @default(now())
-  updatedAt DateTime                    @updatedAt
-  accounts  Account[]
-  auditLogs AuditLog[]
-  requests  Request[]                   @relation("UserRequests")
-  projects  ReverseEngineeringProject[]
-  sessions  Session[]
-  parts     Part[]                      @relation("PartClient")
-  partVersions PartVersion[]
+  id            String                      @id @default(cuid())
+  email         String                      @unique
+  name          String?
+  role          UserRole                    @default(USER)
+  image         String?
+  emailVerified Boolean                     @default(false)
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  accounts      Account[]
+  auditLogs     AuditLog[]
+  requests      Request[]                   @relation("UserRequests")
+  projects      ReverseEngineeringProject[]
+  sessions      Session[]
+  parts         Part[]                      @relation("PartClient")
+  partVersions  PartVersion[]
 
   @@map("users")
 }
@@ -117,33 +117,33 @@ model PartCategory {
 }
 
 model PartImage {
-  id        String   @id @default(cuid())
+  id        String                      @id @default(cuid())
   partId    String
   url       String
   publicId  String?
   altText   String?
   caption   String?
-  order     Int      @default(0)
-  isPrimary Boolean  @default(false)
+  order     Int                         @default(0)
+  isPrimary Boolean                     @default(false)
   embedding Unsupported("vector(768)")? @map("embedding")
-  createdAt DateTime @default(now())
-  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  createdAt DateTime                    @default(now())
+  part      Part                        @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@index([partId])
   @@map("part_images")
 }
 
 model PartSpecification {
-  id            String   @id @default(cuid())
-  partId        String
-  key           String
-  value         String
-  unit          String?
-  toleranceMin  Float?
-  toleranceMax  Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  part          Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  partId       String
+  key          String
+  value        String
+  unit         String?
+  toleranceMin Float?
+  toleranceMax Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  part         Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@unique([partId, key])
   @@map("part_specifications")
@@ -251,14 +251,14 @@ model Attachment {
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String?
-  action     String
-  entityType String
-  entityId   String
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  user       User?    @relation(fields: [userId], references: [id])
+  id           String        @id @default(cuid())
+  userId       String?
+  action       String
+  entityType   String
+  entityId     String
+  metadata     Json?
+  createdAt    DateTime      @default(now())
+  user         User?         @relation(fields: [userId], references: [id])
   partVersions PartVersion[]
 
   @@index([userId])
@@ -268,16 +268,16 @@ model AuditLog {
 }
 
 model PartVersion {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   partId        String
-  part          Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  part          Part      @relation(fields: [partId], references: [id], onDelete: Cascade)
   versionNumber Int
   snapshot      Json
   auditLogId    String?
   auditLog      AuditLog? @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
   createdById   String?
-  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt     DateTime @default(now())
+  createdBy     User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
 
   @@unique([partId, versionNumber])
   @@index([partId])
@@ -321,9 +321,9 @@ model Machine {
 }
 
 model Material {
-  id                  String   @id @default(cuid())
-  slug                String   @unique
-  code                String   @unique
+  id                  String           @id @default(cuid())
+  slug                String           @unique
+  code                String           @unique
   name                String
   category            MaterialCategory
   density             Float?
@@ -332,12 +332,12 @@ model Material {
   hardness            String?
   frictionCoefficient Float?
   resistanceChemical  String?
-  foodGrade           Boolean  @default(false)
+  foodGrade           Boolean          @default(false)
   description         String?
   advantages          String[]
   commonApplications  String[]
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   @@index([category])
   @@map("materials")
@@ -432,7 +432,7 @@ model SearchCandidate {
   manufacturer       String?
   imageUrl           String?
   cadAvailable       Boolean  @default(false)
-  datasheetAvailable Boolean @default(false)
+  datasheetAvailable Boolean  @default(false)
   scores             Json
   metadata           Json?
   createdAt          DateTime @default(now())
@@ -442,4 +442,18 @@ model SearchCandidate {
   @@index([reference])
   @@index([createdAt])
   @@map("search_candidates")
+}
+
+model ScoringWeights {
+  id         String   @id @default(cuid())
+  name       String   @unique @default("default")
+  text       Float    @default(0.2)
+  reference  Float    @default(0.2)
+  specs      Float    @default(0.2)
+  dimensions Float    @default(0.2)
+  photo      Float    @default(0.2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("scoring_weights")
 }

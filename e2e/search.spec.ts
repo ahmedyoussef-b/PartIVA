@@ -320,3 +320,64 @@ test('api: GET /api/search mode=dimensions with no match returns 200 and count 0
   expect(body.count).toBe(0);
   expect(body.results).toEqual([]);
 });
+
+test.describe('Recherche multi-critères', () => {
+  test('multi avec q seul → 200', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=roulement', {
+      headers,
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.mode).toBe('multi');
+    expect(body.count).toBeGreaterThan(0);
+    for (const result of body.results) {
+      expect(typeof result.score).toBe('number');
+      expect(result.breakdown).toHaveProperty('text');
+    }
+  });
+
+  test('multi avec reference seule → 200', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&reference=PTV-2026', {
+      headers,
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.mode).toBe('multi');
+    expect(body.count).toBeGreaterThan(0);
+    for (const result of body.results) {
+      expect(typeof result.score).toBe('number');
+      expect(result.breakdown).toHaveProperty('reference');
+    }
+  });
+
+  test('multi sans critère → 400', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi', { headers });
+    expect(response.status()).toBe(400);
+  });
+
+  test('multi retourne score + breakdown', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get(
+      '/api/search?mode=multi&q=roulement&reference=PTV-2026&min=20&max=30',
+      { headers },
+    );
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.mode).toBe('multi');
+    expect(body.count).toBeGreaterThan(0);
+    for (const result of body.results) {
+      expect(typeof result.score).toBe('number');
+      expect(result.score).toBeGreaterThanOrEqual(0);
+      expect(result.score).toBeLessThanOrEqual(1);
+      expect(typeof result.breakdown).toBe('object');
+      expect(Object.keys(result.breakdown).length).toBeGreaterThan(0);
+    }
+    const sorted = [...body.results].sort(
+      (a: { score: number }, b: { score: number }) => b.score - a.score,
+    );
+    expect(body.results).toEqual(sorted);
+  });
+});

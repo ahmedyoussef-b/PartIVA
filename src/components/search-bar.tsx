@@ -9,7 +9,7 @@ import { Search, MapPin } from 'lucide-react';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import type { PartStatus } from '@/generated/prisma/browser';
 
-type SearchMode = 'text' | 'reference' | 'specs' | 'dimensions';
+type SearchMode = 'text' | 'reference' | 'specs' | 'dimensions' | 'multi';
 
 interface SearchResultItem {
   id: string;
@@ -26,6 +26,8 @@ interface SearchResultItem {
   unit?: string | null;
   toleranceMin?: number | null;
   toleranceMax?: number | null;
+  score?: number;
+  breakdown?: Record<string, number>;
 }
 
 const DIMENSION_KEYS = [
@@ -48,17 +50,25 @@ export function SearchBar() {
   const [max, setMax] = React.useState('');
   const [specKey, setSpecKey] = React.useState('');
   const [matchMode, setMatchMode] = React.useState<'nominal' | 'tolerance'>('nominal');
+  const [multiReference, setMultiReference] = React.useState('');
   const [results, setResults] = React.useState<SearchResultItem[]>([]);
   const [searched, setSearched] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const router = useRouter();
 
   const isDimensions = mode === 'dimensions';
+  const isMulti = mode === 'multi';
   const hasDimensionBounds = min !== '' || max !== '';
 
   React.useEffect(() => {
     if (isDimensions) {
       if (!hasDimensionBounds) {
+        return;
+      }
+    } else if (isMulti) {
+      const hasCriteria =
+        query.trim().length >= 2 || multiReference.trim().length >= 2 || min !== '' || max !== '';
+      if (!hasCriteria) {
         return;
       }
     } else {
@@ -82,6 +92,19 @@ export function SearchBar() {
         params.set('key', specKey);
       }
       params.set('matchMode', matchMode);
+    } else if (isMulti) {
+      if (query.trim().length >= 2) {
+        params.set('q', query.trim());
+      }
+      if (multiReference.trim().length >= 2) {
+        params.set('reference', multiReference.trim());
+      }
+      if (min !== '') {
+        params.set('min', min);
+      }
+      if (max !== '') {
+        params.set('max', max);
+      }
     } else {
       params.set('q', query.trim());
     }
@@ -107,13 +130,28 @@ export function SearchBar() {
     return () => {
       clearTimeout(timer);
     };
-  }, [query, mode, min, max, specKey, matchMode, isDimensions, hasDimensionBounds]);
+  }, [
+    query,
+    mode,
+    min,
+    max,
+    specKey,
+    matchMode,
+    multiReference,
+    isDimensions,
+    isMulti,
+    hasDimensionBounds,
+  ]);
 
   const showEmpty =
     !pending &&
     searched &&
     results.length === 0 &&
-    (isDimensions ? hasDimensionBounds : query.trim().length >= 2);
+    (isDimensions
+      ? hasDimensionBounds
+      : isMulti
+        ? query.trim().length >= 2 || multiReference.trim().length >= 2 || min !== '' || max !== ''
+        : query.trim().length >= 2);
 
   return (
     <div className="space-y-4">
@@ -170,6 +208,19 @@ export function SearchBar() {
         >
           Dimensions
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'multi'}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'multi'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/70'
+          }`}
+          onClick={() => setMode('multi')}
+        >
+          Multi
+        </button>
       </div>
 
       {isDimensions ? (
@@ -213,6 +264,40 @@ export function SearchBar() {
             <option value="nominal">Nominal (valeur)</option>
             <option value="tolerance">Tolérance (plage)</option>
           </select>
+        </div>
+      ) : isMulti ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Texte (nom, matière…)…"
+            className="w-48"
+            aria-label="Recherche texte"
+          />
+          <Input
+            value={multiReference}
+            onChange={(e) => setMultiReference(e.target.value)}
+            placeholder="Référence (PTV-…)…"
+            className="w-48"
+            aria-label="Référence"
+          />
+          <Input
+            type="number"
+            value={min}
+            onChange={(e) => setMin(e.target.value)}
+            placeholder="Min"
+            className="w-24"
+            aria-label="Valeur minimale"
+          />
+          <span className="text-muted-foreground text-xs">à</span>
+          <Input
+            type="number"
+            value={max}
+            onChange={(e) => setMax(e.target.value)}
+            placeholder="Max"
+            className="w-24"
+            aria-label="Valeur maximale"
+          />
         </div>
       ) : (
         <div className="relative">
@@ -288,6 +373,20 @@ export function SearchBar() {
                           )}
                       </p>
                     )}
+                    {typeof result.score === 'number' && (
+                      <details className="mt-0.5">
+                        <summary className="text-muted-foreground cursor-pointer text-[11px]">
+                          Détail du score
+                        </summary>
+                        <ul className="text-muted-foreground mt-0.5 space-y-0.5 text-[11px]">
+                          {Object.entries(result.breakdown ?? {}).map(([key, value]) => (
+                            <li key={key}>
+                              {key} : {value.toFixed(2)}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     <Badge variant="outline" className="font-mono text-[10px]">
@@ -311,6 +410,15 @@ export function SearchBar() {
                         {result.rank.toFixed(2)}
                       </Badge>
                     )}
+                    {typeof result.score === 'number' && (
+                      <Badge
+                        variant="secondary"
+                        className="font-mono text-[10px]"
+                        title="Score multi-critères"
+                      >
+                        {result.score.toFixed(2)}
+                      </Badge>
+                    )}
                   </div>
                 </button>
               ))}
@@ -327,7 +435,9 @@ export function SearchBar() {
             ? 'Recherche full-text PostgreSQL sur les valeurs de spécifications (matière, dimensions, …).'
             : mode === 'dimensions'
               ? 'Recherche numérique sur les spécifications — range sur la valeur nominale ou tolérance couvrante.'
-              : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
+              : mode === 'multi'
+                ? 'Recherche multi-critères — combine texte, référence et dimensions en un score pondéré.'
+                : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
       </p>
     </div>
   );

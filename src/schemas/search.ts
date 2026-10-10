@@ -50,7 +50,7 @@ export const PartSearchQuerySchema = z
       .nullish()
       .transform((v) => v ?? undefined)
       .default(20),
-    mode: z.enum(['text', 'reference', 'specs', 'dimensions', 'photo']).nullish().default('text'),
+    mode: z.enum(['text', 'reference', 'specs', 'dimensions']).nullish().default('text'),
     key: z
       .string()
       .min(1)
@@ -85,6 +85,42 @@ export const PartSearchQuerySchema = z
     }
   });
 export type PartSearchQuery = z.infer<typeof PartSearchQuerySchema>;
+
+export const MultiSearchQuerySchema = z
+  .object({
+    q: z.string().min(2).max(200).optional(),
+    reference: z.string().min(2).max(200).optional(),
+    specs: z.string().min(2).max(200).optional(),
+    specKey: z.string().min(1).max(50).optional(),
+    min: z.coerce.number().optional(),
+    max: z.coerce.number().optional(),
+    dimensionKey: z.string().min(1).max(50).optional(),
+    matchMode: z.enum(['nominal', 'tolerance']).optional().default('nominal'),
+    limit: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(50)
+      .nullish()
+      .transform((v) => v ?? undefined)
+      .default(20),
+  })
+  .superRefine((data, ctx) => {
+    const hasAny =
+      data.q !== undefined ||
+      data.reference !== undefined ||
+      data.specs !== undefined ||
+      data.min !== undefined ||
+      data.max !== undefined;
+    if (!hasAny) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Au moins un critère est requis (q, reference, specs, min ou max)',
+        path: ['q'],
+      });
+    }
+  });
+export type MultiSearchQuery = z.infer<typeof MultiSearchQuerySchema>;
 
 export const MeasuresSchema = z.object({
   length: z.number().optional(),
