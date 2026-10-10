@@ -394,3 +394,56 @@ test.describe('Recherche multi-critères', () => {
     expect(body.results).toEqual(sorted);
   });
 });
+
+test.describe('Recherche par photo', () => {
+  // 1×1 PNG valide (base64) — payload minimal accepté par la route.
+  const PNG_1PX_BASE64 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+  test('photo POST /api/search/photo without auth returns 401', async ({ request }) => {
+    const response = await request.post('/api/search/photo', {
+      data: { mimeType: 'image/png', data: PNG_1PX_BASE64 },
+    });
+    expect(response.status()).toBe(401);
+  });
+
+  test('photo POST /api/search/photo with invalid mime returns 400', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.post('/api/search/photo', {
+      headers,
+      data: { mimeType: 'image/gif', data: PNG_1PX_BASE64 },
+    });
+    expect(response.status()).toBe(400);
+  });
+
+  test('photo POST /api/search/photo without HF token returns 503', async ({ request }) => {
+    test.skip(
+      Boolean(process.env.HF_API_TOKEN),
+      "HF_API_TOKEN défini — le chemin 503 ne s'applique pas",
+    );
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.post('/api/search/photo', {
+      headers,
+      data: { mimeType: 'image/png', data: PNG_1PX_BASE64 },
+    });
+    expect(response.status()).toBe(503);
+    const body = await response.json();
+    expect(String(body.message)).toContain('HF_API_TOKEN');
+  });
+
+  test('photo POST /api/search/photo with valid image returns 200 (si token HF)', async ({
+    request,
+  }) => {
+    test.skip(!process.env.HF_API_TOKEN, 'HF_API_TOKEN absent — chemin succès non testable');
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.post('/api/search/photo', {
+      headers,
+      data: { mimeType: 'image/png', data: PNG_1PX_BASE64, limit: 20 },
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.mode).toBe('photo');
+    expect(typeof body.count).toBe('number');
+    expect(Array.isArray(body.results)).toBe(true);
+  });
+});

@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, ImagePlus } from 'lucide-react';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import type { PartStatus } from '@/generated/prisma/browser';
 
-type SearchMode = 'text' | 'reference' | 'specs' | 'dimensions' | 'multi';
+type SearchMode = 'text' | 'reference' | 'specs' | 'dimensions' | 'multi' | 'photo';
 
 interface SearchResultItem {
   id: string;
@@ -41,6 +41,8 @@ const DIMENSION_KEYS = [
   'contact_angle',
 ];
 
+const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 const DEBOUNCE_MS = 300;
 
 export function SearchBar() {
@@ -51,6 +53,10 @@ export function SearchBar() {
   const [specKey, setSpecKey] = React.useState('');
   const [matchMode, setMatchMode] = React.useState<'nominal' | 'tolerance'>('nominal');
   const [multiReference, setMultiReference] = React.useState('');
+  const [photoFile, setPhotoFile] = React.useState<File | null>(null);
+  const [photoData, setPhotoData] = React.useState('');
+  const [photoMime, setPhotoMime] = React.useState('');
+  const [photoError, setPhotoError] = React.useState('');
   const [results, setResults] = React.useState<SearchResultItem[]>([]);
   const [searched, setSearched] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -58,6 +64,7 @@ export function SearchBar() {
 
   const isDimensions = mode === 'dimensions';
   const isMulti = mode === 'multi';
+  const isPhoto = mode === 'photo';
   const hasDimensionBounds = min !== '' || max !== '';
 
   React.useEffect(() => {
@@ -143,15 +150,97 @@ export function SearchBar() {
     hasDimensionBounds,
   ]);
 
+  async function handlePhotoSearch() {
+    if (!photoFile || !photoData) {
+      setPhotoError('Sélectionnez une image (JPEG, PNG ou WebP).');
+      return;
+    }
+
+    setPhotoError('');
+    setPending(true);
+    try {
+      const res = await fetch('/api/search/photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mimeType: photoMime,
+          data: photoData,
+          limit: 20,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 503) {
+          setPhotoError('Recherche par photo indisponible (HF_API_TOKEN absent).');
+        } else {
+          setPhotoError((data as { message?: string }).message ?? `Erreur ${res.status}`);
+        }
+        setResults([]);
+        setSearched(true);
+        return;
+      }
+
+      const data = await res.json();
+      setResults(data.results ?? []);
+      setSearched(true);
+    } catch {
+      setPhotoError('Erreur réseau — réessayez.');
+      setResults([]);
+      setSearched(true);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function handlePhotoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    setPhotoError('');
+    setPhotoFile(file ?? null);
+    setPhotoData('');
+    setPhotoMime('');
+    setResults([]);
+    setSearched(false);
+
+    if (!file) {
+      return;
+    }
+
+    if (!PHOTO_MIME_TYPES.includes(file.type)) {
+      setPhotoError('Format non supporté — JPEG, PNG ou WebP uniquement.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Image trop volumineuse (5 Mo max).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result);
+      const commaIndex = dataUrl.indexOf(',');
+      setPhotoData(commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl);
+      setPhotoMime(file.type);
+    };
+    reader.onerror = () => {
+      setPhotoError('Échec de la lecture du fichier.');
+    };
+    reader.readAsDataURL(file);
+  }
+
   const showEmpty =
     !pending &&
     searched &&
     results.length === 0 &&
+    !photoError &&
     (isDimensions
       ? hasDimensionBounds
       : isMulti
         ? query.trim().length >= 2 || multiReference.trim().length >= 2 || min !== '' || max !== ''
-        : query.trim().length >= 2);
+        : isPhoto
+          ? Boolean(photoData)
+          : query.trim().length >= 2);
 
   return (
     <div className="space-y-4">
@@ -220,6 +309,19 @@ export function SearchBar() {
           onClick={() => setMode('multi')}
         >
           Multi
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'photo'}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'photo'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/70'
+          }`}
+          onClick={() => setMode('photo')}
+        >
+          Photo
         </button>
       </div>
 
@@ -298,6 +400,37 @@ export function SearchBar() {
             className="w-24"
             aria-label="Valeur maximale"
           />
+        </div>
+      ) : isPhoto ? (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handlePhotoFileChange}
+              className="w-64 text-xs"
+              aria-label="Image de recherche"
+            />
+            <button
+              type="button"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={handlePhotoSearch}
+              disabled={!photoData || pending}
+            >
+              Rechercher
+            </button>
+            <ImagePlus className="text-muted-foreground h-4 w-4" />
+          </div>
+          {photoFile && (
+            <p className="text-muted-foreground text-[11px]">
+              {photoFile.name} — {(photoFile.size / 1024).toFixed(0)} Ko — {photoMime}
+            </p>
+          )}
+          {photoError && (
+            <p className="text-destructive text-xs" role="alert">
+              {photoError}
+            </p>
+          )}
         </div>
       ) : (
         <div className="relative">
@@ -437,7 +570,9 @@ export function SearchBar() {
               ? 'Recherche numérique sur les spécifications — range sur la valeur nominale ou tolérance couvrante.'
               : mode === 'multi'
                 ? 'Recherche multi-critères — combine texte, référence et dimensions en un score pondéré.'
-                : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
+                : mode === 'photo'
+                  ? "Recherche par similarité visuelle — upload d'une photo (JPEG, PNG, WebP, 5 Mo max)."
+                  : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
       </p>
     </div>
   );
