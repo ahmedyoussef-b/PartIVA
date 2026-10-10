@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const validated = PartSearchQuerySchema.parse({
       q: searchParams.get('q'),
-      limit: searchParams.get('limit'),
+      limit: searchParams.get('limit') ?? undefined,
     });
 
     const isUser = session.user.role === 'USER';
