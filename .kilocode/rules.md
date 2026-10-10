@@ -197,6 +197,8 @@ Tâche : [description courte]
 
 **Règle R.4.1 (drift Prisma `search_vector`) — ajoutée en E2-S01-F :** le drift `DROP INDEX "parts_search_vector_idx"` retourné par `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` est **attendu et documenté** (E2-S01). Prisma ne modélise pas les index GIN sur colonnes `Unsupported("tsvector")`. **Ne pas corriger.** La migration SQL `20261010002927_add_part_search_index` est la source de vérité pour cet index. Critère de baseline : **0 drift hors `parts_search_vector_idx`**.
 
+**Règle R.4.1-bis (drift Prisma HNSW `embedding`) — ajoutée en E2-S05 :** le drift `DROP INDEX "part_images_embedding_hnsw"` retourné par `npx prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --script` est **attendu et documenté** (E2-S05). Prisma ne modélise pas les index HNSW sur colonnes `Unsupported("vector(768)")`. **Ne pas corriger.** La migration SQL `20261010133855_add_part_image_embedding` (édition manuelle A.2.2) + recréation manuelle de l'index est la source de vérité. Critère de baseline : **0 drift hors `part_images_embedding_hnsw`**. Même classe que R.4.1 (drift GIN). Le `DROP INDEX "parts_search_vector_idx"` généré par la migration E2-S05 est compensé par A.2.4 (recréation GIN obligatoire — R1).
+
 **Trois violations de la règle #10 ont été tracées en trois sessions consécutives (E1-S02-0, E1-S02, E1-S02-F). Ce bloc est ajouté pour casser ce pattern.**
 
 ### Règle migrations Prisma échouées — STOP absolu
