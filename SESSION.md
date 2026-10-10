@@ -2514,6 +2514,7 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **Test "empty when all keys present"** : crée les 8 clés requises ad hoc (POST) puis nettoie (DELETE dans `finally`) — ne pollue pas le seed.
 - **`D-completeness-category-keys`** : reste ouverte (liste par catégorie nécessite `CategoryRequiredSpec` + migration + UI de configuration — session dédiée).
 - **`next-env.d.ts`** non modifié (règle #32).
+- **Commit hash** : `f051373`.
 - Ordre sessions : E2-S08 ✅ → E2-S09.
 
 ═══════════════════════════════════════════════════════════════
