@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getSearchCandidates } from '@/lib/data/search-candidates';
-import { searchParts, searchPartsByReference, searchPartsBySpecs } from '@/lib/data/search';
+import {
+  searchParts,
+  searchPartsByReference,
+  searchPartsBySpecs,
+  searchPartsByDimensions,
+} from '@/lib/data/search';
 import { PartSearchQuerySchema } from '@/schemas/search';
 
 export async function POST(req: Request) {
@@ -38,6 +43,9 @@ export async function GET(req: Request) {
       limit: searchParams.get('limit') ?? undefined,
       mode: searchParams.get('mode') ?? undefined,
       key: searchParams.get('key') ?? undefined,
+      min: searchParams.get('min') ?? undefined,
+      max: searchParams.get('max') ?? undefined,
+      matchMode: searchParams.get('matchMode') ?? undefined,
     });
 
     const isUser = session.user.role === 'USER';
@@ -45,14 +53,29 @@ export async function GET(req: Request) {
 
     const results =
       validated.mode === 'reference'
-        ? await searchPartsByReference(validated.q, { clientId, limit: validated.limit })
+        ? await searchPartsByReference(validated.q!, {
+            clientId,
+            limit: validated.limit,
+          })
         : validated.mode === 'specs'
-          ? await searchPartsBySpecs(validated.q, {
+          ? await searchPartsBySpecs(validated.q!, {
               key: validated.key,
               clientId,
               limit: validated.limit,
             })
-          : await searchParts(validated.q, { clientId, limit: validated.limit });
+          : validated.mode === 'dimensions'
+            ? await searchPartsByDimensions({
+                min: validated.min,
+                max: validated.max,
+                key: validated.key,
+                matchMode: validated.matchMode ?? 'nominal',
+                clientId,
+                limit: validated.limit,
+              })
+            : await searchParts(validated.q!, {
+                clientId,
+                limit: validated.limit,
+              });
 
     return NextResponse.json({
       query: validated.q,

@@ -39,24 +39,51 @@ export const SearchQuerySchema = z.object({
 });
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 
-export const PartSearchQuerySchema = z.object({
-  q: z.string().min(2).max(200),
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(50)
-    .nullish()
-    .transform((v) => v ?? undefined)
-    .default(20),
-  mode: z.enum(['text', 'reference', 'specs']).nullish().default('text'),
-  key: z
-    .string()
-    .min(1)
-    .max(50)
-    .nullish()
-    .transform((v) => v ?? undefined),
-});
+export const PartSearchQuerySchema = z
+  .object({
+    q: z.string().min(2).max(200).optional(),
+    limit: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(50)
+      .nullish()
+      .transform((v) => v ?? undefined)
+      .default(20),
+    mode: z.enum(['text', 'reference', 'specs', 'dimensions']).nullish().default('text'),
+    key: z
+      .string()
+      .min(1)
+      .max(50)
+      .nullish()
+      .transform((v) => v ?? undefined),
+    min: z.coerce
+      .number()
+      .nullish()
+      .transform((v) => v ?? undefined),
+    max: z.coerce
+      .number()
+      .nullish()
+      .transform((v) => v ?? undefined),
+    matchMode: z.enum(['nominal', 'tolerance']).nullish().default('nominal'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.mode === 'dimensions') {
+      if (data.min === undefined && data.max === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'min or max is required when mode=dimensions',
+          path: ['min'],
+        });
+      }
+    } else if (data.q === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'q is required when mode is not dimensions',
+        path: ['q'],
+      });
+    }
+  });
 export type PartSearchQuery = z.infer<typeof PartSearchQuerySchema>;
 
 export const MeasuresSchema = z.object({

@@ -84,6 +84,92 @@ export async function searchPartsBySpecs(
   `;
 }
 
+export type DimensionSearchResult = {
+  id: string;
+  ptvReference: string | null;
+  partNumber: string | null;
+  name: string | null;
+  status: string;
+  specKey: string;
+  specValue: string;
+  unit: string | null;
+  toleranceMin?: number | null;
+  toleranceMax?: number | null;
+};
+
+export async function searchPartsByDimensions(
+  options: {
+    min?: number;
+    max?: number;
+    key?: string;
+    matchMode?: 'nominal' | 'tolerance';
+    clientId?: string;
+    limit?: number;
+  } = {},
+): Promise<DimensionSearchResult[]> {
+  const { min, max, key, matchMode = 'nominal', clientId, limit = 20 } = options;
+
+  const keyFilter = key ? Prisma.sql`AND ps.key = ${key}` : Prisma.empty;
+  const clientFilter = clientId ? Prisma.sql`AND p."clientId" = ${clientId}` : Prisma.empty;
+
+  if (matchMode === 'tolerance') {
+    const minFilter =
+      min !== undefined ? Prisma.sql`AND ps."toleranceMin" <= ${min}` : Prisma.empty;
+    const maxFilter =
+      max !== undefined ? Prisma.sql`AND ps."toleranceMax" >= ${max}` : Prisma.empty;
+
+    return prisma.$queryRaw<DimensionSearchResult[]>`
+      SELECT
+        p.id,
+        p."ptvReference",
+        p."partNumber",
+        p.name,
+        p.status::text AS status,
+        ps.key AS "specKey",
+        ps.value AS "specValue",
+        ps.unit,
+        ps."toleranceMin",
+        ps."toleranceMax"
+      FROM part_specifications ps
+      JOIN parts p ON p.id = ps."partId"
+      WHERE ps."toleranceMin" IS NOT NULL
+        AND ps."toleranceMax" IS NOT NULL
+        ${minFilter}
+        ${maxFilter}
+        ${keyFilter}
+        ${clientFilter}
+      ORDER BY ps."toleranceMin" ASC NULLS LAST
+      LIMIT ${limit}
+    `;
+  }
+
+  const minFilter = min !== undefined ? Prisma.sql`AND ps.value::numeric >= ${min}` : Prisma.empty;
+  const maxFilter = max !== undefined ? Prisma.sql`AND ps.value::numeric <= ${max}` : Prisma.empty;
+
+  return prisma.$queryRaw<DimensionSearchResult[]>`
+    SELECT
+      p.id,
+      p."ptvReference",
+      p."partNumber",
+      p.name,
+      p.status::text AS status,
+      ps.key AS "specKey",
+      ps.value AS "specValue",
+      ps.unit,
+      NULL::float AS "toleranceMin",
+      NULL::float AS "toleranceMax"
+    FROM part_specifications ps
+    JOIN parts p ON p.id = ps."partId"
+    WHERE ps.value ~ '^[0-9.]+$'
+      ${minFilter}
+      ${maxFilter}
+      ${keyFilter}
+      ${clientFilter}
+    ORDER BY ps.value::numeric ASC
+    LIMIT ${limit}
+  `;
+}
+
 export type ReferenceSearchResult = {
   id: string;
   ptvReference: string | null;
