@@ -44,6 +44,7 @@ export function PartSpecificationTable({
   initialSpecifications,
 }: PartSpecificationTableProps) {
   const [specs, setSpecs] = React.useState<PartSpecificationItem[]>(initialSpecifications);
+  const [missingKeys, setMissingKeys] = React.useState<string[] | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<PartSpecificationItem | null>(null);
   const [form, setForm] = React.useState({
@@ -54,6 +55,19 @@ export function PartSpecificationTable({
     toleranceMax: '',
   });
   const [submitting, setSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/parts/${partId}/completeness`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setMissingKeys(data.missing ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [partId, specs]);
 
   function openCreate() {
     setEditing(null);
@@ -169,6 +183,7 @@ export function PartSpecificationTable({
           <p className="text-muted-foreground text-sm">Aucune spécification pour cette pièce.</p>
         ) : (
           <div className="overflow-x-auto">
+            {' '}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -225,6 +240,10 @@ export function PartSpecificationTable({
               </TableBody>
             </Table>
           </div>
+        )}
+
+        {missingKeys && missingKeys.length > 0 && (
+          <p className="text-muted-foreground mt-2 text-xs">Il manque : {missingKeys.join(', ')}</p>
         )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

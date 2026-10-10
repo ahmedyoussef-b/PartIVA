@@ -23,6 +23,27 @@ interface PartDossierProps {
 
 export function PartDossier({ part }: PartDossierProps) {
   const [tab, setTab] = React.useState('dossier');
+  const [completeness, setCompleteness] = React.useState<{
+    score: number;
+    total: number;
+    present: number;
+    missing: string[];
+  } | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/parts/${part.id}/completeness`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setCompleteness(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [part.id]);
+
+  const completenessPct = completeness ? Math.round(completeness.score * 100) : null;
 
   return (
     <Card>
@@ -90,6 +111,15 @@ export function PartDossier({ part }: PartDossierProps) {
                     {part.attachments.length} document
                     {part.attachments.length > 1 ? 's' : ''}
                   </Badge>
+                  {completeness && completenessPct !== null && (
+                    <Badge
+                      variant={completenessPct === 100 ? 'outline' : 'secondary'}
+                      className="font-mono text-[10px]"
+                      title={`Complétude : ${completeness.present}/${completeness.total} spécifications requises`}
+                    >
+                      complétude {completenessPct} %
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>

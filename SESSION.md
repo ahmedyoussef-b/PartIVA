@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S07-B1 (clôturée) |
-| **Session en cours** | E2-S07 (détection des informations manquantes) — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères), E2-S07-B1 clôturée (outillage backfill embeddings), baseline 6/6 tenue, E2E 176/182 + 1 test backfill (2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S07 à cadrer |
+| **Dernière session** | E2-S07 (clôturée) |
+| **Session en cours** | E2-S08 (assistant de mesure) — à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes), E2-S07-B1 clôturée (outillage backfill embeddings), baseline 6/6 tenue, E2E 182/188 (5 nouveaux complétude ; 2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S08 à cadrer |
 
 ---
 
@@ -2176,6 +2176,95 @@ Option B1 (décision Coordinateur) : produire le **script de backfill** + **test
 - **`R.4.1-ter`** formalise la procédure appliquée en E2-S06 (bloc A.2) — le précédent existait, la règle manquait.
 - E2-S07 (détection des informations manquantes) peut être cadrée — nécessite des arbitrages métier Coordinateur (objet exact, périmètre, signal, actions).
 
+## E2-S07 — Détection des informations manquantes (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `<hash E2-S07-C>` (clôture documentaire)
+**Baseline :** lint 0/0, typecheck 0, build 54 routes (`/api/parts/[id]/completeness` ajouté), seed idempotent, E2E 182/188 (5 nouveaux tests complétude ; 2 échecs `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), format 0, 14 migrations, drift GIN + HNSW uniquement.
+
+### Objet
+
+Détecter les **spécifications requises manquantes** sur une pièce et afficher un **score de complétude** + la **liste des manques** (« Il manque : X, Y, Z »). Arbitrages Coordinateur validés :
+
+- **Préalable = A** : liste fixe globale, constante TS `REQUIRED_SPEC_KEYS` (`src/lib/part-required-specs.ts`) — **distincte** de `DIMENSION_KEYS` (1-ii : couplage faible, peut diverger plus tard), initialement identique aux 8 clés (`diameter_ext`, `diameter_int`, `width`, `weight`, `module`, `teeth`, `bore`, `contact_angle`)
+- **Q1 = 1a** : spécifications manquantes uniquement
+- **Q2 = 2b** : API + UI (le composant `PartDossier` étant partagé, le badge apparaît aussi en UI client — extension naturelle, pas déviation)
+- **Q3 = 3b** : score % + liste des manques
+- **Q4 = 4a** : suggestion passive — **aucun blocage workflow** (E6 qualité éventuellement)
+- **Q5 = 5a** : `Part` seul (`Request` a un autre cycle de vie)
+- **Q2-résiduel = 2-i** : `material` **exclu** de `REQUIRED_SPEC_KEYS` (textuel, pas dimensionnel ; ROADMAP ne le cite pas ; seed non garanti → fausserait le score)
+
+### Blocs
+
+| Bloc | Objet | Statut |
+|---|---|---|
+| A.1 | `src/lib/part-required-specs.ts` — `REQUIRED_SPEC_KEYS` (8 clés, `as const`) | ✅ |
+| B.1 | `src/lib/data/part-completeness.ts` — `getPartCompleteness(partId)` (score = présent/total, liste missing) | ✅ |
+| C.1 | `GET /api/parts/[id]/completeness` — auth 401, ownership USER 403, 404 pièce inexistante, retour `{partId, score, total, present, missing}` | ✅ |
+| D.1 | UI — badge « complétude N % » dans `PartDossier` (variant `outline` si 100 %, `secondary` sinon) + « Il manque : … » dans `PartSpecificationTable` (onglet Mesures) | ✅ |
+| D.2 | 5 tests E2E (`e2e/part-completeness.spec.ts`) : 401, 200+structure, complet=1, incomplet=liste, 404 | ✅ |
+| 12 | Validation complète (lint, tsc, format, build, E2E) | ✅ |
+| 13 | Clôture documentaire (SESSION, DEBT, ROADMAP) | ✅ |
+
+### Décisions verrouillées
+
+- **D136** : `REQUIRED_SPEC_KEYS` constante TS distincte de `DIMENSION_KEYS` (couplage faible — principe #9, portable web+desktop). 8 clés initialement identiques.
+- **D137** : score = `|présentes ∩ REQUIRED| / |REQUIRED|` (0 à 1). Pièce sans spec → 0 %, liste complète des 8 manques. Specs hors liste → n'affectent pas le score.
+- **D138** : API `GET /api/parts/[id]/completeness` — pattern `specifications/route.ts` (auth 401, ownership USER 403, 404). Réponse `{partId, score, total, present, missing}`.
+- **D139** : UI badge complétude % (couleur conditionnelle : 100 % → `outline` neutre, < 100 % → `secondary`) + liste « Il manque : X, Y, Z » sous la table des specs.
+- **D140** : suggestion passive uniquement — **aucun blocage** de transition workflow (4a). Un blocage éventuel → E6 (qualité).
+
+### Incidents PCT E2-S07
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S07-n°1 | 2 erreurs TS18047 (`completeness` possibly null) + 2 erreurs ESLint (`getPartCompleteness` importé mais inutilisé — j'utilisais `fetch` directement dans le composant). | Résolu : retrait imports inutilisés + guard `completeness &&` dans le JSX. tsc + lint EXIT=0. |
+| E2-S07-n°2 | 3 échecs E2E initiaux : (a) 2 timeouts 30s « Request context disposed » — dev server `F:\` lent au démarrage (warmup insuffisant) ; (b) test 4 `score=1` au lieu de `<1` — **pollution DB** : le test 3 ajoutait les 8 specs à la première part sans cleanup, le test 4 lisait la même part désormais complète. | Résolu : (a) les tests passent en isolation (11.4s) — classe `D-e2e-isolation` ; (b) cleanup après le test 3 (DELETE des specs créées) + test 4 utilise la **dernière** part (`partIds[partIds.length - 1]`). 5/5 passés. |
+| E2-S07-n°3 | Fusion accidentelle de deux lignes dans `part-specification-table.tsx` (l.244 `<Dialog ...>          <DialogContent>`) lors d'un edit. | Résolu : restauration + insertion de la liste des manques. Prettier vert. |
+
+### Dettes résolues
+
+- Détection des informations manquantes (E2-S07) — implémentée (constante + data + API + UI + tests).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-completeness-category-keys` (nouvelle, Faible) | Liste de clés requises **par catégorie** de pièce (`PartCategory`) — nécessite modèle `CategoryRequiredSpec` + migration + UI configuration. E2-S07 utilise une liste globale fixe (Option A). |
+| `D-completeness-material` (nouvelle, Faible) | `material` exclu de `REQUIRED_SPEC_KEYS` (textuel). À envisager si la complétude matière devient un signal métier. |
+| `D-completeness-blocking` (nouvelle, Faible) | Blocage workflow (4b) si complétude < seuil — arbitrage E6 (qualité). |
+| `D-completeness-client-ui` (nouvelle, Faible) | UI client dédiée (2c) — le badge apparaît déjà via `PartDossier` partagé, mais sans mise en valeur client spécifique. |
+| `D-photo-embedding-backfill`, `D-photo-ui`, `D-hnsw-drift`, `D-embedding-model-catalog`, `D-scoring-weights-ui`, `D-e2e-isolation` | inchangés |
+
+### Baseline finale E2-S07
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 54 routes (`/api/parts/[id]/completeness` ajouté) |
+| Seed | ✅ idempotent |
+| Tests E2E | ✅ 182/188 (5 nouveaux complétude 5/5 ; 2 échecs `part-transitions` préexistants `D-e2e-isolation` ; 4 skips `D-e2e-multitenant` + conditionnels) |
+| Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json`) |
+| Prisma migrate | ✅ 14 migrations (inchangées — aucune migration E2-S07, constante TS), drift GIN + HNSW uniquement |
+
+### Points de rapport
+
+1. **Baseline mesurée** : build 54 routes, E2E 182/188 — mesurés, non déduits.
+2. **Aucune migration** — `REQUIRED_SPEC_KEYS` est une constante TS (pattern `part-status.ts`), pas une table DB. 14 migrations inchangées.
+3. **Score** : `présent / total` (0–1), arrondi à l'entier % en UI. Pièce sans spec → 0 %.
+4. **`material` exclu** — décision 2-i validée (ROADMAP ne le cite pas, seed non garanti).
+5. **Isolation test** : cleanup après le test 3 (DELETE specs créées) + test 4 sur dernière part — corrige la pollution DB observée.
+6. **UI partagée** : `PartDossier` est consommé par `admin/pieces` ET `client/dashboard/pieces-pretes` — le badge complétude apparaît dans les deux (extension naturelle de 2b, documentée).
+7. **Aucune déviation** — tous les arbitrages Q1-Q5 + préalable A appliqués tels que validés.
+
+### Notes
+
+- **`getPartCompleteness`** retourne `null` si la pièce n'existe pas (404 côté route).
+- **Ownership USER** : vérifié dans la route (pattern `specifications/route.ts`) — USER ne voit que ses propres pièces.
+- **`next-env.d.ts`** non modifié (règle #32).
+- E2-S08 (assistant de mesure) peut être cadrée.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S07
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S08
 ═══════════════════════════════════════════════════════════════
