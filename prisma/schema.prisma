@@ -125,6 +125,7 @@ model PartImage {
   caption   String?
   order     Int      @default(0)
   isPrimary Boolean  @default(false)
+  embedding Unsupported("vector(768)")? @map("embedding")
   createdAt DateTime @default(now())
   part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
 
