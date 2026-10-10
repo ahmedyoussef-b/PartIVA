@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getSearchCandidates } from '@/lib/data/search-candidates';
-import { searchParts } from '@/lib/data/search';
+import { searchParts, searchPartsByReference } from '@/lib/data/search';
 import { PartSearchQuerySchema } from '@/schemas/search';
 
 export async function POST(req: Request) {
@@ -36,16 +36,20 @@ export async function GET(req: Request) {
     const validated = PartSearchQuerySchema.parse({
       q: searchParams.get('q'),
       limit: searchParams.get('limit') ?? undefined,
+      mode: searchParams.get('mode') ?? undefined,
     });
 
     const isUser = session.user.role === 'USER';
-    const results = await searchParts(validated.q, {
-      clientId: isUser ? session.user.id : undefined,
-      limit: validated.limit,
-    });
+    const clientId = isUser ? session.user.id : undefined;
+
+    const results =
+      validated.mode === 'reference'
+        ? await searchPartsByReference(validated.q, { clientId, limit: validated.limit })
+        : await searchParts(validated.q, { clientId, limit: validated.limit });
 
     return NextResponse.json({
       query: validated.q,
+      mode: validated.mode,
       count: results.length,
       results,
     });
