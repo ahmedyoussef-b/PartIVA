@@ -9,6 +9,8 @@ import { Search, MapPin } from 'lucide-react';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import type { PartStatus } from '@/generated/prisma/browser';
 
+type SearchMode = 'text' | 'reference';
+
 interface SearchResultItem {
   id: string;
   ptvReference: string | null;
@@ -16,13 +18,15 @@ interface SearchResultItem {
   name: string;
   description: string | null;
   status: string;
-  rank: number;
+  rank?: number;
+  matchType?: 'exact' | 'prefix';
 }
 
 const DEBOUNCE_MS = 300;
 
 export function SearchBar() {
   const [query, setQuery] = React.useState('');
+  const [mode, setMode] = React.useState<SearchMode>('text');
   const [results, setResults] = React.useState<SearchResultItem[]>([]);
   const [searched, setSearched] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -37,7 +41,9 @@ export function SearchBar() {
     const timer = setTimeout(async () => {
       setPending(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}&limit=20`);
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(trimmed)}&limit=20&mode=${mode}`,
+        );
         if (!res.ok) {
           throw new Error(`Erreur ${res.status}`);
         }
@@ -55,18 +61,51 @@ export function SearchBar() {
     return () => {
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, mode]);
 
   const showEmpty = !pending && searched && results.length === 0 && query.trim().length >= 2;
 
   return (
     <div className="space-y-4">
+      <div className="flex gap-2" role="tablist" aria-label="Mode de recherche">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'text'}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'text'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/70'
+          }`}
+          onClick={() => setMode('text')}
+        >
+          Texte
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'reference'}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'reference'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/70'
+          }`}
+          onClick={() => setMode('reference')}
+        >
+          Référence
+        </button>
+      </div>
+
       <div className="relative">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher une pièce (nom, référence, matière…)…"
+          placeholder={
+            mode === 'reference'
+              ? 'Rechercher par référence (PTV-… ou n° fournisseur)…'
+              : 'Rechercher une pièce (nom, référence, matière…)…'
+          }
           className="pl-9"
           aria-label="Rechercher une pièce"
         />
@@ -106,13 +145,24 @@ export function SearchBar() {
                     <Badge variant="outline" className="font-mono text-[10px]">
                       {getPartStatusLabel(result.status as PartStatus)}
                     </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="font-mono text-[10px]"
-                      title="Score de pertinence"
-                    >
-                      {result.rank.toFixed(2)}
-                    </Badge>
+                    {result.matchType && (
+                      <Badge
+                        variant="secondary"
+                        className="font-mono text-[10px]"
+                        title="Type de correspondance"
+                      >
+                        {result.matchType === 'exact' ? 'exact' : 'préfixe'}
+                      </Badge>
+                    )}
+                    {typeof result.rank === 'number' && (
+                      <Badge
+                        variant="secondary"
+                        className="font-mono text-[10px]"
+                        title="Score de pertinence"
+                      >
+                        {result.rank.toFixed(2)}
+                      </Badge>
+                    )}
                   </div>
                 </button>
               ))}
@@ -123,7 +173,9 @@ export function SearchBar() {
 
       <p className="text-muted-foreground flex items-center gap-1 text-[11px]">
         <MapPin className="h-3 w-3" />
-        Recherche full-text PostgreSQL (nom, description, références PTV et pièce).
+        {mode === 'reference'
+          ? 'Recherche par référence exacte ou préfixe (PTV, n° fournisseur).'
+          : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
       </p>
     </div>
   );
