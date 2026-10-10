@@ -119,3 +119,61 @@ test('api: GET /api/search mode=invalid returns 400', async ({ request }) => {
   });
   expect(response.status()).toBe(400);
 });
+
+test('api: GET /api/search mode=specs returns 200 with matchedSpecs', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=acier&mode=specs', {
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.mode).toBe('specs');
+  expect(body.count).toBeGreaterThan(0);
+  for (const result of body.results) {
+    expect(Array.isArray(result.matchedSpecs)).toBe(true);
+    expect(result.matchedSpecs.length).toBeGreaterThan(0);
+    for (const spec of result.matchedSpecs) {
+      expect(spec).toHaveProperty('key');
+      expect(spec).toHaveProperty('value');
+    }
+  }
+});
+
+test('api: GET /api/search mode=specs with key=material filters on material', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=acier&mode=specs&key=material', { headers });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  for (const result of body.results) {
+    for (const spec of result.matchedSpecs) {
+      expect(spec.key).toBe('material');
+    }
+  }
+});
+
+test('api: GET /api/search mode=specs with unknown key returns 200 and count 0', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=acier&mode=specs&key=unknown_key', { headers });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBe(0);
+  expect(body.results).toEqual([]);
+});
+
+test('api: GET /api/search mode=specs with no match returns 200 and count 0', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get(`/api/search?q=ZZZNOMATCH${Date.now()}&mode=specs`, {
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBe(0);
+  expect(body.results).toEqual([]);
+});

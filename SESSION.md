@@ -20,7 +20,7 @@
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
 | **Dernière session** | E2-S03 (clôturée) |
 | **Session en cours** | E2-S04 (recherche par dimensions — à cadrer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications), baseline 6/6 tenue, E2E 163-166/165 (fourchette), E2-S04 à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications), baseline 6/6 tenue, E2E 166/165 (fourchette 163-166), E2-S04 à cadrer |
 
 ---
 
@@ -1769,8 +1769,8 @@ Aucun incident. Aucune écriture sur fichier existant sans lecture préalable (r
 ## E2-S03 — Recherche par spécifications (CLÔTURÉE)
 
 **Date :** 2026-10-10
-**Commits :** `ba5ee0c` (A), `95f388d` (B), `<hash E2-S03-C>` (C), `<hash E2-S03-D>` (D)
-**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 163-166/165 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible — contrainte environnementale acceptée), format 0, 12 migrations (inchangées — aucune migration créée), drift = index GIN uniquement (attendu R.4.1).
+**Commits :** `ba5ee0c` (A), `95f388d` (B), `0548146` (C), `<hash E2-S03-D>` (D)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 166/165 (3 skips, 0 échec ce run — fourchette 163-166), format 0, 12 migrations (inchangées — aucune migration créée), drift = index GIN uniquement (attendu R.4.1).
 
 ### Objet
 
@@ -1799,11 +1799,13 @@ Recherche **textuelle** sur `PartSpecification.value` (matière, valeurs techniq
 - **A.2 — Aucune migration** : 25 specs en seed — `to_tsvector` à la volée est instantané. Un index GIN sur `spec.value` serait une optimisation prématurée. Dette tracée : `D-spec-gin-index` (Faible — à ajouter si volume justifie, session dédiée). 12 migrations inchangées.
 - **B** : `src/components/search-bar.tsx` — 3ᵉ onglet « Spécifications » (`role="tab"`, `aria-selected`, cohérent E2-S02-B). Mode `specs` : envoie `mode=specs` à l'API, placeholder « Rechercher une matière, une dimension… », affichage des `matchedSpecs` (`key : value` joints par ` · `) sous le nom, note de bas de page adaptative. Modes `text` (E2-S01) et `reference` (E2-S02) inchangés. `useEffect` dépend de `[query, mode]` (le `key` n'est pas exposé en UI — recherche toutes specs, décision Coordinateur : dropdown non justifiée au MVP).
 - **C** : ROADMAP.md l.173 amendée (3 colonnes strictes) — « Recherche par spécifications | Full-text sur `PartSpecification` (matière, valeurs techniques) — redéfini 2026-10-10 (cf. memo E2-S03 Q1–Q5) : « fonction » non modélisé côté pièce (existe sur `Request` uniquement, l.291), « fabricant » reporté à E2-S06 (N:N, signal de score) ». Coquille D-44 (l.139) non touchée (hors périmètre — session doc dédiée).
-- **D** : `e2e/search.spec.ts` — 4 tests ajoutés (14 total) : `mode=specs` → 200 avec `matchedSpecs` non vide (matière « Acier ») ; `mode=specs&key=material` → résultats filtrés sur `key='material'` ; `mode=specs&key=unknown_key` → 200, `count: 0` (clé inconnue → 0 résultat, pas d'erreur) ; `mode=invalid` → 400 (validation Zod — enum `mode`).
+- **D** : `e2e/search.spec.ts` — 5 tests ajoutés (15 total) : `mode=specs` → 200 avec `matchedSpecs` non vide (matière « Acier ») ; `mode=specs&key=material` → résultats filtrés sur `key='material'` ; `mode=specs&key=unknown_key` → 200, `count: 0` (clé inconnue → 0 résultat, pas d'erreur) ; `mode=invalid` → 400 (validation Zod — enum `mode`) ; `mode=specs` query sans résultat (`ZZZNOMATCH`) → 200, `count: 0`. **Incident corrigé en D** : le `PartSearchQuerySchema.parse()` dans `route.ts` ne lisait pas `searchParams.get('key')` — `validated.key` toujours `undefined`, filtre `key` jamais appliqué (diagnostic : `unknown_key` retournait 5 résultats). Fix : ajout de `key: searchParams.get('key') ?? undefined` dans le `parse()`. Vérifié post-fix : `unknown_key` → 0, `material` → 5 filtrés.
 
 ### Incidents PCT E2-S03
 
-Aucun incident. Aucune écriture sur fichier existant sans lecture préalable (règle R.4.2 appliquée : `search.ts`, `route.ts`, `search-bar.tsx`, `search.spec.ts`, `schema.prisma`, `seed.ts`, `ROADMAP.md`, `SESSION.md` lus avant écriture). Aucune migration créée (règle T10 non déclenchée).
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S03-n°1 | E2E `mode=specs&key=unknown_key` échoue (5 résultats au lieu de 0) — `route.ts` ne lisait pas `searchParams.get('key')` dans `PartSearchQuerySchema.parse()`, donc `validated.key` toujours `undefined` et le filtre `key` jamais appliqué. Le SQL (`searchPartsBySpecs`) était correct (vérifié en base : 0 ligne avec `unknown_key`). | Résolu : ajout de `key: searchParams.get('key') ?? undefined` dans le `parse()` (`route.ts:40`). Vérifié post-fix via diagnostic Playwright : `unknown_key` → 0, `material` → 5 filtrés. E2E complet : 166 passed, 3 skipped, 0 failed. |
 
 ### Dettes résolues
 
@@ -1829,7 +1831,7 @@ Aucun incident. Aucune écriture sur fichier existant sans lecture préalable (r
 | TypeScript | ✅ 0 err |
 | Build | ✅ 36/36 routes |
 | Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
-| Tests E2E | ✅ 163-166/165 (3-4 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel ; 1-2 échecs intermittents `D-e2e-isolation` Faible) — 4 nouveaux tests specs. Fourchette 163-166 selon instabilité |
+| Tests E2E | ✅ 166/165 (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) — 5 nouveaux tests specs. Fourchette 163-166 selon instabilité `D-e2e-isolation` (0 échec ce run) |
 | Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json` — fichier infra non commité) |
 | Prisma migrate | ✅ 12 migrations (inchangées — aucune migration E2-S03), drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu R.4.1) |
 

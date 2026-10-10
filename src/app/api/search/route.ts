@@ -37,6 +37,7 @@ export async function GET(req: Request) {
       q: searchParams.get('q'),
       limit: searchParams.get('limit') ?? undefined,
       mode: searchParams.get('mode') ?? undefined,
+      key: searchParams.get('key') ?? undefined,
     });
 
     const isUser = session.user.role === 'USER';
