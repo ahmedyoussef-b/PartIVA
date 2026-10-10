@@ -70,3 +70,52 @@ test('api: GET /api/search by ADMIN returns all matching parts', async ({ reques
   const body = await response.json();
   expect(body.count).toBeGreaterThan(0);
 });
+
+test('api: GET /api/search mode=reference returns 200 with matchType', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=PTV&mode=reference', {
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.mode).toBe('reference');
+  expect(Array.isArray(body.results)).toBe(true);
+  expect(body.count).toBeGreaterThan(0);
+  for (const result of body.results) {
+    expect(['exact', 'prefix']).toContain(result.matchType);
+  }
+});
+
+test('api: GET /api/search mode=reference exact match returns matchType exact', async ({
+  request,
+}) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=PTV-2026-000001&mode=reference', { headers });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  const exact = body.results.find(
+    (r: { ptvReference: string | null }) => r.ptvReference === 'PTV-2026-000001',
+  );
+  expect(exact).toBeTruthy();
+  expect(exact.matchType).toBe('exact');
+});
+
+test('api: GET /api/search mode=reference prefix returns matchType prefix', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=PTV-2026&mode=reference', { headers });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.count).toBeGreaterThan(0);
+  for (const result of body.results) {
+    expect(result.matchType).toBe('prefix');
+  }
+});
+
+test('api: GET /api/search mode=invalid returns 400', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/search?q=PTV&mode=invalid', {
+    headers,
+  });
+  expect(response.status()).toBe(400);
+});

@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S01-A2 (clôturée) |
-| **Session en cours** | E2-S02 (à cadrer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 clôturées (moteur de recherche full-text + régularisations), baseline 6/6 tenue, E2E 158/161 (3 skips), E2-S02 à cadrer |
+| **Dernière session** | E2-S02 (clôturée) |
+| **Session en cours** | E2-S03 (à cadrer) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 clôturées (full-text + régularisations + recherche par référence), baseline 6/6 tenue, E2E 159-162/161 (fourchette), E2-S03 à cadrer |
 
 ---
 
@@ -41,8 +41,8 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible)
-- [ ] **Phase 2 — Core Features** : E2-S02 (référence), E2-S03 (texte), E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe)
+- [ ] **Phase 2 — Core Features** : E2-S03 (texte structuré), E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -1528,7 +1528,7 @@ Diff sémantique structuré entre `PartVersion` (champs versionnés) + vue dossi
 
 **Date :** 2026-10-10
 **Commits :** `1502911` (B), `6de1272` (C), `<hash E2-S01-D>` (D)
-**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 158/161 (3 skips), format 0, 12 migrations, drift = index GIN uniquement (documenté).
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 155-158/161 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible), format 0, 12 migrations, drift = index GIN uniquement (documenté).
 
 ### Objet
 
@@ -1589,7 +1589,7 @@ Moteur de recherche interne sur `Part` via PostgreSQL full-text natif (`tsvector
 | TypeScript | ✅ 0 err |
 | Build | ✅ 36/36 routes (`/admin/recherche`, `/client/dashboard/recherche`, `GET /api/search` ajoutés) |
 | Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
-| Tests E2E | ✅ 158/161 verts (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) — 6 nouveaux tests search |
+| Tests E2E | ✅ 155-158/161 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible — instabilité dev server Windows) — 6 nouveaux tests search |
 | Format | ✅ 0 non conforme |
 | Prisma migrate | ✅ 12 migrations, drift = index GIN uniquement (documenté, inhérent à `Unsupported`) |
 
@@ -1603,7 +1603,7 @@ Moteur de recherche interne sur `Part` via PostgreSQL full-text natif (`tsvector
 
 **Date :** 2026-10-10
 **Commits :** `<hash E2-S01-A2>` (correctif abandonné — aucun code), `<hash E2-S01-F>` (régularisations documentaires)
-**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 158/161 (3 skips), format 0, 12 migrations, drift = index GIN uniquement (documenté).
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 155-158/161 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible), format 0, 12 migrations, drift = index GIN uniquement (documenté).
 
 ### Objet
 
@@ -1676,7 +1676,7 @@ Correctif préventif `D-e2e-isolation` (requalifiée Faible) + régularisations 
 | TypeScript | ✅ 0 err |
 | Build | ✅ 36/36 routes |
 | Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
-| Tests E2E | ✅ 158/161 verts (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) |
+| Tests E2E | ✅ 155-158/161 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible — instabilité dev server Windows) |
 | Format | ✅ 0 non conforme |
 | Prisma migrate | ✅ 12 migrations, drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu, R.4.1) |
 
@@ -1686,6 +1686,86 @@ Correctif préventif `D-e2e-isolation` (requalifiée Faible) + régularisations 
 - **`next-env.d.ts`** non modifié.
 - E2-S02 (recherche par référence) peut être cadré.
 
+### Contrainte environnementale acceptée (R.4 E2-S02)
+
+**Le repo reste sur `F:\` (filesystem lent).** L'instabilité E2E résiduelle (`D-e2e-isolation` Faible) est acceptée comme **contrainte environnementale**, pas comme dette à fermer. Toute migration vers un disque plus rapide fermerait automatiquement cette contrainte. Les runs E2E produisent une **fourchette** (155-158/161 en E2-S01, 159-162/161 en E2-S02) selon l'instabilité intermittente du dev server Windows — jamais les mêmes échecs, jamais en isolation.
+
+## E2-S02 — Recherche par référence (pièce / PTV) (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `211ee82` (A), `9b01373` (B), `<hash E2-S02-C>` (C), `<hash E2-S02-R>` (R)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 162/165 (3 skips, 0 échec ce run — fourchette 159-162), format 0, 12 migrations, drift = index GIN uniquement (attendu R.4.1).
+
+### Objet
+
+Recherche par **référence** sur `Part` (`ptvReference` format `PTV-AAAA-NNNNNN` + `partNumber` référence fournisseur) — match **exact** + **préfixe** (auto-complétion). Extension de `GET /api/search` avec `mode=reference` + UI toggle Texte/Référence dans `SearchBar`.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| R | Régularisations E2-S01-A2 (R.1-R.4) | ✅ | `<hash E2-S02-R>` |
+| A | Extension API `GET /api/search?mode=reference` | ✅ | `211ee82` |
+| B | UI : mode "Référence" dans `SearchBar` | ✅ | `9b01373` |
+| C | Tests E2E (4) + clôture | ✅ | `<hash E2-S02-C>` |
+
+### Décisions verrouillées
+
+- **D1** : Périmètre recherche par **référence** sur `Part` (`ptvReference` + `partNumber`). Pas full-text (E2-S01), pas dimensions (E2-S04), pas photo (E2-S05).
+- **D2** : Recherche **exacte** (match strict) + **préfixe** (auto-complétion). Pas de fuzzy matching (E2-S06).
+- **D3** : Enrichir `/admin/recherche` + `/client/dashboard/recherche` avec toggle "Texte" | "Référence" — pas de nouvelle page (parcours unifié).
+- **D4** : Étendre `GET /api/search` avec `mode` (`text` défaut, `reference` option) — pas de nouvel endpoint (cohérent avec cohabitation `POST`/`GET` documentée).
+
+### Régularisations R.1-R.4 (tête de session)
+
+- **R.1** : Schéma `limit` vérifié conforme (`src/schemas/search.ts:44-51` — `.nullish().transform(v => v ?? undefined).default(20)`). Rien à corriger.
+- **R.2** : `D-e2e-isolation` reformulée dans DEBT.md (l.29, 39) : « **Faible, contrainte environnementale.** Filesystem `F:\` lent + dev server Windows → 1-2 échecs intermittents par run E2E. Pas de cible de session — contrainte acceptée tant que le repo reste sur `F:\`. »
+- **R.3** : Baseline E2E reformulée en **fourchette** dans SESSION.md (entrées E2-S01, E2-S01-A2, métadonnées) : « 155-158/161 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible) ».
+- **R.4** : Contrainte environnementale `F:\` tracée dans SESSION.md (section E2-S01-A2, « Contrainte environnementale acceptée »).
+
+### Réalisations
+
+- **A** : `src/lib/data/search.ts` — `searchPartsByReference(query, {clientId?, limit?})` avec `Prisma.sql`/`Prisma.empty`, `$queryRaw<ReferenceSearchResult[]>`, normalisation `toUpperCase()`, match exact prioritaire (`CASE WHEN UPPER(...) = ... THEN 'exact' ELSE 'prefix'`), tri stable (exact d'abord, puis `ptvReference`/`partNumber` ASC NULLS LAST). `src/app/api/search/route.ts` — handler `GET` étendu : `mode` (`text` défaut / `reference`), dispatch `searchPartsByReference` vs `searchParts`, retour `{query, mode, count, results}`. **`POST` E0-S07 intouché** (public, candidats fournisseurs). `src/schemas/search.ts` — `PartSearchQuerySchema` étendu : `mode: z.enum(['text', 'reference']).nullish().default('text')`.
+- **A.2 — Index référence** : **aucune migration créée.** `ptvReference` (`@unique`, `schema.prisma:79`) et `partNumber` (`@unique`, `schema.prisma:78` + `@@index([partNumber])`, `schema.prisma:97`) ont déjà un **index B-tree unique** (contrainte `@unique` = index unique implicite). La recherche exacte/préfixe utilise l'index existant. 12 migrations inchangées.
+- **B** : `src/components/search-bar.tsx` — toggle Texte/Référence (`role="tab"`, `aria-selected`) au-dessus de l'input. Mode `reference` : envoie `mode=reference` à l'API, placeholder « Rechercher par référence (PTV-… ou n° fournisseur)… », badge « exact »/« préfixe » si `matchType` présent, note de bas de page adaptative. Mode `text` (E2-S01) inchangé (badge `rank` affiché). `useEffect` dépend de `[query, mode]` (re-recherche au changement de mode).
+- **C** : `e2e/search.spec.ts` — 4 tests ajoutés (10 total) : `mode=reference` → 200 avec `matchType` présent ; `q=PTV-2026-000001&mode=reference` → `matchType: 'exact'` ; `q=PTV-2026&mode=reference` → `matchType: 'prefix'` ; `mode=invalid` → 400 (validation Zod). **10/10 search passent.** Run complet : **162 passed, 3 skipped, 0 failed** (fourchette haute 159-162 atteinte).
+
+### Incidents PCT E2-S02
+
+Aucun incident. Aucune écriture sur fichier existant sans lecture préalable (règle R.4.2 appliquée : `search.ts`, `route.ts`, `search-bar.tsx`, `search.spec.ts`, `DEBT.md`, `SESSION.md`, `rules.md` lus avant écriture).
+
+### Dettes résolues
+
+- Recherche par référence (E2-S02) — implémentée (exact + préfixe, API + UI + tests).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-e2e-isolation` (Faible, contrainte environnementale R.2) | Aucune cible — contrainte acceptée tant que le repo reste sur `F:\` |
+| `D-search-post-public` (Moyenne) | Session sécurité dédiée (après E2) |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée |
+| `D-e2e-auth-dual`, `D-s03-t3-ecart`, `D-e2e-skip-conditional` | Session E2E dédiée |
+
+### Baseline finale E2-S02
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 36/36 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 162/165 (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) — 4 nouveaux tests reference. Fourchette 159-162 selon instabilité `D-e2e-isolation` |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 12 migrations (inchangées — index référence déjà existants via `@unique`), drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu R.4.1) |
+
+### Notes
+
+- **Aucune migration créée** (A.2) — `ptvReference` et `partNumber` sont `@unique` (index B-tree unique implicite). La recherche exacte/préfixe est indexée nativement.
+- **`POST /api/search` E0-S07 intouché** (public, candidats fournisseurs) — cohabitation `POST`/`GET` documentée (R.3 E2-S01-A2).
+- **`next-env.d.ts`** non modifié.
+- E2-S03 (recherche par texte structuré) peut être cadré.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S02
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S03
 ═══════════════════════════════════════════════════════════════
