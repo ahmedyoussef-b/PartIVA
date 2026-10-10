@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S02 (clôturée) |
-| **Session en cours** | E2-S03 (à cadrer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 clôturées (full-text + régularisations + recherche par référence), baseline 6/6 tenue, E2E 159-162/161 (fourchette), E2-S03 à cadrer |
+| **Dernière session** | E2-S03 (clôturée) |
+| **Session en cours** | E2-S04 (recherche par dimensions — à cadrer) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications), baseline 6/6 tenue, E2E 163-166/165 (fourchette), E2-S04 à cadrer |
 
 ---
 
@@ -41,8 +41,8 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe)
-- [ ] **Phase 2 — Core Features** : E2-S03 (texte structuré), E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`)
+- [ ] **Phase 2 — Core Features** : E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -1766,6 +1766,82 @@ Aucun incident. Aucune écriture sur fichier existant sans lecture préalable (r
 - **`next-env.d.ts`** non modifié.
 - E2-S03 (recherche par texte structuré) peut être cadré.
 
+## E2-S03 — Recherche par spécifications (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `ba5ee0c` (A), `95f388d` (B), `<hash E2-S03-C>` (C), `<hash E2-S03-D>` (D)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 163-166/165 (3-4 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible — contrainte environnementale acceptée), format 0, 12 migrations (inchangées — aucune migration créée), drift = index GIN uniquement (attendu R.4.1).
+
+### Objet
+
+Recherche **textuelle** sur `PartSpecification.value` (matière, valeurs techniques) via PostgreSQL full-text natif (`to_tsvector('french', value)` à la volée), avec filtre optionnel exact par `key`. Extension de `GET /api/search` avec `mode=specs` + 3ᵉ onglet « Spécifications » dans `SearchBar`.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| A | API `searchPartsBySpecs()` + `GET /api/search?mode=specs` | ✅ | `ba5ee0c` |
+| B | UI : 3ᵉ mode « Spécifications » dans `SearchBar` | ✅ | `95f388d` |
+| C | Amendement ROADMAP l.173 + clôture documentaire | ✅ | `<hash E2-S03-C>` |
+| D | Tests E2E (4) + baseline complète + clôture finale | ✅ | `<hash E2-S03-D>` |
+
+### Décisions verrouillées (memo E2-S03 Q1–Q5)
+
+- **Q1 — « fonction » = (c) alias de description** : le concept « fonction » existe sur `Request.partFunction` (schema l.291, seed l.633/653/669/685) — il est modélisé côté demande client, pas côté catalogue pièce. `description` est déjà dans le `search_vector` (E2-S01). Aucun champ `Part.function` créé. Si le métier le veut plus tard, ce sera via E2-S06 (score multi-critères, l.176).
+- **Q2 — « fabricant » = (d) différé à E2-S06** : relation N:N `Part`↔`PartSupplier`↔`Supplier`. Le fabricant est un signal de scoring, pas un signal textuel — son habitat naturel est E2-S06. Aucun JOIN, aucune dénormalisation en E2-S03.
+- **Q3 — Périmètre = (2) redéfini** : E2-S03 = recherche textuelle sur `PartSpecification.value` (matière, valeurs techniques), avec filtre optionnel par `key`. Redéfinition vs ROADMAP l.173 approuvée explicitement par le Coordinateur.
+- **Q4 — Frontière E2-S03/E2-S04 = split texte/numérique** : E2-S03 = `tsvector` sur `PartSpecification.value` ; E2-S04 = prédicats range sur `toleranceMin`/`toleranceMax` (dimensions). Aucun chevauchement.
+- **Q5 — Amendement ROADMAP l.173 = oui** : la redéfinition est inscrite dans ROADMAP.md (pas seulement appliquée dans l'ordre).
+
+### Réalisations
+
+- **A** : `src/lib/data/search.ts` — `searchPartsBySpecs(query, {key?, clientId?, limit?})` : CTE `matched` (`to_tsvector('french', ps.value) @@ plainto_tsquery('french', ...)`, filtre `key` exact optionnel), agrégation **une ligne par pièce** (Note 1 du memo) — `json_agg(json_build_object('key', m.key, 'value', m.value) ORDER BY m.rank DESC)` pour `matchedSpecs`, `MAX(m.rank)::float` pour le score, `GROUP BY p.id`, tri `rank DESC, ptvReference ASC NULLS LAST`. `Prisma.sql`/`Prisma.empty` (cohérent E2-S01/S02). `src/schemas/search.ts` — `PartSearchQuerySchema` étendu : `mode: z.enum(['text', 'reference', 'specs']).nullish().default('text')`, `key: z.string().min(1).max(50).nullish().transform(v => v ?? undefined)`. `src/app/api/search/route.ts` — handler `GET` étendu : dispatch `mode='specs'` → `searchPartsBySpecs({key, clientId, limit})`, retour `{query, mode, count, results}` uniforme. **`POST` E0-S07 intouché** (public, candidats fournisseurs).
+- **A.2 — Aucune migration** : 25 specs en seed — `to_tsvector` à la volée est instantané. Un index GIN sur `spec.value` serait une optimisation prématurée. Dette tracée : `D-spec-gin-index` (Faible — à ajouter si volume justifie, session dédiée). 12 migrations inchangées.
+- **B** : `src/components/search-bar.tsx` — 3ᵉ onglet « Spécifications » (`role="tab"`, `aria-selected`, cohérent E2-S02-B). Mode `specs` : envoie `mode=specs` à l'API, placeholder « Rechercher une matière, une dimension… », affichage des `matchedSpecs` (`key : value` joints par ` · `) sous le nom, note de bas de page adaptative. Modes `text` (E2-S01) et `reference` (E2-S02) inchangés. `useEffect` dépend de `[query, mode]` (le `key` n'est pas exposé en UI — recherche toutes specs, décision Coordinateur : dropdown non justifiée au MVP).
+- **C** : ROADMAP.md l.173 amendée (3 colonnes strictes) — « Recherche par spécifications | Full-text sur `PartSpecification` (matière, valeurs techniques) — redéfini 2026-10-10 (cf. memo E2-S03 Q1–Q5) : « fonction » non modélisé côté pièce (existe sur `Request` uniquement, l.291), « fabricant » reporté à E2-S06 (N:N, signal de score) ». Coquille D-44 (l.139) non touchée (hors périmètre — session doc dédiée).
+- **D** : `e2e/search.spec.ts` — 4 tests ajoutés (14 total) : `mode=specs` → 200 avec `matchedSpecs` non vide (matière « Acier ») ; `mode=specs&key=material` → résultats filtrés sur `key='material'` ; `mode=specs&key=unknown_key` → 200, `count: 0` (clé inconnue → 0 résultat, pas d'erreur) ; `mode=invalid` → 400 (validation Zod — enum `mode`).
+
+### Incidents PCT E2-S03
+
+Aucun incident. Aucune écriture sur fichier existant sans lecture préalable (règle R.4.2 appliquée : `search.ts`, `route.ts`, `search-bar.tsx`, `search.spec.ts`, `schema.prisma`, `seed.ts`, `ROADMAP.md`, `SESSION.md` lus avant écriture). Aucune migration créée (règle T10 non déclenchée).
+
+### Dettes résolues
+
+- Recherche par spécifications (E2-S03) — implémentée (full-text `PartSpecification.value` + filtre `key`, API + UI + tests).
+- Amendement ROADMAP l.173 — dette documentaire fermée (redéfinition inscrite, pas contournée).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-spec-gin-index` (nouvelle, Faible) | Session dédiée si volume justifie (index GIN sur `to_tsvector('french', part_specifications.value)`) |
+| `D-search-post-public` (Moyenne) | Session sécurité dédiée (après E2) |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée (enrichir seed avec 2ᵉ client) |
+| `D-e2e-isolation` (Faible, contrainte environnementale R.2) | Aucune cible — contrainte acceptée tant que le repo reste sur `F:\` |
+| `D-e2e-auth-dual`, `D-s03-t3-ecart`, `D-e2e-skip-conditional` | Session E2E dédiée |
+| `D-enums-non-utilises`, `D-ui-orphelins`, `D-docs-template`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E2-S03
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 36/36 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 163-166/165 (3-4 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel ; 1-2 échecs intermittents `D-e2e-isolation` Faible) — 4 nouveaux tests specs. Fourchette 163-166 selon instabilité |
+| Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json` — fichier infra non commité) |
+| Prisma migrate | ✅ 12 migrations (inchangées — aucune migration E2-S03), drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu R.4.1) |
+
+### Notes
+
+- **Aucune migration créée** (A.2) — 25 specs, `to_tsvector` à la volée instantané. Dette `D-spec-gin-index` tracée.
+- **`POST /api/search` E0-S07 intouché** (public, candidats fournisseurs) — cohabitation `POST`/`GET` documentée (R.3 E2-S01-A2).
+- **Agrégation par pièce** (Note 1 du memo) : `searchPartsBySpecs` retourne une ligne par pièce, pas par spec matchée — `MAX(ts_rank)` + `json_agg` des specs matchées triées par rank décroissant.
+- **`key` filtre exact** (A.3) : pas de préfixe. Les clés sont fixes (`material`, `diameter_ext`, …). Une clé inconnue → 0 résultat (pas d'erreur).
+- **`next-env.d.ts`** non modifié (règle #32 respectée).
+- E2-S04 (recherche par dimensions — prédicats range `toleranceMin`/`toleranceMax`) peut être cadré.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S03
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S04
 ═══════════════════════════════════════════════════════════════

@@ -170,7 +170,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 |---|---|---|
 | **E2-S01** | Recherche interne PartIVA | Moteur interrogeant la BDD pièces |
 | **E2-S02** | Recherche par référence | Matching exact/fuzzy sur références |
-| **E2-S03** | Recherche par texte | Full-text search (nom, fonction, fabricant) |
+| **E2-S03** | Recherche par spécifications | Full-text sur `PartSpecification` (matière, valeurs techniques) — *redéfini 2026-10-10 (cf. memo E2-S03 Q1–Q5) : « fonction » non modélisé côté pièce (existe sur `Request` uniquement, l.291), « fabricant » reporté à E2-S06 (N:N, signal de score)* |
 | **E2-S04** | Recherche par dimensions | Filtres numériques avec tolérance |
 | **E2-S05** | Recherche par photo | Upload + similarité visuelle (à définir : embeddings) |
 | **E2-S06** | Système de score multi-critères | Score pondéré (géométrie, dim, matière, fonction) |
