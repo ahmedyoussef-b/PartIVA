@@ -2541,6 +2541,7 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 | Seed | ✅ users: 4, parts: 6 (inchangé) |
 | Tests E2E | ✅ 201 passed / 0 failed / 0 skip (198 E2-S08 + 3 actifs sans token HF : 401, 400, 503 ; le 200 conditionnel skip) — 201 passed + 1 skip si `HF_API_TOKEN` provisionné |
 | Format | ✅ 0 non conforme |
+| Commit | ✅ `96b5e08` (5 fichiers : `search-bar.tsx`, `e2e/search.spec.ts`, `DEBT.md`, `SESSION.md`, `ROADMAP.md` — +242/-11) |
 
 ### Points de rapport E2-S09
 
@@ -2557,7 +2558,7 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **Test 503 conditionnel** : `test.skip(Boolean(process.env.HF_API_TOKEN), …)` — si le token HF est provisionné (CI/CD ou env local), le test 503 skip et le test 200 s'active. Couverture maximale dans les deux configurations.
 - **PNG 1×1 base64** : payload minimal valide (`iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ…`) — suffisant pour les tests 400/503/200 (la route valide le mime et la taille, pas le contenu visuel).
 - **`next-env.d.ts`** non modifié (règle #32).
-- **Commit hash** : à mesurer en clôture (`git rev-parse HEAD` après commit).
+- **Commit hash** : `96b5e08` (5 fichiers, +242/-11).
 - Ordre sessions : E2-S09 ✅ → E2-S10 (à cadrer) ou `D-photo-embedding-backfill` (si token HF provisionné).
 
 ═══════════════════════════════════════════════════════════════
