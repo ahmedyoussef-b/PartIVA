@@ -28,9 +28,26 @@
 | `D-s03-t3-ecart` | Interprétation de l'écart `SUBMITTED`/`IDENTIFYING` (E1-S03-F T3) non prouvée par un SELECT avant/après. Plausible, non vérifié. | Faible | Session E2E dédiée | Non | Ajouter un SELECT avant/après tests E2E pour confirmer |
 | `D-e2e-isolation` | Effets d'ordre entre specs E2E (DB partagée) + instabilité dev server Windows. Les specs passent seules, échouent en run complet. | Moyenne | Session E2E dédiée | Non | Ajouter reset DB entre specs ou isoler les données par spec |
 | `D-e2e-skip-conditional` | Skip conditionnel `part-versions.spec.ts:68` (test transition crée version) — skip si aucune pièce SUBMITTED en seed (consommée par un test antérieur). | Faible | Session E2E dédiée | Non | Rendre le test déterministe (fixture dédiée ou reset DB) |
-| `D-cloudinary-cleanup` | Suppression du fichier Cloudinary à la suppression d'un `PartImage`/`Attachment` (D5 E1-S05) — non implémenté. | Moyenne | E1-S06-C | Oui | `cloudinary.uploader.destroy(publicId)` dans DELETE `PartImage` (`images/[imageId]`) et `Attachment` (`attachments/[attachmentId]`) — non bloquant si échec |
-| `D-cloudinary-attachment-upload` | UI d'upload d'`Attachment` absente — modèle `Attachment.publicId` prêt mais aucun endpoint d'upload d'attachment. | Faible | E1-S06-C | Oui | UI `PartAttachmentList` + API `POST /api/parts/[id]/attachments` (upload Cloudinary `raw`) + onglet « Documents » |
-| `D-cloudinary-validation` | Chemin succès `uploadToCloudinary()` non testé en E1-S05 (caveat) — E2E ne couvrait que les chemins d'erreur. | Haute | E1-S06-A | Oui | Test d'intégration `scripts/test-cloudinary.mjs` avec vrais credentials |
+
+---
+
+## Dettes résiduelles E1 (post E1-S07)
+
+| ID | Description | Sévérité | Phase cible | Bloquant | Décision |
+|---|---|---|---|---|---|
+| `D-e2e-multitenant` | Test E2E « USER sur pièce d'un autre client → 403 » skippé — seed mono-client. Sécurité multi-tenant (`NOT_OWNER`) non couverte par test E2E. | Haute | Session E2E dédiée | Oui | Enrichir le seed avec un 2ᵉ client (Sophie Martin + un autre user) pour activer les 3 tests skippés (transitions, versions, diff) |
+| `D-e2e-isolation` | Effets d'ordre entre specs E2E (DB partagée) + instabilité dev server Windows. Les specs passent seules, échouent en run complet. | Moyenne | Session E2E dédiée | Non | Ajouter reset DB entre specs ou isoler les données par spec. Observé en E1-S07-D : `auth-api.spec.ts:23` timeout 30s en run complet, passe isolé (5.1s) |
+| `D-e2e-auth-dual` | Deux mécanismes d'auth E2E coexistent : `authRequest` (chromium) et `storageState` (admin/user/viewer). | Faible | Session E2E dédiée | Non | Vérifier la stabilité des storageStates sur plusieurs runs consécutifs |
+| `D-s03-t3-ecart` | Interprétation de l'écart `SUBMITTED`/`IDENTIFYING` (E1-S03-F T3) non prouvée par un SELECT avant/après. | Faible | Session E2E dédiée | Non | Ajouter un SELECT avant/après tests E2E pour confirmer |
+| `D-e2e-skip-conditional` | Skip conditionnel `part-versions.spec.ts:68` (test transition crée version). | Faible | Session E2E dédiée | Non | Rendre le test déterministe (fixture dédiée ou reset DB) |
+| `D-enums-non-utilises` | Enums Prisma non appliqués sur `AuditLog.action`, `AuditLog.entityType`, `SearchCandidate.source` (champs techniques, valeurs ouvertes). | Faible | Session ultérieure | Non | `Machine.type` + `Material.category` convertis en enum en E1-S01 (D3). `AuditLog.*` + `SearchCandidate.source` reportés |
+| `D-ui-orphelins` | `alert.tsx`, `select.tsx`, `skeleton.tsx` non consommés. | Faible | Session ultérieure | Non | Décision usage ou suppression |
+| `D-docs-template` | `PCT.md` en template non rempli. | Faible | Session doc dédiée | Non | Accepté si intentionnel (document générique) |
+| `D-roadmap-retard` | `ROADMAP.md` — table E0 incomplète, libellés inexacts, sessions manquantes. | Faible | Session doc dédiée | Non | Reporté session doc dédiée (groupé avec D-44) |
+| `D-27-bis` | `GET /api/reverse-engineering` absente. | Faible | E1 ou E7 | Non | Reporté. Aucun consommateur externe identifié (D49) |
+| `D-44` | Coquille Markdown `ROADMAP.md` l.139 (4 cellules / 3 colonnes). | Faible | Session doc dédiée | Non | Reporté session doc dédiée |
+| `D116` | Prisma 8 — attente GA. | Faible | Session dédiée | Non | Condition : GA Prisma 8 + adapter-pg 8.x stable + validation auth adapter |
+| `D-audit-mysql2` | `npm audit` — 4 high prod / 9 high total via `mysql2` transitif de `prisma`. | Haute | Attente Prisma 8 | Non | Accepté et tracé. `mysql2` non utilisé (PostgreSQL). Fix = downgrade Prisma 6.19.3 (breaking) → refusé |
 
 ---
 
@@ -38,6 +55,12 @@
 
 | ID | Description | Résolu en |
 |---|---|---|
+| `D-cloudinary-validation` | Chemin succès `uploadToCloudinary()` non testé en E1-S05 | E1-S06-A (`scripts/test-cloudinary.mjs`, upload réel OK) |
+| `D-cloudinary-cleanup` | Suppression fichier Cloudinary à la suppression PartImage/Attachment | E1-S06-C (`cloudinary.uploader.destroy(publicId)` dans les DELETE) |
+| `D-cloudinary-attachment-upload` | UI d'upload d'`Attachment` absente | E1-S06-C (`PartAttachmentList` + API `POST /api/parts/[id]/attachments`) |
+| `D-part-user` | Relation `Part` ↔ `User` absente | E1-S01-A |
+| `D-ptv-race` | Race condition génération PTV | E1-S02-A (retry applicatif) |
+| `D-ux-enum-labels` | Affichage UI codes bruts d'enum | E1-S02-B (mapping FR) |
 | `D-forwardRef` | Migration `forwardRef` → `ref` comme prop (React 19) | E0-S10 |
 | `D25-bis` | Warning Decimal persistant (sérialisation RSC→Client) | E0-S09 |
 | `D25-ter` | Hydration mismatch `pieces-pretes-client.tsx:315` | E0-S09 |
@@ -47,6 +70,7 @@
 | `D-tailwind3` | Tailwind 3 → 4 | E0-S09 |
 | `D-react18` | React 18 → 19 | E0-S09 |
 | `D-mocks` | Mocks `MOCK_SEARCH_CANDIDATES`, `mock-data.ts` | E0-S07 |
+| `D-format-E0` | `format:check` — 83 fichiers non conformes | E0-S11-B |
 
 ---
 
