@@ -76,6 +76,16 @@ async function main() {
     },
   });
 
+  const client2 = await prisma.user.upsert({
+    where: { email: 'client2@partiva.dev' },
+    update: { name: 'Marie Lefèvre', role: 'USER' },
+    create: {
+      email: 'client2@partiva.dev',
+      name: 'Marie Lefèvre',
+      role: 'USER',
+    },
+  });
+
   const devPasswordHash = await hashPassword('PartIVA-dev-2026!');
 
   await prisma.account.upsert({
@@ -106,6 +116,17 @@ async function main() {
     create: {
       userId: viewer.id,
       accountId: viewer.id,
+      providerId: 'credential',
+      password: devPasswordHash,
+    },
+  });
+
+  await prisma.account.upsert({
+    where: { providerId_accountId: { providerId: 'credential', accountId: client2.id } },
+    update: { password: devPasswordHash },
+    create: {
+      userId: client2.id,
+      accountId: client2.id,
       providerId: 'credential',
       password: devPasswordHash,
     },
@@ -423,9 +444,21 @@ async function main() {
     },
   });
 
+  const part6 = await prisma.part.create({
+    data: {
+      partNumber: 'SKF-6206-2RS-C2',
+      ptvReference: 'PTV-2026-000006',
+      name: 'Roulement à billes SKF 6206-2RS (client 2)',
+      description: 'Roulement rigide à billes, joints 2RS, dimensions 30x62x16 mm — client 2',
+      status: 'SUBMITTED',
+      categoryId: roulementsABilles.id,
+      clientId: client2.id,
+    },
+  });
+
   // ── PartVersions ──────────────────────────────────────────────
   console.log('📜 Creating initial part versions...');
-  for (const part of [part1, part2, part3, part4, part5]) {
+  for (const part of [part1, part2, part3, part4, part5, part6]) {
     await prisma.partVersion.create({
       data: {
         partId: part.id,
@@ -497,6 +530,9 @@ async function main() {
     { partId: part5.id, key: 'width', value: '15', unit: 'mm' },
     { partId: part5.id, key: 'contact_angle', value: '40', unit: '°' },
     { partId: part5.id, key: 'material', value: 'Acier trempé', unit: null },
+    { partId: part6.id, key: 'diameter_ext', value: '62', unit: 'mm' },
+    { partId: part6.id, key: 'diameter_int', value: '30', unit: 'mm' },
+    { partId: part6.id, key: 'width', value: '16', unit: 'mm' },
   ];
 
   for (const spec of specs) {

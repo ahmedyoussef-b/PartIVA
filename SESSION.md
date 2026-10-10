@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S07-C2 (clôturée) |
-| **Session en cours** | E2-S08 (assistant de mesure) — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search), baseline 6/6 tenue, E2E 183/189 (1 nouveau test 401 POST ; 2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S08 à cadrer |
+| **Dernière session** | E2-S07-D (clôturée) |
+| **Session en cours** | D-parts-list-public (sécurité /api/parts/*) — à cadrer, avant E2-S08 |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E), baseline 6/6 tenue, E2E 17/17 sur les 3 specs multi-tenant (0 skip), D-parts-list-public (Moyenne) à traiter avant E2-S08 |
 
 ---
 
@@ -2341,6 +2341,93 @@ régulariser `D-completeness-client-ui`.
 - **`next-env.d.ts`** non modifié (règle #32).
 - E2-S08 (assistant de mesure) peut être cadrée.
 
+---
+
+## E2-S07-D — Sécurité multi-tenant E2E (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `<hash E2-S07-D>`
+**Baseline :** lint 0/0, typecheck 0, build 54 routes, seed idempotent (users: 4, parts: 6), E2E 17/17 sur les 3 specs multi-tenant (0 skip), format 0, 14 migrations, drift GIN + HNSW.
+
+### Objet
+
+Fermer la dette **Haute** `D-e2e-multitenant` : test « USER sur pièce
+d'un autre client → 403 » skippé (seed mono-client). Sécurité
+multi-tenant (`NOT_OWNER`) implémentée mais non couverte E2E.
+
+### Vérification préalable (Option A)
+
+Les 3 routes implémentent `NOT_OWNER` (aucun bug de sécurité) :
+- `transition/route.ts:34` — `NOT_OWNER` → 403 via `TransitionError`
+- `versions/route.ts:29-35` — `USER && part.clientId !== session.user.id` → 403
+- `versions/diff/route.ts:40-48` — `checkOwnership()` → 403
+
+### Décisions applicables
+
+| Arbitrage | Décision | Justification |
+|---|---|---|
+| 1 | 1a — 1 nouveau client (Marie Lefèvre / `client2@partiva.dev`) | Sophie Martin existe déjà (`user@partiva.dev`) |
+| 2 | 2a — 1 part pour le nouveau client | 1 part suffit pour `NOT_OWNER` |
+| 3 | 3b — part `SUBMITTED` pour le nouveau client | Active transitions + versions multi-tenant |
+| 4 | 4b — fallback dev | Déjà le pattern actuel (`users.ts`) |
+| 5 | 5a — 2 tests conditionnels s'activent + 1 test diff créé | Pas de `.skip` statique à retirer |
+
+### Réalisations
+
+- **Seed enrichi** (`prisma/seed.ts`) : +1 user `client2@partiva.dev` (Marie Lefèvre, USER) + compte credential + 1 part `SKF-6206-2RS-C2` (`PTV-2026-000006`, `SUBMITTED`, `clientId: client2.id`) + version 1 + 3 specs minimales. **Seed destructif** (`deleteMany` toutes tables l.29-45) — exécuté seul avant les tests.
+- **`e2e/fixtures/users.ts`** : inchangé (le test utilise `authRequest(request, 'USER')` = Sophie, cherche part `clientId !== Sophie.id` = part de client2).
+- **`e2e/part-transitions.spec.ts`** : inchangé (test conditionnel l.99-131 s'active).
+- **`e2e/part-versions.spec.ts`** : inchangé (test conditionnel l.99-125 s'active).
+- **`e2e/part-version-diff.spec.ts`** : +1 test multi-tenant créé (l.124-152, GET diff sur part d'un autre client → 403).
+
+### Découverte — `D-parts-list-public` (Moyenne)
+
+Vérification Q-B a révélé que `GET /api/parts` (`route.ts:9-12`) et
+`GET /api/parts/[id]` (`[id]/route.ts:4-13`) sont **publics sans auth**
+et **non filtrés par `clientId`** — fuite de données multi-tenant.
+**Impact E2E** : 14 tests appellent `GET /api/parts` sans auth.
+Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
+
+### Dettes résolues
+
+- `D-e2e-multitenant` (Haute) — 2ᵉ client + part SUBMITTED + 3 tests actifs.
+
+### Dettes créées
+
+| Dette | Sévérité | Cible |
+|---|---|---|
+| `D-e2e-submitted-consumption` | Moyenne | Session E2E dédiée (cause racine des 2 échecs part-transitions) |
+| `D-parts-list-public` | Moyenne | Session sécurité dédiée (avant E2-S08) |
+
+### Baseline finale E2-S07-D
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 54 routes (inchangé) |
+| Seed | ✅ users: 4, parts: 6 (part6 SUBMITTED client2) |
+| Tests E2E | ✅ 17/17 sur les 3 specs multi-tenant (0 skip — transitions 7/7, versions 6/6, diff 6/6) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 14 migrations (inchangées), drift GIN + HNSW |
+
+### Points de rapport
+
+1. **Baseline mesurée** : seed users: 4 / parts: 6, E2E 17/17 — mesurés, non déduits.
+2. **Seed** : part6 `PTV-2026-000006` `SUBMITTED` `clientId: client2.id` confirmée (test 6 transitions vert).
+3. **Tests multi-tenant** : 3 actifs (non skip) — transitions l.99, versions l.99, diff l.124.
+4. **403 vérifié** : les 3 routes retournent 403 (vérification préalable + tests verts).
+5. **2 échecs part-transitions** : **résolus** par le reseed (stock SUBMITTED restauré à 6) — tests 3-4 transitions verts.
+6. **Dettes** : `D-e2e-multitenant` résolue (historique l.86), `D-e2e-submitted-consumption` créée (l.51), `D-parts-list-public` créée (l.52).
+7. **Aucune déviation** — tous les arbitrages 1a-5a appliqués tels que validés.
+
+### Notes
+
+- **Seed destructif** : `deleteMany` sur toutes les tables — exécuté seul, pas en parallèle d'un dev server actif.
+- **`D-parts-list-public`** : découverte lors de la vérification Q-B — la session dédiée doit auditer `/api/parts/*` complet + mettre à jour les 14 tests E2E + appelants UI.
+- **`next-env.d.ts`** non modifié (règle #32).
+- Ordre sessions : E2-S07-D ✅ → `D-parts-list-public` (session sécurité dédiée) → E2-S08.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S08
+Fin SESSION.md — **Prochaine MAJ :** fin de session D-parts-list-public
 ═══════════════════════════════════════════════════════════════

@@ -120,3 +120,32 @@ test('api: GET /api/parts/[id]/versions/diff with unknown version returns 404', 
   });
   expect(response.status()).toBe(404);
 });
+
+test('api: GET /api/parts/[id]/versions/diff USER on another client part returns 403', async ({
+  request,
+}) => {
+  const partsResponse = await request.get('/api/parts');
+  expect(partsResponse.status()).toBe(200);
+  const parts = await partsResponse.json();
+
+  const { headers } = await authRequest(request, 'USER');
+  const sessionResponse = await request.get('/api/auth/get-session', {
+    headers,
+  });
+  const session = await sessionResponse.json();
+  const userId = session?.user?.id;
+
+  const otherPart = parts.find(
+    (p: { clientId?: string | null }) => p.clientId && p.clientId !== userId,
+  );
+
+  if (!otherPart) {
+    test.skip();
+    return;
+  }
+
+  const response = await request.get(`/api/parts/${otherPart.id}/versions/diff?from=1&to=2`, {
+    headers,
+  });
+  expect(response.status()).toBe(403);
+});
