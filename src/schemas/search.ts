@@ -50,7 +50,7 @@ export const PartSearchQuerySchema = z
       .nullish()
       .transform((v) => v ?? undefined)
       .default(20),
-    mode: z.enum(['text', 'reference', 'specs', 'dimensions']).nullish().default('text'),
+    mode: z.enum(['text', 'reference', 'specs', 'dimensions', 'photo']).nullish().default('text'),
     key: z
       .string()
       .min(1)
