@@ -19,8 +19,8 @@
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
 | **Dernière session** | E2-S04 (clôturée) |
-| **Session en cours** | E2-S05 (recherche par photo — à cadrer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications + recherche par dimensions), baseline 6/6 tenue, E2E 172/173 (fourchette 171-174), E2-S05 à cadrer |
+| **Session en cours** | E2-S05 (recherche par photo — pgvector + HNSW + API) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications + recherche par dimensions + recherche par photo), baseline 6/6 tenue, E2E 172/178 (fourchette 171-174, 2 échecs intermittents `D-e2e-isolation`), E2-S06 à cadrer |
 
 ---
 
@@ -41,7 +41,7 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante)
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`)
 - [ ] **Phase 2 — Core Features** : E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
@@ -1949,6 +1949,94 @@ Extension de `GET /api/search` avec `mode=dimensions` + `matchMode` (`nominal` d
 - **`next-env.d.ts`** non modifié (règle #32 respectée).
 - E2-S05 (recherche par photo — upload + similarité visuelle, embeddings) peut être cadré.
 
+## E2-S05 — Recherche par photo (pgvector + HNSW + API) (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `<hash E2-S05-A>` (schéma + migration), `<hash E2-S05-B>` (service + API + backfill), `<hash E2-S05-C>` (clôture documentaire)
+**Baseline :** lint 0/0, typecheck 0, build 53 routes (dont `/api/search/photo` ajouté), seed idempotent, E2E 172/178 (4 skips, 2 échecs intermittents `part-transitions` « No part with status SUBMITTED » — `D-e2e-isolation` Faible, contrainte environnementale acceptée), format 0, 13 migrations, drift = index HNSW uniquement (attendu, R.4.1-bis).
+
+### Objet
+
+Recherche **visuelle** sur `PartImage` — colonne `embedding vector(768)` (pgvector), index HNSW (cosine), service embeddings (Hugging Face Inference API, `clip-ViT-B-32`), API `POST /api/search/photo` (similarité cosinus `<=>`), backfill des images existantes.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| A.1 | `embedding Unsupported("vector(768)")?` sur `PartImage` (schema.prisma) | ✅ | `<hash E2-S05-A>` |
+| A.1-bis | Typecheck anticipé (vert — `Unsupported` opaque à TS, pas de TS2353) | ✅ | — |
+| A.2 | Migration `--create-only` + édition manuelle A.2.2 + application | ✅ | `<hash E2-S05-A>` |
+| A.2.4 | Recréation index GIN `parts_search_vector_idx` (**OBLIGATOIRE — R1**) | ✅ | — |
+| A.2.5 | Recréation index HNSW `part_images_embedding_hnsw` (drift Prisma, R.4.1-bis) | ✅ | — |
+| A.3 | Service embeddings (`src/lib/embeddings.ts`) + data layer (`src/lib/data/part-embeddings.ts`) + API `POST /api/search/photo` + backfill (`scripts/backfill-embeddings.ts`) | ✅ | `<hash E2-S05-B>` |
+| C | Tests E2E + baseline complète + clôture documentaire | ✅ | `<hash E2-S05-C>` |
+
+### Décisions verrouillées
+
+- **D1** : Fournisseur embeddings = **Hugging Face Inference API** (`sentence-transformers/clip-ViT-B-32`, 768 dims, vision+texte). Pas de SDK — `fetch` brut (cohérent approche minimaliste du repo). `HF_API_TOKEN` serveur uniquement (jamais `NEXT_PUBLIC_`, sécurité #7).
+- **D2** : Colonne `embedding vector(768)` sur `PartImage` (nullable — backfill progressif). `Unsupported("vector(768)")` dans le schéma Prisma (Prisma 7 ne modélise pas pgvector).
+- **D3** : Index **HNSW** (`USING hnsw ("embedding" vector_cosine_ops)`) — recherche voisinage approximatif rapide. Non modélisé dans Prisma (drift attendu, R.4.1-bis).
+- **D4** : Similarité = **cosinus** (`1 - (embedding <=> query)`, opérateur `<=>` distance cosinus pgvector). Tri `ORDER BY embedding <=> query` (plus proche d'abord).
+- **D5** : API dédiée `POST /api/search/photo` (image base64 en body) — séparée de `GET /api/search` (qui porte text/reference/specs/dimensions). Auth requise (401), USER → filtre `clientId`, ADMIN → sans filtre.
+- **D6** : Backfill **graceful degradation** — `HF_API_TOKEN` absent → tous les embeddings restent NULL (R3, comportement documenté, pas d'erreur). API photo retourne 503 si token absent.
+
+### Réalisations
+
+- **A.1** : `embedding Unsupported("vector(768)")? @map("embedding")` sur `PartImage` (`schema.prisma:127`).
+- **A.1-bis** : typecheck anticipé **vert** (EXITCODE=0). Le type `Unsupported` est opaque à TypeScript — aucune TS2353 (la prédiction V2 du rapport était conservatrice ; le typecheck passe sans régénération client).
+- **A.2** : sonde `prisma migrate dev --create-only` → Prisma génère **uniquement** `DROP INDEX "parts_search_vector_idx"` + `ALTER TABLE "part_images" ADD COLUMN "embedding" vector(768)`. **Confirmation empirique V1** : Prisma ne génère **ni** `CREATE EXTENSION vector`, **ni** l'index HNSW. Édition manuelle A.2.2 du fichier de migration (ordre R.2) : `DROP INDEX` (drift GIN, R.4.1) → `CREATE EXTENSION IF NOT EXISTS vector` → `ALTER TABLE ADD COLUMN` → `CREATE INDEX ... USING hnsw`. Migration `20261010133855_add_part_image_embedding` appliquée (13 migrations).
+- **A.2.4 (R1 — OBLIGATOIRE)** : la migration supprime l'index GIN `parts_search_vector_idx` (drift Prisma). Recréation manuelle : `CREATE INDEX IF NOT EXISTS "parts_search_vector_idx" ON "parts" USING gin (search_vector)`. Vérification : `SELECT indexname FROM pg_indexes WHERE tablename='parts' AND indexname='parts_search_vector_idx'` → présent. Sans A.2.4, la baseline « drift = GIN + HNSW » serait fausse (le GIN n'existerait plus).
+- **A.2.5 (R.4.1-bis — nouveau)** : **découverte non couverte par V1-V7/R1-R4** : Prisma ne modélise pas non plus l'index HNSW. Après application de la migration A.2, `migrate dev` a généré une **seconde** migration `20261010134150` contenant `DROP INDEX "part_images_embedding_hnsw"` (drift détecté). Traitement : suppression de cette migration drift de l'historique (`_prisma_migrations` + filesystem) + recréation manuelle de l'index HNSW. Le drift HNSW est **attendu et documenté** (même classe que le drift GIN, R.4.1). `prisma migrate diff --from-migrations --to-schema` confirme : drift = `DROP INDEX "part_images_embedding_hnsw"` uniquement.
+- **A.3** : `src/lib/embeddings.ts` — `computeImageEmbedding(buffer)` (POST HF Inference API, `Authorization: Bearer`, body octet-stream, validation réponse tableau numérique), `EmbeddingError` (codes `MISSING_TOKEN`/`FETCH_FAILED`/`INVALID_RESPONSE`), `isEmbeddingConfigured()`. `src/lib/data/part-embeddings.ts` — `backfillImageEmbeddings({force?})` (téléchargement image → embedding → `UPDATE ... SET embedding = '<vector>'::vector(768)`, filtre `embedding IS NULL` via `$queryRaw` car Prisma ne filtre pas les colonnes `Unsupported`), `searchPartsByPhoto(queryEmbedding, {clientId?, limit?})` (`1 - (embedding <=> query)` similarité, `ORDER BY embedding <=> query`). `src/app/api/search/photo/route.ts` — `POST` (auth 401, Zod `PhotoSearchRequestSchema` 400, mime/size 400, `EmbeddingError`→503/502, retour `{mode, count, results[]}`). `src/schemas/search.ts` — `mode: z.enum([...,'photo'])`. `scripts/backfill-embeddings.ts` — CLI backfill (exit 0 si token absent, message documenté).
+
+### Incidents PCT E2-S05
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S05-n°1 | `migrate dev` a créé une **2ᵉ migration** `20261010134150` (`DROP INDEX "part_images_embedding_hnsw"`) car Prisma ne modélise pas l'index HNSW ajouté manuellement. | Résolu : migration drift supprimée de l'historique + index HNSW recréé manuellement. Drift HNSW documenté (R.4.1-bis, même classe que drift GIN R.4.1). |
+| E2-S05-n°2 | 3 erreurs typecheck A.3 : `validated.limit` `number\|null` (route), `embedding: null` non filtrable Prisma (backfill), `Buffer` non assignable à `BodyInit` (embeddings). | Résolu : `?? undefined`, `$queryRaw ... WHERE embedding IS NULL`, `new Uint8Array` + `body.set()`. Typecheck EXITCODE=0. |
+| E2-S05-n°3 | E2E 2 échecs `part-transitions` (« No part with status SUBMITTED in seed ») — **préexistants**, intermittents (`D-e2e-isolation` Faible). | Tracé : contrainte environnementale acceptée (R.4). Les 23 tests `search.spec.ts` passent tous (9/9 dimensions + 15 text/reference/specs + photo validation). Non lié à E2-S05. |
+
+### Dettes résolues
+
+- Recherche par photo (E2-S05) — implémentée (pgvector + HNSW + service + API + backfill).
+- Amendement R1 (A.2.4 obligatoire) — intégré et exécuté (index GIN recréé).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-photo-embedding-backfill` (nouvelle, Moyenne) | Backfill réel des 5 images seed (bloqué par `HF_API_TOKEN` absent — R3). À exécuter quand le token HF est provisionné (`npx tsx scripts/backfill-embeddings.ts`). |
+| `D-photo-ui` (nouvelle, Faible) | UI 5ᵉ mode « Photo » dans `SearchBar` (upload image + résultats similarité) — l'API est prête, l'UI n'est pas encore branchée. |
+| `D-hnsw-drift` (nouvelle, Faible) | Drift index HNSW (R.4.1-bis) — inhérent à Prisma + `Unsupported`. Documenté ; la migration SQL + recréation manuelle est la source de vérité. |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée |
+| `D-e2e-isolation` (Faible, contrainte environnementale R.2) | Aucune cible — contrainte acceptée tant que le repo reste sur `F:\` |
+| `D-search-post-public` (Moyenne) | Session sécurité dédiée (après E2) |
+| `D-enums-non-utilises`, `D-ui-orphelins`, `D-docs-template`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E2-S05
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 53 routes (`/api/search/photo` ajouté) |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 172/178 (4 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel + 1 `part-transitions` SUBMITTED consommé ; 2 échecs intermittents `part-transitions` `D-e2e-isolation` Faible). 23/23 `search.spec.ts` passent. Fourchette 171-174 selon instabilité |
+| Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json` — fichier infra non commité) |
+| Prisma migrate | ✅ 13 migrations, drift = `DROP INDEX "part_images_embedding_hnsw"` uniquement (attendu R.4.1-bis) |
+| pgvector | ✅ extension `vector` installée, colonne `embedding vector(768)`, index HNSW `part_images_embedding_hnsw` (cosine), index GIN `parts_search_vector_idx` recréé (R1) |
+
+### Notes
+
+- **Confirmation empirique V1** : sonde `--create-only` → Prisma génère `DROP INDEX "parts_search_vector_idx"` + `ALTER TABLE ... ADD COLUMN "embedding" vector(768)` **uniquement**. Ni `CREATE EXTENSION vector`, ni HNSW. Édition manuelle A.2.2 **obligatoire**.
+- **R1 intégré** : A.2.4 (recréation GIN) est **OBLIGATOIRE** (pas optionnel) — sinon la migration supprime l'index GIN et la baseline « drift = GIN + HNSW » devient fausse.
+- **R.4.1-bis (nouveau)** : l'index HNSW a le **même** problème de drift que le GIN (Prisma ne le modélise pas). `migrate dev` tente de le dropper. Traitement : recréation manuelle + drift documenté.
+- **R3** : `HF_API_TOKEN` absent en environnement → `SELECT COUNT(*) FROM part_images WHERE embedding IS NULL` = 5 (toutes les images). Comportement attendu et documenté. Le backfill s'exécutera quand le token HF sera provisionné.
+- **`POST /api/search` E0-S07 intouché** (public, candidats fournisseurs) — cohabitation `POST`/`GET` documentée. `POST /api/search/photo` est un endpoint distinct (auth requise).
+- **`next-env.d.ts`** non modifié (règle #32 respectée, restauré via `git checkout`).
+- E2-S06 (système de score multi-critères) peut être cadré.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S05
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S06
 ═══════════════════════════════════════════════════════════════
