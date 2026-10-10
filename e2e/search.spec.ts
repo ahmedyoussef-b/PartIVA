@@ -13,6 +13,19 @@ async function authRequest(
   return { headers: {} };
 }
 
+test('api: POST /api/search without auth returns 401', async ({ request }) => {
+  const response = await request.post('/api/search', { data: {} });
+  expect(response.status()).toBe(401);
+});
+
+test('api: POST /api/search with auth returns 200 and JSON array', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.post('/api/search', { headers, data: {} });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(Array.isArray(body)).toBe(true);
+});
+
 test('api: GET /api/search without auth returns 401', async ({ request }) => {
   const response = await request.get('/api/search?q=roulement');
   expect(response.status()).toBe(401);

@@ -1,7 +1,21 @@
 import { test, expect } from '@playwright/test';
+import { users } from './fixtures/users';
+
+async function authRequest(
+  request: import('@playwright/test').APIRequestContext,
+  role: 'ADMIN' | 'USER' | 'VIEWER',
+) {
+  const user = users[role];
+  const response = await request.post('/api/auth/sign-in/email', {
+    data: { email: user.email, password: user.password },
+  });
+  expect(response.status()).toBe(200);
+  return { headers: {} };
+}
 
 test('api: /api/search POST with empty body returns 200 and JSON array', async ({ request }) => {
-  const response = await request.post('/api/search', { data: {} });
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.post('/api/search', { headers, data: {} });
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(Array.isArray(body)).toBe(true);

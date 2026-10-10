@@ -1,7 +1,22 @@
 import { test, expect } from '@playwright/test';
+import { users } from './fixtures/users';
+
+async function authRequest(
+  request: import('@playwright/test').APIRequestContext,
+  role: 'ADMIN' | 'USER' | 'VIEWER',
+) {
+  const user = users[role];
+  const response = await request.post('/api/auth/sign-in/email', {
+    data: { email: user.email, password: user.password },
+  });
+  expect(response.status()).toBe(200);
+  return { headers: {} };
+}
 
 test('smoke: /api/search returns 4 candidates sorted by score desc', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post('/api/search', {
+    headers,
     data: {},
   });
   expect(response.status()).toBe(200);
@@ -23,7 +38,9 @@ test('smoke: /api/search returns 4 candidates sorted by score desc', async ({ re
 test('smoke: /api/search with source filter returns 1 traceparts candidate', async ({
   request,
 }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
   const response = await request.post('/api/search', {
+    headers,
     data: { source: 'traceparts' },
   });
   expect(response.status()).toBe(200);

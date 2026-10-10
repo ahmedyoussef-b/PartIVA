@@ -13,6 +13,13 @@ import { multiSearch } from '@/lib/data/multi-search';
 
 export async function POST(req: Request) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user) {
+      return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const { source } = body;
 

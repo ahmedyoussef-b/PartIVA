@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S07 (clôturée) |
+| **Dernière session** | E2-S07-C2 (clôturée) |
 | **Session en cours** | E2-S08 (assistant de mesure) — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes), E2-S07-B1 clôturée (outillage backfill embeddings), baseline 6/6 tenue, E2E 182/188 (5 nouveaux complétude ; 2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S08 à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search), baseline 6/6 tenue, E2E 183/189 (1 nouveau test 401 POST ; 2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S08 à cadrer |
 
 ---
 
@@ -42,7 +42,7 @@
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
 - [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`) + E2-S06 (score multi-critères unifié, `ScoringWeights` DB, `GET /api/search?mode=multi`, UI onglet Multi + badge score + breakdown repliable)
-- [ ] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) + E2-S07-B1 (outillage backfill embeddings) + E2-S07-C2 (sécurisation POST /api/search + régularisations)
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -2262,6 +2262,82 @@ Détecter les **spécifications requises manquantes** sur une pièce et afficher
 
 - **`getPartCompleteness`** retourne `null` si la pièce n'existe pas (404 côté route).
 - **Ownership USER** : vérifié dans la route (pattern `specifications/route.ts`) — USER ne voit que ses propres pièces.
+- **`next-env.d.ts`** non modifié (règle #32).
+- E2-S08 (assistant de mesure) peut être cadrée.
+
+---
+
+## E2-S07-C2 — Sécurisation POST /api/search + régularisations (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `<hash E2-S07-C2>`
+**Baseline :** lint 0/0, typecheck 0, build 54 routes, seed idempotent, E2E 183/189 (182+1 nouveau test 401 POST), format 0, 14 migrations, drift GIN + HNSW.
+
+### Objet
+
+Sécuriser `POST /api/search` (dette `D-search-post-public`, Moyenne) +
+régulariser `D-completeness-client-ui`.
+
+### Décisions applicables
+
+| Décision | Contenu |
+|---|---|
+| Q1 | Sécuriser POST (auth requise) |
+| Q2 | Rôle minimum : VIEWER+ (tout authentifié) |
+| Q3 | Mettre à jour 3 tests E2E cassés (smoke ×2, api ×1) |
+| A | Reformuler `D-completeness-client-ui` |
+| B | `D-e2e-residues` inchangée (déjà Faible) |
+
+### Réalisations
+
+- **POST sécurisé** : auth VIEWER+ ajoutée en tête du handler POST (`route.ts:14-20`), identique au GET (l.34-39). Imports `auth` et `headers` déjà présents (utilisés par le GET).
+- **Tests E2E mis à jour** : smoke ×2 (`e2e/smoke.spec.ts:16,40`) + api ×1 (`e2e/api.spec.ts:16`) → `authRequest(request, 'ADMIN')` (pattern `e2e/search.spec.ts:4-14`).
+- **Nouveau test** : POST sans auth → 401 (`e2e/search.spec.ts:16`) + POST avec auth → 200 (`e2e/search.spec.ts:21`).
+- **`D-completeness-client-ui` reformulée** (DEBT.md l.39) : précision « UI client avancée » — le badge simple existe déjà via `PartDossier` partagé.
+
+### Appelants du POST vérifiés
+
+| Appelant | Impact |
+|---|---|
+| UI admin `recherche-client.tsx:162` | Aucun (page protégée middleware + cookies fetch par défaut) |
+| UI `search-bar.tsx:115` | GET uniquement (déjà authentifié) |
+| E2E smoke ×2 + api ×1 | Mis à jour (authRequest ADMIN) |
+
+### Dettes résolues
+
+- `D-search-post-public` (Moyenne) — POST sécurisé (auth VIEWER+).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-completeness-client-ui` (Faible, reformulée) | Session UI dédiée |
+| `D-e2e-residues` (Faible, inchangée) | Session E2E dédiée |
+
+### Baseline finale E2-S07-C2
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 54 routes (inchangé) |
+| Tests E2E | ✅ 183/189 (182+1 nouveau test 401 POST ; 37/37 sur les 3 specs modifiés) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 14 migrations (inchangées), drift GIN + HNSW |
+
+### Points de rapport
+
+1. **Baseline mesurée** : build 54 routes, E2E 37/37 sur les 3 specs modifiés — mesurés, non déduits.
+2. **POST sécurisé** : 401 sans auth confirmé (test `search.spec.ts:16` vert).
+3. **GET intouché** : `git diff route.ts` ne montre que l'ajout dans le POST (6 lignes), aucune modification du GET.
+4. **3 tests E2E mis à jour** : smoke ×2 + api ×1 → `authRequest(request, 'ADMIN')`, tous verts.
+5. **Nouveau test 401** : vert (`search.spec.ts:16`).
+6. **Dettes** : `D-search-post-public` résolue (historique DEBT.md), `D-completeness-client-ui` reformulée (l.39), `D-e2e-residues` inchangée (l.31, Faible).
+7. **Aucune déviation** — tous les arbitrages Q1-Q3 + A/B appliqués tels que validés.
+
+### Notes
+
+- **Aucune migration** — changement de handler uniquement.
 - **`next-env.d.ts`** non modifié (règle #32).
 - E2-S08 (assistant de mesure) peut être cadrée.
 
