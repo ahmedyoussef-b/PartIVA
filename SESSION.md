@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) |
-| **Dernière session** | E1-S07 (clôturée) |
-| **Session en cours** | E2-S01 (à cadrer) |
-| **Statut global** | E1 clôturée (7 sessions : E1-S01 → E1-S07), baseline 6/6 tenue, E2E 152/155 (3 skips), E2 à cadrer |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
+| **Dernière session** | E2-S01 (clôturée) |
+| **Session en cours** | E2-S01-A2 (à cadrer) |
+| **Statut global** | E1 clôturée (7 sessions : E1-S01 → E1-S07), E2-S01 clôturée (moteur de recherche full-text), baseline 6/6 tenue, E2E 158/161 (3 skips), E2-S01-A2 à cadrer |
 
 ---
 
@@ -41,7 +41,8 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [ ] **Phase 2 — Core Features** : E2 (identification multimodale & moteur de recherche) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text)
+- [ ] **Phase 2 — Core Features** : E2-S01-A2 (correctif `D-e2e-isolation`), E2-S02 (référence), E2-S03 (texte), E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -1523,6 +1524,81 @@ Diff sémantique structuré entre `PartVersion` (champs versionnés) + vue dossi
 - **Bloquante (Haute)** : `D-e2e-multitenant` (3 tests skippés — seed mono-client). Session E2E dédiée.
 - **Non bloquantes** : `D-e2e-isolation`, `D-e2e-auth-dual`, `D-s03-t3-ecart`, `D-e2e-skip-conditional` (session E2E dédiée) ; `D-enums-non-utilises`, `D-ui-orphelins`, `D-docs-template`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D-audit-mysql2` (sessions ultérieures/dédiées).
 
+## E2-S01 — Moteur de recherche interne PostgreSQL full-text (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `1502911` (B), `6de1272` (C), `<hash E2-S01-D>` (D)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 158/161 (3 skips), format 0, 12 migrations, drift = index GIN uniquement (documenté).
+
+### Objet
+
+Moteur de recherche interne sur `Part` via PostgreSQL full-text natif (`tsvector` + `tsquery` + index GIN + trigger) — sans moteur externe (principe #9). API `GET /api/search` + UI `SearchBar` + pages `/admin/recherche` et `/client/dashboard/recherche`.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| A | Diagnostic `D-e2e-isolation` (lecture seule, sans correctif) | ✅ rendu | — |
+| B | Migration `tsvector` + index GIN + trigger + backfill | ✅ | `1502911` |
+| C | API `GET /api/search` + `searchParts()` + schema | ✅ | `6de1272` |
+| D | UI `SearchBar` + pages + liens sidebar + tests E2E + clôture | ✅ | `<hash E2-S01-D>` |
+
+### Décisions verrouillées
+
+- **D1** : PostgreSQL full-text natif (`tsvector`/`tsquery`/GIN/trigger) — pas de moteur externe (principe #9).
+- **D2** : Périmètre `Part` uniquement (référence E2-S02, texte E2-S03, dimensions E2-S04, photo E2-S05, score multi-critères E2-S06).
+- **D3** : Score brut `ts_rank` uniquement (pas de reranking).
+- **D4** : Nouvelles pages `/admin/recherche` + `/client/dashboard/recherche` avec `SearchBar` (debounce 300ms).
+
+### Réalisations
+
+- **A** : `npm run test:e2e` → **152 passed, 3 skipped, 0 failed** (run stable, 3.9m). Aucun échec à isoler/classer. Piste : aucune ne se confirme sur ce run — les timeouts E1-S07-D étaient intermittents (dev server Windows). `D-e2e-isolation` reste ouverte (intermittence 2 runs sur 3), correctif reporté à E2-S01-A2. Aucun blocage structurel → poursuite sur B.
+- **B** : `prisma/migrations/20261010002927_add_part_search_index/migration.sql` — `ALTER TABLE "parts" ADD COLUMN "search_vector" tsvector`, index GIN `parts_search_vector_idx`, fonction `parts_search_vector_update()` + trigger `parts_search_vector_trigger`, `UPDATE` de backfill (`'french'` pour name/description, `'simple'` pour ptvReference/partNumber). `prisma/schema.prisma` : `searchVector Unsupported("tsvector")? @map("search_vector")` sur `Part`. Vérifié : 5 parts avec `search_vector`, GIN index présent, trigger présent, recherche « roulement » → 4 résultats avec `ts_rank` 0.66871977.
+- **C** : `src/lib/data/search.ts` — `searchParts(query, {clientId?, limit?})` avec `Prisma.sql`/`Prisma.empty`, `$queryRaw<SearchResult[]>`, `ts_rank` + `plainto_tsquery('french', ...)`, `status::text AS status`. `src/app/api/search/route.ts` — **fusion** : `POST` (candidats fournisseurs E0-S07, préservé) + `GET` (recherche parts full-text) — auth 401, `PartSearchQuerySchema` (`q` min 2 max 200, `limit` coerce 1-50 default 20), USER → filtre `clientId`, ADMIN → sans filtre, retour `{query, count, results}`. `src/schemas/search.ts` — original E0-S07 préservé (`SearchSourceSchema`, `CandidateScoresSchema`, `SearchCandidateSchema`, `SearchQuerySchema`, `MeasuresSchema`, `SyncStatusSchema`) + `PartSearchQuerySchema` ajouté (nom distinct pour éviter le conflit avec `SearchQuerySchema` E0-S07).
+- **D** : `src/components/search-bar.tsx` (Client Component, debounce 300ms, `GET /api/search?q=...`, liste résultats `ptvReference`/`name`/`status`/`rank`, clic → `/admin/pieces?part={id}`). Pages `src/app/admin/recherche/page.tsx` + `src/app/client/dashboard/recherche/page.tsx`. Liens sidebar admin (`/admin/recherche`, icône `Search`) et client (`/client/dashboard/recherche`). `e2e/search.spec.ts` (6 tests : 401 sans auth, 400 `q` < 2, 200 résultats non vides, 200 résultats vides, USER → ses parts, ADMIN → toutes).
+
+### Incidents PCT E2-S01
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S01-n°1 | `src/schemas/search.ts` existant (E0-S07) écrasé par l'écriture de `SearchQuerySchema` E2-S01 → 5 erreurs TS2305. | Résolu : original restauré depuis `git show HEAD:`, nouveau schema ajouté sous le nom distinct `PartSearchQuerySchema`. |
+| E2-S01-n°2 | `src/app/api/search/route.ts` existant (E0-S07, `POST` candidats fournisseurs) écrasé par l'API GET E2-S01. | Résolu : fusion des deux handlers (`POST` original préservé + `GET` ajouté) dans le même `route.ts`. |
+| E2-S01-n°3 | ESLint `react-hooks/set-state-in-effect` sur `SearchBar` (`setLoading(true)` synchrone dans l'effet). | Résolu : `setPending` déplacé dans le callback async du timer (debounce). |
+| E2-S01-n°4 | 4 tests E2E search en échec (400 au lieu de 200) — `searchParams.get('limit')` retourne `null` (pas `undefined`), `z.coerce.number()` échoue sur `null`. | Résolu : `limit: z.coerce.number().int().min(1).max(50).nullish().default(20)`. |
+| E2-S01-n°5 | Dev server timeout 120s au démarrage E2E (filesystem lent F:\). | Contourné : démarrage manuel du dev server en arrière-plan + `reuseExistingServer: true`. |
+
+### Dettes résolues
+
+- Moteur de recherche interne (E2-S01) — implémenté (full-text PostgreSQL natif).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-e2e-isolation` (Moyenne) | E2-S01-A2 (session E2E dédiée) — correctif du diagnostic bloc A |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée (enrichir seed avec 2ᵉ client) |
+| Drift index GIN `parts_search_vector_idx` | Inhérent à Prisma + `Unsupported("tsvector")` — Prisma ne modélise pas les index GIN. Documenté ; la migration SQL est la source de vérité. |
+| `D-e2e-auth-dual`, `D-s03-t3-ecart`, `D-e2e-skip-conditional` | Session E2E dédiée |
+| `D-enums-non-utilises`, `D-ui-orphelins`, `D-docs-template`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E2-S01
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 36/36 routes (`/admin/recherche`, `/client/dashboard/recherche`, `GET /api/search` ajoutés) |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 158/161 verts (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) — 6 nouveaux tests search |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 12 migrations, drift = index GIN uniquement (documenté, inhérent à `Unsupported`) |
+
+### Notes
+
+- **`next-env.d.ts`** non modifié (règle #32 respectée).
+- **Fusion `/api/search`** : l'endpoint existait déjà (`POST` candidats E0-S07). Les deux sémantiques coexistent sur le même chemin (méthodes HTTP distinctes) — `POST` = candidats fournisseurs, `GET` = recherche full-text parts. Les tests E0-S07 (`smoke.spec.ts`, `api.spec.ts`) restent verts.
+- E2-S01-A2 (correctif `D-e2e-isolation`) et E2-S02 (recherche par référence) peuvent être cadrés.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S01
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S01-A2
 ═══════════════════════════════════════════════════════════════

@@ -41,7 +41,7 @@ export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 
 export const PartSearchQuerySchema = z.object({
   q: z.string().min(2).max(200),
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  limit: z.coerce.number().int().min(1).max(50).nullish().default(20),
 });
 export type PartSearchQuery = z.infer<typeof PartSearchQuerySchema>;
 

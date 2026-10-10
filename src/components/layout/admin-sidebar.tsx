@@ -27,11 +27,13 @@ import {
   Cog,
   LogOut,
   ExternalLink,
+  Search,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const ADMIN_NAV = [
   { href: '/admin/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
+  { href: '/admin/recherche', label: 'Recherche', icon: Search },
   { href: '/admin/demandes', label: 'File Demandes', icon: Inbox, badge: '4' },
   { href: '/admin/reverse-engineering', label: 'Reverse CAO', icon: Wrench },
   { href: '/admin/pieces', label: 'Catalogue Pièces BDD', icon: Boxes },
