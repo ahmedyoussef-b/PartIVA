@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S07-E (clôturée) |
-| **Session en cours** | E2-S08 — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id]), baseline 6/6 tenue, E2E 195 passed (0 failed, 0 skip), E2-S08 à cadrer |
+| **Dernière session** | E2-S08 (clôturée) |
+| **Session en cours** | E2-S09 — à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E + E2-S08 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes), baseline 6/6 tenue, E2E 198 passed (0 failed, 0 skip), E2-S09 à cadrer |
 
 ---
 
@@ -2475,6 +2475,47 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **Commit hash** : `0182a6a`.
 - Ordre sessions : E2-S07-E ✅ → E2-S08.
 
+### Session E2-S08 — Auto-complétion des mesures manquantes (Option A)
+
+- **Date** : `10/10/2026`
+- **Objectif** : Assistant de mesure — auto-complétion des clés requises absentes (Option A, périmètre réduit : 1 fonctionnalité). L'admin voit les clés `REQUIRED_SPEC_KEYS` absentes avec unité par défaut, et peut pré-remplir le formulaire d'ajout en 1 clic.
+- **Arbitrages validés** :
+  - **Option A** (auto-complétion des clés requises) — lien direct avec E2-S07 (`REQUIRED_SPEC_KEYS`), faible complexité, utile immédiatement.
+  - **Périmètre réduit** : 1 route + 1 UI + 3 tests E2E (session courte).
+  - **Unités par défaut** : `mm` pour dimensionnelles (`diameter_ext`, `diameter_int`, `width`, `module`, `bore`), `g` pour `weight`, `°` pour `contact_angle`, vide pour `teeth` (nombre entier).
+- **Modifications** :
+  - **A.1** : `src/app/api/parts/[id]/specifications/suggestions/route.ts` (nouvelle route) — `GET` retourne `{ partId, suggestions: [{ key, unit }] }` = clés `REQUIRED_SPEC_KEYS` absentes avec unité par défaut. Auth VIEWER+ (401 anonyme) + ownership USER (403) + 404 pièce introuvable. Pattern `specifications/route.ts` (`getSessionOr401` + `checkOwnership`).
+  - **B.1** : `src/components/part-specification-table.tsx` — bouton « Mesures manquantes » (icône `Sparkles`) + dropdown (`DropdownMenu`) listant les suggestions. Clic sur une suggestion → `applySuggestion()` pré-remplit le formulaire (`form.key` + `form.unit`) et ouvre le dialog d'ajout. Si aucune suggestion → toast info « Toutes les mesures requises sont déjà renseignées ».
+  - **C.1** : `e2e/part-specifications.spec.ts` — 3 tests E2E ajoutés : (1) `suggestions without auth returns 401` (id bidon), (2) `suggestions with auth returns 200 and missing keys` (vérifie cohérence : aucune suggestion n'est une clé déjà présente), (3) `suggestions returns empty when all required keys present` (crée les 8 clés requises ad hoc + cleanup DELETE dans `finally`).
+  - **D.1** : `DEBT.md` — `D-completeness-category-keys` partiellement atténuée (suggestion par clé, pas par catégorie — la liste reste globale). `D-completeness-suggestions` ajoutée aux dettes résolues.
+- **Baseline finale E2-S08** :
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ routes (inchangé — route API dynamique non comptée) |
+| Seed | ✅ users: 4, parts: 6 |
+| Tests E2E | ✅ 198 passed / 0 failed / 0 skip (E2-S07-E 195 + 3 nouveaux tests suggestions) |
+| Format | ✅ 0 non conforme |
+
+### Points de rapport E2-S08
+
+1. **Baseline mesurée** : E2E 198 passed (195 + 3 net), 0 failed, 0 skip — mesuré, non déduit.
+2. **Route suggestions** : `GET /api/parts/[id]/specifications/suggestions` — auth VIEWER+ + ownership USER + 404 — vérifiée par 3 tests E2E.
+3. **Cohérence** : les suggestions ne contiennent **aucune** clé déjà présente (test E2E vérifie `presentKeys.has(suggestion.key) === false`).
+4. **UI dropdown** : bouton « Mesures manquantes » + `DropdownMenu` — clic pré-remplit clé + unité (testé via build + typecheck, pas de test E2E UI — le dropdown est un composant client).
+5. **Unités par défaut** : table `DEFAULT_UNITS` dans la route (mm/g/°/vide) — cohérente avec les unités du seed.
+6. **Dettes** : `D-completeness-category-keys` partiellement atténuée (pas résolue — la liste reste globale, pas par catégorie), `D-completeness-suggestions` résolue. Aucune dette créée.
+7. **Aucune déviation** — Option A appliquée telle que validée (périmètre réduit).
+
+### Notes E2-S08
+
+- **Test "empty when all keys present"** : crée les 8 clés requises ad hoc (POST) puis nettoie (DELETE dans `finally`) — ne pollue pas le seed.
+- **`D-completeness-category-keys`** : reste ouverte (liste par catégorie nécessite `CategoryRequiredSpec` + migration + UI de configuration — session dédiée).
+- **`next-env.d.ts`** non modifié (règle #32).
+- Ordre sessions : E2-S08 ✅ → E2-S09.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session D-parts-list-public
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S08
 ═══════════════════════════════════════════════════════════════

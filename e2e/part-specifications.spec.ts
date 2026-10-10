@@ -182,3 +182,86 @@ test('api: GET /api/parts/[id]/specifications/[specId] unknown spec returns 404 
   );
   expect(response.status()).toBe(404);
 });
+
+test('api: GET /api/parts/[id]/specifications/suggestions without auth returns 401', async ({
+  request,
+}) => {
+  const partId = '00000000-0000-0000-0000-000000000000';
+  const response = await request.get(`/api/parts/${partId}/specifications/suggestions`);
+  expect(response.status()).toBe(401);
+});
+
+test('api: GET /api/parts/[id]/specifications/suggestions with auth returns 200 and missing keys', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
+  const { headers } = await authRequest(request, 'ADMIN');
+
+  const specsResponse = await request.get(`/api/parts/${partId}/specifications`, {
+    headers,
+  });
+  expect(specsResponse.status()).toBe(200);
+  const specs = await specsResponse.json();
+  const presentKeys = new Set(specs.map((s: { key: string }) => s.key));
+
+  const response = await request.get(`/api/parts/${partId}/specifications/suggestions`, {
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.partId).toBe(partId);
+  expect(Array.isArray(body.suggestions)).toBe(true);
+
+  for (const suggestion of body.suggestions) {
+    expect(typeof suggestion.key).toBe('string');
+    expect(typeof suggestion.unit).toBe('string');
+    expect(presentKeys.has(suggestion.key)).toBe(false);
+  }
+});
+
+test('api: GET /api/parts/[id]/specifications/suggestions returns empty when all required keys present', async ({
+  request,
+  playwright,
+}) => {
+  const partId = await getFirstPartId(playwright);
+  const { headers } = await authRequest(request, 'ADMIN');
+
+  const requiredKeys = [
+    'diameter_ext',
+    'diameter_int',
+    'width',
+    'weight',
+    'module',
+    'teeth',
+    'bore',
+    'contact_angle',
+  ];
+
+  const createdIds: string[] = [];
+  try {
+    for (const key of requiredKeys) {
+      const res = await request.post(`/api/parts/${partId}/specifications`, {
+        headers,
+        data: { key, value: '1' },
+      });
+      if (res.status() === 201) {
+        const created = await res.json();
+        createdIds.push(created.id);
+      }
+    }
+
+    const response = await request.get(`/api/parts/${partId}/specifications/suggestions`, {
+      headers,
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.suggestions).toEqual([]);
+  } finally {
+    for (const id of createdIds) {
+      await request.delete(`/api/parts/${partId}/specifications/${id}`, {
+        headers,
+      });
+    }
+  }
+});

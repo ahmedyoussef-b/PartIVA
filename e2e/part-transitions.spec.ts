@@ -55,10 +55,7 @@ test('api: POST /api/parts/[id]/transition with invalid toStatus returns 400', a
   expect(response.status()).toBe(400);
 });
 
-async function getPartIdByStatus(
-  playwright: any,
-  status: string,
-): Promise<string> {
+async function getPartIdByStatus(playwright: any, status: string): Promise<string> {
   const ctx = await playwright.request.newContext();
   try {
     const user = users.ADMIN;

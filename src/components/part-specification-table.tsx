@@ -22,8 +22,19 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface SuggestionItem {
+  key: string;
+  unit: string;
+}
 
 export interface PartSpecificationItem {
   id: string;
@@ -45,6 +56,8 @@ export function PartSpecificationTable({
 }: PartSpecificationTableProps) {
   const [specs, setSpecs] = React.useState<PartSpecificationItem[]>(initialSpecifications);
   const [missingKeys, setMissingKeys] = React.useState<string[] | null>(null);
+  const [suggestions, setSuggestions] = React.useState<SuggestionItem[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<PartSpecificationItem | null>(null);
   const [form, setForm] = React.useState({
@@ -72,6 +85,38 @@ export function PartSpecificationTable({
   function openCreate() {
     setEditing(null);
     setForm({ key: '', value: '', unit: '', toleranceMin: '', toleranceMax: '' });
+    setDialogOpen(true);
+  }
+
+  async function openSuggestions() {
+    try {
+      const res = await fetch(`/api/parts/${partId}/specifications/suggestions`);
+      if (!res.ok) {
+        throw new Error(`Erreur ${res.status}`);
+      }
+      const data = await res.json();
+      const list: SuggestionItem[] = data.suggestions ?? [];
+      setSuggestions(list);
+      if (list.length === 0) {
+        toast.info('Toutes les mesures requises sont déjà renseignées');
+        return;
+      }
+      setSuggestionsOpen(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur');
+    }
+  }
+
+  function applySuggestion(suggestion: SuggestionItem) {
+    setSuggestionsOpen(false);
+    setEditing(null);
+    setForm({
+      key: suggestion.key,
+      value: '',
+      unit: suggestion.unit,
+      toleranceMin: '',
+      toleranceMax: '',
+    });
     setDialogOpen(true);
   }
 
@@ -172,7 +217,41 @@ export function PartSpecificationTable({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <DropdownMenu open={suggestionsOpen} onOpenChange={setSuggestionsOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1 text-xs"
+                onClick={openSuggestions}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Mesures manquantes
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {suggestions.length === 0 ? (
+                <div className="text-muted-foreground px-2 py-1.5 text-xs">Chargement…</div>
+              ) : (
+                suggestions.map((suggestion) => (
+                  <DropdownMenuItem
+                    key={suggestion.key}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      applySuggestion(suggestion);
+                    }}
+                    className="font-mono text-xs"
+                  >
+                    {suggestion.key}
+                    {suggestion.unit ? (
+                      <span className="text-muted-foreground ml-2">({suggestion.unit})</span>
+                    ) : null}
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button size="sm" className="gap-1 text-xs" onClick={openCreate}>
             <Plus className="h-3.5 w-3.5" />
             Ajouter
