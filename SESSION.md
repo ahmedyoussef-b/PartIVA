@@ -2346,7 +2346,7 @@ régulariser `D-completeness-client-ui`.
 ## E2-S07-D — Sécurité multi-tenant E2E (CLÔTURÉE)
 
 **Date :** 2026-10-10
-**Commits :** `<hash E2-S07-D>`
+**Commits :** `d641eb2` (2ᵉ client seed + test diff multi-tenant)
 **Baseline :** lint 0/0, typecheck 0, build 54 routes, seed idempotent (users: 4, parts: 6), E2E 17/17 sur les 3 specs multi-tenant (0 skip), format 0, 14 migrations, drift GIN + HNSW.
 
 ### Objet
