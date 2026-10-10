@@ -2472,6 +2472,7 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **Seed destructif** : `deleteMany` sur toutes les tables — exécuté avant la suite E2E (les tests transitionnent les parts SUBMITTED → stock épuisé sans reseed).
 - **`playwright: any`** : le type `Playwright` n'est pas exporté du namespace `@playwright/test` (TS2694) — `any` utilisé pour les paramètres `playwright` des helpers (le fixture est typé par Playwright dans les tests).
 - **`next-env.d.ts`** non modifié (règle #32).
+- **Commit hash** : `0182a6a`.
 - Ordre sessions : E2-S07-E ✅ → E2-S08.
 
 ═══════════════════════════════════════════════════════════════
