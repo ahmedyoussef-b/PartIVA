@@ -35,7 +35,6 @@
 | `D-hnsw-drift` | Drift index HNSW `part_images_embedding_hnsw` (R.4.1-bis) — Prisma ne modélise pas les index HNSW sur colonnes `Unsupported("vector(768)")`. `migrate dev` tente de le dropper (générait une 2ᵉ migration `DROP INDEX`). Même classe que le drift GIN R.4.1. | Faible | — (drift attendu) | Non | Documenté. La migration SQL `20261010133855_add_part_image_embedding` + recréation manuelle est la source de vérité. Critère de baseline : **0 drift hors `part_images_embedding_hnsw`**. |
 | `D-embedding-model-catalog` | Modèle embeddings unique (`clip-ViT-B-32`, D125-bis) — aucun catalogue de modèles alternatifs (SigLIP, OpenVision, Franca) ni UI admin de sélection. | Faible | Session dédiée | Non | Documenter les modèles alternatifs + prévoir UI admin de sélection dans une session dédiée (E2-S06, D125-bis). |
 | `D-scoring-weights-ui` | Poids de score (`ScoringWeights`, table `scoring_weights`) modifiables uniquement en DB — aucune UI admin d'ajustement. UI mode Multi limitée à 3 signaux (q, reference, min/max) — photo non branchée en UI (voir `D-photo-ui`). | Faible | Session UI dédiée | Non | UI admin d'ajustement des poids + branchement photo dans le mode Multi (session UI dédiée). |
-| `D-dotenv-transitive` | `dotenv` n'est pas une dépendance directe — résolu transitivement via `prisma → @prisma/config → c12 → dotenv@17.4.2`. `scripts/backfill-embeddings.ts` importe `dotenv/config`. Fragile si la chaîne transitive change. | Faible | Session dédiée | Non | Ajouter `dotenv` en devDependency directe (`npm install -D dotenv`) ou utiliser `@neon/env` (déjà présent). |
 
 ---
 
@@ -80,6 +79,7 @@
 | `D-react18` | React 18 → 19 | E0-S09 |
 | `D-mocks` | Mocks `MOCK_SEARCH_CANDIDATES`, `mock-data.ts` | E0-S07 |
 | `D-format-E0` | `format:check` — 83 fichiers non conformes | E0-S11-B |
+| `D-dotenv-transitive` | `dotenv` dépendance transitive (prisma→@prisma/config→c12) — `scripts/backfill-embeddings.ts` importe `dotenv/config` | E2-S07-B1-C (`npm install -D dotenv@^17.4.2`, devDep directe, dédupliquée) |
 
 ---
 

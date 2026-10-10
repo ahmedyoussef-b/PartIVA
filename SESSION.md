@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S06 (clôturée) |
+| **Dernière session** | E2-S07-B1 (clôturée) |
 | **Session en cours** | E2-S07 (détection des informations manquantes) — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères), baseline 6/6 tenue, E2E 176/182 (2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S07 à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères), E2-S07-B1 clôturée (outillage backfill embeddings), baseline 6/6 tenue, E2E 176/182 + 1 test backfill (2 échecs seed `part-transitions` préexistants à E2-S05, `D-e2e-isolation`), E2-S07 à cadrer |
 
 ---
 
@@ -2120,6 +2120,61 @@ Combiner les 5 modes de recherche (texte, référence, specs, dimensions, photo)
 - **`limit * 2`** candidats par critère avant agrégation (marge de fusion), tranché à `limit` final après tri.
 - **`next-env.d.ts`** non modifié (règle #32).
 - E2-S07 (détection des informations manquantes) peut être cadrée.
+
+## E2-S07-B1 — Outillage backfill embeddings (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `92548d0` (outillage B1), `<hash E2-S07-B1-C>` (résidus : R.4.1-ter + dotenv + docs)
+**Baseline :** lint 0/0, typecheck 0, build 53 routes, E2E 176/182 + 1 test backfill, format 0, 14 migrations, drift GIN + HNSW uniquement.
+
+### Objet
+
+Option B1 (décision Coordinateur) : produire le **script de backfill** + **tests** + **documentation**, **sans exécuter** le backfill réel (`HF_API_TOKEN` absent). La dette `D-photo-embedding-backfill` reste ouverte avec un outil prêt à l'emploi.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| B1-1 | `scripts/README.md` — mode d'emploi backfill (exécution, prérequis, comportement, sortie, vérification SQL) | ✅ | `92548d0` |
+| B1-2 | `e2e/backfill-embeddings.spec.ts` — test E2E : script exit 0 sans token, sortie documentée, pas de `BACKFILL_ERROR` | ✅ | `92548d0` |
+| B1-3 | `.env.example` — ajout `HF_API_TOKEN=""` (documenté : serveur uniquement, jamais `NEXT_PUBLIC_`, sécurité #7) | ✅ | `92548d0` |
+| B1-4 | `package.json` — ajout `db:backfill-embeddings` | ✅ | `92548d0` |
+| B1-5 | `DEBT.md` — `D-photo-embedding-backfill` mis à jour (outil prêt) + `D-dotenv-transitive` (nouvelle) | ✅ | `92548d0` |
+| B1-C | Résidus : `R.4.1-ter` (`.kilocode/rules.md`), `dotenv` devDep directe, `DEBT.md` (retrait `D-dotenv-transitive`), SESSION.md (intégration B1) | ✅ | `<hash E2-S07-B1-C>` |
+
+### Décisions verrouillées
+
+- **B1** : script + tests + docs, **pas d'exécution** du backfill (token HF absent). `D-photo-embedding-backfill` reste ouverte (Moyenne).
+- **Périmètre minimaliste** : script CLI + vérification uniquement — pas de route admin, cron, UI.
+- **`matchType` 1.0/0.5** : validé (D131 E2-S06, implémenté et testé — `REFERENCE_EXACT_SCORE`/`REFERENCE_PREFIX_SCORE`).
+- **R.4.1-ter** : migration manuelle autorisée sur drift bloquant (R.4.1/R.4.1-bis) sous 4 conditions strictes (aucun `Unsupported`, SQL généré par `migrate diff`, `migrate deploy`, vérification post-application). Exception documentée à la règle « migrations échouées → STOP ».
+- **dotenv** : devDep directe `dotenv@^17.4.2` (dédupliquée avec la chaîne transitive prisma→@prisma/config→c12). `D-dotenv-transitive` résolue.
+
+### Incidents PCT E2-S07-B1
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S07-B1-n°1 | Test E2E backfill : `spawn npx ENOENT` — `npx` absent du PATH de l'enfant sous Windows. | Résolu : `shell: true` dans `execFile`. Test passé. |
+| E2-S07-B1-n°2 | 1 échec intermittent `search.spec.ts` « q too short » lors d'un run combiné — passe en isolation (29.2s). | Tracé : `D-e2e-isolation` Faible (filesystem `F:\` lent). Non lié à B1. |
+| E2-S07-B1-n°3 | Écart documentaire : B1 (`92548d0`) non intégrée dans SESSION.md à la clôture. | Résolu en B1-C (cette section). |
+
+### Baseline finale E2-S07-B1
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 53 routes |
+| Tests E2E | ✅ 176/182 + 1 backfill (27/28 search — 1 intermittent `D-e2e-isolation` ; 1/1 backfill) |
+| Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json`) |
+| Prisma migrate | ✅ 14 migrations, drift GIN + HNSW uniquement |
+| dotenv | ✅ devDep directe `^17.4.2` |
+
+### Notes
+
+- **Script vérifié** : `npx tsx scripts/backfill-embeddings.ts` sans token → sortie documentée, **exit 0** (dégradation gracieuse R3).
+- **`R.4.1-ter`** formalise la procédure appliquée en E2-S06 (bloc A.2) — le précédent existait, la règle manquait.
+- E2-S07 (détection des informations manquantes) peut être cadrée — nécessite des arbitrages métier Coordinateur (objet exact, périmètre, signal, actions).
 
 ═══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S07
