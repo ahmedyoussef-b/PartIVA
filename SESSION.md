@@ -2270,7 +2270,7 @@ Détecter les **spécifications requises manquantes** sur une pièce et afficher
 ## E2-S07-C2 — Sécurisation POST /api/search + régularisations (CLÔTURÉE)
 
 **Date :** 2026-10-10
-**Commits :** `<hash E2-S07-C2>`
+**Commits :** `862c69d` (sécurisation POST + régularisations)
 **Baseline :** lint 0/0, typecheck 0, build 54 routes, seed idempotent, E2E 183/189 (182+1 nouveau test 401 POST), format 0, 14 migrations, drift GIN + HNSW.
 
 ### Objet
