@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S03 (clôturée) |
-| **Session en cours** | E2-S04 (recherche par dimensions — à cadrer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications), baseline 6/6 tenue, E2E 166/165 (fourchette 163-166), E2-S04 à cadrer |
+| **Dernière session** | E2-S04 (clôturée) |
+| **Session en cours** | E2-S05 (recherche par photo — à cadrer) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 clôturées (full-text + régularisations + recherche par référence + recherche par spécifications + recherche par dimensions), baseline 6/6 tenue, E2E 171-174/173 (fourchette), E2-S05 à cadrer |
 
 ---
 
@@ -41,8 +41,8 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`)
-- [ ] **Phase 2 — Core Features** : E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante)
+- [ ] **Phase 2 — Core Features** : E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -1844,6 +1844,107 @@ Recherche **textuelle** sur `PartSpecification.value` (matière, valeurs techniq
 - **`next-env.d.ts`** non modifié (règle #32 respectée).
 - E2-S04 (recherche par dimensions — prédicats range `toleranceMin`/`toleranceMax`) peut être cadré.
 
+## E2-S04 — Recherche par dimensions (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `1749828` (PR), `a8218b4` (A), `13763ec` (B), `<hash E2-S04-C>` (C), `<hash E2-S04-D>` (D)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 171-174/173 (3 skips, 1-2 échecs intermittents `D-e2e-isolation` Faible — contrainte environnementale acceptée), format 0, 12 migrations (inchangées — aucune migration créée), drift = index GIN uniquement (attendu R.4.1).
+
+### Objet
+
+Recherche **numérique** sur `PartSpecification` — deux types complémentaires (scénarios A + C) :
+- **A — range nominal** : « diamètre extérieur entre 20 et 30 mm » (`value` cast sécurisé)
+- **C — tolérance couvrante** : « tolérance couvre 25 mm » (`toleranceMin`/`toleranceMax`)
+
+Extension de `GET /api/search` avec `mode=dimensions` + `matchMode` (`nominal` défaut | `tolerance`) + 4ᵉ onglet « Dimensions » dans `SearchBar`.
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| PR | Nettoyage résidus `e2e-*` + traçage `D-e2e-residues` | ✅ | `1749828` |
+| A | API `searchPartsByDimensions()` + `mode=dimensions` | ✅ | `a8218b4` |
+| B | UI : 4ᵉ mode « Dimensions » dans `SearchBar` | ✅ | `13763ec` |
+| C | Amendement ROADMAP l.174 + clôture documentaire | ✅ | `<hash E2-S04-C>` |
+| D | Tests E2E (8) + baseline complète + clôture finale | ✅ | `<hash E2-S04-D>` |
+
+### Décisions verrouillées (memo E2-S04 Q1–Q10)
+
+- **Q1 — Clés couvertes** : 8 clés numériques (`diameter_ext`, `diameter_int`, `width`, `weight`, `module`, `teeth`, `bore`, `contact_angle`). Le filtre `key` optionnel permet de restreindre.
+- **Q2 — Colonnes cibles** : `value` (nominal, cast sécurisé) + `toleranceMin`/`toleranceMax` (tolérance couvrante, natif `Float?`).
+- **Q3 — Sémantique** : deux types — range nominal (A) + tolérance couvrante (C).
+- **Q4 — Cast** : regex `value ~ '^[0-9.]+$'` (positif — dimensions physiques toujours positives ; tolérances négatives dans `toleranceMin` typé `Float?`, pas de cast). **Obligatoire** — la DB contient `e2e-patch-*` avec `value="après"` (fait 1 du diagnostic).
+- **Q5 — Tolérances** : incluses (scénario C validé par le Coordinateur).
+- **Q6 — UI** : 4ᵉ mode « Dimensions » dans `SearchBar`.
+- **Q7 — `key`** : optionnel — absent = toutes les clés numériques.
+- **Q8 — `matchMode`** : `nominal` (défaut) | `tolerance` — paramètre du mode unique `dimensions` (design iii).
+- **Q9 — `q`** : optionnel globalement + `superRefine` : requis si mode ≠ `dimensions` ; `min` ou `max` requis si mode = `dimensions`.
+- **Q10 — Retour** : par spec (pas d'agrégation par pièce).
+
+### Prérequis PR — Nettoyage résidus `e2e-*`
+
+- **PR-1 (inventaire)** : 6 résidus `e2e-*` en DB (2 runs E2E × 3 clés : `e2e-dup-*` ×2, `e2e-patch-*` ×2, `e2e-spec-*` ×2) — tous sur `partId` = `PTV-2026-000005` (dernière pièce du seed).
+- **PR-2 (source)** : `e2e/part-specifications.spec.ts` — tests POST `e2e-spec-*` (l.50), `e2e-dup-*` (l.75), `e2e-patch-*` (l.93) sans `afterEach`/`afterAll` de cleanup. Seul `e2e-del-*` est nettoyé (DELETE explicite l.111-134). **Tests non modifiés** (hors périmètre PR — dette `D-e2e-residues` tracée).
+- **PR-3 (nettoyage)** : `DELETE FROM part_specifications WHERE key LIKE 'e2e-%'` → 6 supprimés, 0 restant, 25 specs seed intactes.
+- **PR-4 (dette)** : `D-e2e-residues` ajoutée à DEBT.md (Faible — prévention : cleanup aux tests CRUD, session E2E dédiée).
+
+### Réalisations
+
+- **A** : `src/lib/data/search.ts` — `searchPartsByDimensions({min?, max?, key?, matchMode?, clientId?, limit?})` : deux branches. **`nominal`** (scénario A) : `WHERE value ~ '^[0-9.]+$' [AND value::numeric >= min] [AND value::numeric <= max]`, tri `value::numeric ASC`, `toleranceMin/Max` = `NULL::float`. **`tolerance`** (scénario C) : `WHERE toleranceMin IS NOT NULL AND toleranceMax IS NOT NULL [AND toleranceMin <= min] [AND toleranceMax >= max]`, tri `toleranceMin ASC NULLS LAST`. Retour `DimensionSearchResult` **par spec** (Q10) : `id`, `ptvReference`, `partNumber`, `name`, `status`, `specKey`, `specValue`, `unit`, `toleranceMin?`, `toleranceMax?`. Bornes optionnelles (absente = sans borne) — le `superRefine` Zod garantit qu'au moins un de `min`/`max` est présent. `Prisma.sql`/`Prisma.empty` (cohérent E2-S01/S02/S03).
+- **A.2 — Aucune migration** : 24 specs numériques en seed — cast à la volée instantané. Dettes tracées : `D-dimension-index` (index `toleranceMin/Max` si volume), `D-value-numeric-column` (colonne dédiée si perf). 12 migrations inchangées.
+- **A.4 — Schema** : `PartSearchQuerySchema` étendu (Zod 4 `superRefine`) : `q` optionnel globalement (requis si mode ≠ dimensions via `superRefine`), `mode: z.enum(['text','reference','specs','dimensions'])`, `min`/`max` `z.coerce.number()`, `matchMode: z.enum(['nominal','tolerance']).default('nominal')`. `superRefine` : erreur sur `['min']` si mode=dimensions sans bornes ; erreur sur `['q']` si mode ≠ dimensions sans query.
+- **A.5 — Route** : handler `GET` étendu — dispatch `mode='dimensions'` → `searchPartsByDimensions({min, max, key, matchMode, clientId, limit})`. **Règle renforcée E2-S03-n°1 respectée** : les 7 champs (`q`, `limit`, `mode`, `key`, `min`, `max`, `matchMode`) explicitement passés depuis `searchParams` dans `PartSearchQuerySchema.parse()`. `validated.q!` (non-null assertion sûre — garanti par `superRefine` en mode non-dimensions), `matchMode ?? 'nominal'` (`.nullish()` peut produire `null` avant `.default()`). **`POST` E0-S07 intouché**.
+- **B** : `src/components/search-bar.tsx` — 4ᵉ onglet « Dimensions » (`role="tab"`, `aria-selected`). État `min`/`max` (inputs number), `specKey` (dropdown 8 clés + « Toutes »), `matchMode` (dropdown « Nominal (valeur) » | « Tolérance (plage) »). Le champ texte `q` est masqué en mode dimensions. `useEffect` dépend de `[query, mode, min, max, specKey, matchMode]` — construction d'URL conditionnelle (`URLSearchParams` : `min`/`max`/`key`/`matchMode` en dimensions, `q` sinon). Affichage résultats : `specKey : specValue unit` + `(tolérance min – max)` si tolérances présentes. Modes `text`/`reference`/`specs` inchangés.
+- **C** : ROADMAP.md l.174 amendée (3 colonnes strictes) — « Recherche par dimensions | Prédicats range sur `PartSpecification` (`value` nominal + `toleranceMin/Max`) — précisé 2026-10-10 (cf. memo E2-S04 Q1–Q10) : deux `matchMode` `nominal` (range valeur) / `tolerance` (tolérance couvrante), cast sécurisé `value ~ '^[0-9.]+$'` ». Coquille D-44 (l.139) non touchée.
+- **D** : `e2e/search.spec.ts` — 8 tests ajoutés (23 total) : range nominal avec key (20-30 `diameter_ext`), match exact nominal (52 `diameter_ext`), tolérance couvrante point (25 `diameter_int` ± [24.98, 25.02]), tolérance couvrante borne (130 `diameter_ext` ± [129.9, 130.1]), sans min/max → 400 (`superRefine`), `min=abc` → 400 (cast Zod), sans key → toutes clés, `key=material` → 0 (non numérique, exclu par regex). **Stratégie anti-résidus (D.1)** : `key` exclusif au seed (`diameter_ext`, `diameter_int`), assertions sur valeurs du seed (pas de counts absolus).
+
+### Incidents PCT E2-S04
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S04-n°1 | Typecheck TS2345/TS2322 ×4 dans `route.ts` — `validated.q` devenu `string \| undefined` (optionnel après E2-S04) mais `searchParts`/`searchPartsByReference`/`searchPartsBySpecs` attendent `string` ; `matchMode` `.nullish()` produit `null` avant `.default()`. | Résolu : `validated.q!` (non-null assertion sûre — garanti par `superRefine` en mode non-dimensions) + `matchMode ?? 'nominal'`. Typecheck EXIT=0. |
+
+### Dettes résolues
+
+- Recherche par dimensions (E2-S04) — implémentée (range nominal + tolérance couvrante, API + UI + tests).
+- `D-e2e-residues` (état actuel) — résidus `e2e-*` supprimés (6 specs, 25 specs seed intactes). Prévention tracée (cleanup tests CRUD, session E2E dédiée).
+- Amendement ROADMAP l.174 — dette documentaire fermée (sémantique dual inscrite).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-dimension-index` (nouvelle, Faible) | Index `toleranceMin`/`toleranceMax` si volume |
+| `D-value-numeric-column` (nouvelle, Faible) | Colonne `valueNumeric` dédiée si perf/volume |
+| `D-session-seed-count` (nouvelle, Faible) | SESSION.md E1-S02 « 5 avec tolérances » → 4 (audit E2-S04) |
+| `D-dimension-negative` (nouvelle, Faible) | Regex `^-?` si dimensions négatives émergent |
+| `D-e2e-residues` (prévention) | Session E2E dédiée (cleanup tests CRUD `part-specifications.spec.ts`) |
+| `D-spec-gin-index`, `D-search-post-public` | Sessions dédiées |
+| `D-e2e-multitenant` (Haute), `D-e2e-isolation` (Faible) | Session E2E dédiée / contrainte acceptée |
+| `D-e2e-auth-dual`, `D-s03-t3-ecart`, `D-e2e-skip-conditional` | Session E2E dédiée |
+| `D-enums-non-utilises`, `D-ui-orphelins`, `D-docs-template`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D-audit-mysql2` | inchangés |
+
+### Baseline finale E2-S04
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 36/36 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 171-174/173 (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) — 8 nouveaux tests dimensions. Fourchette 171-174 selon instabilité `D-e2e-isolation` |
+| Format | ✅ 0 non conforme (hors `.kilo/agent-manager.json` — fichier infra non commité) |
+| Prisma migrate | ✅ 12 migrations (inchangées — aucune migration E2-S04), drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu R.4.1) |
+
+### Notes
+
+- **Aucune migration créée** (A.2, PR) — cast à la volée, 24 specs numériques. Dettes `D-dimension-index` + `D-value-numeric-column` tracées.
+- **Cast sécurisé obligatoire** (Q4) : `value ~ '^[0-9.]+$'` exclut `material` (« Acier trempé ») et tout résidu non numérique. Sans le filtre regex, `value::numeric` échouerait sur la requête entière.
+- **`POST /api/search` E0-S07 intouché** (public, candidats fournisseurs) — cohabitation `POST`/`GET` documentée.
+- **Retour par spec** (Q10) : une ligne par (part, spec) matchée — la recherche dimensionnelle est précise au niveau spec. Différent d'E2-S03 (agrégation par pièce) — cohérent avec la sémantique numérique.
+- **`next-env.d.ts`** non modifié (règle #32 respectée).
+- E2-S05 (recherche par photo — upload + similarité visuelle, embeddings) peut être cadré.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S04
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S05
 ═══════════════════════════════════════════════════════════════
