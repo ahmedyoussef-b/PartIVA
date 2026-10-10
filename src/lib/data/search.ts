@@ -36,6 +36,54 @@ export async function searchParts(
   `;
 }
 
+export type SpecSearchResult = {
+  id: string;
+  ptvReference: string | null;
+  partNumber: string | null;
+  name: string | null;
+  status: string;
+  matchedSpecs: { key: string; value: string }[];
+  rank: number;
+};
+
+export async function searchPartsBySpecs(
+  query: string,
+  options: { key?: string; clientId?: string; limit?: number } = {},
+): Promise<SpecSearchResult[]> {
+  const { key, clientId, limit = 20 } = options;
+
+  const keyFilter = key ? Prisma.sql`AND ps.key = ${key}` : Prisma.empty;
+  const clientFilter = clientId ? Prisma.sql`AND p."clientId" = ${clientId}` : Prisma.empty;
+
+  return prisma.$queryRaw<SpecSearchResult[]>`
+    WITH matched AS (
+      SELECT
+        ps."partId",
+        ps.key,
+        ps.value,
+        ts_rank(to_tsvector('french', ps.value), plainto_tsquery('french', ${query})) AS rank
+      FROM part_specifications ps
+      WHERE to_tsvector('french', ps.value) @@ plainto_tsquery('french', ${query})
+        ${keyFilter}
+    )
+    SELECT
+      p.id,
+      p."ptvReference",
+      p."partNumber",
+      p.name,
+      p.status::text AS status,
+      json_agg(json_build_object('key', m.key, 'value', m.value) ORDER BY m.rank DESC) AS "matchedSpecs",
+      MAX(m.rank)::float AS rank
+    FROM matched m
+    JOIN parts p ON p.id = m."partId"
+    WHERE true
+      ${clientFilter}
+    GROUP BY p.id, p."ptvReference", p."partNumber", p.name, p.status
+    ORDER BY rank DESC, p."ptvReference" ASC NULLS LAST
+    LIMIT ${limit}
+  `;
+}
+
 export type ReferenceSearchResult = {
   id: string;
   ptvReference: string | null;

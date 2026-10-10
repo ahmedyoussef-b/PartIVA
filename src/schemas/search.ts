@@ -49,7 +49,13 @@ export const PartSearchQuerySchema = z.object({
     .nullish()
     .transform((v) => v ?? undefined)
     .default(20),
-  mode: z.enum(['text', 'reference']).nullish().default('text'),
+  mode: z.enum(['text', 'reference', 'specs']).nullish().default('text'),
+  key: z
+    .string()
+    .min(1)
+    .max(50)
+    .nullish()
+    .transform((v) => v ?? undefined),
 });
 export type PartSearchQuery = z.infer<typeof PartSearchQuerySchema>;
 
