@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S01 (clôturée) |
-| **Session en cours** | E2-S01-A2 (à cadrer) |
-| **Statut global** | E1 clôturée (7 sessions : E1-S01 → E1-S07), E2-S01 clôturée (moteur de recherche full-text), baseline 6/6 tenue, E2E 158/161 (3 skips), E2-S01-A2 à cadrer |
+| **Dernière session** | E2-S01-A2 (clôturée) |
+| **Session en cours** | E2-S02 (à cadrer) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 clôturées (moteur de recherche full-text + régularisations), baseline 6/6 tenue, E2E 158/161 (3 skips), E2-S02 à cadrer |
 
 ---
 
@@ -41,8 +41,8 @@
 - [x] **Phase 1 — Fondations** : migration Tailwind 3 → 4 (E0-S09)
 - [x] **Phase 1 — Fondations** : migration forwardRef → ref comme prop (E0-S10)
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
-- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text)
-- [ ] **Phase 2 — Core Features** : E2-S01-A2 (correctif `D-e2e-isolation`), E2-S02 (référence), E2-S03 (texte), E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
+- [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible)
+- [ ] **Phase 2 — Core Features** : E2-S02 (référence), E2-S03 (texte), E2-S04 (dimensions), E2-S05 (photo), E2-S06 (score multi-critères) — à cadrer
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -1596,9 +1596,96 @@ Moteur de recherche interne sur `Part` via PostgreSQL full-text natif (`tsvector
 ### Notes
 
 - **`next-env.d.ts`** non modifié (règle #32 respectée).
-- **Fusion `/api/search`** : l'endpoint existait déjà (`POST` candidats E0-S07). Les deux sémantiques coexistent sur le même chemin (méthodes HTTP distinctes) — `POST` = candidats fournisseurs, `GET` = recherche full-text parts. Les tests E0-S07 (`smoke.spec.ts`, `api.spec.ts`) restent verts.
-- E2-S01-A2 (correctif `D-e2e-isolation`) et E2-S02 (recherche par référence) peuvent être cadrés.
+- **Fusion `/api/search`** : l'endpoint existait déjà (`POST` candidats E0-S07). Les deux sémantiques coexistent sur le même chemin (méthodes HTTP distinctes) — `POST` = candidats fournisseurs (E0-S07, **public**), `GET` = recherche full-text parts (E2-S01, **auth requise**). REST standard, pas de conflit technique. Les tests E0-S07 (`smoke.spec.ts`, `api.spec.ts`) restent verts. Asymétrie d'auth tracée en `D-search-post-public`.
+- E2-S02 (recherche par référence) peut être cadré.
+
+## E2-S01-A2 — Correctif `D-e2e-isolation` + régularisations E2-S01-F (CLÔTURÉE)
+
+**Date :** 2026-10-10
+**Commits :** `<hash E2-S01-A2>` (correctif abandonné — aucun code), `<hash E2-S01-F>` (régularisations documentaires)
+**Baseline :** lint 0/0, typecheck 0, build 36/36, seed idempotent, E2E 158/161 (3 skips), format 0, 12 migrations, drift = index GIN uniquement (documenté).
+
+### Objet
+
+Correctif préventif `D-e2e-isolation` (requalifiée Faible) + régularisations E2-S01-F (4 points de l'avis).
+
+### Blocs
+
+| Bloc | Objet | Statut | Commit |
+|---|---|---|---|
+| A2.1 | Diagnostic approfondi `D-e2e-isolation` (cartographie collisions) | ✅ | — |
+| A2.2 | Correctif `D-e2e-isolation` (reset DB — **abandonné**) | ✅ abandonné | — |
+| R | Régularisations E2-S01-F (DEBT, SESSION, règles) | ✅ | `<hash E2-S01-F>` |
+
+### Diagnostic A2.1 (preuves)
+
+- **22 specs E2E** listées (`e2e/**/*.spec.ts`), 3 setups (`warmup`, `auth`, `ids`), 4 fixtures (`users`, `access-matrix`, `dynamic-ids`, `dynamic-ids-fixture`).
+- **`playwright.config.ts`** : `workers: 1`, `fullyParallel: true`, 8 projets (warmup → setup/ids-setup → chromium/public/admin/user/viewer), `webServer.reuseExistingServer: true`, timeout 120s.
+- **Cartographie des collisions (A2.1.2)** :
+  - Specs **mutables** (créent/suppriment/modient) : `part-transitions` (3 transitions SUBMITTED→IDENTIFYING), `part-versions` (1 transition SUBMITTED→IDENTIFYING), `part-specifications` (POST/PATCH/DELETE specs), `part-attachments` (POST/DELETE attachments), `part-version-diff` (lectures + skip conditionnel).
+  - Specs **lecture seule** : `api`, `auth-api`, `cloudinary-upload`, `part-images`, `smoke`, `search`, `protected-pages`, `public-pages`, `public/*`, `admin/*`, `user/*`, `viewer/*`.
+  - **Point de collision critique** : le seed crée **4 parts SUBMITTED** (`prisma/seed.ts:372,384,396,408`). Les specs `part-transitions` (3) + `part-versions` (1) consomment **4 parts SUBMITTED** — exactement à la limite. Le 4ᵉ consommateur échoue si un test antérieur a déjà transitionné. C'est un **gap de seed** (mono-client, `D-e2e-multitenant`), pas une collision d'isolation.
+- **Cause racine de l'instabilité E1-S07-D** : **instabilité dev server Windows** (filesystem lent F:\, timeouts de compilation warmup 30s « Request context disposed »), **pas** une collision de données entre specs.
+
+### Stratégie tranchée (A2.1.3)
+
+**Option 1 (reset DB entre specs) — testée puis abandonnée.** Trois variantes testées :
+1. `beforeEach(resetDb)` synchrone dans les 5 specs mutables → **33 échecs** (re-seed supprime les users → storageStates `.auth/*.json` invalidés → 401 partout).
+2. `db-reset` global avant `warmup` (donc avant `auth.setup`) → **3 échecs** (`spawnSync npm ENOENT` — PATH non hérité dans le contexte Playwright setup ; `No part with status SUBMITTED` — re-seed pendant le run consomme les parts).
+3. Reset global + `beforeEach` ciblés → combinaison des deux échecs.
+
+**Verdict : le reset DB est structurellement incompatible avec cette architecture** (dev server partagé, DB partagée, storageStates persistés). Le correctif introduit plus de régressions qu'il n'en résout.
+
+**Décision finale : `D-e2e-isolation` clôturée sans correctif code.** Requalifiée **Faible** (R.1) sur preuves : 2 runs verts consécutifs E2-S01 (152/155 standard, 158/161 dev server manuel), 0 échec reproductible. L'instabilité résiduelle est **infrastructurale** (dev server Windows, filesystem lent F:\) — le correctif est de déplacer le repo hors de F:\ ou d'exécuter les E2E sur une machine à disque rapide (décision du Coordinateur, hors périmètre code).
+
+### Régularisations E2-S01-F (bloc R)
+
+- **R.1** : `D-e2e-isolation` requalifiée **Moyenne → Faible** dans DEBT.md (l.29, 39) avec note « Non reproduite sur 2 runs consécutifs E2-S01… Surveiller le prochain run standard. »
+- **R.2** : `D-search-post-public` ajoutée à DEBT.md (Moyenne, cible session sécurité dédiée après E2 ou E2-S02) — `POST /api/search` public (aucune auth, héritage E0-S07).
+- **R.3** : SESSION.md — cohabitation `POST`/`GET` `/api/search` documentée (POST public, GET auth requise, REST standard, asymétrie tracée en `D-search-post-public`).
+- **R.4.1** : règle drift Prisma `search_vector` ajoutée à `.kilocode/rules.md` (drift `DROP INDEX "parts_search_vector_idx"` attendu, ne pas corriger, critère 0 drift hors cet index).
+- **R.4.2** : règle lecture préalable noms génériques ajoutée à `.kilocode/rules.md` (search, auth, user, part, route, schema, config, index, page, layout — lire avant écrire même si l'audit ne cite pas).
+
+### Incidents PCT E2-S01-A2
+
+| Incident | Nature | Statut |
+|---|---|---|
+| E2-S01-A2-n°1 | `beforeEach(resetDb)` synchrone → 33 échecs (storageStates invalidés). | Résolu : approche abandonnée, `beforeEach` retiré. |
+| E2-S01-A2-n°2 | `db-reset` global → `spawnSync npm ENOENT` + `No part with status SUBMITTED` (3 échecs). | Résolu : approche abandonnée, `db-reset` retiré. |
+| E2-S01-A2-n°3 | Typecheck TS2322 `route.ts:44` — `number \| null` non assignable à `number \| undefined` (régression incident E2-S01-n°4, `.nullish()` produit `null` en sortie). | Résolu : `.nullish().transform(v => v ?? undefined).default(20)` dans `PartSearchQuerySchema`. |
+| E2-S01-A2-n°4 | 1 échec `warmup` intermittent (timeout compilation dev server Windows) après re-seed manuel. | Tracé : instabilité `D-e2e-isolation` (Faible), correctif infrastructural. |
+
+### Dettes résolues
+
+- `D-e2e-isolation` requalifiée Faible (preuves : 2 runs verts consécutifs, correctif reset DB abandonné documenté).
+
+### Dettes reportées
+
+| Dette | Cible |
+|---|---|
+| `D-search-post-public` (Moyenne, nouvelle) | Session sécurité dédiée (après E2) ou E2-S02 |
+| `D-e2e-multitenant` (Haute) | Session E2E dédiée (enrichir seed avec 2ᵉ client — résout aussi le déséquilibre 4 parts SUBMITTED / 4 consommateurs) |
+| Instabilité dev server Windows (infrastructurale) | Décision Coordinateur (déplacer repo hors F:\) |
+| `D-e2e-auth-dual`, `D-s03-t3-ecart`, `D-e2e-skip-conditional` | Session E2E dédiée |
+
+### Baseline finale E2-S01-A2
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err |
+| TypeScript | ✅ 0 err |
+| Build | ✅ 36/36 routes |
+| Seed | ✅ idempotent (5 parts, 25 specs, 5 images, 3 attachments, 5 partVersions) |
+| Tests E2E | ✅ 158/161 verts (3 skips : 2 × `D-e2e-multitenant` + 1 skip conditionnel) |
+| Format | ✅ 0 non conforme |
+| Prisma migrate | ✅ 12 migrations, drift = `DROP INDEX "parts_search_vector_idx"` uniquement (attendu, R.4.1) |
+
+### Notes
+
+- **Aucun correctif code pour `D-e2e-isolation`** — la dette est clôturée sur preuves (non-reproduction), pas sur correctif. Le reset DB est documenté comme approche abandonnée (avec les 3 variantes testées et leurs échecs) pour éviter qu'une future session ne la réessaie.
+- **`next-env.d.ts`** non modifié.
+- E2-S02 (recherche par référence) peut être cadré.
 
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S01-A2
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S02
 ═══════════════════════════════════════════════════════════════

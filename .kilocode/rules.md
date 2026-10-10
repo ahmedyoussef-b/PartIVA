@@ -193,6 +193,10 @@ Tâche : [description courte]
 
 **Avant toute écriture sur un fichier existant : lire le fichier en premier.** Ne jamais présumer qu'un fichier est vide ou inexistant sans vérification (`ls`, `cat`, `git status`).
 
+**Règle R.4.2 (noms génériques) — renforcée en E2-S01-F :** cette règle s'applique **systématiquement** pour tout fichier dont le nom contient un mot-clé générique (`search`, `auth`, `user`, `part`, `route`, `schema`, `config`, `index`, `page`, `layout`) — **même si l'audit pré-bloc ne le cite pas**. Incident E2-S01 : 2 écrasements (`src/schemas/search.ts`, `src/app/api/search/route.ts`) causés par un audit pré-bloc qui n'a pas vérifié les consommateurs du mot-clé « search ».
+
+**Règle R.4.1 (drift Prisma `search_vector`) — ajoutée en E2-S01-F :** le drift `DROP INDEX "parts_search_vector_idx"` retourné par `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` est **attendu et documenté** (E2-S01). Prisma ne modélise pas les index GIN sur colonnes `Unsupported("tsvector")`. **Ne pas corriger.** La migration SQL `20261010002927_add_part_search_index` est la source de vérité pour cet index. Critère de baseline : **0 drift hors `parts_search_vector_idx`**.
+
 **Trois violations de la règle #10 ont été tracées en trois sessions consécutives (E1-S02-0, E1-S02, E1-S02-F). Ce bloc est ajouté pour casser ce pattern.**
 
 ### Règle migrations Prisma échouées — STOP absolu
