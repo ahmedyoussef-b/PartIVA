@@ -9,17 +9,18 @@ import { Search, MapPin } from 'lucide-react';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import type { PartStatus } from '@/generated/prisma/browser';
 
-type SearchMode = 'text' | 'reference';
+type SearchMode = 'text' | 'reference' | 'specs';
 
 interface SearchResultItem {
   id: string;
   ptvReference: string | null;
-  partNumber: string;
-  name: string;
-  description: string | null;
+  partNumber: string | null;
+  name: string | null;
+  description?: string | null;
   status: string;
   rank?: number;
   matchType?: 'exact' | 'prefix';
+  matchedSpecs?: { key: string; value: string }[];
 }
 
 const DEBOUNCE_MS = 300;
@@ -94,6 +95,19 @@ export function SearchBar() {
         >
           Référence
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'specs'}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'specs'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/70'
+          }`}
+          onClick={() => setMode('specs')}
+        >
+          Spécifications
+        </button>
       </div>
 
       <div className="relative">
@@ -104,7 +118,9 @@ export function SearchBar() {
           placeholder={
             mode === 'reference'
               ? 'Rechercher par référence (PTV-… ou n° fournisseur)…'
-              : 'Rechercher une pièce (nom, référence, matière…)…'
+              : mode === 'specs'
+                ? 'Rechercher une matière, une dimension…'
+                : 'Rechercher une pièce (nom, référence, matière…)…'
           }
           className="pl-9"
           aria-label="Rechercher une pièce"
@@ -138,6 +154,13 @@ export function SearchBar() {
                     {result.description && (
                       <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[11px]">
                         {result.description}
+                      </p>
+                    )}
+                    {result.matchedSpecs && result.matchedSpecs.length > 0 && (
+                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[11px]">
+                        {result.matchedSpecs
+                          .map((spec) => `${spec.key} : ${spec.value}`)
+                          .join(' · ')}
                       </p>
                     )}
                   </div>
@@ -175,7 +198,9 @@ export function SearchBar() {
         <MapPin className="h-3 w-3" />
         {mode === 'reference'
           ? 'Recherche par référence exacte ou préfixe (PTV, n° fournisseur).'
-          : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
+          : mode === 'specs'
+            ? 'Recherche full-text PostgreSQL sur les valeurs de spécifications (matière, dimensions, …).'
+            : 'Recherche full-text PostgreSQL (nom, description, références PTV et pièce).'}
       </p>
     </div>
   );
