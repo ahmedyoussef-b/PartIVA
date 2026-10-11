@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S12 (clôturée) |
-| **Session en cours** | E3-S01 — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12 : full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar + résolution D-e2e-submitted-consumption + résolution D-newpart-schema-prisma-mismatch + audit de clôture E2), baseline 6/6 tenue, E2E 204 passed / 0 failed / 2 skipped (photo conditionnel), E3-S01 à cadrer |
+| **Dernière session** | E3-S01 (clôturée) |
+| **Session en cours** | E3-S02 — connecteur TraceParts (MVP) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance APIs — 3 sources retenues : TraceParts + CADENAS + OpenSERP), baseline 6/6 tenue, E2E 204 passed / 0 failed / 2 skipped, E3-S02 à cadrer |
 
 ---
 
@@ -2659,6 +2659,45 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 **Passation E3** : E3 = sources externes & pipeline intelligent (ROADMAP l.188+). Prérequis : aucun. Dette actionnable unique : `D-photo-embedding-backfill` (condition : provisionnement `HF_API_TOKEN` dans `.env`).
 
 - Ordre sessions : E2 ✅ clôturée → E3-S01 (sources externes) à cadrer.
+
+### Session E3-S01 — Reconnaissance APIs sources externes (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : vérification de l'accès réel des sources externes avant toute spécification (note Superviseur ROADMAP E3 l.207).
+
+**Méthode** : recherche web sur 7 sources (TraceParts, CADENAS/3Dfindit, TecDoc/TecAlliance, OpenSERP, PARTcommunity, 汽修宝, 昵配网) — endpoints, auth, quotas, coût, licence, RGPD.
+
+**Verdict — tableau comparatif** :
+
+| Source | Accès API | Auth | Coût | Licence | RGPD | Verdict |
+|---|---|---|---|---|---|---|
+| TraceParts | ✅ REST `api-gateway.traceparts.com` v3 (OpenAPI 3.0.1, endpoints `/v3/Product/*`) | Bearer JWT | Gratuit (EasyLink 1-2) / ticket support pour Gateway | Conditions TraceParts | EU (FR) | ✅ RETENUE |
+| CADENAS / 3Dfindit | ✅ PARTcommunity (700-800 catalogues fabricants certifiés, 150+ formats CAO) | Portails fabricants | Gratuit (téléchargement) | CADENAS | EU (DE) | ✅ RETENUE |
+| TecDoc / TecAlliance | ✅ OneDB API (REST/JSON : VIN, KType, part number, OE, fuzzy) | API key (header `Authorization`) | **Contrat commercial** (GTC TecAlliance — licence limitée dans le temps, interdit : copie systématique, marques privées, redistribution) | Licence TecAlliance stricte | EU (DE) | ⚠️ CONTRAT REQUIS |
+| OpenSERP | ✅ Self-hosted `docker run -p 7000:7000 karust/openserp serve` (Go, moteurs Google/Bing/Yandex/Baidu/DuckDuckGo/Ecosia, `/mega/search` agrégation+dedup) | Aucun (self-hosted) | Gratuit | **MIT** | Self-hébergé | ✅ RETENUE (SERP web, pas catalogue) |
+| PARTcommunity | ⚠️ Portail web + PART2cad (intégration CAD), pas d'API publique documentée | — | Gratuit | CADENAS | EU | 🔄 Redondant avec CADENAS (même technologie CADENAS) |
+| 汽修宝 (QiuXiuBao) | ⚠️ « API数据对接服务 » (VIN/EPC/OEM/维修记录) — accès sur demande commerciale (广州前实网络科技, qxbapp.com) | API key (sur contrat) | Payant (SaaS B2B, 10万+ clients payants) | Propriétaire CN | **CN — RGPD non conforme** | ❌ NON RETENUE (RGPD + contrat) |
+| 昵配网 | ❌ Aucune API publique vérifiée | — | — | — | CN | ❌ NON RETENUE (non vérifiable) |
+
+**Décisions verrouillées** :
+
+- **D-E3-1** : Sources retenues MVP = **TraceParts + CADENAS + OpenSERP** (3 sources, toutes accessibles sans contrat payant, EU/self-hébergé, RGPD conforme).
+- **D-E3-2** : TecDoc = session dédiée sous contrat commercial (GTC TecAlliance) — besoin métier à justifier (données aftermarket auto structurées, mais licence stricte + coût).
+- **D-E3-3** : Sources CN (汽修宝, 昵配网) = **exclues** (RGPD non conforme + accès sur contrat commercial CN).
+- **D-E3-4** : PARTcommunity = redondant avec CADENAS (même technologie, même société CADENAS GmbH) — non retenu comme source distincte.
+- **D-E3-5** : **Aucun changement de modèle Prisma requis** — `SearchCandidate.source` (String ouvert) accepte déjà toutes les sources ; `SearchSourceSchema` (Zod, enum 5 valeurs) à étendre avec `traceparts`, `cadenas`, `openserp` (déjà partiellement présent : `traceparts`, `cadenas` existent dans l'enum).
+- **D-E3-6** : Budget = mixte (gratuit pour MVP, payant uniquement si contrat TecDoc justifié).
+
+**Architecture fédérée — état réel** :
+
+- `SearchCandidate` (Prisma) : `source String` (ouvert), `reference`, `name`, `manufacturer?`, `imageUrl?`, `cadAvailable`, `datasheetAvailable`, `scores Json`, `metadata Json?` — **déjà fédéré** (index `source`, `reference`, `createdAt`).
+- `SearchSourceSchema` (Zod) : enum `['local_db', 'traceparts', 'cadenas', 'manufacturer_catalog', 'geometric_search']` — **`traceparts` et `cadenas` déjà présents** ; `openserp` à ajouter.
+- `Supplier`/`PartSupplier` : modèle de catalogue externe déjà là (`supplierRef`, `price`, `leadTimeDays`).
+- `getSearchCandidates({ source })` (`src/lib/data/search-candidates.ts`) : pattern data existant, parse strict `CandidateScoresSchema`.
+
+**Passation E3-S02** : connecteur TraceParts (MVP) — premier connecteur réel, pattern `getSearchCandidates` existant, auth Bearer JWT, endpoints `/v3/Product/*`.
+
+- Ordre sessions : E3-S01 ✅ → E3-S02 (connecteur TraceParts).
 
 ═══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S01

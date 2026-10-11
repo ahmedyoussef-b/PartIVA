@@ -190,21 +190,24 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 ## 🏗️ E3 — SOURCES EXTERNES & PIPELINE INTELLIGENT
 **Objectif** : brancher PartIVA sur le monde extérieur et orchestrer le pipeline complet.
 
+**⚠️ Note Superviseur** : cette étape dépend de **contrats/API externes** — prévoir des sessions de reconnaissance (état des lieux des APIs disponibles) avant implémentation. **E3-S01 (reconnaissance) réalisée 2026-10-11** — 3 sources retenues (TraceParts, CADENAS, OpenSERP), TecDoc sous contrat, sources CN exclues (RGPD).
+
 | Session | Objectif | Livrable |
 |---|---|---|
-| **E3-S01** | Intégration TraceParts | Recherche API ou scraping conforme |
-| **E3-S02** | Intégration CADENAS / 3Dfindit | Idem |
-| **E3-S03** | Catalogues fabricants | Adaptateurs extensibles |
-| **E3-S04** | Agrégation multi-sources | Fusion résultats + dédoublonnage |
-| **E3-S05** | Pipeline intelligent (3 cas) | Connu / Partiel / Inconnu — routage auto |
-| **E3-S06** | Logique de bascule | Le système change de stratégie selon le match |
-| **E3-S07** | Interface pipeline | Visualisation du parcours dans l'app |
+| **E3-S01** | Reconnaissance APIs sources externes | *réalisé 2026-10-11 : vérification 7 sources (TraceParts, CADENAS/3Dfindit, TecDoc/TecAlliance, OpenSERP, PARTcommunity, 汽修宝, 昵配网) — endpoints, auth, quotas, coût, licence, RGPD. Verdict : TraceParts (REST v3, Bearer JWT, gratuit), CADENAS (PARTcommunity 700+ catalogues, gratuit), OpenSERP (self-hosted MIT, docker) retenues ; TecDoc (contrat commercial GTC, licence stricte) session dédiée ; PARTcommunity redondant CADENAS ; sources CN exclues (RGPD). Aucun changement modèle Prisma (`SearchCandidate.source` String ouvert). Décisions D-E3-1 à D-E3-6* |
+| **E3-S02** | Connecteur TraceParts (MVP) | Connecteur API REST v3 (`api-gateway.traceparts.com`, Bearer JWT, endpoints `/v3/Product/*`) — recherche + métadonnées + disponibilité CAD |
+| **E3-S03** | Connecteur CADENAS / PARTcommunity (MVP) | Intégration portails fabricants (catalogues certifiés, 150+ formats) |
+| **E3-S04** | Connecteur OpenSERP (MVP) | Self-hosted `karust/openserp` (MIT) — recherche web multi-moteurs + `/mega/search` agrégation |
+| **E3-S05** | Agrégation multi-sources | Fusion résultats + déduplication (pattern `SearchCandidate.source` existant) |
+| **E3-S06** | Pipeline intelligent (3 cas) | Connu / Partiel / Inconnu — routage auto |
+| **E3-S07** | Logique de bascule | Le système change de stratégie selon le match |
+| **E3-S08** | Interface pipeline | Visualisation du parcours dans l'app |
+| **E3-S09** | (Conditionnel) TecDoc sous contrat | Contrat commercial TecAlliance (GTC) — si besoin métier justifié |
+| **E3-S10** | Tests E2E + baseline | Couverture connecteurs + audit clôture E3 |
 
 **Définition de "E3 terminée"** : PartIVA interroge plusieurs sources et route automatiquement vers la bonne stratégie.
 
 **Durée estimée** : 3-4 semaines.
-
-**⚠️ Note Superviseur** : cette étape dépend de **contrats/API externes** — prévoir des sessions de reconnaissance (état des lieux des APIs disponibles) avant implémentation.
 
 ---
 
