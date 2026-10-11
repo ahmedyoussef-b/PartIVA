@@ -25,10 +25,10 @@ async function listPartsAsAdmin(
 
 async function getFirstPartId(playwright: any): Promise<string> {
   const parts = await listPartsAsAdmin(playwright);
-  // Les parts E2E-RESET-* (fixture D-e2e-submitted-consumption)
-  // n'ont pas de versions — exclues pour ne pas casser les tests
+  // Les parts E2E-* (fixture E2E-RESET-* + tests POST /api/parts E2-S11)
+  // n'ont pas de versions stables — exclues pour ne pas casser les tests
   // qui vérifient le contenu des versions (tri createdAt desc).
-  const seeded = parts.find((p) => !p.partNumber.startsWith('E2E-RESET-'));
+  const seeded = parts.find((p) => !p.partNumber.startsWith('E2E-'));
   return (seeded ?? parts[0])?.id as string;
 }
 

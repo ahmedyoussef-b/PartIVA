@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S11 (clôturée) |
-| **Session en cours** | E2-S12 — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E + E2-S08 + E2-S09 + E2-S10 + E2-S11 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar + résolution D-e2e-submitted-consumption + résolution D-newpart-schema-prisma-mismatch), baseline 6/6 tenue, E2E 200 passed (0 failed, 2 skip photo conditionnel), E2-S12 à cadrer |
+| **Dernière session** | E2-S12 (clôturée) |
+| **Session en cours** | E3-S01 — à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12 : full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar + résolution D-e2e-submitted-consumption + résolution D-newpart-schema-prisma-mismatch + audit de clôture E2), baseline 6/6 tenue, E2E 204 passed / 0 failed / 2 skipped (photo conditionnel), E3-S01 à cadrer |
 
 ---
 
@@ -43,7 +43,8 @@
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
 - [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`) + E2-S06 (score multi-critères unifié, `ScoringWeights` DB, `GET /api/search?mode=multi`, UI onglet Multi + badge score + breakdown repliable)
 - [x] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) + E2-S07-B1 (outillage backfill embeddings) + E2-S07-C2 (sécurisation POST /api/search + régularisations)
-- [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503) + E2-S10 (résolution `D-e2e-submitted-consumption` — fixture `ensureSubmittedPart` + `beforeEach` ciblé, stabilité E2E) + E2-S11 (résolution `D-newpart-schema-prisma-mismatch` — `NewPartSchema` aligné Prisma + auth `POST /api/parts` en tête + 4 tests E2E)
+- [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503) + E2-S10 (résolution `D-e2e-submitted-consumption` — fixture `ensureSubmittedPart` + `beforeEach` ciblé, stabilité E2E) + E2-S11 (résolution `D-newpart-schema-prisma-mismatch` — `NewPartSchema` aligné Prisma + auth `POST /api/parts` en tête + 4 tests E2E) + E2-S12 (audit de clôture E2 — 7 critères vérifiés, baseline 6/6 tenue, E2E 204/0/2)
+- [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -2607,6 +2608,58 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **Commit hash** : `5084dc1` (7 fichiers : `submitted-part.ts` + `create-submitted-part.mts` nouveaux, `part-transitions.spec.ts`, `part-versions.spec.ts`, `DEBT.md`, `SESSION.md`, `ROADMAP.md` — +225/-83).
 - Ordre sessions : E2-S10 ✅ → E2-S11 (audit de clôture E2 recommandé) ou E3 (sources externes).
 
+### Session E2-S11 — Alignement `NewPartSchema`/Prisma + sécurité `POST /api/parts` (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Commit** : `1123e05` (`1123e0554bac984694a1481fb18b2aec7f4d0cc7`) — 5 fichiers, +91/-15
+- **Baseline** : lint 0/0, typecheck 0, build 55 routes, E2E 13/13 `api.spec.ts`, format 0.
+
+**Objet** : résoudre `D-newpart-schema-prisma-mismatch` (Haute) — `POST /api/parts` cassé pour tout payload valide.
+
+**Découverte (E2-S10)** : `NewPartSchema` (dérivé de `PartSchema` via `omit`) exige 7 champs fantômes absents du modèle Prisma `Part` : `reference`, `material`, `dimensions`, `tolerances`, `version`, `files`, `machineId`. Tout payload valide échoue en Prisma → 400 systématique. Le seed contourne par `prisma.part.create` direct. Aucun appelant UI de `POST /api/parts` (grep = 0) — API d'intégration externe.
+
+**Réalisations** :
+
+1. **A.1 — `src/schemas/part.ts`** : `NewPartSchema` réécrit sur les 6 champs réels (`partNumber`, `ptvReference?`, `name`, `description?`, `status`, `categoryId?`). `UpdatePartSchema` aligné (`partial().omit({ partNumber: true })` — `partNumber` `@unique` immuable). `PartSchema` (lecture) intact — contrat de réponse peuplé par `PartWithRelations`.
+2. **B.1 — `src/app/api/parts/route.ts`** : **faille sécurité découverte et corrigée** — auth vérifiée **après** parse et création → création anonyme possible (201 sans session, `clientId` orphelin). Auth déplacée en tête de route, avant parse. Faille masquée par la faille Zod (tout POST échouait en 400 avant E2-S11 — correction Zod seule aurait rendu la faille exploitable).
+3. **D.1 — `e2e/api.spec.ts`** : 4 tests ajoutés (401 sans auth, 201 payload minimal, 201 payload complet avec `categoryId` réel, 400 payload invalide). **13/13 passés**.
+4. **E.1/E.2 — DEBT.md + SESSION.md** : dette résolue, fusion `D-e2e-submitted-residues` + résidus E2-S11 → `D-e2e-parts-residues` (Faible, ~4 parts/run sans cleanup).
+
+**Décisions verrouillées** : sévérité Haute confirmée ; Option 3 (aligner sur Prisma, source de vérité) ; `status` default `'draft'` minuscule conservé (route normalise `toUpperCase()`) ; `categoryId` conservé (existe dans `Part`, utilisé par le seed) ; `UpdatePartSchema` corrigé aussi (dette latente) ; commit par le Superviseur (PCT).
+
+**Champs fantômes déjà modélisés ailleurs** : `material` → `PartSpecification` (D-completeness-material) ; `dimensions` → `PartSpecification` (E2-S04) ; `version` → `PartVersion` (E1-S04) ; `files` → `PartImage` + `Attachment` (E1-S05/S06) ; `reference` → jamais modélisé (`ptvReference` est le système d'ID officiel E1-S01-C) ; `tolerances`, `machineId` → jamais modélisés.
+
+### Session E2-S12 — Audit de clôture E2 (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Baseline mesurée** : lint 0/0, typecheck 0, build **55 routes** (37 pages statiques), format 0, Prisma 14 migrations à jour, drift = 2 index attendus (GIN `parts_search_vector_idx` + HNSW `part_images_embedding_hnsw` — Prisma ne modélise pas ces index, `D-hnsw-drift` documenté).
+
+**Bloc A — Inventaire sessions E2 (18 sessions)** : E2-S01 (full-text), E2-S01-A2 (régularisations), E2-S02 (référence), E2-S03 (spécifications), E2-S04 (dimensions), E2-S05 (photo/pgvector), E2-S06 (score multi-critères), E2-S07 (détection infos manquantes), E2-S07-B1 (backfill tooling), E2-S07-B1-C (résidus B1), E2-S07-C2 (sécurisation POST /api/search), E2-S07-D (multi-tenant E2E), E2-S07-E (sécurité GET /api/parts), E2-S08 (auto-complétion), E2-S09 (UI 5 onglets), E2-S10 (stabilité E2E), E2-S11 (alignement schéma + sécurité), E2-S12 (audit clôture).
+
+**Bloc B — Vérification 7 critères de sortie E2** :
+
+| # | Critère | Verdict | Preuve |
+|---|---|---|---|
+| 1 | Moteur 6 modes (texte, référence, specs, dimensions, photo, multi) | ✅ | ROADMAP E2-S01→S06, `src/lib/data/multi-search.ts` (agrégation 5 signaux) |
+| 2 | Score multi-critères (D131) | ✅ | `src/lib/scoring.ts` (min-max + renormalisation), table `scoring_weights` (poids 0.2), `GET /api/search?mode=multi`, UI onglet Multi + badge + breakdown |
+| 3 | Détection infos manquantes | ✅ | `src/lib/part-required-specs.ts` (`REQUIRED_SPEC_KEYS`, 8 clés), `GET /api/parts/[id]/completeness`, UI badge complétude + « Il manque : X, Y, Z » |
+| 4 | Auto-complétion (E2-S08) | ✅ | `GET /api/parts/[id]/specifications/suggestions` + dropdown UI « Mesures manquantes » |
+| 5 | UI 5 onglets (E2-S09) | ✅ | `search-bar.tsx` — 5ᵉ onglet Photo (upload JPEG/PNG/WebP 5 Mo, base64, gestion 503) |
+| 6 | Sécurité API | ✅ | E2-S07-C2 (`POST /api/search` VIEWER+), E2-S07-D (multi-tenant), E2-S07-E (GET `/api/parts` + `/api/parts/[id]` VIEWER+ + ownership USER), E2-S11 (auth `POST /api/parts` en tête — faille anonyme corrigée) |
+| 7 | Baseline tenue | ✅ | lint 0/0, typecheck 0, build 55 routes, format 0, E2E **204 passed / 0 failed / 2 skipped** (photo conditionnel HF_API_TOKEN), 14 migrations, drift 2 index documentés |
+
+**Bloc C — Dettes résiduelles E2** : 1 Moyenne (`D-photo-embedding-backfill` — bloquée HF_API_TOKEN absent, outil prêt `npm run db:backfill-embeddings`) + dettes Faibles (`D-e2e-parts-residues`, `D-e2e-isolation` contrainte acceptée, `D-e2e-auth-dual`, `D-e2e-residues`, `D-completeness-*`, `D-embedding-model-catalog`, `D-scoring-weights-ui`, `D-hnsw-drift` documenté, `D-photo-e2e-token`, `D-photo-threshold-tuning`, `D-pgvector-prisma8`, `D-embedding-api-cost`, `D-docs-template`, `D-roadmap-retard`, `D-44`, `D-27-bis`, `D116`, `D-audit-mysql2`). **Aucune dette Haute.**
+
+**Bloc D — Incident E2-S12** : échec `part-versions.spec.ts:53` (`versions.length > 0`) en run complet puis en isolation — **pas** `D-e2e-isolation`. Cause racine : `getFirstPartId` filtrait `E2E-RESET-*` mais pas les parts `E2E-*`/`E2E-FULL-*` créées par les tests E2-S11 (0 versions, tri `createdAt desc` les place en premier). Résidu de la fusion `D-e2e-parts-residues`. **Correction** : filtre élargi à `!p.partNumber.startsWith('E2E-')` (`e2e/part-versions.spec.ts:31`). Preuve : 5/5 isolation puis **204/0/2** suite complète.
+
+**Bloc E — Documentation** : ROADMAP E2-S11 + E2-S12 ajoutés, SESSION.md métadonnées + rapports, DEBT.md fusion résidus.
+
+**Verdict : E2 est clôturable.** Aucune dette bloquante. La phase E2 livre : moteur 6 modes, score unifié, complétude + suggestions, UI 5 onglets, sécurité API complète (auth + ownership + multi-tenant), 204 tests E2E.
+
+**Passation E3** : E3 = sources externes & pipeline intelligent (ROADMAP l.188+). Prérequis : aucun. Dette actionnable unique : `D-photo-embedding-backfill` (condition : provisionnement `HF_API_TOKEN` dans `.env`).
+
+- Ordre sessions : E2 ✅ clôturée → E3-S01 (sources externes) à cadrer.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S10
+Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S01
 ═══════════════════════════════════════════════════════════════
