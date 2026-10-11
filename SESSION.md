@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E3-S05 (clôturée) |
-| **Session en cours** | E3-clôture — audit de clôture phase E3 |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance), E3-S02 clôturée (TraceParts mock), E3-S03 clôturée (Wikidata réel), E3-S04 clôturée (reconnaissance CADENAS — abandon MVP, D-E3-19), **E3-S05 clôturée** (agrégation multi-sources + fallback, D-E3-20 à D-E3-26), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E3-clôture à cadrer (audit) |
+| **Dernière session** | E3-clôture (clôturée) |
+| **Session en cours** | E4-S01 — cadrage phase E4 |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E4 à cadrer |
 
 ---
 
@@ -2904,6 +2904,85 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E3-S05 ✅ → E3-clôture (audit). E3-S03-bis (OpenSERP) bloquée Docker.
 
+### Session E3-clôture — Audit de phase E3 (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : audit documentaire de clôture de la phase E3 (Sources externes & pipeline intelligent). **Aucun code modifié** (formatage Prettier de 2 livrables E3 uniquement).
+
+**Bilan E3** :
+
+**Sessions livrées :**
+
+| Session | Objet | Commit |
+|---|---|---|
+| E3-S01 | Reconnaissance APIs | `cc104b9` |
+| E3-S02 | TraceParts (mock) | `4cc74a6` |
+| E3-S03 | Wikidata SPARQL (réel) | `369cc46` |
+| E3-S04 | Reconnaissance CADENAS (abandon) | `67cc6a2` |
+| E3-S05 | Agrégation + fallback | `7962d6f` |
+| E3-clôture | Audit de phase | `<commit>` |
+| E3-S03-bis | OpenSERP (Docker) | 🟠 Reportée E4 |
+
+**Objectif stratégique E3** : « Sources externes open-source fonctionnelles avant engagement contractuel. »
+→ **ATTEINT** : Wikidata (open-source, self-service, réel).
+
+**Sources actives (D-E3-28)** :
+
+- Wikidata SPARQL (réel, weight 0.8)
+- TraceParts (mock, weight 0.6)
+- local_db (réel, weight 1.0)
+
+**Sources hors périmètre (D-E3-29)** :
+
+- CADENAS (abandon D-E3-19 — CGU restrictives, pénalités 20 000 €/cas + 500 €/téléchargement)
+- OpenSERP (report E4 — Docker non provisionné)
+
+**Baseline finale E3** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (37 statiques)
+- E2E 222 passed / 0 failed / 3 skipped
+- Prisma 14 migrations (à jour)
+
+**Dettes E3 (13)** : 3 Moyennes + 10 Faibles
+
+**Dettes Moyennes transférées E4 (D-E3-30)** :
+
+- `D-photo-embedding-backfill` (HF token absent)
+- `D-traceparts-credentials` (JWT TraceParts à provisionner)
+- `D-openserp-instance` (Docker non provisionné)
+
+**Dettes Faibles actionnables E4** :
+
+- `D-wikidata-search-semantics` (recherche partielle)
+- `D-aggregation-timeout` (timeout 5s à ajuster)
+- `D-aggregation-score` (ranking dynamique)
+- `D-candidate-mapping-adapters` (unification mappings)
+
+**Décisions de clôture** :
+
+- **D-E3-27** : Phase E3 clôturée (5 sessions + 1 reconnaissance + 1 report)
+- **D-E3-28** : Sources actives E3 (Wikidata + TraceParts + local_db)
+- **D-E3-29** : Sources hors périmètre (CADENAS abandon, OpenSERP reporté)
+- **D-E3-30** : Dettes Moyennes transférées E4
+
+**Règles PCT proposées en E3 (8)** :
+
+- R.5.1 : Reconnaissance d'environnement préalable ✅ validée
+- R.5.2 : Synchronisation des enums
+- R.5.3 : Fixtures JSON sans BOM
+- R.5.4 : Timeouts E2E adaptés ✅ appliquée
+- R.5.5 : Documentation restrictions juridiques ✅ appliquée
+- R.5.6 : Alignement mappings sur schéma final
+- R.5.7 : Pas d'import Prisma direct dans specs Playwright
+- R.5.8 : Tests API authentifiés via projet admin + storageState
+
+**Leçon principale E3** : « gratuit » ≠ « accessible ». R.5.1 (reconnaissance préalable) est née de cette leçon — elle a évité un 3ᵉ STOP (E3-S04 CADENAS) en transformant l'intégration en reconnaissance.
+
+**Passation E4** : Cadrage à définir. Priorités probables : dettes bloquées (token/JWT/Docker), UX, performance, déploiement, nouvelles sources.
+
+- Ordre sessions : E3-clôture ✅ → E4 (à cadrer). E3-S03-bis (OpenSERP) reportée E4.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E3-clôture
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S01 (cadrage phase E4)
 ═══════════════════════════════════════════════════════════════

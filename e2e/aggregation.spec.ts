@@ -1,8 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-  aggregateSearch,
-  searchWithFallback,
-} from '../src/lib/connectors/aggregator';
+import { aggregateSearch, searchWithFallback } from '../src/lib/connectors/aggregator';
 import { wikidataConnector } from '../src/lib/connectors/wikidata';
 import { tracePartsConnector } from '../src/lib/connectors/traceparts';
 
@@ -39,10 +36,7 @@ test.describe('Aggregation (E3-S05)', () => {
   });
 
   test('fallback Wikidata → TraceParts', async () => {
-    const result = await searchWithFallback(
-      [wikidataConnector, tracePartsConnector],
-      'bearing'
-    );
+    const result = await searchWithFallback([wikidataConnector, tracePartsConnector], 'bearing');
     expect(result.sourceUsed).not.toBe('none');
     expect(result.fallbackChain.length).toBeGreaterThanOrEqual(1);
   });

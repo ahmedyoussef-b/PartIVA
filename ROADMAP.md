@@ -200,12 +200,42 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | **E3-S03-bis** | Connecteur OpenSERP (MVP, réel OSS) | 🟠 **Bloquée** — Docker/Podman absents de l'environnement (constat Bloc 0). Instance `karust/openserp serve` à provisionner. Wikidata (E3-S03) fournit la source externe réelle en attendant |
 | **E3-S04** | Reconnaissance CADENAS / 3Dfindit | *réalisé 2026-10-11 : session de reconnaissance (R.5.1) — aucun code. Verdict : **aucune API publique self-service**. CGU CADENAS interdisent la collecte systématique + l'usage ML/IA (pénalité €20 000/cas + €500/téléchargement). Voies : PARTsolutions Application Server (licence commerciale, Http GET/POST JSON — sous contrat), portails fabricants (scraping — interdit CGU), 3Dfindit API (accès restreint 403), GitHub `cadenasgmbh/3dfindit-freecad-integration` (addon FreeCAD abandonné 2020). **D-E3-19 : CADENAS abandonné du MVP E3** — tracé en dette `D-cadenas-access` (Moyenne). Pipeline E3 fonctionnel sans CADENAS : Wikidata (réel) + TraceParts (mock) + OpenSERP (E3-S03-bis)* |
 | **E3-S05** | Agrégation multi-sources + fallback | *réalisé 2026-10-11 : pipeline d'agrégation fonctionnel — `src/lib/connectors/` (`types.ts` interface `SourceConnector` D-E3-20, `aggregator.ts` `aggregateSearch()` Promise.allSettled + timeout 5s D-E3-21 + `searchWithFallback()` séquentiel D-E3-22, `wikidata.ts`/`traceparts.ts`/`local-db.ts` wrappers D-E3-26), route API `POST /api/search` mode `source: 'all'` (D-E3-25), déduplication par `name` normalisé (D-E3-24), score `sourceWeight × sourceScore` (D-E3-23). CADENAS (D-E3-19) + OpenSERP (Docker) exclus des sources actives. 6 tests E2E (4 connecteurs chromium + 2 route API admin). Dettes `D-aggregation-timeout` + `D-aggregation-score` (Faible)* |
-| **E3-clôture** | Audit de clôture phase E3 | 🟢 À cadrer — vérifier baseline 6/6, couverture connecteurs, dettes E3 |
-| **E3-S06** | Pipeline intelligent (3 cas) | Connu / Partiel / Inconnu — routage auto |
-| **E3-S07** | Logique de bascule | Le système change de stratégie selon le match |
-| **E3-S08** | Interface pipeline | Visualisation du parcours dans l'app |
-| **E3-S09** | (Conditionnel) TecDoc sous contrat | Contrat commercial TecAlliance (GTC) — si besoin métier justifié |
-| **E3-S10** | Tests E2E + baseline | Couverture connecteurs + audit clôture E3 |
+| **E3-clôture** | Audit de clôture phase E3 | *réalisé 2026-10-11 : audit documentaire (aucun code) — inventaire E3 (16 fichiers code + 13 dettes), baseline vérifiée (ESLint 0/0, TS 0 err, Prettier 0, build 55 routes, E2E 222/0/3, Prisma 14 migrations), dettes classées (3 Moyennes : 2 bloquées token/JWT/Docker + 1 clôturée CADENAS ; 10 Faibles : 4 actionnables E4 + 6 documentées R.5.2-R.5.8), cohérence ROADMAP/SESSION/DEBT vérifiée. Décisions D-E3-27 à D-E3-30. **Phase E3 CLÔTURÉE*** |
+
+**Phase E3 — CLÔTURÉE le 2026-10-11**
+
+### Bilan E3
+
+- **Sources réelles** : Wikidata SPARQL (open-source, self-service, endpoint public)
+- **Sources mock** : TraceParts (prêt au réel — JWT à provisionner)
+- **Sources reportées** : OpenSERP (Docker à provisionner, E4)
+- **Sources abandonnées** : CADENAS (D-E3-19 — CGU restrictives, pénalités chiffrées)
+- **Pipeline** : agrégation parallèle (`Promise.allSettled` + timeout 5s) + fallback Wikidata → TraceParts → local_db + déduplication par `name` normalisé
+- **Dettes E3** : 3 Moyennes (token/JWT/Docker), 10 Faibles
+- **Règles PCT** : R.5.1 à R.5.8 (8 règles issues de l'expérience E3)
+
+### Sessions E3 (historique)
+
+| Session | Objet | Commit |
+|---|---|---|
+| E3-S01 | Reconnaissance APIs | `cc104b9` |
+| E3-S02 | TraceParts (mock) | `4cc74a6` |
+| E3-S03 | Wikidata SPARQL (réel) | `369cc46` |
+| E3-S04 | Reconnaissance CADENAS (abandon) | `67cc6a2` |
+| E3-S05 | Agrégation + fallback | `7962d6f` |
+| E3-clôture | Audit de phase | `<commit>` |
+| E3-S03-bis | OpenSERP (Docker) | 🟠 Reportée E4 |
+
+**Sessions E3 restantes (reportées / conditionnelles) :**
+
+| Session | Objet | Statut |
+|---|---|---|
+| E3-S03-bis | Connecteur OpenSERP (MVP, réel OSS) | 🟠 Reportée E4 (Docker à provisionner) |
+| E3-S06 | Pipeline intelligent (3 cas) | 🟢 À cadrer (E4 ou ultérieur) |
+| E3-S07 | Logique de bascule | 🟢 À cadrer |
+| E3-S08 | Interface pipeline | 🟢 À cadrer |
+| E3-S09 | (Conditionnel) TecDoc sous contrat | 🟢 Contrat commercial GTC |
+| E3-S10 | Tests E2E + baseline | 🟢 À cadrer |
 
 **Définition de "E3 terminée"** : PartIVA interroge plusieurs sources et route automatiquement vers la bonne stratégie.
 
