@@ -14,6 +14,7 @@ import { getSearchCandidates } from '@/lib/data/search-candidates';
 export const localDbConnector: SourceConnector = {
   source: 'local_db',
   weight: 1.0,
+  timeoutMs: 2_000, // PostgreSQL local rapide (D-E3-31)
 
   isAvailable(): boolean {
     return true;

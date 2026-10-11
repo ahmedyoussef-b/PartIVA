@@ -25,6 +25,15 @@ export interface SourceConnector {
   readonly weight: number;
 
   /**
+   * Timeout spécifique à la source (D-E3-31, optionnel).
+   * Défaut : 5000ms (borne globale). Une source plus rapide
+   * peut spécifier un timeout plus court. Une source lente
+   * (SPARQL) peut spécifier un timeout plus long, mais reste
+   * bornée par le timeout global de l'agrégateur.
+   */
+  readonly timeoutMs?: number;
+
+  /**
    * Vérifie si la source est disponible (credentials, endpoint).
    * Retourne false si la source est en mode mock non fonctionnel
    * ou si l'endpoint est injoignable.

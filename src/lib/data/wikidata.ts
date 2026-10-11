@@ -161,6 +161,93 @@ export async function searchWikidata(
   );
 }
 
+// --- Recherche partielle (D-E3-33) ---
+
+const WIKIDATA_API_ENDPOINT = 'https://www.wikidata.org/w/api.php';
+
+/**
+ * Recherche partielle via wbsearchentities (D-E3-33).
+ * Retourne une liste de Q-IDs correspondant au terme.
+ *
+ * wbsearchentities (API MediaWiki) permet une recherche
+ * partielle (« bear » → « bearing »), contrairement à
+ * SPARQL qui n'indexe que les labels exacts.
+ */
+async function searchWikidataEntities(query: string, limit: number): Promise<string[]> {
+  const url = new URL(WIKIDATA_API_ENDPOINT);
+  url.searchParams.set('action', 'wbsearchentities');
+  url.searchParams.set('search', query);
+  url.searchParams.set('language', 'en');
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('limit', String(limit));
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'User-Agent': getWikidataUserAgent(),
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Wikidata wbsearchentities HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const json = (await response.json()) as {
+    search?: Array<{ id: string }>;
+  };
+  return (json.search ?? []).map((r) => r.id);
+}
+
+/**
+ * Recherche Wikidata — mode partiel (D-E3-33).
+ * Utilise wbsearchentities en amont, puis SPARQL par Q-IDs.
+ *
+ * @param query - Terme de recherche (partiel)
+ * @param options - Limite de résultats
+ * @returns Réponse validée par WikidataSparqlResponseSchema
+ *
+ * @throws Error si l'endpoint est injoignable ou la réponse invalide
+ */
+export async function searchWikidataPartial(
+  query: string,
+  options: { limit?: number } = {},
+): Promise<WikidataSparqlResponse> {
+  const { limit = 10 } = options;
+
+  // 1. Recherche partielle → Q-IDs
+  const qids = await searchWikidataEntities(query, limit);
+  if (qids.length === 0) {
+    return { head: { vars: [] }, results: { bindings: [] } };
+  }
+
+  // 2. SPARQL par Q-IDs
+  const qidList = qids.map((id) => `wd:${id}`).join(' ');
+  const sparqlQuery = `
+    SELECT ?item ?itemLabel ?itemDescription WHERE {
+      VALUES ?item { ${qidList} }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+    }
+  `.trim();
+
+  const url = new URL(WIKIDATA_ENDPOINT);
+  url.searchParams.set('query', sparqlQuery);
+  url.searchParams.set('format', 'json');
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'User-Agent': getWikidataUserAgent(),
+      Accept: 'application/sparql-results+json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Wikidata SPARQL HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const json = await response.json();
+  return WikidataSparqlResponseSchema.parse(json);
+}
+
 /**
  * Mapping Wikidata → SearchCandidate (normalisation).
  * Utilisé par le pipeline d'agrégation (E3-S05).

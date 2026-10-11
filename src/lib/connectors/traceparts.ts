@@ -19,6 +19,7 @@ import { searchTraceParts, mapTracePartsToCandidate } from '@/lib/data/tracepart
 export const tracePartsConnector: SourceConnector = {
   source: 'traceparts',
   weight: 0.6,
+  timeoutMs: 3_000, // mock rapide, réel à ajuster (D-E3-31)
 
   isAvailable(): boolean {
     return true;

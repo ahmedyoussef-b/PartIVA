@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   searchWikidata,
+  searchWikidataPartial,
   isWikidataConfigured,
   mapWikidataToCandidate,
   WikidataSparqlResponseSchema,
@@ -23,6 +24,11 @@ test.describe('Wikidata connector (E3-S03)', () => {
 
   test('recherche réelle "screw" retourne des résultats', async () => {
     const result = await searchWikidata('screw', { limit: 5 });
+    expect(result.results.bindings.length).toBeGreaterThan(0);
+  });
+
+  test('recherche partielle "bear" retourne des résultats (D-E3-33)', async () => {
+    const result = await searchWikidataPartial('bear', { limit: 3 });
     expect(result.results.bindings.length).toBeGreaterThan(0);
   });
 

@@ -37,30 +37,41 @@ export async function aggregateSearch(
   const { limit = 20 } = options;
   const startTime = Date.now();
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), AGGREGATION_TIMEOUT_MS);
+  // Timeout global (borne supérieure) — D-E3-31
+  const globalController = new AbortController();
+  const globalTimeout = setTimeout(() => globalController.abort(), AGGREGATION_TIMEOUT_MS);
 
   const available = connectors.filter((c) => c.isAvailable());
   const sourcesFailed: string[] = [];
 
   const results = await Promise.allSettled(
     available.map(async (connector) => {
+      // Timeout spécifique à la source (D-E3-31)
+      const sourceTimeout = connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS;
+      const sourceController = new AbortController();
+      const sourceTimer = setTimeout(() => sourceController.abort(), sourceTimeout);
+
       try {
+        // Combiner les signaux : global + source (D-E3-31)
+        const combinedSignal = combineSignals(globalController.signal, sourceController.signal);
+
         return {
           source: connector.source,
           candidates: await connector.search(query, {
             limit,
-            signal: controller.signal,
+            signal: combinedSignal,
           }),
         };
       } catch {
         sourcesFailed.push(connector.source);
         return { source: connector.source, candidates: [] };
+      } finally {
+        clearTimeout(sourceTimer);
       }
     }),
   );
 
-  clearTimeout(timeout);
+  clearTimeout(globalTimeout);
 
   const allCandidates: SearchCandidate[] = [];
   const sourcesQueried: string[] = [];
@@ -75,8 +86,19 @@ export async function aggregateSearch(
   // Déduplication (D-E3-24) — priorité ordre d'apparition
   const deduped = deduplicateCandidates(allCandidates);
 
+  // Score d'agrégation + tri décroissant (D-E3-32)
+  const scored = deduped.map((c) => {
+    const connector = available.find((conn) => c.source === conn.source);
+    const score = connector ? computeAggregationScore(c, connector) : (c.scores?.global ?? 0.5);
+    return {
+      ...c,
+      scores: { ...c.scores, global: score },
+    };
+  });
+  scored.sort((a, b) => (b.scores?.global ?? 0) - (a.scores?.global ?? 0));
+
   return {
-    candidates: deduped.slice(0, limit),
+    candidates: scored.slice(0, limit),
     sourcesQueried,
     sourcesFailed,
     totalDurationMs: Date.now() - startTime,
@@ -154,4 +176,51 @@ export async function searchWithFallback(
     sourceUsed: 'none',
     fallbackChain,
   };
+}
+
+/**
+ * Combine deux AbortSignals : abort si l'un ou l'autre abort (D-E3-31).
+ * Utilisé pour combiner le timeout global et le timeout par source.
+ */
+function combineSignals(...signals: AbortSignal[]): AbortSignal {
+  const controller = new AbortController();
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort();
+      return controller.signal;
+    }
+    signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  return controller.signal;
+}
+
+/**
+ * Calcule le score d'agrégation d'un candidat (D-E3-32).
+ *
+ * Formule : sourceWeight × sourceScore + freshnessBonus
+ * - sourceWeight : priorité de la source (local_db 1.0 > wikidata 0.8 > traceparts 0.6)
+ * - sourceScore : score interne du candidat (scores.global)
+ * - freshnessBonus : bonus si metadata.updatedAt est récent (optionnel)
+ *
+ * Le score final est stocké dans candidate.scores.global.
+ */
+export function computeAggregationScore(
+  candidate: SearchCandidate,
+  connector: SourceConnector,
+): number {
+  const sourceWeight = connector.weight;
+  const sourceScore = candidate.scores?.global ?? 0.5; // défaut 0.5
+
+  // freshnessBonus : +0.1 si mis à jour dans les 30 derniers jours
+  let freshnessBonus = 0;
+  const updatedAt = candidate.metadata?.updatedAt;
+  if (typeof updatedAt === 'string') {
+    const ageMs = Date.now() - new Date(updatedAt).getTime();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    if (ageMs < thirtyDaysMs) {
+      freshnessBonus = 0.1;
+    }
+  }
+
+  return sourceWeight * sourceScore + freshnessBonus;
 }

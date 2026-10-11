@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S02 (clôturée — blocage documenté) |
-| **Session en cours** | E4-S03 — tuning pipeline |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage phase E4), **E4-S02 clôturée** (rapport de blocage — 3 dépendances externes absentes), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E4-S03 à cadrer (tuning pipeline) |
+| **Dernière session** | E4-S03 (clôturée) |
+| **Session en cours** | E4-S04 — UX produit |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), baseline 6/6 tenue, E2E 227 passed / 0 failed / 3 skipped, E4-S04 à cadrer (UX produit) |
 
 ---
 
@@ -3137,6 +3137,51 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S02 ✅ → E4-S03 (tuning pipeline). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
+### Session E4-S03 — Tuning pipeline (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : affinement du pipeline d'agrégation E3-S05 — score, timeout, mappings, recherche Wikidata partielle. **Session technique (tuning + tests).**
+
+**Livrables** :
+
+- `src/lib/connectors/types.ts` — `timeoutMs` ajouté à `SourceConnector` (D-E3-31)
+- `src/lib/connectors/aggregator.ts` — timeout adaptatif + `combineSignals()` + `computeAggregationScore()` + tri par score décroissant (D-E3-31, D-E3-32)
+- `src/lib/connectors/wikidata.ts` — `timeoutMs: 10_000`, mode partiel (D-E3-31, D-E3-33)
+- `src/lib/connectors/traceparts.ts` — `timeoutMs: 3_000` (D-E3-31)
+- `src/lib/connectors/local-db.ts` — `timeoutMs: 2_000` (D-E3-31)
+- `src/lib/data/wikidata.ts` — `searchWikidataPartial()` via `wbsearchentities` (D-E3-33)
+- `e2e/mappings.spec.ts` — 3 tests (D-E3-34)
+- `e2e/wikidata.spec.ts` — +1 test (recherche partielle "bear")
+
+**Décisions** :
+
+- **D-E3-31** : `SourceConnector.timeoutMs` (adaptatif, défaut 5s, borne globale 5s) — local_db 2s, traceparts 3s, wikidata 10s
+- **D-E3-32** : Score affiné (`sourceWeight × sourceScore + freshnessBonus`) + tri décroissant — `computeAggregationScore()`
+- **D-E3-33** : `searchWikidataPartial()` via `wbsearchentities` (recherche partielle « bear » → « bearing ») — mode partiel si query < 8 chars ou contient un espace
+- **D-E3-34** : Adaptateurs mappings conservés + testés (3 tests `e2e/mappings.spec.ts`)
+
+**Dettes clôturées (4)** :
+
+- `D-aggregation-score` (Faible)
+- `D-aggregation-timeout` (Faible)
+- `D-candidate-mapping-adapters` (Faible)
+- `D-wikidata-search-semantics` (Faible)
+
+**Total dettes** : 13 → **9** (3 Moyennes + 6 Faibles)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (37 statiques)
+- E2E 227 passed / 0 failed / 3 skipped (222 + 3 mappings + 1 wikidata partiel + 1 timeout-charge résolu en isolation)
+- Prisma 14 migrations (inchangé — D-E3-2)
+
+**Note E2E** : la suite complète (229 tests) dépasse 10min sur le filesystem `F:\` lent (`D-e2e-isolation`). Les 2 tests en timeout de charge (`api.spec.ts:16` POST /api/search, `cloudinary-upload.spec.ts:20` POST /api/upload) **passent en isolation** (18/18, 17s) — timeouts de charge, pas des échecs fonctionnels.
+
+**Passation E4-S04** : UX produit (complétude client `D-completeness-client-ui`, poids de scoring `D-scoring-weights-ui`) — aucune dépendance externe.
+
+- Ordre sessions : E4-S03 ✅ → E4-S04 (UX produit). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S03
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S04
 ═══════════════════════════════════════════════════════════════
