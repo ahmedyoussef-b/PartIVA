@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S04 (clôturée) |
-| **Session en cours** | E4-S05 — Performance |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), baseline 6/6 tenue, E2E 231 passed / 0 failed / 3 skipped, E4-S05 à cadrer (performance) |
+| **Dernière session** | E4-S05 (clôturée) |
+| **Session en cours** | E4-S06 — Audit qualité |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), **E4-S05 clôturée** (performance, D-E4-4 à D-E4-5), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, E4-S06 à cadrer (audit qualité) |
 
 ---
 
@@ -3224,6 +3224,52 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S04 ✅ → E4-S05 (performance). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
+### Session E4-S05 — Performance (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : mesure des performances du pipeline + investigation drift HNSW + catalogue des modèles d'embedding. **Session technique (mesure + documentation).**
+
+**Investigation DB (EXPLAIN ANALYZE)** :
+
+- 67 index en DB — dont `part_images_embedding_hnsw` (HNSW, vector_cosine_ops) et `parts_search_vector_idx` (GIN, tsvector)
+- Recherche tsvector : **0.081ms** (Seq Scan sur 77 lignes — petit volume, aucune optimisation d'index nécessaire)
+- Tables : 77 parts, 55 specs, 5 images, 4 search_candidates — volume trop faible pour justifier des optimisations
+- `scoring_weights` = 0 lignes — `loadScoringWeights()` retourne `DEFAULT_WEIGHTS`
+
+**Livrables** :
+
+- `src/lib/connectors/aggregator.ts` — `sourceDurationsMs: Record<string, number>` (D-E4-4) : mesure du temps réel par source (local_db, wikidata, traceparts) dans `AggregationResult`
+- `src/lib/data/embedding-models.ts` — catalogue `EMBEDDING_MODELS` (D-E4-5) : CLIP ViT-B/32 (actif), CLIP ViT-B/16, SigLIP Base, Nomic Embed Text + `isEmbeddingModelCompatible()` (vérifie les dimensions 768)
+- `src/lib/scoring/weights.ts` — documentation R.5.12 (taxonomie des poids : `SOURCE_WEIGHTS` inter-sources ≠ `DEFAULT_WEIGHTS` intra-candidat)
+- `e2e/admin/performance.spec.ts` — 2 tests (sourceDurationsMs par source, recherche multi-critères score global)
+
+**Décisions** :
+
+- **D-E4-4** : Mesure par source (`sourceDurationsMs`) — instrumente l'agrégateur sans modifier les connecteurs
+- **D-E4-5** : Catalogue des modèles d'embedding (`EMBEDDING_MODELS`) — documente les alternatives à CLIP ViT-B/32
+- **D-E4-6** : Drift HNSW **structurel** — Prisma ne supporte pas les index HNSW sur colonnes `Unsupported("vector(768)")`. Non corrigeable sans migration Prisma (D-E3-2). L'index existe en DB, la migration SQL `20261010133855` est la source de vérité. Le drift reprendra à chaque `migrate dev` — accepté comme contrainte.
+
+**Dettes clôturées (1)** :
+
+- `D-embedding-model-catalog` (Faible)
+
+**Dettes investiguées (non clôturables)** :
+
+- `D-hnsw-drift` (Faible) — drift structurel documenté, non corrigeable (Prisma)
+
+**Total dettes** : 7 → **6** (3 Moyennes + 3 Faibles)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (inchangé)
+- E2E 233 passed / 0 failed / 3 skipped (231 + 2 tests performance)
+- Prisma 14 migrations (inchangé — D-E3-2, D7)
+
+**Passation E4-S06** : audit qualité (couverture, E2E isolation) — aucune dépendance externe.
+
+- Ordre sessions : E4-S05 ✅ → E4-S06 (audit qualité). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S05
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S06
 ═══════════════════════════════════════════════════════════════

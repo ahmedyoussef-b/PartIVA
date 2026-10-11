@@ -10,11 +10,16 @@ const AGGREGATION_TIMEOUT_MS = 5_000;
 
 /**
  * Résultat d'une agrégation multi-sources (D-E3-21).
+ *
+ * `sourceDurationsMs` (D-E4-4) : temps réel par source
+ * (mesure performance E4-S05) — permet d'identifier
+ * les sources lentes sans instrumenter chaque connecteur.
  */
 export interface AggregationResult {
   candidates: SearchCandidate[];
   sourcesQueried: string[];
   sourcesFailed: string[];
+  sourceDurationsMs: Record<string, number>;
   totalDurationMs: number;
 }
 
@@ -43,6 +48,7 @@ export async function aggregateSearch(
 
   const available = connectors.filter((c) => c.isAvailable());
   const sourcesFailed: string[] = [];
+  const sourceDurationsMs: Record<string, number> = {};
 
   const results = await Promise.allSettled(
     available.map(async (connector) => {
@@ -50,19 +56,23 @@ export async function aggregateSearch(
       const sourceTimeout = connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS;
       const sourceController = new AbortController();
       const sourceTimer = setTimeout(() => sourceController.abort(), sourceTimeout);
+      const sourceStart = Date.now();
 
       try {
         // Combiner les signaux : global + source (D-E3-31)
         const combinedSignal = combineSignals(globalController.signal, sourceController.signal);
 
+        const candidates = await connector.search(query, {
+          limit,
+          signal: combinedSignal,
+        });
+        sourceDurationsMs[connector.source] = Date.now() - sourceStart;
         return {
           source: connector.source,
-          candidates: await connector.search(query, {
-            limit,
-            signal: combinedSignal,
-          }),
+          candidates,
         };
       } catch {
+        sourceDurationsMs[connector.source] = Date.now() - sourceStart;
         sourcesFailed.push(connector.source);
         return { source: connector.source, candidates: [] };
       } finally {
@@ -101,6 +111,7 @@ export async function aggregateSearch(
     candidates: scored.slice(0, limit),
     sourcesQueried,
     sourcesFailed,
+    sourceDurationsMs,
     totalDurationMs: Date.now() - startTime,
   };
 }

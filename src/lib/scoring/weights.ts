@@ -3,17 +3,28 @@ import type { SourceConnector } from '@/lib/connectors/types';
 /**
  * Source unique des poids inter-sources (D-E4-2).
  *
- * Poids de la source pour le score d'agrégation (D-E3-23) :
- * local_db = 1.0 (données métier), wikidata = 0.8 (référence),
- * traceparts = 0.6 (catalogue fabricant).
+ * R.5.12 — TAXONOMIE DES POIDS (deux familles distinctes) :
+ *
+ * 1. **Poids INTER-SOURCES** (ce fichier, `SOURCE_WEIGHTS`) :
+ *    pondèrent les sources dans le pipeline d'agrégation
+ *    (E4-S03, `computeAggregationScore()`). Répondent à
+ *    « quelle source est la plus fiable ? ».
+ *    - local_db = 1.0 (données métier PartIVA)
+ *    - wikidata = 0.8 (référence)
+ *    - traceparts = 0.6 (catalogue fabricant)
+ *
+ * 2. **Poids INTRA-CANDIDAT** (`DEFAULT_WEIGHTS`, src/lib/scoring.ts) :
+ *    pondèrent les critères d'un candidat (E2-S06, `computeScore()`).
+ *    Répondent à « quel critère est le plus discriminant ? ».
+ *    - text, reference, specs, dimensions, photo (0.2 chacun)
+ *
+ * Les deux familles COEXISTENT et ne doivent PAS être confondues.
+ * `SOURCE_WEIGHTS` est stocké ici (code, read-only en E4-S04) ;
+ * `DEFAULT_WEIGHTS` est persisté en DB (`ScoringWeights` Prisma).
  *
  * Les timeouts (D-E3-31) sont bornés par le timeout global
  * de l'agrégateur (5s) — une source lente peut spécifier
  * un timeout plus long, mais reste bornée.
- *
- * Distinct de `DEFAULT_WEIGHTS` (src/lib/scoring.ts) qui
- * pondère les critères intra-candidat (text/reference/specs/
- * dimensions/photo) — les deux échelles sont indépendantes.
  */
 export const SOURCE_WEIGHTS: Record<
   SourceConnector['source'],
