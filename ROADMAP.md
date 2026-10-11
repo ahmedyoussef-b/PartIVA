@@ -195,9 +195,9 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | Session | Objectif | Livrable |
 |---|---|---|
 | **E3-S01** | Reconnaissance APIs sources externes | *réalisé 2026-10-11 : vérification 7 sources (TraceParts, CADENAS/3Dfindit, TecDoc/TecAlliance, OpenSERP, PARTcommunity, 汽修宝, 昵配网) — endpoints, auth, quotas, coût, licence, RGPD. Verdict : TraceParts (REST v3, Bearer JWT, gratuit), CADENAS (PARTcommunity 700+ catalogues, gratuit), OpenSERP (self-hosted MIT, docker) retenues ; TecDoc (contrat commercial GTC, licence stricte) session dédiée ; PARTcommunity redondant CADENAS ; sources CN exclues (RGPD). Aucun changement modèle Prisma (`SearchCandidate.source` String ouvert). Décisions D-E3-1 à D-E3-6* |
-| **E3-S02** | Connecteur TraceParts (MVP) | Connecteur API REST v3 (`api-gateway.traceparts.com`, Bearer JWT, endpoints `/v3/Product/*`) — recherche + métadonnées + disponibilité CAD |
-| **E3-S03** | Connecteur CADENAS / PARTcommunity (MVP) | Intégration portails fabricants (catalogues certifiés, 150+ formats) |
-| **E3-S04** | Connecteur OpenSERP (MVP) | Self-hosted `karust/openserp` (MIT) — recherche web multi-moteurs + `/mega/search` agrégation |
+| **E3-S02** | Connecteur TraceParts (MVP) | *réalisé 2026-10-11 : connecteur mode mock (D-E3-7) — `src/lib/data/traceparts.ts` (schéma Zod `TracePartsProductSchema`/`TracePartsSearchResponseSchema`, data layer `searchTraceParts` mock + réel, mapping `mapTracePartsToCandidate`), auth D-E3-11 (`RequestToken` → Bearer JWT 24h, cache mémoire), 2 variables `.env` (`TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY`), 6 tests E2E mock + 1 conditionnel (skip si credentials absents), dette `D-traceparts-credentials` (Moyenne). Périmètre recherche seule (D-E3-8), pas de fallback (D-E3-9), `openserp` en E3-S03 (D-E3-10, réordonnancé)* |
+| **E3-S03** | Connecteur OpenSERP (MVP, réel OSS) | Self-hosted `karust/openserp` (MIT, Docker local) — recherche web multi-moteurs + `/mega/search` agrégation — première source externe réellement fonctionnelle |
+| **E3-S04** | Connecteur CADENAS / PARTcommunity (MVP) | Intégration portails fabricants (catalogues certifiés, 150+ formats) |
 | **E3-S05** | Agrégation multi-sources | Fusion résultats + déduplication (pattern `SearchCandidate.source` existant) |
 | **E3-S06** | Pipeline intelligent (3 cas) | Connu / Partiel / Inconnu — routage auto |
 | **E3-S07** | Logique de bascule | Le système change de stratégie selon le match |

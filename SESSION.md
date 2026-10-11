@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E3-S01 (clôturée) |
-| **Session en cours** | E3-S02 — connecteur TraceParts (MVP) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance APIs — 3 sources retenues : TraceParts + CADENAS + OpenSERP), baseline 6/6 tenue, E2E 204 passed / 0 failed / 2 skipped, E3-S02 à cadrer |
+| **Dernière session** | E3-S02 (clôturée) |
+| **Session en cours** | E3-S03 — connecteur OpenSERP (MVP, réel OSS) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance APIs), **E3-S02 clôturée** (connecteur TraceParts MVP mode mock — D-E3-7 à D-E3-11), baseline 6/6 tenue, E2E 210 passed / 0 failed / 3 skipped, E3-S03 à cadrer (OpenSERP — réordonnancement E3-S03↔E3-S04 acté) |
 
 ---
 
@@ -2699,6 +2699,41 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E3-S01 ✅ → E3-S02 (connecteur TraceParts).
 
+### Session E3-S02 — Connecteur TraceParts (MVP, mode mock) (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : premier connecteur externe (TraceParts REST v3), codé en mode mock, tests E2E sur fixtures.
+
+**Décisions validées par le Coordinateur** :
+
+- **D-E3-7** : Mode **mock** (JWT non provisionné) — ✅ validé
+- **D-E3-8** : Périmètre = **recherche seule** (pas d'import CAO) — ✅ validé
+- **D-E3-9** : **Pas de fallback** en E3-S02 (E3-S05 le fera) — ✅ validé
+- **D-E3-10** : `openserp` ajouté en **E3-S04** (pas E3-S02) — ✅ validé
+- **D-E3-11** : Flux d'auth `RequestToken` → Bearer JWT (24h), cache en mémoire, token jamais persisté — ajoutée par correction Coordinateur (auth TraceParts = JWT généré à la volée, 2 credentials requises)
+
+**Livrables** :
+
+- `src/lib/data/traceparts.ts` — schéma Zod (`TracePartsProductSchema`, `TracePartsSearchResponseSchema`) + data layer `searchTraceParts` (mock + réel avec `RequestToken` + retry/timeout) + mapping `mapTracePartsToCandidate`
+- `e2e/traceparts.spec.ts` — 6 tests mock + 1 test conditionnel credentials (skip si absents)
+- `.env.example` — `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` (Sécurité #7 : jamais `NEXT_PUBLIC_`)
+- `DEBT.md` — `D-traceparts-credentials` (Moyenne)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (37 statiques) — inchangé
+- E2E **210 passed / 0 failed / 3 skipped** (204 + 6, +1 skip)
+- Prisma 14 migrations (inchangé — D-E3-2, aucune migration)
+
+**Dettes ajoutées** :
+
+- `D-traceparts-credentials` (Moyenne, bloquée credentials non provisionnés)
+
+**Passation E3-S03** : connecteur OpenSERP (MVP, réel OSS) — réordonnancement E3-S03↔E3-S04 acté (OpenSERP avant CADENAS : source open-source fonctionnelle avant engagement contractuel). Self-hosted `karust/openserp` (MIT, Docker local), pas de credentials requis en OSS.
+
+- Ordre sessions : E3-S02 ✅ → E3-S03 (connecteur OpenSERP) → E3-S04 (connecteur CADENAS).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S01
+Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S03
 ═══════════════════════════════════════════════════════════════
