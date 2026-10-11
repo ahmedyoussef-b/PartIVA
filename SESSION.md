@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S05 (clôturée) |
-| **Session en cours** | E4-S06 — Audit qualité |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), **E4-S05 clôturée** (performance, D-E4-4 à D-E4-5), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, E4-S06 à cadrer (audit qualité) |
+| **Dernière session** | E4-S06 (clôturée) |
+| **Session en cours** | E4-S07 — Préparation déploiement |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), **E4-S05 clôturée** (performance, D-E4-4 à D-E4-6), **E4-S06 clôturée** (audit qualité, D-e2e-constraints regroupée), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, E4-S07 à cadrer (déploiement) |
 
 ---
 
@@ -3270,6 +3270,65 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S05 ✅ → E4-S06 (audit qualité). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
+### Session E4-S06 — Audit qualité (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : audit qualité global — couverture de tests, contraintes E2E, dead code, regroupement des dettes E2E. **Session qualité (documentation + regroupement).**
+
+**Audit couverture (Q2)** :
+
+- **32 fichiers de test** répartis en 5 projets Playwright :
+  - `chromium` (16 specs) : aggregation, api, auth-api, backfill-embeddings, cloudinary-upload, mappings, part-attachments, part-completeness, part-images, part-specifications, part-transitions, part-version-diff, part-versions, protected-pages, public-pages, search, smoke, traceparts, wikidata
+  - `admin` (7 specs) : admin-access, admin-dynamic, aggregation-api, completeness, part-dossier, performance, scoring-weights
+  - `user` (2 specs) : user-access, user-dynamic
+  - `viewer` (2 specs) : viewer-access, viewer-dynamic
+  - `public` (2 specs) : cookie-guard, public-access
+  - `setup` (3) : warmup, auth, ids-setup
+- **233 tests** (236 moins 3 skipped conditionnels) — aucun objectif de couverture fixé (juste mesuré)
+- **Playwright ne produit pas de couverture code native** — couverture = décompte par projet (documenté)
+
+**Audit code (Q7)** :
+
+- **ESLint 0/0** ✅
+- **TypeScript 0 erreur** (`tsc --noEmit`) ✅
+- **0 TODO/FIXME/HACK** dans `src/` ✅
+- **TS6133 (variables inutilisées)** : 30+ avertissements avec `--noUnusedLocals` — majoritairement des imports `React` dans les composants `'use client'` (requis par le JSX transform React 19, pas du dead code) et des variables de test non lues (`partId`, `playwright`, `request` dans les specs E2E). **Non bloquant** — `tsc --noEmit` standard = 0 erreur.
+
+**Regroupement dettes E2E (Q5, D6)** :
+
+- **7 dettes E2E Faibles** fusionnées en **1 dette** `D-e2e-constraints` (Faible) :
+  1. `D-e2e-isolation` — filesystem `F:\` lent
+  2. `D-e2e-load-timeouts` — suite complète > 600s
+  3. `D-e2e-fetch-timeout` — assertions UI async
+  4. `D-e2e-auth-dual` — double auth
+  5. `D-e2e-skip-conditional` — skip conditionnel
+  6. `D-e2e-residues` — résidus specs
+  7. `D-e2e-parts-residues` — résidus parts
+- **Document de référence** : `docs/e2e-constraints.md` (D5) — synthèse des 7 contraintes + contournements
+
+**Décisions** :
+
+- **D-E4-7** : Regroupement des 7 dettes E2E en `D-e2e-constraints` — réduit le bruit dans `DEBT.md`, document de référence centralisé
+- **D-E4-8** : Document `docs/e2e-constraints.md` — référence unique pour les contraintes E2E
+- **D-E4-9** : `D-completeness-*` (category-keys, material, blocking) **déduites** en E5 (D7) — périmètre E4-S06 trop large pour les traiter
+
+**Dettes clôturées (regroupées)** :
+
+- 7 dettes E2E Faibles → 1 dette `D-e2e-constraints` (Faible)
+
+**Total dettes** : 6 → **5** (3 Moyennes + 2 Faibles) — net -6 dettes (7 regroupées en 1)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (inchangé)
+- E2E 233 passed / 0 failed / 3 skipped (inchangé — audit, pas de nouveaux tests)
+- Prisma 14 migrations (inchangé)
+
+**Passation E4-S07** : préparation déploiement (Vercel, CI/CD, monitoring) — aucune dépendance externe sauf choix hébergeur.
+
+- Ordre sessions : E4-S06 ✅ → E4-S07 (déploiement). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S06
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S07
 ═══════════════════════════════════════════════════════════════
