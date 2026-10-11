@@ -2586,6 +2586,7 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 | Seed | ✅ idempotent (users: 4, parts: 6) |
 | Tests E2E | ✅ 200 passed / 0 failed / 2 skipped (photo conditionnel) — 2 runs consécutives transitions+versions = 11/11 sans reseed |
 | Format | ✅ 0 non conforme |
+| Commit | ✅ `5084dc1` (7 fichiers, +225/-83) |
 
 ### Points de rapport E2-S10
 
@@ -2603,7 +2604,7 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **`getFirstPartId` corrigé** : `getParts` trie par `createdAt desc` — les parts `E2E-RESET-*` (fixtures) apparaissent en premier. Les tests versions doivent sélectionner une part du seed (pas `E2E-RESET-*`, sans versions).
 - **`D-e2e-skip-conditional` résolue** : le skip conditionnel `part-versions.spec.ts` (documenté en E2-S07b-3) est supprimé — le `beforeEach` garantit une part SUBMITTED, le test s'exécute toujours.
 - **`next-env.d.ts`** non modifié (règle #32).
-- **Commit hash** : à mesurer en clôture (`git rev-parse HEAD` après commit).
+- **Commit hash** : `5084dc1` (7 fichiers : `submitted-part.ts` + `create-submitted-part.mts` nouveaux, `part-transitions.spec.ts`, `part-versions.spec.ts`, `DEBT.md`, `SESSION.md`, `ROADMAP.md` — +225/-83).
 - Ordre sessions : E2-S10 ✅ → E2-S11 (audit de clôture E2 recommandé) ou E3 (sources externes).
 
 ═══════════════════════════════════════════════════════════════
