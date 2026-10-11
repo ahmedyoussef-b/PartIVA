@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E3-S04 (clôturée) |
-| **Session en cours** | E3-S05 — agrégation multi-sources + fallback |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance), E3-S02 clôturée (TraceParts mock), E3-S03 clôturée (Wikidata réel), **E3-S04 clôturée** (reconnaissance CADENAS — abandon MVP, D-E3-19), baseline 6/6 tenue, E2E 216 passed / 0 failed / 3 skipped, E3-S05 à cadrer (agrégation) |
+| **Dernière session** | E3-S05 (clôturée) |
+| **Session en cours** | E3-clôture — audit de clôture phase E3 |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance), E3-S02 clôturée (TraceParts mock), E3-S03 clôturée (Wikidata réel), E3-S04 clôturée (reconnaissance CADENAS — abandon MVP, D-E3-19), **E3-S05 clôturée** (agrégation multi-sources + fallback, D-E3-20 à D-E3-26), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E3-clôture à cadrer (audit) |
 
 ---
 
@@ -2852,6 +2852,58 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E3-S04 ✅ → E3-S05 (agrégation multi-sources).
 
+### Session E3-S05 — Agrégation multi-sources + fallback (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : fusion des 3 sources fonctionnelles (Wikidata réel, TraceParts mock, local_db réel) dans un pipeline d'agrégation cohérent, avec fallback et déduplication. **Session d'intégration + consolidation.**
+
+**Contexte** : E3-S02 (TraceParts mock) + E3-S03 (Wikidata réel) ont produit 2 connecteurs isolés. E3-S05 les transforme en pipeline unifié. CADENAS abandonné (D-E3-19), OpenSERP reporté (Docker absent — E3-S03-bis).
+
+**Décisions actées (D-E3-20 à D-E3-26)** :
+
+- **D-E3-20** : Interface `SourceConnector` (`{ source, weight, search, isAvailable }`) — contrat commun
+- **D-E3-21** : `aggregateSearch()` — `Promise.allSettled` + timeout global 5s, résultats partiels acceptés
+- **D-E3-22** : `searchWithFallback()` — séquentiel Wikidata → TraceParts → local_db
+- **D-E3-23** : Score d'agrégation (`sourceWeight × sourceScore`) — local_db 1.0, wikidata 0.8, traceparts 0.6
+- **D-E3-24** : Déduplication par `name` normalisé (lowercase + trim), priorité ordre d'apparition
+- **D-E3-25** : Route API `POST /api/search` mode `source: 'all'`
+- **D-E3-26** : Sources actives = Wikidata + TraceParts + local_db (`cadenas`, `openserp` exclus)
+
+**Architecture clé (D5 — délégation des sémantiques)** : chaque connecteur gère sa propre sémantique de recherche (Wikidata = label exact, TraceParts = full-text, local_db = full-text Prisma). L'agrégateur ne connaît que `SearchCandidate[]` — il ne sait pas comment chaque source cherche. Les wrappers adaptent les mappings existants vers `SearchCandidate` (ajout `id`, `reference`, `scores.global = weight`).
+
+**Livrables** :
+
+- `src/lib/connectors/types.ts` — interface `SourceConnector` (D-E3-20)
+- `src/lib/connectors/aggregator.ts` — `aggregateSearch()` + `searchWithFallback()` + déduplication (D-E3-21/22/24)
+- `src/lib/connectors/wikidata.ts` — wrapper Wikidata (weight 0.8)
+- `src/lib/connectors/traceparts.ts` — wrapper TraceParts (weight 0.6)
+- `src/lib/connectors/local-db.ts` — wrapper local_db (weight 1.0)
+- `src/app/api/search/route.ts` — mode `source: 'all'` (D-E3-25)
+- `e2e/aggregation.spec.ts` — 4 tests connecteurs (chromium)
+- `e2e/admin/aggregation-api.spec.ts` — 2 tests route API (admin, storageState)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (37 statiques) — inchangé
+- E2E **222 passed / 0 failed / 3 skipped** (216 + 6)
+- Prisma 14 migrations (inchangé — D-E3-2)
+
+**Dettes ajoutées** :
+
+- `D-aggregation-timeout` (Faible — timeout 5s à ajuster si sources lentes)
+- `D-aggregation-score` (Faible — score statique, pas de ranking dynamique)
+
+**Problèmes rencontrés** :
+
+- `SearchCandidate` n'a pas de champ `description` — déplacé dans `metadata` (TS2353)
+- Import direct Prisma dans les specs Playwright échoue (`import.meta` / ESM) — tests local_db déplacés vers la route API (projet admin)
+- Route API POST exige une session — tests route API dans `e2e/admin/` (storageState admin.json)
+
+**Passation E3-clôture** : audit de clôture phase E3 — vérifier baseline 6/6, couverture connecteurs, dettes E3. E3-S03-bis (OpenSERP) reste bloquée Docker.
+
+- Ordre sessions : E3-S05 ✅ → E3-clôture (audit). E3-S03-bis (OpenSERP) bloquée Docker.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S05
+Fin SESSION.md — **Prochaine MAJ :** fin de session E3-clôture
 ═══════════════════════════════════════════════════════════════

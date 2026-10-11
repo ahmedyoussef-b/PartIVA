@@ -10,6 +10,21 @@ import {
 } from '@/lib/data/search';
 import { PartSearchQuerySchema, MultiSearchQuerySchema } from '@/schemas/search';
 import { multiSearch } from '@/lib/data/multi-search';
+import { aggregateSearch } from '@/lib/connectors/aggregator';
+import { localDbConnector } from '@/lib/connectors/local-db';
+import { wikidataConnector } from '@/lib/connectors/wikidata';
+import { tracePartsConnector } from '@/lib/connectors/traceparts';
+
+/**
+ * Connecteurs actifs (D-E3-26).
+ * CADENAS (D-E3-19) et OpenSERP (D-openserp-instance)
+ * sont EXCLUS — non fonctionnels.
+ *
+ * Ordre = poids décroissant (D-E3-23) : la
+ * déduplication (D-E3-24) privilégie la source
+ * la plus fiable (local_db > wikidata > traceparts).
+ */
+const ALL_CONNECTORS = [localDbConnector, wikidataConnector, tracePartsConnector];
 
 export async function POST(req: Request) {
   try {
@@ -21,9 +36,17 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { source } = body;
+    const { source, query, limit } = body;
 
-    if (source && source !== 'all') {
+    // Agrégation multi-sources (D-E3-25)
+    if (source === 'all') {
+      const result = await aggregateSearch(ALL_CONNECTORS, String(query ?? ''), {
+        limit: typeof limit === 'number' ? limit : 20,
+      });
+      return NextResponse.json(result);
+    }
+
+    if (source) {
       const filtered = await getSearchCandidates({ source });
       return NextResponse.json(filtered);
     }
