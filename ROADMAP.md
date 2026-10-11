@@ -243,6 +243,49 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 
 ---
 
+## 🔧 E4 — CONSOLIDATION, UX, DÉPLOIEMENT
+**Objectif** : consolider la phase E3 (dettes, tuning), avancer sur le produit (UX), préparer le déploiement, débloquer les sources externes (OpenSERP, TraceParts réel).
+
+**⚠️ Note Superviseur** : E4 est une phase **mixte** (technique + produit). Priorité : débloquer les dettes Moyennes (si les dépendances externes sont provisionnées), avancer sur le produit en parallèle, préparer le déploiement. Aucune nouvelle source (TecDoc = E5, contrat commercial).
+
+**Statut** : 🟢 En cours (E4-S01 cadrage)
+
+### Sessions
+
+| Session | Objet | Type | Statut |
+|---|---|---|---|
+| **E4-S01** | Cadrage phase E4 | Cadrage | ✅ Clôturée 2026-10-11 |
+| **E4-S02** | Déblocage dettes Moyennes (HF token, JWT TraceParts, Docker) | Technique | 🟢 À cadrer |
+| **E4-S03** | Tuning pipeline (score, timeout, mappings) | Technique | 🟢 À cadrer |
+| **E4-S04** | UX produit (complétude client, poids de scoring) | Produit | 🟢 À cadrer |
+| **E4-S05** | Performance (HNSW, index, requêtes) | Technique | 🟢 À cadrer |
+| **E4-S06** | Audit qualité (couverture, E2E isolation) | Qualité | 🟢 À cadrer |
+| **E4-S07** | Préparation déploiement (Vercel, CI/CD, monitoring) | Infra | 🟢 À cadrer |
+| **E4-S08** | E3-S03-bis (OpenSERP) si Docker | Technique | 🟠 Bloquée (Docker) |
+| **E4-clôture** | Audit de clôture phase E4 | Clôture | 🟢 À cadrer |
+
+**Total :** 8 sessions + 1 clôture.
+
+### Dépendances externes (Coordinateur)
+
+| Dépendance | Session | Impact si absente |
+|---|---|---|
+| `HF_API_TOKEN` | E4-S02-A | `D-photo-embedding-backfill` reste bloquée |
+| `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` | E4-S02-B | `D-traceparts-credentials` reste bloquée |
+| Docker (Desktop / Podman) | E4-S02-C | `D-openserp-instance` reste bloquée, E4-S08 reportée |
+| Choix hébergeur (Vercel ?) | E4-S07 | Préparation déploiement partielle |
+| Domaine / DNS | E4-S07 | Documentation déploiement partielle |
+
+**Recommandation** : provisionner ces dépendances **avant** ou **pendant** E4-S02 pour maximiser les déblocages.
+
+### Définition de "E4 terminée"
+
+PartIVA est consolidé (dettes résolues ou documentées), l'UX client est améliorée, le déploiement est préparé, les sources externes sont débloquées (si possible).
+
+**Durée estimée** : 3-4 semaines.
+
+---
+
 ## 🏗️ E4 — ACQUISITION INTELLIGENTE & REVERSE ENGINEERING
 **Objectif** : traiter les pièces inconnues — mesure, scan, reconstruction CAO.
 

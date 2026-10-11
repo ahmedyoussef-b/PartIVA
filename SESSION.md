@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E3-clôture (clôturée) |
-| **Session en cours** | E4-S01 — cadrage phase E4 |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E4 à cadrer |
+| **Dernière session** | E4-S01 (clôturée) |
+| **Session en cours** | E4-S02 — déblocage dettes Moyennes |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage phase E4), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E4-S02 à cadrer (déblocage dettes Moyennes) |
 
 ---
 
@@ -2981,8 +2981,63 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 **Passation E4** : Cadrage à définir. Priorités probables : dettes bloquées (token/JWT/Docker), UX, performance, déploiement, nouvelles sources.
 
-- Ordre sessions : E3-clôture ✅ → E4 (à cadrer). E3-S03-bis (OpenSERP) reportée E4.
+- Ordre sessions : E3-clôture ✅ → E4-S01 (cadrage phase E4). E3-S03-bis (OpenSERP) reportée E4.
+
+### Session E4-S01 — Cadrage de la phase E4 (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : cadrage de la phase E4 (Consolidation, UX, déploiement). **Session documentaire — aucun code modifié.**
+
+**Contexte** : E3 clôturée (D-E3-27). Le pipeline est fonctionnel (Wikidata réel + TraceParts mock + local_db réel, agrégation parallèle + fallback). E4 = consolidation + produit + infra.
+
+**Plan de phase E4 (9 sessions)** :
+
+| Session | Objet | Type | Dépendances |
+|---|---|---|---|
+| E4-S01 | Cadrage phase E4 | Cadrage | — |
+| E4-S02 | Déblocage dettes Moyennes (HF token, JWT TraceParts, Docker) | Technique | Actions externes Coordinateur |
+| E4-S03 | Tuning pipeline (score, timeout, mappings) | Technique | — |
+| E4-S04 | UX produit (complétude client, poids de scoring) | Produit | — |
+| E4-S05 | Performance (HNSW, index, requêtes) | Technique | — |
+| E4-S06 | Audit qualité (couverture, E2E isolation) | Qualité | — |
+| E4-S07 | Préparation déploiement (Vercel, CI/CD, monitoring) | Infra | — |
+| E4-S08 | E3-S03-bis (OpenSERP) si Docker | Technique | E4-S02 (Docker) |
+| E4-clôture | Audit de clôture phase E4 | Clôture | Toutes les sessions E4 |
+
+**Périmètre E4 (D2-D9)** :
+
+- **Mixte** (technique + produit)
+- Priorité : Moyennes + produit en parallèle
+- E3-S03-bis (OpenSERP) inclus si Docker provisionné
+- Déploiement inclus (préparation)
+- Nouvelles sources : non (TecDoc = E5, contrat commercial)
+- Audit qualité : oui (session dédiée)
+- E4-S01 = cadrage (pas d'exécution)
+
+**Détail des sessions** :
+
+- **E4-S02** (déblocage Moyennes) : 3 blocs indépendants — A (`D-photo-embedding-backfill`, HF token), B (`D-traceparts-credentials`, JWT), C (`D-openserp-instance`, Docker). Au moins 1 débloquée = succès. Si aucune action externe disponible → STOP + rapport.
+- **E4-S03** (tuning pipeline) : score affiné (`sourceWeight × sourceScore + freshnessBonus`), timeout (3s/5s/10s), mappings unifiés (`D-candidate-mapping-adapters`), Wikidata recherche partielle (`wbsearchentities`).
+- **E4-S04** (UX produit) : UI complétude client (`D-completeness-client-ui`), UI poids de scoring (`D-scoring-weights-ui`).
+- **E4-S05** (performance) : drift HNSW (`D-hnsw-drift`), requêtes lentes, index.
+- **E4-S06** (audit qualité) : dettes E2E (`D-e2e-isolation`, `D-e2e-parts-residues`, `D-e2e-auth-dual`, `D-e2e-residues`, `D-e2e-skip-conditional`), couverture de tests.
+- **E4-S07** (préparation déploiement) : Vercel, CI/CD, variables prod, monitoring, DB prod, documentation.
+- **E4-S08** (E3-S03-bis OpenSERP) : si Docker provisionné en E4-S02.
+
+**Dépendances externes (Coordinateur)** :
+
+- `HF_API_TOKEN` (E4-S02-A)
+- `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` (E4-S02-B)
+- Docker (E4-S02-C)
+- Choix hébergeur (E4-S07)
+- Domaine / DNS (E4-S07)
+
+**Baseline E4-S01** : inchangée (session de cadrage) — ESLint 0/0, TS 0 err, Prettier 0, build 55 routes, E2E 222/0/3, Prisma 14 migrations.
+
+**Passation E4-S02** : déblocage dettes Moyennes — provisionner HF_API_TOKEN, TRACEPARTS_TENANT_UID + TRACEPARTS_API_KEY, Docker. Chaque bloc est indépendant (exécution partielle possible).
+
+- Ordre sessions : E4-S01 ✅ → E4-S02 (déblocage Moyennes). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S01 (cadrage phase E4)
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S02
 ═══════════════════════════════════════════════════════════════
