@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S10 (clôturée) |
-| **Session en cours** | E2-S11 — à cadrer (audit de clôture E2 recommandé) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E + E2-S08 + E2-S09 + E2-S10 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar + résolution D-e2e-submitted-consumption), baseline 6/6 tenue, E2E 200 passed (0 failed, 2 skip photo conditionnel), E2-S11 à cadrer |
+| **Dernière session** | E2-S11 (clôturée) |
+| **Session en cours** | E2-S12 — à cadrer |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E + E2-S08 + E2-S09 + E2-S10 + E2-S11 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar + résolution D-e2e-submitted-consumption + résolution D-newpart-schema-prisma-mismatch), baseline 6/6 tenue, E2E 200 passed (0 failed, 2 skip photo conditionnel), E2-S12 à cadrer |
 
 ---
 
@@ -43,7 +43,7 @@
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
 - [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`) + E2-S06 (score multi-critères unifié, `ScoringWeights` DB, `GET /api/search?mode=multi`, UI onglet Multi + badge score + breakdown repliable)
 - [x] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) + E2-S07-B1 (outillage backfill embeddings) + E2-S07-C2 (sécurisation POST /api/search + régularisations)
-- [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503) + E2-S10 (résolution `D-e2e-submitted-consumption` — fixture `ensureSubmittedPart` + `beforeEach` ciblé, stabilité E2E)
+- [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503) + E2-S10 (résolution `D-e2e-submitted-consumption` — fixture `ensureSubmittedPart` + `beforeEach` ciblé, stabilité E2E) + E2-S11 (résolution `D-newpart-schema-prisma-mismatch` — `NewPartSchema` aligné Prisma + auth `POST /api/parts` en tête + 4 tests E2E)
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD

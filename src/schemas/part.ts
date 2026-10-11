@@ -70,14 +70,22 @@ export const PartFiltersSchema = z.object({
 });
 export type PartFilters = z.infer<typeof PartFiltersSchema>;
 
-export const NewPartSchema = PartSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const NewPartSchema = z.object({
+  partNumber: z.string().min(1),
+  ptvReference: z
+    .string()
+    .regex(/^PTV-\d{4}-\d{6}$/)
+    .optional(),
+  name: z.string().min(3).max(200),
+  description: z.string().optional(),
+  status: z.enum(['draft', 'validated', 'deprecated']).default('draft'),
+  categoryId: z.string().optional(),
 });
 export type NewPart = z.infer<typeof NewPartSchema>;
 
-export const UpdatePartSchema = NewPartSchema.partial();
+export const UpdatePartSchema = NewPartSchema.partial().omit({
+  partNumber: true,
+});
 export type UpdatePart = z.infer<typeof UpdatePartSchema>;
 
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;

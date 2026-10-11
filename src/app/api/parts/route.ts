@@ -21,18 +21,22 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const validated = NewPartSchema.parse(body) as NewPart;
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
     const newPart = await createPartWithPtvReference({
       ...validated,
       status: validated.status ? (validated.status.toUpperCase() as Part['status']) : 'DRAFT',
-      client: session?.user?.id ? { connect: { id: session.user.id } } : undefined,
+      client: session.user.id ? { connect: { id: session.user.id } } : undefined,
     });
 
     const partWithRelations = await prisma.part.findUnique({

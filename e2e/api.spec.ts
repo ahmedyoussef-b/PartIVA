@@ -69,6 +69,67 @@ test('api: /api/parts/[id] GET without auth returns 401', async ({ request }) =>
   expect(response.status()).toBe(401);
 });
 
+test('api: /api/parts POST without auth returns 401', async ({ request }) => {
+  const response = await request.post('/api/parts', {
+    data: { partNumber: 'E2E-NOAUTH-001', name: 'Pièce sans auth' },
+  });
+  expect(response.status()).toBe(401);
+});
+
+test('api: /api/parts POST with valid minimal payload returns 201', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const partNumber = `E2E-${Date.now()}`;
+  const response = await request.post('/api/parts', {
+    headers,
+    data: { partNumber, name: 'Pièce E2E minimale' },
+  });
+  expect(response.status()).toBe(201);
+  const body = await response.json();
+  expect(body.partNumber).toBe(partNumber);
+  expect(body.name).toBe('Pièce E2E minimale');
+  expect(body.status).toBe('DRAFT');
+  expect(typeof body.id).toBe('string');
+  expect(typeof body.ptvReference).toBe('string');
+});
+
+test('api: /api/parts POST with full payload returns 201', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const listResponse = await request.get('/api/parts', { headers });
+  expect(listResponse.status()).toBe(200);
+  const parts = await listResponse.json();
+  const categoryId = parts[0]?.categoryId;
+
+  const partNumber = `E2E-FULL-${Date.now()}`;
+  const response = await request.post('/api/parts', {
+    headers,
+    data: {
+      partNumber,
+      name: 'Pièce E2E complète',
+      description: 'Description de test E2E',
+      status: 'draft',
+      ...(categoryId ? { categoryId } : {}),
+    },
+  });
+  expect(response.status()).toBe(201);
+  const body = await response.json();
+  expect(body.partNumber).toBe(partNumber);
+  expect(body.name).toBe('Pièce E2E complète');
+  expect(body.description).toBe('Description de test E2E');
+  expect(body.status).toBe('DRAFT');
+  if (categoryId) {
+    expect(body.category?.id).toBe(categoryId);
+  }
+});
+
+test('api: /api/parts POST with invalid payload returns 400', async ({ request }) => {
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.post('/api/parts', {
+    headers,
+    data: { description: 'Missing partNumber and name' },
+  });
+  expect(response.status()).toBe(400);
+});
+
 test('api: /api/requests GET returns JSON or 401', async ({ request }) => {
   const response = await request.get('/api/requests');
   expect([200, 401]).toContain(response.status());
