@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S01 (clôturée) |
-| **Session en cours** | E4-S02 — déblocage dettes Moyennes |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage phase E4), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E4-S02 à cadrer (déblocage dettes Moyennes) |
+| **Dernière session** | E4-S02 (clôturée — blocage documenté) |
+| **Session en cours** | E4-S03 — tuning pipeline |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage phase E4), **E4-S02 clôturée** (rapport de blocage — 3 dépendances externes absentes), baseline 6/6 tenue, E2E 222 passed / 0 failed / 3 skipped, E4-S03 à cadrer (tuning pipeline) |
 
 ---
 
@@ -3038,6 +3038,105 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S01 ✅ → E4-S02 (déblocage Moyennes). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
+### Session E4-S02 — Déblocage dettes Moyennes (CLÔTURÉE — blocage documenté)
+
+- **Date** : `11/10/2026`
+- **Objet** : tentative de déblocage des 3 dettes Moyennes (`D-photo-embedding-backfill`, `D-traceparts-credentials`, `D-openserp-instance`). **Session de rapport de blocage + documentation — aucun code modifié.**
+
+**Bloc 0 — Vérification des dépendances (R.5.1)** :
+
+| Dépendance | État | Preuve |
+|---|---|---|
+| `HF_API_TOKEN` | **Absent** | grep `.env` → 0 |
+| `TRACEPARTS_TENANT_UID` | **Déclaré mais VIDE** (`TRACEPARTS_TENANT_UID=`) | `.env` — variable présente, valeur vide |
+| `TRACEPARTS_API_KEY` | **Déclaré mais VIDE** (`TRACEPARTS_API_KEY=`) | `.env` — variable présente, valeur vide |
+| Docker | **Absent** | `Get-Command docker` → rien |
+| Podman | **Absent** | `Get-Command podman` → rien |
+
+**État ambigu (STOP Bloc 0.3)** : `TRACEPARTS_TENANT_UID` et `TRACEPARTS_API_KEY` sont **déclarées mais vides** dans `.env`. Fonctionnellement, `isTracePartsConfigured()` = `Boolean("" && "")` = `false` → le connecteur est en **mode mock** (comportement correct). L'état « déclaré vide » suggère une intention de provisionner mais n'est pas un provisionnement effectif.
+
+**Blocs A/B/C — Tous bloqués** :
+
+- **Bloc A** (`D-photo-embedding-backfill`) : 🔴 BLOQUÉ — `HF_API_TOKEN` absent
+- **Bloc B** (`D-traceparts-credentials`) : 🔴 BLOQUÉ — credentials TraceParts déclarées mais vides (mode mock actif)
+- **Bloc C** (`D-openserp-instance`) : 🔴 BLOQUÉ — Docker/Podman absents
+
+**Document de provisioning (Bloc D — livrable principal)** :
+
+#### A. HF_API_TOKEN (Hugging Face)
+
+**Usage** : embeddings photo (feature `photo`). **Dette** : `D-photo-embedding-backfill`. **Bloc** : A.
+
+**Étapes** :
+1. Créer un compte sur https://huggingface.co/
+2. Aller dans Settings → Access Tokens
+3. Créer un token « Read » (ou « Fine-grained » avec accès Inference API)
+4. Copier le token (`hf_...`)
+5. Ajouter dans `.env` : `HF_API_TOKEN=hf_...`
+6. Vérifier : `grep HF_API_TOKEN .env`
+
+**Impact** : les 3 tests E2E photo (actuellement skippés) deviendront actifs. **Coût** : gratuit (HF Inference API — quota gratuit).
+
+#### B. TraceParts credentials (TENANT_UID + API_KEY)
+
+**Usage** : connecteur TraceParts (D-E3-11 : `RequestToken` → JWT 24h). **Dette** : `D-traceparts-credentials`. **Bloc** : B.
+
+**Étapes** :
+1. Créer un ticket support sur https://www.traceparts.com/ (EasyLink)
+2. Demander l'accès API (préciser : usage B2B, PartIVA)
+3. Recevoir `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY`
+4. Remplir dans `.env` (variables déjà déclarées, actuellement vides) :
+   ```
+   TRACEPARTS_TENANT_UID=<valeur>
+   TRACEPARTS_API_KEY=<valeur>
+   ```
+5. Vérifier : `grep TRACEPARTS .env` (doit retourner les 2 lignes avec valeurs non vides)
+
+**Impact** : le connecteur TraceParts passera de mock à réel. Test E2E conditionnel deviendra actif. **Coût** : gratuit (MVP — D-E3-4). **Délai** : dépend de TraceParts (probablement quelques jours).
+
+#### C. Docker (Desktop ou Podman)
+
+**Usage** : instance OpenSERP locale (`karust/openserp serve`). **Dette** : `D-openserp-instance`. **Bloc** : C → déclenche E4-S08 (E3-S03-bis).
+
+**Étapes (Windows)** :
+1. Télécharger Docker Desktop : https://www.docker.com/products/docker-desktop/
+2. Installer (droits admin requis)
+3. Redémarrer
+4. Vérifier : `docker --version`
+5. Lancer : `docker run -d --name openserp -p 7000:7000 karust/openserp serve`
+6. Vérifier : `curl http://localhost:7000/search?q=test`
+
+**Alternative** : Podman (https://podman.io/) — CLI compatible.
+
+**Impact** : E4-S08 (E3-S03-bis) peut démarrer. OpenSERP passe de « indisponible » à « réel ». **Coût** : gratuit. **Délai** : installation locale (~1h).
+
+**Bloc E — Bilan E4-S02** :
+
+**Constat** : les 3 dépendances externes sont absentes (HF token absent, TraceParts déclaré vide, Docker absent). Aucun bloc exécutable.
+
+**Décision** : E4-S02 produit (1) un rapport de blocage documenté, (2) un document de provisioning pas à pas, (3) un bilan : 3 dettes maintenues.
+
+**Conséquence sur E4** :
+- E4-S03 (tuning pipeline) : **peut démarrer** (aucune dépendance externe)
+- E4-S04 (UX produit) : peut démarrer
+- E4-S05 (performance) : peut démarrer
+- E4-S06 (audit qualité) : peut démarrer
+- E4-S07 (déploiement) : peut démarrer partiellement (hébergeur à trancher)
+- **E4-S08 (OpenSERP)** : bloquée tant que Docker n'est pas provisionné
+
+**Dettes maintenues** :
+- `D-photo-embedding-backfill` (Moyenne — HF token)
+- `D-traceparts-credentials` (Moyenne — JWT)
+- `D-openserp-instance` (Moyenne — Docker)
+
+**Provisioning à effectuer (Coordinateur)** : voir « Document de provisioning » (Bloc D). Les 3 dépendances sont **indépendantes** — chacune peut être provisionnée séparément.
+
+**Baseline E4-S02** : inchangée — ESLint 0/0, TS 0 err, Prettier 0, build 55 routes, E2E 222/0/3, Prisma 14 migrations.
+
+**Passation E4-S03** : tuning pipeline (score, timeout, mappings, Wikidata recherche partielle) — aucune dépendance externe.
+
+- Ordre sessions : E4-S02 ✅ → E4-S03 (tuning pipeline). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S02
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S03
 ═══════════════════════════════════════════════════════════════

@@ -255,7 +255,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | Session | Objet | Type | Statut |
 |---|---|---|---|
 | **E4-S01** | Cadrage phase E4 | Cadrage | ✅ Clôturée 2026-10-11 |
-| **E4-S02** | Déblocage dettes Moyennes (HF token, JWT TraceParts, Docker) | Technique | 🟢 À cadrer |
+| **E4-S02** | Déblocage dettes Moyennes (HF token, JWT TraceParts, Docker) | Technique | ✅ Clôturée 2026-10-11 (blocage documenté — 3 dépendances externes absentes) |
 | **E4-S03** | Tuning pipeline (score, timeout, mappings) | Technique | 🟢 À cadrer |
 | **E4-S04** | UX produit (complétude client, poids de scoring) | Produit | 🟢 À cadrer |
 | **E4-S05** | Performance (HNSW, index, requêtes) | Technique | 🟢 À cadrer |
