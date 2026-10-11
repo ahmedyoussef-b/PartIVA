@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E3-S03 (clôturée) |
-| **Session en cours** | E3-S04 — connecteur CADENAS (MVP) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance), E3-S02 clôturée (TraceParts mock), **E3-S03 clôturée** (Wikidata SPARQL réel — première source externe fonctionnelle), baseline 6/6 tenue, E2E 216 passed / 0 failed / 3 skipped, E3-S04 à cadrer (CADENAS), E3-S03-bis bloquée (OpenSERP — Docker absent) |
+| **Dernière session** | E3-S04 (clôturée) |
+| **Session en cours** | E3-S05 — agrégation multi-sources + fallback |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance), E3-S02 clôturée (TraceParts mock), E3-S03 clôturée (Wikidata réel), **E3-S04 clôturée** (reconnaissance CADENAS — abandon MVP, D-E3-19), baseline 6/6 tenue, E2E 216 passed / 0 failed / 3 skipped, E3-S05 à cadrer (agrégation) |
 
 ---
 
@@ -2787,6 +2787,71 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E3-S03 ✅ → E3-S04 (connecteur CADENAS). E3-S03-bis (OpenSERP) bloquée Docker.
 
+### Session E3-S04 — Reconnaissance CADENAS / 3Dfindit (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : session de **reconnaissance** (R.5.1) — déterminer si CADENAS peut être intégré au pipeline E3. **Aucun code modifié.**
+
+**Contexte** : E3-S01 a retenu CADENAS comme source MVP (D-E3-1) mais notait « pas d'API publique self-service identifiée ». R1-R4 = non (pas de licence, pas d'API partenaire, pas d'instance, pas de doc publique). R.5.1 impose une reconnaissance avant tout cadrage d'intégration.
+
+**Méthode** : recherche documentaire (Bloc 0) — site CADENAS, 3Dfindit, PARTcommunity, documentation PARTwarehouse/PARTsolutions, GitHub, CGU.
+
+**Résultats (Q1-Q8)** :
+
+| # | Question | Réponse | Source |
+|---|---|---|---|
+| Q1 | API publique CADENAS ? | **Non** — aucune API REST publique self-service | cadenas.de, 3dfindit.com (page API 403) |
+| Q2 | SDK/wrapper open-source ? | **Non maintenu** — `cadenasgmbh/3dfindit-freecad-integration` (addon FreeCAD, abandonné 2020) | GitHub |
+| Q3 | 3Dfindit expose une API ? | **Non publique** — page `/manufacturer/api` retourne 403 (accès restreint) | 3dfindit.com |
+| Q4 | PARTcommunity expose une API ? | **Non publique** — portails fabricants (web), PART2cad (plugin Java/ActiveX) | partcommunity.com |
+| Q5 | Programme partenaire ? | **Oui** — PARTsolutions Application Server (Http GET/POST, JSON) — **sous licence commerciale** | partsolutions.com/support, webapi.partcommunity.com |
+| Q6 | Coût d'accès ? | **Contrat commercial** (PARTsolutions) / gratuit (portails, 50 tickets/jour fair use) | cadenas.de |
+| Q7 | Contraintes RGPD ? | **Conforme EU** (CADENAS GmbH, Augsburg DE) — mais CGU restrictives | cadenas.de/en/legal |
+| Q8 | Alternatives ? | TraceParts (déjà intégré E3-S02), Wikidata (E3-S03), OpenSERP (E3-S03-bis) | — |
+
+**Découvertes critiques — CGU CADENAS (§3, §8 Terms of Use)** :
+
+- Fair use : **50 download tickets/jour** maximum
+- **« Any use of this data with the goal of replacing or copying parts of or the entire database is strictly prohibited »**
+- **« The use of the software and in particular the data contained therein for machine learning or the training of neural network models, including generative AI models, is expressly prohibited »**
+- Pénalité : **€20 000 par cas d'infraction + €500 par téléchargement CAD**
+- **« The systematic collection of data in PDM/PLM/BIM systems... is strictly prohibited »** (sauf stockage technique nécessaire au processus de conception)
+
+**Voies identifiées (Bloc 1) — évaluation** :
+
+| Voie | Faisabilité | Coût | RGPD | Maintenance | Verdict |
+|---|---|---|---|---|---|
+| API partenaire (PARTsolutions) | 2/5 (sous contrat) | ❌ Payant (licence) | ✅ Conforme | Moyenne | **Rejeté** — hors MVP (pas de contrat) |
+| AppServer on-premise | 1/5 (pas de licence) | ❌ Élevé | ✅ Conforme | Élevée | **Rejeté** — pas de licence |
+| Scraping portails fabricants | 2/5 | ✅ Gratuit | ⚠️ Risqué | Élevée | **Rejeté** — interdit CGU (collecte systématique) |
+| 3Dfindit API | 1/5 (403, accès restreint) | ❌ Inconnu | ✅ Conforme | Inconnue | **Rejeté** — pas d'accès |
+| **Abandon** | ✅ | ✅ 0 | ✅ | ✅ | **RETENU** |
+
+**Matrice de décision (Bloc 2)** — pondération : faisabilité 40%, coût 30%, RGPD 20%, maintenance 10% :
+
+- API partenaire : (2×0.4 + 1×0.3 + 5×0.2 + 3×0.1)/10 = 2.4/10
+- AppServer : (1×0.4 + 1×0.3 + 5×0.2 + 1×0.1)/10 = 1.9/10
+- Scraping : (2×0.4 + 5×0.3 + 1×0.2 + 1×0.1)/10 = 2.4/10 (mais **éliminé** — RGPD/CGU)
+- Abandon : 10/10 (certain, 0 coût, 0 risque)
+
+**Décision D-E3-19 (Bloc 3)** : **Option C — Abandon.** CADENAS est **retiré du MVP E3**. Aucune voie self-service n'existe ; les voies contractuelles (PARTsolutions) nécessitent un contrat commercial hors périmètre MVP, et le scraping est interdit par les CGU (collecte systématique + usage ML/IA interdits, pénalités financières).
+
+**Justification** : le pipeline E3 reste fonctionnel avec 3 sources : Wikidata (réel, E3-S03), TraceParts (mock prêt au réel, E3-S02), OpenSERP (E3-S03-bis, Docker à provisionner). CADENAS n'ajoute pas de valeur inaccessible autrement — TraceParts couvre déjà les catalogues fabricants (fixation, roulements, etc.).
+
+**Conséquences (Bloc 4)** :
+
+- **ROADMAP** : E3-S04 clôturée (reconnaissance, abandon) ; E3-S05 (agrégation) devient la prochaine session d'intégration
+- **DEBT** : `D-cadenas-access` (Moyenne) — réintégration si contrat PARTsolutions obtenu
+- **E3-S05** : agrégation avec sémantiques hétérogènes (Wikidata = label exact, TraceParts = full-text, OpenSERP = SERP)
+
+**Livrables** : memo de reconnaissance (ci-dessus) + mise à jour ROADMAP/DEBT/SESSION. **Aucun code modifié.**
+
+**Baseline** : ESLint 0/0, TypeScript 0 err, Prettier 0, build 55 routes, E2E 216/0/3, Prisma 14 migrations — **inchangée** (session documentaire).
+
+**Passation E3-S05** : agrégation multi-sources + fallback — fusionner Wikidata (réel) + TraceParts (mock) + OpenSERP (E3-S03-bis). Gérer les sémantiques de recherche hétérogènes. Appliquer R.5.1.
+
+- Ordre sessions : E3-S04 ✅ → E3-S05 (agrégation multi-sources).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S04
+Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S05
 ═══════════════════════════════════════════════════════════════
