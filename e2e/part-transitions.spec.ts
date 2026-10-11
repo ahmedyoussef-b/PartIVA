@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
+import { ensureSubmittedPart } from './fixtures/submitted-part';
 
 async function getFirstPartId(playwright: any): Promise<string> {
   const ctx = await playwright.request.newContext();
@@ -55,27 +56,6 @@ test('api: POST /api/parts/[id]/transition with invalid toStatus returns 400', a
   expect(response.status()).toBe(400);
 });
 
-async function getPartIdByStatus(playwright: any, status: string): Promise<string> {
-  const ctx = await playwright.request.newContext();
-  try {
-    const user = users.ADMIN;
-    const response = await ctx.post('/api/auth/sign-in/email', {
-      data: { email: user.email, password: user.password },
-    });
-    expect(response.status()).toBe(200);
-    const partsResponse = await ctx.get('/api/parts');
-    expect(partsResponse.status()).toBe(200);
-    const parts = await partsResponse.json();
-    const part = parts.find((p: { status: string }) => p.status === status);
-    if (!part) {
-      throw new Error(`No part with status ${status} in seed`);
-    }
-    return part.id as string;
-  } finally {
-    await ctx.dispose();
-  }
-}
-
 async function listPartsAsAdmin(
   playwright: any,
 ): Promise<Array<{ id: string; status: string; clientId?: string | null }>> {
@@ -97,29 +77,47 @@ async function listPartsAsAdmin(
   }
 }
 
-test('api: POST /api/parts/[id]/transition ADMIN SUBMITTED->IDENTIFYING returns 200', async ({
-  request,
-  playwright,
-}) => {
-  const partId = await getPartIdByStatus(playwright, 'SUBMITTED');
-  const { headers } = await authRequest(request, 'ADMIN');
-  const response = await request.post(`/api/parts/${partId}/transition`, {
-    data: { toStatus: 'IDENTIFYING', reason: 'E2E test admin transition' },
-    headers,
+test.describe('Transitions consommant SUBMITTED', () => {
+  // D-e2e-submitted-consumption : la transition SUBMITTED->IDENTIFYING est
+  // irréversible et consomme le stock du seed — recréation ciblée avant
+  // chaque test consommateur (stratégie A, E2-S10).
+  test.beforeEach(async ({ request }) => {
+    await ensureSubmittedPart();
   });
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.status).toBe('IDENTIFYING');
-});
 
-test('api: POST /api/parts/[id]/transition VIEWER returns 403', async ({ request, playwright }) => {
-  const partId = await getPartIdByStatus(playwright, 'SUBMITTED');
-  const { headers } = await authRequest(request, 'VIEWER');
-  const response = await request.post(`/api/parts/${partId}/transition`, {
-    data: { toStatus: 'IDENTIFYING' },
-    headers,
+  test('api: POST /api/parts/[id]/transition ADMIN SUBMITTED->IDENTIFYING returns 200', async ({
+    request,
+  }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const listResponse = await request.get('/api/parts', { headers });
+    expect(listResponse.status()).toBe(200);
+    const parts = await listResponse.json();
+    const part = parts.find((p: { status: string }) => p.status === 'SUBMITTED');
+    expect(part).toBeTruthy();
+
+    const response = await request.post(`/api/parts/${part.id}/transition`, {
+      data: { toStatus: 'IDENTIFYING', reason: 'E2E test admin transition' },
+      headers,
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.status).toBe('IDENTIFYING');
   });
-  expect(response.status()).toBe(403);
+
+  test('api: POST /api/parts/[id]/transition VIEWER returns 403', async ({ request }) => {
+    const { headers } = await authRequest(request, 'VIEWER');
+    const listResponse = await request.get('/api/parts', { headers });
+    expect(listResponse.status()).toBe(200);
+    const parts = await listResponse.json();
+    const part = parts.find((p: { status: string }) => p.status === 'SUBMITTED');
+    expect(part).toBeTruthy();
+
+    const response = await request.post(`/api/parts/${part.id}/transition`, {
+      data: { toStatus: 'IDENTIFYING' },
+      headers,
+    });
+    expect(response.status()).toBe(403);
+  });
 });
 
 test('api: POST /api/parts/[id]/transition impossible DRAFT->DELIVERED returns 409', async ({

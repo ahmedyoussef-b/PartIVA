@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E2-S09 (clôturée) |
-| **Session en cours** | E2-S10 — à cadrer |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E + E2-S08 + E2-S09 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar), baseline 6/6 tenue, E2E 201 passed (0 failed, 0 skip sans token HF), E2-S10 à cadrer |
+| **Dernière session** | E2-S10 (clôturée) |
+| **Session en cours** | E2-S11 — à cadrer (audit de clôture E2 recommandé) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), E2-S01 + E2-S01-A2 + E2-S02 + E2-S03 + E2-S04 + E2-S05 + E2-S06 + E2-S07 + E2-S07-B1 + E2-S07-C2 + E2-S07-D + E2-S07-E + E2-S08 + E2-S09 + E2-S10 clôturées (full-text + régularisations + référence + spécifications + dimensions + photo + score multi-critères + détection infos manquantes + outillage backfill embeddings + sécurisation POST /api/search + sécurité multi-tenant E2E + sécurisation GET /api/parts + /api/parts/[id] + auto-complétion mesures manquantes + onglet Photo dans SearchBar + résolution D-e2e-submitted-consumption), baseline 6/6 tenue, E2E 200 passed (0 failed, 2 skip photo conditionnel), E2-S11 à cadrer |
 
 ---
 
@@ -43,7 +43,7 @@
 - [x] **Phase 2 — Core Features** : E1 clôturée (E1-S01 → E1-S07 : modélisation métier + dossier numérique + workflow + historique + diff sémantique + vue dossier centralisée)
 - [x] **Phase 2 — Core Features** : E2-S01 moteur de recherche interne (PostgreSQL full-text) + E2-S01-A2 (régularisations, `D-e2e-isolation` clôturée Faible) + E2-S02 (recherche par référence, exact + préfixe) + E2-S03 (recherche par spécifications, full-text `PartSpecification`) + E2-S04 (recherche par dimensions, range nominal + tolérance couvrante) + E2-S05 (recherche par photo, pgvector `embedding vector(768)` + HNSW + API `/api/search/photo`) + E2-S06 (score multi-critères unifié, `ScoringWeights` DB, `GET /api/search?mode=multi`, UI onglet Multi + badge score + breakdown repliable)
 - [x] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) + E2-S07-B1 (outillage backfill embeddings) + E2-S07-C2 (sécurisation POST /api/search + régularisations)
-- [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503)
+- [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503) + E2-S10 (résolution `D-e2e-submitted-consumption` — fixture `ensureSubmittedPart` + `beforeEach` ciblé, stabilité E2E)
 - [ ] **Phase 3 — Features secondaires** : `[à définir]`
 - [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
 - [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
@@ -2561,6 +2561,51 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - **Commit hash** : `96b5e08` (5 fichiers, +242/-11).
 - Ordre sessions : E2-S09 ✅ → E2-S10 (à cadrer) ou `D-photo-embedding-backfill` (si token HF provisionné).
 
+### Session E2-S10 — Résolution `D-e2e-submitted-consumption` (CLÔTURÉE)
+
+- **Date** : `10/10/2026`
+- **Objectif** : Résoudre `D-e2e-submitted-consumption` (Moyenne) — les tests `part-transitions.spec.ts` consomment le stock SUBMITTED du seed (transition SUBMITTED→IDENTIFYING irréversible), 2 échecs intermittents quand un test antérieur a déjà transitionné la part. Stratégie A validée : `beforeEach` ciblé recréant une part SUBMITTED.
+- **Arbitrages validés** :
+  - **Stratégie A** : `beforeEach` ciblé (pas de reset DB — moins invasif, pas de `prisma` dans les specs).
+  - **Cleanup** : tracer `D-e2e-submitted-residues` (Faible) — pas de `DELETE /api/parts/[id]`, les parts `E2E-RESET-*` persistent (DB reseedée périodiquement).
+  - **Structure** : `test.describe` ciblé (transitions + versions) — les tests 401/400/409 restent hors du `describe`.
+- **Modifications** :
+  - **A.1** : `e2e/fixtures/submitted-part.ts` (nouvelle) — `ensureSubmittedPart()` créant une part SUBMITTED via Prisma/tsx (`execFileSync` sur `node_modules/tsx/dist/cli.mjs` + `e2e/fixtures/create-submitted-part.mts`). **Pourquoi tsx et pas l'API** : (1) `POST /api/parts` est inutilisable — `NewPartSchema` (Zod) exige `reference`/`material`/`dimensions`/`version`/`files` qui **n'existent pas** dans le modèle Prisma `Part` (incohérence schema/Prisma pré-existante : `PrismaClientValidationError "Unknown argument reference"` + `ZodError "reference expected string"`). (2) L'import direct de `@/lib/prisma` dans les specs échoue (client Prisma généré ESM, Playwright charge en CJS : `Cannot use 'import.meta' outside a module`). (3) tsx résout les aliases `@/*` via tsconfig (comme `prisma/seed.ts`). La fixture crée aussi une `PartVersion` initiale (version 1, pattern seed l.462) — les tests versions vérifient `versionNumber > 1` après transition.
+  - **A.2** : `e2e/part-transitions.spec.ts` — `test.describe('Transitions consommant SUBMITTED')` avec `test.beforeEach` appelant `ensureSubmittedPart()` — les 2 tests consommateurs (l.100 `ADMIN SUBMITTED->IDENTIFYING`, l.115 `VIEWER 403`) déplacés dans le `describe`. `getPartIdByStatus` supprimée (inutilisée — la fixture remplace la recherche par statut). Les tests 401/400/409/USER-403 restent hors du `describe` (pas besoin de SUBMITTED).
+  - **A.3** : `e2e/part-versions.spec.ts` — `test.describe('Versions consommant SUBMITTED')` avec `test.beforeEach` — le test l.81 (`ADMIN transition SUBMITTED->IDENTIFYING creates a new version`) déplacé. **Skip silencieux supprimé** (`if (!part) { test.skip(); return; }` → `expect(part).toBeTruthy()`) — le test est désormais déterministe. `getFirstPartId` corrigé : exclut les parts `E2E-RESET-*` (tri `createdAt desc` — les fixtures apparaissent en premier, sans versions).
+  - **B.1** : Validation E2E — 2 runs consécutives `part-transitions` + `part-versions` **sans reseed** = **11/11 verts** (preuve que le `beforeEach` recrée le stock). Suite complète = **200 passed / 0 failed / 2 skipped** (les 2 skips = tests photo 200 conditionnels E2-S09, `HF_API_TOKEN` absent).
+  - **C.1** : `DEBT.md` — `D-e2e-submitted-consumption` (Moyenne) + `D-e2e-skip-conditional` (Faible) → historique résolues ; `D-e2e-submitted-residues` (Faible) créée.
+  - **D.1** : `SESSION.md` (métadonnées + cette section) + `ROADMAP.md` (ligne E2-S10).
+- **Baseline finale E2-S10** :
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0 warn, 0 err (`e2e/` dans `.eslintignore` — les `playwright: any` pré-existants sont documentés E2-S07-E) |
+| TypeScript | ✅ 0 err |
+| Build | ✅ inchangé |
+| Seed | ✅ idempotent (users: 4, parts: 6) |
+| Tests E2E | ✅ 200 passed / 0 failed / 2 skipped (photo conditionnel) — 2 runs consécutives transitions+versions = 11/11 sans reseed |
+| Format | ✅ 0 non conforme |
+
+### Points de rapport E2-S10
+
+1. **Baseline mesurée** : E2E 200 passed / 0 failed / 2 skipped (E2-S09 : 201/0/1 — le skip versions devient un passed, le skip photo 200 reste). Mesurée, non déduite.
+2. **Reproduction du bug** : 2 échecs `part-transitions.spec.ts` reproduits pendant E2-S09 (run complète sans reseed) — « No part with status SUBMITTED in seed ».
+3. **Cause racine** : transition SUBMITTED→IDENTIFYING irréversible + aucun reset entre tests + seed destructif exécuté seul.
+4. **Découverte — incohérence NewPartSchema/Prisma** : `POST /api/parts` est cassé pour tout payload valide Zod — `NewPartSchema` exige `reference` (regex `^PL-\d{6}$`, requis) que le modèle Prisma `Part` n'a pas (champs réels : `partNumber`, `ptvReference`, `name`, `description`, `status`, `categoryId`, `clientId`). Le seed crée les parts sans `reference` (directement via Prisma). **Dette à tracer** : incohérence schema/Prisma (hors périmètre E2-S10 — nécessite audit `NewPartSchema` vs modèle).
+5. **Découverte — import Prisma dans les specs** : le client Prisma généré est ESM, Playwright charge les specs en CJS — l'import direct `@/lib/prisma` échoue (`Cannot use 'import.meta' outside a module`). Solution : script tsx séparé (`create-submitted-part.mts`) exécuté via `execFileSync`.
+6. **Déterminisme prouvé** : 2 runs consécutives sans reseed = 11/11 (1 seule run ne prouve rien — le seed initial contient encore des SUBMITTED).
+7. **Dettes** : `D-e2e-submitted-consumption` (Moyenne) + `D-e2e-skip-conditional` (Faible) résolues ; `D-e2e-submitted-residues` (Faible) créée. Aucune dette Moyenne actionnable ne reste (seule `D-photo-embedding-backfill`, bloquée HF_API_TOKEN).
+
+### Notes E2-S10
+
+- **`beforeEach` avec `{ request }`** : le paramètre `request` est requis dans le `beforeEach` (même si la fixture ne l'utilise pas) — sans lui, le `request` du test est disposé avant l'appel (`Request context disposed`).
+- **`getFirstPartId` corrigé** : `getParts` trie par `createdAt desc` — les parts `E2E-RESET-*` (fixtures) apparaissent en premier. Les tests versions doivent sélectionner une part du seed (pas `E2E-RESET-*`, sans versions).
+- **`D-e2e-skip-conditional` résolue** : le skip conditionnel `part-versions.spec.ts` (documenté en E2-S07b-3) est supprimé — le `beforeEach` garantit une part SUBMITTED, le test s'exécute toujours.
+- **`next-env.d.ts`** non modifié (règle #32).
+- **Commit hash** : à mesurer en clôture (`git rev-parse HEAD` après commit).
+- Ordre sessions : E2-S10 ✅ → E2-S11 (audit de clôture E2 recommandé) ou E3 (sources externes).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S09
+Fin SESSION.md — **Prochaine MAJ :** fin de session E2-S10
 ═══════════════════════════════════════════════════════════════

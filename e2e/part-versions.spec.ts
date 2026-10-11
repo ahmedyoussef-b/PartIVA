@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
+import { ensureSubmittedPart } from './fixtures/submitted-part';
 
 async function listPartsAsAdmin(
   playwright: any,
-): Promise<Array<{ id: string; status: string; clientId?: string | null }>> {
+): Promise<Array<{ id: string; partNumber: string; status: string; clientId?: string | null }>> {
   const ctx = await playwright.request.newContext();
   try {
     const user = users.ADMIN;
@@ -24,7 +25,11 @@ async function listPartsAsAdmin(
 
 async function getFirstPartId(playwright: any): Promise<string> {
   const parts = await listPartsAsAdmin(playwright);
-  return parts[0]?.id as string;
+  // Les parts E2E-RESET-* (fixture D-e2e-submitted-consumption)
+  // n'ont pas de versions — exclues pour ne pas casser les tests
+  // qui vérifient le contenu des versions (tri createdAt desc).
+  const seeded = parts.find((p) => !p.partNumber.startsWith('E2E-RESET-'));
+  return (seeded ?? parts[0])?.id as string;
 }
 
 async function authRequest(
@@ -78,43 +83,48 @@ test('api: GET /api/parts/[id]/versions respects pageSize pagination', async ({
   expect(body.versions.length).toBeLessThanOrEqual(1);
 });
 
-test('api: ADMIN transition SUBMITTED->IDENTIFYING creates a new version', async ({
-  request,
-  playwright,
-}) => {
-  const { headers: listHeaders } = await authRequest(request, 'ADMIN');
-  const response = await request.get('/api/parts', { headers: listHeaders });
-  expect(response.status()).toBe(200);
-  const parts = await response.json();
-  const part = parts.find((p: { status: string }) => p.status === 'SUBMITTED');
-  if (!part) {
-    test.skip();
-    return;
-  }
-
-  const beforeResponse = await request.get(`/api/parts/${part.id}/versions`, {
-    headers: listHeaders,
+test.describe('Versions consommant SUBMITTED', () => {
+  // D-e2e-submitted-consumption (E2-S10) : recréation ciblée d'une part
+  // SUBMITTED avant le test — le skip silencieux masquait la consommation
+  // du stock du seed (transition SUBMITTED->IDENTIFYING irréversible).
+  test.beforeEach(async ({ request }) => {
+    await ensureSubmittedPart();
   });
-  expect(beforeResponse.status()).toBe(200);
-  const before = await beforeResponse.json();
-  const beforeCount = before.total as number;
 
-  const transitionResponse = await request.post(`/api/parts/${part.id}/transition`, {
-    headers: listHeaders,
-    data: { toStatus: 'IDENTIFYING', reason: 'E2E version creation test' },
+  test('api: ADMIN transition SUBMITTED->IDENTIFYING creates a new version', async ({
+    request,
+  }) => {
+    const { headers: listHeaders } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/parts', { headers: listHeaders });
+    expect(response.status()).toBe(200);
+    const parts = await response.json();
+    const part = parts.find((p: { status: string }) => p.status === 'SUBMITTED');
+    expect(part).toBeTruthy();
+
+    const beforeResponse = await request.get(`/api/parts/${part.id}/versions`, {
+      headers: listHeaders,
+    });
+    expect(beforeResponse.status()).toBe(200);
+    const before = await beforeResponse.json();
+    const beforeCount = before.total as number;
+
+    const transitionResponse = await request.post(`/api/parts/${part.id}/transition`, {
+      headers: listHeaders,
+      data: { toStatus: 'IDENTIFYING', reason: 'E2E version creation test' },
+    });
+    expect(transitionResponse.status()).toBe(200);
+
+    const afterResponse = await request.get(`/api/parts/${part.id}/versions`, {
+      headers: listHeaders,
+    });
+    expect(afterResponse.status()).toBe(200);
+    const after = await afterResponse.json();
+    expect(after.total).toBe(beforeCount + 1);
+
+    const latest = after.versions[0];
+    expect(latest.versionNumber).toBeGreaterThan(1);
+    expect(latest.snapshot.status).toBe('IDENTIFYING');
   });
-  expect(transitionResponse.status()).toBe(200);
-
-  const afterResponse = await request.get(`/api/parts/${part.id}/versions`, {
-    headers: listHeaders,
-  });
-  expect(afterResponse.status()).toBe(200);
-  const after = await afterResponse.json();
-  expect(after.total).toBe(beforeCount + 1);
-
-  const latest = after.versions[0];
-  expect(latest.versionNumber).toBeGreaterThan(1);
-  expect(latest.snapshot.status).toBe('IDENTIFYING');
 });
 
 test('api: GET /api/parts/[id]/versions USER on another client part returns 403', async ({
