@@ -7,13 +7,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Bell, Shield, Palette, Save, RefreshCw, Info, CheckCircle2 } from 'lucide-react';
+import { ScoringWeightsTable } from '@/components/admin/scoring-weights-table';
+import {
+  Settings,
+  Bell,
+  Shield,
+  Palette,
+  Save,
+  RefreshCw,
+  Info,
+  CheckCircle2,
+  Gauge,
+} from 'lucide-react';
 
 const SETTINGS_SECTIONS = [
   { id: 'atelier', label: 'Atelier', icon: Settings },
   { id: 'sync', label: 'Synchronisation', icon: RefreshCw },
   { id: 'notifs', label: 'Notifications', icon: Bell },
   { id: 'securite', label: 'Sécurité', icon: Shield },
+  { id: 'scoring', label: 'Scoring', icon: Gauge },
   { id: 'ui', label: 'Interface', icon: Palette },
 ];
 
@@ -248,6 +260,20 @@ export default function AdminParametresPage() {
                     </Badge>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeSection === 'scoring' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-bold">Poids de scoring des sources</CardTitle>
+                <CardDescription className="text-xs">
+                  Poids inter-sources du pipeline d&apos;agrégation — priorité et timeout par source
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScoringWeightsTable />
               </CardContent>
             </Card>
           )}

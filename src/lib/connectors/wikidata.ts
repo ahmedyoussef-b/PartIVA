@@ -1,5 +1,6 @@
 import { SourceConnector } from './types';
 import type { SearchCandidate } from '@/schemas/search';
+import { SOURCE_WEIGHTS } from '@/lib/scoring/weights';
 import { searchWikidata, searchWikidataPartial, mapWikidataToCandidate } from '@/lib/data/wikidata';
 
 /**
@@ -18,8 +19,8 @@ import { searchWikidata, searchWikidataPartial, mapWikidataToCandidate } from '@
  */
 export const wikidataConnector: SourceConnector = {
   source: 'wikidata',
-  weight: 0.8,
-  timeoutMs: 10_000, // SPARQL peut être lent (D-E3-31)
+  weight: SOURCE_WEIGHTS.wikidata.weight,
+  timeoutMs: SOURCE_WEIGHTS.wikidata.timeoutMs, // SPARQL peut être lent (D-E3-31)
 
   isAvailable(): boolean {
     return true;

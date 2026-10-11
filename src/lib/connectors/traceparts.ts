@@ -1,5 +1,6 @@
 import { SourceConnector } from './types';
 import type { SearchCandidate } from '@/schemas/search';
+import { SOURCE_WEIGHTS } from '@/lib/scoring/weights';
 import { searchTraceParts, mapTracePartsToCandidate } from '@/lib/data/traceparts';
 
 /**
@@ -18,8 +19,8 @@ import { searchTraceParts, mapTracePartsToCandidate } from '@/lib/data/tracepart
  */
 export const tracePartsConnector: SourceConnector = {
   source: 'traceparts',
-  weight: 0.6,
-  timeoutMs: 3_000, // mock rapide, réel à ajuster (D-E3-31)
+  weight: SOURCE_WEIGHTS.traceparts.weight,
+  timeoutMs: SOURCE_WEIGHTS.traceparts.timeoutMs, // mock rapide, réel à ajuster (D-E3-31)
 
   isAvailable(): boolean {
     return true;

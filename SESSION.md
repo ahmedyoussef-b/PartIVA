@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S03 (clôturée) |
-| **Session en cours** | E4-S04 — UX produit |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), baseline 6/6 tenue, E2E 227 passed / 0 failed / 3 skipped, E4-S04 à cadrer (UX produit) |
+| **Dernière session** | E4-S04 (clôturée) |
+| **Session en cours** | E4-S05 — Performance |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), baseline 6/6 tenue, E2E 231 passed / 0 failed / 3 skipped, E4-S05 à cadrer (performance) |
 
 ---
 
@@ -3182,6 +3182,48 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S03 ✅ → E4-S04 (UX produit). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
+### Session E4-S04 — UX produit (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : exposition UX des données backend — complétude client avancée + poids de scoring admin (read-only). **Première session produit de la phase E4.**
+
+**Livrables** :
+
+- `src/lib/scoring/weights.ts` — source unique des poids inter-sources `SOURCE_WEIGHTS` (D-E4-2)
+- `src/components/completeness-badge.tsx` — `CompletenessBadge` (barre progression colorée + % + badge "N champs manquants") (D-E4-1)
+- `src/components/admin/scoring-weights-table.tsx` — `ScoringWeightsTable` (read-only) (D-E4-1)
+- `src/components/part-dossier.tsx` — intégration `CompletenessBadge` (onglet Dossier, remplace le Badge simple)
+- `src/app/admin/parametres/page.tsx` — section « Scoring » (nav + contenu `ScoringWeightsTable`)
+- `src/lib/connectors/{local-db,wikidata,traceparts}.ts` — import des poids depuis `SOURCE_WEIGHTS` (plus de duplication)
+- `e2e/admin/completeness.spec.ts` — 2 tests (barre affichée, % valide)
+- `e2e/admin/scoring-weights.spec.ts` — 3 tests (tableau affiché, read-only, poids + timeouts)
+
+**Décisions** :
+
+- **D-E4-1** : UI read-only (pas de persistance DB, pas de migration Prisma — D8)
+- **D-E4-2** : Source unique des poids `src/lib/scoring/weights.ts` (`SOURCE_WEIGHTS`) — distinct de `DEFAULT_WEIGHTS` (scoring.ts, critères intra-candidat)
+- **D-E4-3** : Page admin protégée (layout `src/app/admin/layout.tsx` vérifie `role === 'ADMIN`) — section intégrée à `/admin/parametres` existante (pas de nouvelle route)
+
+**Dettes clôturées (2)** :
+
+- `D-completeness-client-ui` (Faible)
+- `D-scoring-weights-ui` (Faible)
+
+**Total dettes** : 9 → **7** (3 Moyennes + 4 Faibles)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (inchangé — section intégrée à `/admin/parametres`)
+- E2E 231 passed / 0 failed / 3 skipped (227 + 5 tests E4-S04 : 2 complétude + 3 scoring)
+- Prisma 14 migrations (inchangé — D-E3-2, D8)
+
+**Tests E4-S04** : `e2e/admin/completeness.spec.ts` (2) + `e2e/admin/scoring-weights.spec.ts` (3) = 5 tests, 10/10 passed (avec setup warmup/auth/ids).
+
+**Passation E4-S05** : performance (HNSW, index, requêtes) — aucune dépendance externe.
+
+- Ordre sessions : E4-S04 ✅ → E4-S05 (performance). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S04
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S05
 ═══════════════════════════════════════════════════════════════

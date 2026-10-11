@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PartStatusBadge } from '@/components/part-status-badge';
+import { CompletenessBadge } from '@/components/completeness-badge';
 import { PartVersionHistory } from '@/components/part-version-history';
 import { PartSpecificationTable } from '@/components/part-specification-table';
 import { PartAttachmentList } from '@/components/part-attachment-list';
@@ -112,13 +113,12 @@ export function PartDossier({ part }: PartDossierProps) {
                     {part.attachments.length > 1 ? 's' : ''}
                   </Badge>
                   {completeness && completenessPct !== null && (
-                    <Badge
-                      variant={completenessPct === 100 ? 'outline' : 'secondary'}
-                      className="font-mono text-[10px]"
-                      title={`Complétude : ${completeness.present}/${completeness.total} spécifications requises`}
-                    >
-                      complétude {completenessPct} %
-                    </Badge>
+                    <div className="w-full pt-1">
+                      <CompletenessBadge
+                        score={completeness.score}
+                        missingFields={completeness.missing}
+                      />
+                    </div>
                   )}
                 </div>
               </div>

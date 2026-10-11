@@ -1,4 +1,5 @@
 import { SourceConnector } from './types';
+import { SOURCE_WEIGHTS } from '@/lib/scoring/weights';
 import { getSearchCandidates } from '@/lib/data/search-candidates';
 
 /**
@@ -13,8 +14,8 @@ import { getSearchCandidates } from '@/lib/data/search-candidates';
  */
 export const localDbConnector: SourceConnector = {
   source: 'local_db',
-  weight: 1.0,
-  timeoutMs: 2_000, // PostgreSQL local rapide (D-E3-31)
+  weight: SOURCE_WEIGHTS.local_db.weight,
+  timeoutMs: SOURCE_WEIGHTS.local_db.timeoutMs, // PostgreSQL local rapide (D-E3-31)
 
   isAvailable(): boolean {
     return true;
