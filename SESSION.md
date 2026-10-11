@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E3-S02 (clôturée) |
-| **Session en cours** | E3-S03 — connecteur OpenSERP (MVP, réel OSS) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance APIs), **E3-S02 clôturée** (connecteur TraceParts MVP mode mock — D-E3-7 à D-E3-11), baseline 6/6 tenue, E2E 210 passed / 0 failed / 3 skipped, E3-S03 à cadrer (OpenSERP — réordonnancement E3-S03↔E3-S04 acté) |
+| **Dernière session** | E3-S03 (clôturée) |
+| **Session en cours** | E3-S04 — connecteur CADENAS (MVP) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), E3-S01 clôturée (reconnaissance), E3-S02 clôturée (TraceParts mock), **E3-S03 clôturée** (Wikidata SPARQL réel — première source externe fonctionnelle), baseline 6/6 tenue, E2E 216 passed / 0 failed / 3 skipped, E3-S04 à cadrer (CADENAS), E3-S03-bis bloquée (OpenSERP — Docker absent) |
 
 ---
 
@@ -2734,6 +2734,59 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E3-S02 ✅ → E3-S03 (connecteur OpenSERP) → E3-S04 (connecteur CADENAS).
 
+### Session E3-S03 — Connecteur Wikidata SPARQL (MVP, réel) (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : première source externe réellement fonctionnelle — Wikidata SPARQL (public, sans Docker, sans credentials). Pivot depuis OpenSERP (Docker absent — STOP Bloc 0).
+
+**Pivot (R.5.1 — reconnaissance d'environnement préalable)** :
+
+- E3-S03 v0 (OpenSERP) : STOP Bloc 0 — Docker/Podman absents de l'environnement
+- E3-S03 v1 (Wikidata) : aucune dépendance externe — endpoint public `query.wikidata.org`
+
+**Décisions actées** :
+
+- **D-E3-12** : `WikidataSparqlResponseSchema` (SPARQL JSON standard, validé contre fixture réelle)
+- **D-E3-13** : Data layer `searchWikidata()` + `mapWikidataToCandidate()`
+- **D-E3-14** : `'wikidata'` ajouté à `SearchSourceSchema` (après `'cadenas'`) — exception autorisée
+- **D-E3-15** : `WIKIDATA_USER_AGENT` (obligatoire — politique Wikimedia, sinon HTTP 403)
+- **D-E3-16** : Endpoint `https://query.wikidata.org/sparql` (public, sans Docker)
+- **D-E3-17** : Tests E2E réels (appel HTTP `query.wikidata.org`)
+- **D-E3-18** : OpenSERP reporté en **E3-S03-bis** (Docker à provisionner)
+
+**Découverte technique (Bloc 0)** :
+
+- Structure SPARQL JSON : `{ "head": { "vars": [...] }, "results": { "bindings": [...] } }`
+- Chaque binding : `item` (uri), `itemLabel` (literal + `xml:lang`), `itemDescription` (optionnel)
+- **Recherche par label exact** (`?item rdfs:label "X"@en`) = indexée, <1s
+- **Regex/prefixe sur label** = full scan → 504/timeout (Wikidata n'indexe pas les regex)
+- Stratégie retenue : recherche par dénomination normalisée (label exact) — pertinent métier
+
+**Livrables** :
+
+- `src/lib/data/wikidata.ts` — schéma Zod + data layer + connecteur (réel)
+- `e2e/wikidata.spec.ts` — 6 tests réels (appel HTTP `query.wikidata.org`)
+- `e2e/fixtures/wikidata-search.json` — fixture réelle (Bloc 0)
+- `src/schemas/search.ts` — ajout `'wikidata'` (D-E3-14)
+- `src/i18n/fr.ts` — libellé `wikidata` (conséquence D-E3-14, `Record<SearchSource, string>`)
+- `.env.example` — `WIKIDATA_USER_AGENT`
+- `DEBT.md` — `D-openserp-instance` (Moyenne)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (37 statiques) — inchangé
+- E2E **216 passed / 0 failed / 3 skipped** (210 + 6)
+- Prisma 14 migrations (inchangé — D-E3-2)
+
+**Dettes ajoutées** :
+
+- `D-openserp-instance` (Moyenne — Docker non provisionné, E3-S03-bis)
+
+**Passation E3-S04** : connecteur CADENAS / PARTcommunity (MVP) — appliquer R.5.1 (reconnaissance d'accès avant cadrage). Le pattern `wikidata.ts` sert de modèle.
+
+- Ordre sessions : E3-S03 ✅ → E3-S04 (connecteur CADENAS). E3-S03-bis (OpenSERP) bloquée Docker.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S03
+Fin SESSION.md — **Prochaine MAJ :** fin de session E3-S04
 ═══════════════════════════════════════════════════════════════

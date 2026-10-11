@@ -4,6 +4,7 @@ export const SearchSourceSchema = z.enum([
   'local_db',
   'traceparts',
   'cadenas',
+  'wikidata',
   'manufacturer_catalog',
   'geometric_search',
 ]);

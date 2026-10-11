@@ -1,0 +1,53 @@
+{
+  "head" : {
+    "vars" : [ "item", "itemLabel", "itemDescription" ]
+  },
+  "results" : {
+    "bindings" : [ {
+      "item" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q15854263"
+      },
+      "itemDescription" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "Wikimedia disambiguation page"
+      },
+      "itemLabel" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "Bearing"
+      }
+    }, {
+      "item" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q122979690"
+      },
+      "itemDescription" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "US patent 11293494"
+      },
+      "itemLabel" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "Bearing"
+      }
+    }, {
+      "item" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q135165110"
+      },
+      "itemDescription" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "1998 mold-blown glass artwork by Michael Scheiner, commissioned by the Corning Museum of Glass"
+      },
+      "itemLabel" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "Bearing"
+      }
+    } ]
+  }
+}
