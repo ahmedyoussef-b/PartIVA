@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S06 (clôturée) |
-| **Session en cours** | E4-S07 — Préparation déploiement |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), **E4-S05 clôturée** (performance, D-E4-4 à D-E4-6), **E4-S06 clôturée** (audit qualité, D-e2e-constraints regroupée), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, E4-S07 à cadrer (déploiement) |
+| **Dernière session** | E4-S07 (clôturée) |
+| **Session en cours** | E4-S08 — OpenSERP (si Docker) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), **E4-S05 clôturée** (performance, D-E4-4 à D-E4-6), **E4-S06 clôturée** (audit qualité, D-e2e-constraints regroupée), **E4-S07 clôturée** (préparation déploiement — doc + CI/CD + config), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, E4-S08 à cadrer (OpenSERP si Docker) |
 
 ---
 
@@ -3329,6 +3329,74 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S06 ✅ → E4-S07 (déploiement). E4-S08 (OpenSERP) dépend de E4-S02-C (Docker).
 
+### Session E4-S07 — Préparation déploiement (CLÔTURÉE)
+
+- **Date** : `11/10/2026`
+- **Objet** : préparation de la mise en production — documentation, CI/CD, config Vercel, README. **Session infra (documentation + configuration).**
+
+**Constat Bloc 0 — Dépendances externes absentes** :
+
+- **Vercel CLI absent** — compte Vercel non provisionné
+- **GitHub remote existe** (`github.com/ahmedyoussef-b/PartIVA.git`) — CI/CD GitHub Actions possible
+- **Aucun `.github/workflows/`** — CI/CD non configuré (avant E4-S07)
+- **Aucun `vercel.json`** — config Vercel absente (avant E4-S07)
+- **Aucun README.md** à la racine (avant E4-S07)
+- **`.env.example`** existe avec toutes les variables documentées
+
+**Livrables** :
+
+- **`docs/deployment.md`** — procédure de déploiement complète (10 sections) :
+  - Architecture cible (Vercel + GH Actions + Neon + Sentry)
+  - Prérequis (comptes, secrets GitHub, variables Vercel)
+  - CI/CD (pipeline 4 jobs)
+  - Déploiement Vercel (première fois, config, déploiements)
+  - DB Neon prod (branche prod, migrations)
+  - Monitoring (Sentry, Vercel Analytics, logs)
+  - Smoke tests post-déploiement
+  - Sécurité prod (HTTPS, secrets, CSP)
+  - Checklist de déploiement (12 points)
+  - Dépendances externes bloquantes
+- **`.github/workflows/ci.yml`** — pipeline CI/CD GitHub Actions (4 jobs : lint, typecheck, build, e2e) :
+  - Déclenchement : push `main` + PR `main`
+  - Node 22, cache npm
+  - E2E : Playwright chromium + 8 secrets (DATABASE_URL, DIRECT_URL, E2E_*_EMAIL/PASSWORD)
+- **`vercel.json`** — config Vercel déclarative (framework nextjs, build `npm run build`, output `.next`, region `cdg1`)
+- **`README.md`** — documentation racine (stack, démarrage, scripts, structure, rôles, déploiement, qualité, dettes)
+
+**Décisions** :
+
+- **D-E4-10** : Hébergeur **Vercel** (D2) — Next.js 16 natif, déploiement auto depuis Git, preview deployments
+- **D-E4-11** : CI/CD **GitHub Actions + Vercel auto** (D3) — GH Actions pour les tests, Vercel auto pour le déploiement
+- **D-E4-12** : Monitoring **Sentry + Vercel Analytics** (D4) — erreurs front/back + Web Vitals
+- **D-E4-13** : DB prod **Neon** (D5) — déjà utilisé en dev, branche prod séparée
+- **D-E4-14** : Périmètre **doc + config** (D7) — les comptes (Vercel, Sentry, domaine) ne sont pas créés → E4-S07 produit la doc + la config, le déploiement réel attend les comptes (même classe que E4-S02)
+- **D-E4-15** : Secrets **Coordinateur** (D8) — l'Exécutant ne crée ni ne manipule les secrets prod (sécurité #7 : aucun `NEXT_PUBLIC_`)
+
+**Dépendances externes (bloquantes)** :
+
+- Compte Vercel — déploiement impossible sans
+- Compte Sentry — monitoring erreurs absent sans
+- Domaine — URL de prod absente sans
+- Branche Neon prod — DB prod absente sans
+
+**Dettes probables (à tracer quand les comptes sont provisionnés)** :
+
+- `D-deploy-domain` (si domaine non acheté)
+- `D-deploy-secrets` (si secrets non provisionnés)
+
+**Total dettes** : 5 (inchangé — aucune dette clôturée, session de configuration)
+
+**Baseline** :
+
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 55 routes (inchangé)
+- E2E 233 passed / 0 failed / 3 skipped (inchangé)
+- Prisma 14 migrations (inchangé)
+
+**Passation E4-S08** : OpenSERP (E3-S03-bis) — **bloquée** tant que Docker n'est pas provisionné (E4-S02-C).
+
+- Ordre sessions : E4-S07 ✅ → E4-S08 (OpenSERP, bloquée Docker). E4-clôture après E4-S08.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S07
+Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S08 (bloquée Docker)
 ═══════════════════════════════════════════════════════════════

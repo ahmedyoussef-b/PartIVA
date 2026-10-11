@@ -260,7 +260,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | **E4-S04** | UX produit (complétude client, poids de scoring) | Produit | ✅ Clôturée 2026-10-11 (2 dettes Faibles clôturées) |
 | **E4-S05** | Performance (HNSW, index, requêtes) | Technique | ✅ Clôturée 2026-10-11 (mesure par source + catalogue embeddings, D-embedding-model-catalog clôturée) |
 | **E4-S06** | Audit qualité (couverture, E2E isolation) | Qualité | ✅ Clôturée 2026-10-11 (regroupement 7 dettes E2E → D-e2e-constraints + docs/e2e-constraints.md) |
-| **E4-S07** | Préparation déploiement (Vercel, CI/CD, monitoring) | Infra | 🟢 À cadrer |
+| **E4-S07** | Préparation déploiement (Vercel, CI/CD, monitoring) | Infra | ✅ Clôturée 2026-10-11 (doc + CI/CD + config — comptes Vercel/Sentry/domaine à provisionner) |
 | **E4-S08** | E3-S03-bis (OpenSERP) si Docker | Technique | 🟠 Bloquée (Docker) |
 | **E4-clôture** | Audit de clôture phase E4 | Clôture | 🟢 À cadrer |
 
