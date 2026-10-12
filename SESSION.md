@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 en cours |
-| **Dernière session** | E4-S07 (clôturée) |
-| **Session en cours** | E4-S08 — OpenSERP (si Docker) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4-S01 clôturée** (cadrage), **E4-S02 clôturée** (blocage documenté), **E4-S03 clôturée** (tuning pipeline, D-E3-31 à D-E3-34), **E4-S04 clôturée** (UX produit, D-completeness-client-ui + D-scoring-weights-ui), **E4-S05 clôturée** (performance, D-E4-4 à D-E4-6), **E4-S06 clôturée** (audit qualité, D-e2e-constraints regroupée), **E4-S07 clôturée** (préparation déploiement — doc + CI/CD + config), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, E4-S08 à cadrer (OpenSERP si Docker) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → **E4 CLÔTURÉE** → E5 à cadrer |
+| **Dernière session** | E4-clôture (clôturée) |
+| **Session en cours** | E5-S01 — Cadrage E5 (à lancer) |
+| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture, D-E4-C1 à D-E4-C8 — rapport `docs/e4-close-report.md`), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, dettes résiduelles 5 (3 M + 2 F), E4-S08 (OpenSERP) reportée E5 (Docker absent), E5-S01 à cadrer |
 
 ---
 
@@ -45,9 +45,9 @@
 - [x] **Phase 2 — Core Features** : E2-S07 (détection infos manquantes) + E2-S07-B1 (outillage backfill embeddings) + E2-S07-C2 (sécurisation POST /api/search + régularisations)
 - [x] **Phase 2 — Core Features** : E2-S08 (auto-complétion mesures manquantes) + E2-S09 (5ᵉ onglet Photo dans SearchBar — upload base64 + POST /api/search/photo + gestion 503) + E2-S10 (résolution `D-e2e-submitted-consumption` — fixture `ensureSubmittedPart` + `beforeEach` ciblé, stabilité E2E) + E2-S11 (résolution `D-newpart-schema-prisma-mismatch` — `NewPartSchema` aligné Prisma + auth `POST /api/parts` en tête + 4 tests E2E) + E2-S12 (audit de clôture E2 — 7 critères vérifiés, baseline 6/6 tenue, E2E 204/0/2)
 - [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
-- [ ] **Phase 3 — Features secondaires** : `[à définir]`
-- [ ] **Phase 4 — Polish & QA** : tests, SEO, perf, a11y
-- [ ] **Phase 5 — Déploiement** : prod, monitoring, CI/CD
+- [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
+- [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
+- [ ] **Phase 5 — Déploiement** : E5 à cadrer (déblocage dépendances externes, déploiement réel, OpenSERP, completeness)
 
 ---
 
@@ -411,6 +411,57 @@ En attendant : reporté, non bloquant.
 | Build | ✅ 34 pages (40 routes listées) |
 | Seed | ✅ idempotent, 4 searchCandidates |
 | Tests E2E | ✅ 110/110 verts (1 warmup + 3 setup + 1 ids-setup + 38 chromium + 16 public + 14 admin + 14 user + 14 viewer + 12 dynamiques + 4 auth-api + 1 sync) |
+
+---
+
+## E4-clôture — Audit de clôture phase E4 (CLÔTURÉE)
+
+**Date :** 2026-10-12
+**Rapport :** `docs/e4-close-report.md`
+**Baseline :** lint 0/0, typecheck 0, prettier 0, build 55 routes, E2E 233/0/3, Prisma 14 migrations.
+
+### Objet
+
+Audit de clôture de la phase E4 (Consolidation, UX, déploiement) — aucun code métier modifié (session documentaire).
+
+### Blocs
+
+| Bloc | Objet | Résultat |
+|---|---|---|
+| Bloc 0 | Inventaire livrables E4 | 7 sessions clôturées + 1 bloquée (E4-S08) |
+| Bloc 1 | Vérification baseline | 6/6 tenue (1 correction Prettier — régression E4-S04) |
+| Bloc 2 | Audit dettes | 5 résiduelles (3 M bloquées externes + 2 F documentaires) |
+| Bloc 3 | Cohérence tripartite | ROADMAP ↔ SESSION ↔ DEBT cohérents |
+| Bloc 4 | Décisions clôture | D-E4-C1 à D-E4-C8 |
+| Bloc 5 | Mise à jour ROADMAP | E4 clôturée, E5 cadré (pistes) |
+| Bloc 6 | Rapport de clôture | `docs/e4-close-report.md` |
+
+### Décisions verrouillées
+
+- **D-E4-C1** : E4 clôturée — objectif atteint (consolidation, UX, déploiement préparé, performance, qualité)
+- **D-E4-C2** : E4-S08 (OpenSERP) reportée E5 — Docker non provisionné (binaire absent, vérifié)
+- **D-E4-C3** : Déploiement réel → E5 session dédiée (comptes Vercel/Sentry/domaine)
+- **D-E4-C4** : 3 dettes Moyennes = priorité E5 (HF token, TraceParts JWT, Docker)
+- **D-E4-C5** : `D-completeness-*` (3 Faibles) → E5
+- **D-E4-C6** : TecDoc → E5 (si contrat GTC)
+- **D-E4-C7** : 14 règles PCT (R.5.1–R.5.14) intégrées au PCT officiel avant E5
+- **D-E4-C8** : R.5.15 proposée — `format:check` obligatoire avant clôture de session
+
+### Correction E4-clôture
+
+- `e2e/admin/completeness.spec.ts` — formatage Prettier (régression E4-S04, 2 signatures collapseées, 0 changement sémantique)
+
+### Bilan E4
+
+- Dettes : 13 (3 M + 10 F) → **5 (3 M + 2 F)** (-8)
+- Sessions : 7 clôturées + 1 reportée (E4-S08)
+- Baseline : 6/6 tenue
+- Blocages : exclusivement externes (token/JWT/Docker/comptes)
+
+### Passation E4 → E5
+
+- **E5-S01** : cadrage E5 + déblocage dépendances externes (HF token, TraceParts JWT, Docker)
+- **Priorité Coordinateur** : provisionner les 3 dépendances externes avant E5-S01
 
 ---
 

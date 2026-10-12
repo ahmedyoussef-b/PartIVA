@@ -248,7 +248,7 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 
 **⚠️ Note Superviseur** : E4 est une phase **mixte** (technique + produit). Priorité : débloquer les dettes Moyennes (si les dépendances externes sont provisionnées), avancer sur le produit en parallèle, préparer le déploiement. Aucune nouvelle source (TecDoc = E5, contrat commercial).
 
-**Statut** : 🟢 En cours (E4-S01 cadrage)
+**Statut** : 🟢 **CLÔTURÉE** (E4-clôture, 2026-10-12 — rapport `docs/e4-close-report.md`)
 
 ### Sessions
 
@@ -261,28 +261,58 @@ Exemple : `E0-S01-2` = étape 0, session 1, sous-session 2.
 | **E4-S05** | Performance (HNSW, index, requêtes) | Technique | ✅ Clôturée 2026-10-11 (mesure par source + catalogue embeddings, D-embedding-model-catalog clôturée) |
 | **E4-S06** | Audit qualité (couverture, E2E isolation) | Qualité | ✅ Clôturée 2026-10-11 (regroupement 7 dettes E2E → D-e2e-constraints + docs/e2e-constraints.md) |
 | **E4-S07** | Préparation déploiement (Vercel, CI/CD, monitoring) | Infra | ✅ Clôturée 2026-10-11 (doc + CI/CD + config — comptes Vercel/Sentry/domaine à provisionner) |
-| **E4-S08** | E3-S03-bis (OpenSERP) si Docker | Technique | 🟠 Bloquée (Docker) |
-| **E4-clôture** | Audit de clôture phase E4 | Clôture | 🟢 À cadrer |
+| **E4-S08** | E3-S03-bis (OpenSERP) si Docker | Technique | 🟠 Reportée E5 (Docker non provisionné — constat vérifié E4-clôture) |
+| **E4-clôture** | Audit de clôture phase E4 | Clôture | ✅ Clôturée 2026-10-12 (baseline 6/6 tenue, 5 dettes résiduelles, D-E4-C1 à D-E4-C8) |
 
-**Total :** 8 sessions + 1 clôture.
+**Total :** 8 sessions + 1 clôture. **Phase E4 CLÔTURÉE.**
 
-### Dépendances externes (Coordinateur)
+### Bilan E4
+
+- **Dettes** : 13 (3 M + 10 F) → **5 (3 M + 2 F)** (-8 : 7 clôturées + 7 regroupées + 1 ajoutée)
+- **Baseline** : 6/6 tenue (ESLint 0/0, TS 0 err, Prettier 0, Build 55 routes, E2E 233/0/3, Prisma 14 migrations)
+- **Livrables** : UX (CompletenessBadge, ScoringWeightsTable), performance (catalogue embeddings, mesure instrumentée), infra (docs/deployment.md, ci.yml, vercel.json, README.md), qualité (docs/e2e-constraints.md)
+- **Blocages** : exclusivement externes (HF token, TraceParts JWT, Docker, comptes Vercel/Sentry/domaine)
+- **Décisions de clôture** : D-E4-C1 à D-E4-C8 (cf. `docs/e4-close-report.md`)
+
+### Dépendances externes (Coordinateur) — priorité E5
 
 | Dépendance | Session | Impact si absente |
 |---|---|---|
 | `HF_API_TOKEN` | E4-S02-A | `D-photo-embedding-backfill` reste bloquée |
 | `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` | E4-S02-B | `D-traceparts-credentials` reste bloquée |
 | Docker (Desktop / Podman) | E4-S02-C | `D-openserp-instance` reste bloquée, E4-S08 reportée |
-| Choix hébergeur (Vercel ?) | E4-S07 | Préparation déploiement partielle |
-| Domaine / DNS | E4-S07 | Documentation déploiement partielle |
+| Comptes Vercel / Sentry / domaine | E4-S07 | Déploiement réel non exécutable |
 
-**Recommandation** : provisionner ces dépendances **avant** ou **pendant** E4-S02 pour maximiser les déblocages.
+**Recommandation** : provisionner ces dépendances **avant** E5-S01 pour maximiser les déblocages.
 
 ### Définition de "E4 terminée"
 
-PartIVA est consolidé (dettes résolues ou documentées), l'UX client est améliorée, le déploiement est préparé, les sources externes sont débloquées (si possible).
+PartIVA est consolidé (dettes résolues ou documentées), l'UX client est améliorée, le déploiement est préparé, les sources externes sont débloquées (si possible). **✅ Atteint** (déploiement réel + sources externes reportés E5 — dépendances externes).
 
 **Durée estimée** : 3-4 semaines.
+
+---
+
+## 🏗️ E5 — INTELLIGENCE & APPRENTISSAGE (cadrage préliminaire)
+
+**Objectif** : faire de PartIVA un système qui s'améliore avec l'usage.
+
+**⚠️ Cadrage préliminaire E5 (proposé par E4-clôture, à confirmer en E5-S01) :**
+
+| Session | Objet | Priorité |
+|---|---|---|
+| **E5-S01** | Cadrage E5 + déblocage dépendances externes (HF token, TraceParts JWT, Docker) | 🔴 Critique |
+| **E5-S02** | Déploiement réel (Vercel, Sentry, domaine, DNS) | 🔴 Critique |
+| **E5-S03** | E4-S08 — Connecteur OpenSERP (si Docker provisionné) | 🟠 Haute |
+| **E5-S04** | `D-completeness-*` (liste par catégorie, material, blocage) | 🟡 Moyenne |
+| **E5-S05** | TecDoc (si contrat commercial GTC) | 🟡 Moyenne |
+| **E5-S06** | `D-ts6133-noUnusedLocals` + dettes Faibles documentaires | 🟢 Basse |
+
+**Pistes E5 (hors cadrage initial)** : similarité géométrique, détection d'usure, recommandations proactives, analyse des historiques, système de validation humaine, apprentissage incrémental.
+
+**Définition de "E5 terminée"** : PartIVA fournit des recommandations basées sur l'historique réel.
+
+**Durée estimée** : 4-6 semaines.
 
 ---
 

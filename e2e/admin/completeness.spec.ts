@@ -23,10 +23,7 @@ async function getFirstPartId(
 }
 
 test.describe('Complétude UI (E4-S04)', () => {
-  test('barre de complétude affichée dans le dossier pièce', async ({
-    page,
-    request,
-  }) => {
+  test('barre de complétude affichée dans le dossier pièce', async ({ page, request }) => {
     await getFirstPartId(request);
     await page.goto('/admin/pieces');
 
@@ -39,10 +36,7 @@ test.describe('Complétude UI (E4-S04)', () => {
     await expect(progressbar).toHaveAttribute('aria-valuemax', '100');
   });
 
-  test('badge complétude affiche un pourcentage valide', async ({
-    page,
-    request,
-  }) => {
+  test('badge complétude affiche un pourcentage valide', async ({ page, request }) => {
     await getFirstPartId(request);
     await page.goto('/admin/pieces');
 
