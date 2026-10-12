@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 clôturées) |
-| **Dernière session** | E5-S05 (clôturée) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 + S05 clôturées, S03 + S04 rapports de blocage) |
+| **Dernière session** | E5-S04 (clôturée — rapport : OpenSERP inadapté au périmètre) |
 | **Session en cours** | E5-S06 — Nettoyage dettes Faibles (à cadrer) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder), **E5-S03 clôturée** (rapport de blocage — 0/3 débloqués), **E5-S05 clôturée** (TecDoc mock — connecteur + `'tecdoc'` + agrégateur 4 sources + 7 tests E2E), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 7 (5 M + 2 F), E5-S04 (OpenSERP) bloquée (Go/Docker), E5-S06 à cadrer |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder), **E5-S03 clôturée** (rapport de blocage — 0/3 débloqués), **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces ; `D-openserp-instance` requalifiée `D-openserp-inadapte` Faible), **E5-S05 clôturée** (TecDoc mock — connecteur + `'tecdoc'` + agrégateur 4 sources + 7 tests E2E), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 7 (4 M + 3 F), E5-S06 à cadrer |
 
 ---
 
@@ -47,8 +47,8 @@
 - [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
-- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S05 clôturée** (TecDoc mock)
-- [ ] **Phase 5 — Déploiement** : E5-S04 (OpenSERP, si Go/Docker), E5-S06 (nettoyage), E5-S07 (déploiement réel si comptes), E5-clôture
+- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock)
+- [ ] **Phase 5 — Déploiement** : E5-S06 (nettoyage), E5-S07 (déploiement réel si comptes), E5-clôture
 
 ---
 
