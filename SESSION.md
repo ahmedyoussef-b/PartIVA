@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → **E4 CLÔTURÉE** → E5 à cadrer |
-| **Dernière session** | E4-clôture (clôturée) |
-| **Session en cours** | E5-S01 — Cadrage E5 (à lancer) |
-| **Statut global** | E1 clôturée (E1-S01 → E1-S07), **E2 clôturée** (E2-S01 → E2-S12), **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture, D-E3-27), **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture, D-E4-C1 à D-E4-C8 — rapport `docs/e4-close-report.md`), baseline 6/6 tenue, E2E 233 passed / 0 failed / 3 skipped, dettes résiduelles 5 (3 M + 2 F), E4-S08 (OpenSERP) reportée E5 (Docker absent), E5-S01 à cadrer |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 clôturées) |
+| **Dernière session** | E5-S02 (clôturée) |
+| **Session en cours** | E5-S03 — Déblocage dettes Moyennes (à cadrer) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder — `/placeholder` + `/api/health` + `src/proxy.ts` étendu + mode `NEXT_PUBLIC_PLACEHOLDER_MODE`), baseline 6/6 tenue, E2E 237/0/3 (233 + 4 placeholder), déttes résiduelles 6 (4 M + 2 F), E5-S03 à cadrer |
 
 ---
 
@@ -47,7 +47,8 @@
 - [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
-- [ ] **Phase 5 — Déploiement** : E5 à cadrer (déblocage dépendances externes, déploiement réel, OpenSERP, completeness)
+- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder — mode `NEXT_PUBLIC_PLACEHOLDER_MODE`, vitrine publique maintenue, `/api/health` monitoring)
+- [ ] **Phase 5 — Déploiement** : E5-S03 à E5-clôture (déblocage Moyennes, OpenSERP, TecDoc, nettoyage)
 
 ---
 
@@ -462,6 +463,76 @@ Audit de clôture de la phase E4 (Consolidation, UX, déploiement) — aucun cod
 
 - **E5-S01** : cadrage E5 + déblocage dépendances externes (HF token, TraceParts JWT, Docker)
 - **Priorité Coordinateur** : provisionner les 3 dépendances externes avant E5-S01
+
+---
+
+## E5-S02 — Déploiement placeholder (CLÔTURÉE)
+
+**Date :** 2026-10-12
+**HEAD :** `<commit E5-S02>`
+**Baseline :** lint 0/0, typecheck 0, prettier 0, build 57 routes, E2E 237/0/3 (233 + 4 placeholder), Prisma 14 migrations.
+
+### Objet
+
+Préparer le déploiement en production avec un **mode placeholder** qui bloque les zones fonctionnelles (recherche, admin, client) tout en laissant la vitrine publique accessible. **100% local** — aucune dépendance externe (Vercel/Sentry/domaine absents).
+
+### Livrables
+
+- `src/app/placeholder/page.tsx` — page « En cours de développement » (design system projet)
+- `src/app/api/health/route.ts` — endpoint monitoring (`{ status: 'ok', timestamp, version }`)
+- `src/proxy.ts` — étendu : mode placeholder via `NEXT_PUBLIC_PLACEHOLDER_MODE` (matcher étendu aux routes fonctionnelles)
+- `.env.example` — `NEXT_PUBLIC_PLACEHOLDER_MODE=false` (documenté, sécurité #7)
+- `e2e/placeholder.spec.ts` — 4 tests (placeholder, landing, health, pages publiques)
+
+### Décisions verrouillées
+
+- **D-E5-1** : Mode placeholder via `NEXT_PUBLIC_PLACEHOLDER_MODE` (booléen, désactivable)
+- **D-E5-2** : Vitrine publique maintenue (`/`, `/services`, `/contact`, `/materiaux`, `/demande`, `/login`, `/register`, `/comment-ca-marche`, `/forgot-password`)
+- **D-E5-3** : `src/proxy.ts` étendu (pas `middleware.ts` — Next 16, D72)
+- **D-E5-4** : `/api/health` exposé (monitoring, sans auth)
+- **D-E5-5** : Zones fonctionnelles bloquées en mode placeholder (`/admin/*`, `/client/*`, `/api/search`, `/api/parts/*`, `/api/requests/*`, `/api/upload`, `/api/sync`) — **même authentifiées**
+- **D-E5-6** : `/api/auth/*` maintenue (login/register nécessitent l'auth)
+
+### Validation mode placeholder (testé en direct)
+
+| Route | Mode placeholder | Résultat |
+|---|---|---|
+| `/admin/dashboard` (auth admin) | activé | 307 → `/placeholder` ✅ |
+| `/client/dashboard` (auth) | activé | 307 → `/placeholder` ✅ |
+| `/api/search` | activé | 307 → `/placeholder` ✅ |
+| `/services` | activé | 200 OK ✅ |
+| `/` (landing) | activé | 200 OK ✅ |
+| `/api/health` | activé | 200 OK ✅ |
+| `/login` | activé | 200 OK ✅ |
+
+### Tests E2E
+
+- 4/4 tests placeholder passés (isolation)
+- 50/50 public + protected passés (isolation)
+- 70/70 admin + user + viewer passés (isolation) — protection rôles intacte
+- Suite complète : échecs intermittents (warmup/aggregation/setup) = contrainte filesystem `F:\` lent sous charge (`D-e2e-isolation`/`D-e2e-load-timeouts` documentés) — les specs passent en isolation
+
+### Dettes
+
+- `D-openserp-instance` mise à jour (Docker **OU** Go — deux voies de déblocage)
+- `D-deploy-comptes` ajoutée (Vercel/Sentry/domaine — Moyenne)
+
+### Baseline finale E5-S02
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0/0 |
+| TypeScript | ✅ 0 err |
+| Prettier | ✅ 0 |
+| Build | ✅ 57 routes (+2 : `/placeholder`, `/api/health`) |
+| E2E | ✅ 237/0/3 (233 + 4 placeholder) |
+| Prisma | ✅ 14 migrations |
+| Dettes | 6 (4 M + 2 F) |
+
+### Passation E5-S02 → E5-S03
+
+- **E5-S03** : déblocage dettes Moyennes (HF token, TraceParts JWT) — à cadrer
+- **Priorité Coordinateur** : provisionner Go (ou Docker) → débloque OpenSERP (E5-S04)
 
 ---
 

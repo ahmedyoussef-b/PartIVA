@@ -301,12 +301,13 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 | Session | Objet | Priorité |
 |---|---|---|
-| **E5-S01** | Cadrage E5 + déblocage dépendances externes (HF token, TraceParts JWT, Docker) | 🔴 Critique |
-| **E5-S02** | Déploiement réel (Vercel, Sentry, domaine, DNS) | 🔴 Critique |
-| **E5-S03** | E4-S08 — Connecteur OpenSERP (si Docker provisionné) | 🟠 Haute |
-| **E5-S04** | `D-completeness-*` (liste par catégorie, material, blocage) | 🟡 Moyenne |
-| **E5-S05** | TecDoc (si contrat commercial GTC) | 🟡 Moyenne |
-| **E5-S06** | `D-ts6133-noUnusedLocals` + dettes Faibles documentaires | 🟢 Basse |
+| **E5-S01** | Cadrage phase E5 | Cadrage | ✅ Clôturée 2026-10-12 (`docs/e5-s01-cadrage.md`) |
+| **E5-S02** | Déploiement placeholder | Infra | ✅ Clôturée 2026-10-12 (page `/placeholder` + `/api/health` + `src/proxy.ts` étendu + mode `NEXT_PUBLIC_PLACEHOLDER_MODE` — 100% local, aucune dépendance externe) |
+| **E5-S03** | Déblocage dettes Moyennes (HF, TraceParts) | Technique | 🟢 À cadrer (token/JWT à provisionner) |
+| **E5-S04** | E4-S08 (OpenSERP) — build Go | Technique | 🟠 Bloquée (Docker OU Go absents) |
+| **E5-S05** | TecDoc (mock) | Technique | 🟢 À cadrer |
+| **E5-S06** | Nettoyage dettes Faibles | Technique | 🟢 À cadrer |
+| **E5-clôture** | Audit phase E5 | Clôture | 🟢 À cadrer |
 
 **Pistes E5 (hors cadrage initial)** : similarité géométrique, détection d'usure, recommandations proactives, analyse des historiques, système de validation humaine, apprentissage incrémental.
 
