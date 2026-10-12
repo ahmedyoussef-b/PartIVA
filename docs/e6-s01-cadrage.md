@@ -192,7 +192,7 @@ Section **Phase E6** ajoutée dans `ROADMAP.md` (remplacement du cadrage prélim
 | Build | 57 routes | 57 routes (inchangé) |
 | E2E | 245/0/4 | 245/0/4 (inchangé) |
 | Prisma | 14 migrations | 14 migrations (vérifié) |
-| HEAD | `b7e32cc` | `c4998c1` |
+| HEAD | `b7e32cc` | `c0c889d` |
 
 **E6-S01 ne modifie aucun code** — livrables documentaires uniquement (`docs/e6-s01-cadrage.md`, ROADMAP.md, SESSION.md).
 
@@ -200,7 +200,7 @@ Section **Phase E6** ajoutée dans `ROADMAP.md` (remplacement du cadrage prélim
 
 ## 5. Commit
 
-- **Hash :** `c4998c1`
+- **Hash :** `c0c889d`
 - **Message :** `docs(E6-S01): cadrage phase E6 - plan 8 sessions + ROADMAP E6 (D-E6-S01-1)`
 
 ---

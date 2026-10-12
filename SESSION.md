@@ -743,7 +743,7 @@ R.5.1 (reconnaissance d'environnement), R.5.2 (synchronisation enum+i18n), R.5.3
 **Statut :** ✅ Clôturée
 **Date :** 2026-10-13
 **Type :** Cadrage (aucun code)
-**HEAD :** `c4998c1`
+**HEAD :** `c0c889d`
 
 ### Plan de phase E6
 
