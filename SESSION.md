@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage) |
-| **Dernière session** | E6-S01 (cadrage phase E6 — plan 8 sessions + 1 clôture, `docs/e6-s01-cadrage.md`) |
-| **Session en cours** | E6-S01 — Cadrage phase E6 (terminée — rapport produit) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage — plan 8 sessions + 1 clôture, périmètre mixte, D1-D9 lus par déduction, R.5.17 proposée), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 5 (4 M + 1 F), E6-S02 (TraceParts) priorité 1 |
+| **Dernière session** | E6-S01 + requalification (4 sessions bloquées → dettes, reportées E7 — `docs/e6-s04-cadrage.md`) |
+| **Session en cours** | E6-S04 — `D-completeness-*` (3 dettes Faibles — cadrage produit, prochaine session active) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage — plan 8 sessions + 1 clôture), **E6 requalifiée** (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7 — plan actif : E6-S04, E6-S05, E6-S08 + clôture), baseline tenue, E2E 243/2/4, dettes résiduelles 5 (4 M + 1 F), E6-S04 (`D-completeness-*`) prochaine |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
 - [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
-- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage phase E6 — ✅ clôturée 2026-10-13, plan 8 sessions + 1 clôture), puis sessions E6 (S02 TraceParts prioritaire, S03 HF, S04 complétude, S05 catalogue Dockerisé, S06 déploiement, S07 TecDoc, S08 nettoyage, clôture)
+- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7), puis sessions E6 actives (S04 complétude, S05 catalogue Dockerisé, S08 nettoyage, clôture)
 
 ---
 
@@ -787,6 +787,41 @@ ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · E2E 243/2/4 �
 - **E6-S02** : déblocage TraceParts (JWT) — **bloqué** en attente de `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY`
 - **E6-S04** : `D-completeness-*` — **autonome**, peut démarrer immédiatement
 - **Priorité Coordinateur** : provisionner `TRACEPARTS_*` (déblocage le plus rapide)
+
+---
+
+## E6-S01 → Requalification — Sessions bloquées → dettes (2026-10-13)
+
+**Statut :** ✅ Appliquée (D1 = Oui)
+**Date :** 2026-10-13
+
+### Requalification
+
+Les 4 sessions bloquées par dépendances externes sont **retirées du plan actif E6** et **reportées en phase finale (E7)**. Elles sont tracées en dettes (déjà présentes dans `DEBT.md`) :
+
+| Session | Dette | Dépendance |
+|---|---|---|
+| E6-S02 (TraceParts) | `D-traceparts-credentials` (Moyenne) | `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` |
+| E6-S03 (Photo HF) | `D-photo-embedding-backfill` (Moyenne) | `HF_API_TOKEN` |
+| E6-S06 (Déploiement) | `D-deploy-comptes` (Moyenne) | Comptes Vercel/Sentry/domaine |
+| E6-S07 (TecDoc) | `D-tecdoc-credentials` (Moyenne) | Contrat TecDoc/TecAlliance |
+
+### Plan E6 révisé
+
+**Plan actif (autonomes) :** E6-S04 (`D-completeness-*`), E6-S05 (catalogue Dockerisé), E6-S08 (nettoyage) + E6-clôture.
+
+### Cadrage E6-S04 (`D-completeness-*`)
+
+**Bloc 0 (reconnaissance) réalisé** — `docs/e6-s04-cadrage.md` :
+- `D-completeness-category-keys` : nécessite migration Prisma (`CategoryRequiredSpec`) → **documenter, migration E7+** (Q5 = Non)
+- `D-completeness-material` : arbitrage métier (ajout change le score de toutes les pièces) → **clôturer par décision** (Option C, comme E5-S06)
+- `D-completeness-blocking` : changement de workflow (blocage SUBMITTED→IDENTIFYING) → **documenter, arbitrage E7+**
+
+**Recommandation :** session documentaire (clôture par décision), aucune migration, baseline tenue.
+
+### Décisions en attente (Coordinateur)
+
+D1-D11 (cf. `docs/e6-s04-cadrage.md` §4) — validation requise avant exécution E6-S04.
 
 ---
 

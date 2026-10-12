@@ -332,42 +332,53 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
 
-**Statut :** 🟢 En cours (E6-S01 cadrage — 2026-10-13)
+**Statut :** 🟢 En cours (E6-S01 cadrage + requalification — 2026-10-13)
 
-**Objectif E6 :** débloquer les 4 dettes Moyennes (si dépendances provisionnées), traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), préparer le déploiement réel, brancher TecDoc si contrat.
+**Objectif E6 :** traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), nettoyer les dettes restantes. Les 4 déblocages Moyennes sont **requalifiés en dettes bloquées** (reportés phase finale E7).
 
-**Périmètre :** Mixte (déblocage + produit). Priorité : Moyennes + produit en parallèle.
+**Périmètre :** Produit autonome (les sessions bloquées par dépendances externes sont retirées du plan actif).
 
 ### Sessions
 
 | Session | Objet | Type | Statut |
 |---|---|---|---|
 | **E6-S01** | Cadrage phase E6 | Cadrage | ✅ Clôturée 2026-10-13 (`docs/e6-s01-cadrage.md`) |
-| **E6-S02** | Déblocage TraceParts (JWT) | Technique | 🟢 À cadrer — **priorité 1** (variables déjà déclarées) |
-| **E6-S03** | Déblocage photo embeddings (HF) | Technique | 🟢 À cadrer |
-| **E6-S04** | `D-completeness-*` (3 dettes) | Technique | 🟢 À cadrer — **autonome** |
-| **E6-S05** | Catalogue Dockerisé alternatif | Technique | 🟢 À cadrer (source à identifier, R.5.16) |
-| **E6-S06** | Déploiement réel (Vercel/Sentry/domaine) | Infra | 🟢 À cadrer — conditionnel (comptes) |
-| **E6-S07** | TecDoc réel (si contrat) | Technique | 🟢 À cadrer — conditionnel (contrat TecDoc) |
-| **E6-S08** | Nettoyage dettes restantes | Technique | 🟢 À cadrer |
+| **E6-S02** | Déblocage TraceParts (JWT) | Technique | 🟠 **Bloquée** — `D-traceparts-credentials` (reportée E7) |
+| **E6-S03** | Déblocage photo embeddings (HF) | Technique | 🟠 **Bloquée** — `D-photo-embedding-backfill` (reportée E7) |
+| **E6-S04** | `D-completeness-*` (3 dettes) | Technique | 🟢 **Prochaine** — autonome |
+| **E6-S05** | Catalogue Dockerisé alternatif | Technique | 🟢 Autonome (source à identifier, R.5.16) |
+| **E6-S06** | Déploiement réel (Vercel/Sentry/domaine) | Infra | 🟠 **Bloquée** — `D-deploy-comptes` (reportée E7) |
+| **E6-S07** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` (reportée E7) |
+| **E6-S08** | Nettoyage dettes restantes | Technique | 🟢 Autonome |
 | **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 À cadrer |
 
-**Total :** 8 sessions + 1 clôture.
+**Total :** 8 sessions + 1 clôture. **Plan E6 actif :** E6-S04, E6-S05, E6-S08 + E6-clôture (autonomes).
 
-### Dépendances externes (Coordinateur)
+### Sessions bloquées (dettes) — requalification 2026-10-13
 
-| Dépendance | Session | Priorité |
+Les sessions E6-S02, E6-S03, E6-S06 et E6-S07 sont **bloquées** par des dépendances externes (credentials, comptes, contrat). Elles sont **retirées du plan actif** et **reportées en phase finale (E7)**. Elles sont tracées en dettes (déjà présentes dans `DEBT.md`) :
+
+- `D-traceparts-credentials` (Moyenne) → E6-S02 — `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY`
+- `D-photo-embedding-backfill` (Moyenne) → E6-S03 — `HF_API_TOKEN`
+- `D-deploy-comptes` (Moyenne) → E6-S06 — comptes Vercel/Sentry/domaine
+- `D-tecdoc-credentials` (Moyenne) → E6-S07 — contrat TecDoc/TecAlliance
+
+**Bénéfice :** le plan E6 devient réaliste (sessions autonomes uniquement), les dettes sont visibles dans `DEBT.md`, le Coordinateur peut provisionner à son rythme, les sessions seront rouvertes dès que les dépendances sont disponibles.
+
+### Dépendances externes (Coordinateur) — pour la phase finale E7
+
+| Dépendance | Session bloquée | Priorité |
 |---|---|---|
 | `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` | E6-S02 | **1 (déblocage le plus rapide)** |
 | `HF_API_TOKEN` | E6-S03 | 2 |
 | Comptes Vercel/Sentry/domaine | E6-S06 | 3 |
 | Contrat TecDoc | E6-S07 | 4 |
 
-**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`). E6-S04 (`D-completeness-*`) est autonome — peut démarrer immédiatement.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S04 (`D-completeness-*`) est autonome — peut démarrer immédiatement.
 
 ### Baseline cible E6
 
-ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 250+ · Prisma 14+ migrations · Dettes Moyennes 0-4 (selon déblocages).
+ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 250+ · Prisma 14+ migrations · Dettes Moyennes 4 (reportées E7).
 
 ---
 
