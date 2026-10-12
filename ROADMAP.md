@@ -304,11 +304,46 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 | **E5-S01** | Cadrage phase E5 | Cadrage | ✅ Clôturée 2026-10-12 (`docs/e5-s01-cadrage.md`) |
 | **E5-S02** | Déploiement placeholder | Infra | ✅ Clôturée 2026-10-12 (page `/placeholder` + `/api/health` + `src/proxy.ts` étendu + mode `NEXT_PUBLIC_PLACEHOLDER_MODE` — 100% local, aucune dépendance externe) |
 | **E5-S03** | Déblocage dettes Moyennes (HF, TraceParts) | Technique | ✅ Clôturée 2026-10-12 (rapport de blocage — 0/3 débloqués, provisioning mis à jour `docs/e5-s03-blocage.md`) |
-| **E5-S04** | E4-S08 (OpenSERP) — build Go | Technique | 🟠 Bloquée (Docker OU Go absents) |
+| **E5-S04** | E4-S08 (OpenSERP) — requalification | Technique | ✅ Clôturée 2026-10-12 (rapport — OpenSERP **rejeté** : moteur SERP web (Google, Yandex, Baidu, Bing, DuckDuckGo, Ecosia), pas catalogue de pièces ; aucun champ `partNumber`/`manufacturer`/`cadAvailable` ; `D-openserp-instance` requalifiée `D-openserp-inadapte` Faible ; Docker provisionné mais inadapté au périmètre — aucun connecteur créé. Leçon R.5.16) |
 | **E5-S05** | TecDoc (mock) | Technique | ✅ Clôturée 2026-10-12 (connecteur mock + schéma Zod + `'tecdoc'` dans SearchSourceSchema + agrégateur 4 sources + 7 tests E2E — `D-tecdoc-credentials` créée) |
 | **E5-S06** | Nettoyage dettes Faibles | Technique | ✅ Clôturée 2026-10-12 (`D-ts6133-noUnusedLocals` + `D-scoring-weights-table-unused` clôturées par décision — `docs/debts-documentation.md` versionné, 2 dettes Faibles résolues, aucun code modifié) |
-| **E5-S07** | Déploiement réel (si comptes) | Infra | 🟠 Bloquée (Vercel/Sentry/domaine absents) |
-| **E5-clôture** | Audit phase E5 | Clôture | 🟢 À cadrer |
+| **E5-S07** | Déploiement réel (si comptes) | Infra | 🟠 Reportée E6 (Vercel/Sentry/domaine absents — `D-deploy-comptes` active) |
+| **E5-clôture** | Audit phase E5 | Clôture | ✅ Clôturée 2026-10-12 (baseline 6/6 tenue, 5 dettes résiduelles 4 M + 1 F, D-E5-C1 à D-E5-C8) |
+
+**Phase E5 — CLÔTURÉE le 2026-10-12**
+
+### Bilan E5
+
+- **Sessions** : 6 clôturées (S01-S06) + 1 clôture + 1 reportée (S07 → E6)
+- **Livré** : mode placeholder déployable (`NEXT_PUBLIC_PLACEHOLDER_MODE`, `src/proxy.ts`, `/placeholder`, `/api/health`), TecDoc mock (connecteur + `'tecdoc'` + agrégateur 4 sources + 8 tests E2E, poids 0.5), requalification OpenSERP (inadapté — R.5.16 née), 2 dettes Faibles clôturées par décision, 4 documents (`docs/e5-s01-cadrage.md`, `docs/e5-s03-blocage.md`, `docs/e5-s04-openserp-inadapte.md`, `docs/debts-documentation.md`)
+- **Reporté** : déploiement réel (E6 — comptes Vercel/Sentry/domaine absents)
+- **Dettes E5** : 5 (4 M + 1 F) — 4 Moyennes bloquées externes (HF token, JWT TraceParts, contrat TecDoc, Vercel/Sentry) + 1 Faible documentée (OpenSERP inadapté)
+- **Baseline finale** : ESLint 0/0, TS 0 err, Prettier 0, build 57 routes, E2E 243/2/4 (2 échecs environnementaux documentés), Prisma 14 migrations
+- **Nouvelle règle PCT** : R.5.16 (vérifier la nature d'une source — capturer une réponse réelle avant de la retenir comme `SourceConnector`)
+- **Corpus PCT E3-E5** : 16 règles proposées (R.5.1 à R.5.16) — à intégrer au PCT officiel avant E6
+
+### Passation E5 → E6
+
+- **E6-S01** : cadrage phase E6
+- **Pistes E6** : catalogue Dockerisé alternatif à OpenSERP (R.5.16), `D-completeness-*` (3 dettes E2), déblocage des 4 Moyennes (HF/JWT/TecDoc/Vercel), déploiement réel (si comptes), TecDoc réel (si contrat commercial)
+- **Priorité Coordinateur** : provisionner HF_API_TOKEN + TRACEPARTS_* + comptes Vercel/Sentry/domaine → maximise les déblocages E6
+
+---
+
+## 🏗️ E6 — ÉCOSYSTÈME CLIENT & BIBLIOTHÈQUE ENTREPRISE (cadrage préliminaire)
+
+**Objectif** : chaque entreprise dispose de son propre référentiel. **Périmètre à définir en E6-S01** (D6 = à définir après E5-clôture).
+
+**Pistes E6 (hors cadrage initial) :**
+- Catalogue Dockerisé alternatif à OpenSERP (R.5.16 — vérifier la nature avant de retenir)
+- `D-completeness-*` (3 dettes E2 : `D-completeness-category-keys`, `D-completeness-material`, `D-completeness-blocking`)
+- Déblocage des 4 dettes Moyennes (HF token, JWT TraceParts, contrat TecDoc, Vercel/Sentry/domaine)
+- Déploiement réel (si comptes provisionnés)
+- TecDoc réel (si contrat commercial TecDoc/TecAlliance signé)
+
+| Session | Objet | Statut |
+|---|---|---|
+| **E6-S01** | Cadrage phase E6 | 🟢 À cadrer |
 
 **Pistes E5 (hors cadrage initial)** : similarité géométrique, détection d'usure, recommandations proactives, analyse des historiques, système de validation humaine, apprentissage incrémental.
 

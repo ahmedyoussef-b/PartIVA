@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 + S05 + S06 clôturées, S03 + S04 rapports de blocage) |
-| **Dernière session** | E5-S06 (clôturée — nettoyage dettes Faibles : 2 clôtures par décision) |
-| **Session en cours** | E5-S07 — Déploiement réel (bloquée — comptes Vercel/Sentry/domaine absents) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder), **E5-S03 clôturée** (rapport de blocage — 0/3 débloqués), **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces ; `D-openserp-instance` requalifiée `D-openserp-inadapte` Faible), **E5-S05 clôturée** (TecDoc mock — connecteur + `'tecdoc'` + agrégateur 4 sources + 7 tests E2E), **E5-S06 clôturée** (nettoyage dettes Faibles — `D-ts6133-noUnusedLocals` + `D-scoring-weights-table-unused` clôturées par décision, `docs/debts-documentation.md` versionné), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 5 (4 M + 1 F), E5-S07 bloquée (comptes) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 CLÔTURÉE** (S01-S06 + clôture, S07 reportée E6) → **E6 à cadrer** |
+| **Dernière session** | E5-clôture (clôturée — audit de phase E5 : 6 sessions livrées, 1 reportée E6, 5 dettes 4 M + 1 F) |
+| **Session en cours** | E6-S01 — Cadrage phase E6 (à cadrer) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8 — S01 cadrage, S02 placeholder, S03 rapport de blocage 0/3, S04 OpenSERP rejeté (moteur SERP web, `D-openserp-inadapte` Faible, R.5.16), S05 TecDoc mock (agrégateur 4 sources, 8 tests E2E), S06 nettoyage Faibles (2 clôtures par décision), S07 reportée E6 (comptes absents)), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 5 (4 M + 1 F), E6-S01 à cadrer |
 
 ---
 
@@ -47,8 +47,8 @@
 - [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
-- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision)
-- [ ] **Phase 5 — Déploiement** : E5-S07 (déploiement réel si comptes), E5-clôture
+- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
+- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage phase E6), puis sessions E6
 
 ---
 
@@ -665,6 +665,76 @@ Clôturer les dettes Faibles actionnables (`D-ts6133-noUnusedLocals`, `D-scoring
 - **E5-S07** : déploiement réel — **bloqué** (comptes Vercel/Sentry/domaine absents, `D-deploy-comptes`)
 - **E5-clôture** : audit de clôture phase E5 — à cadrer
 - **Priorité Coordinateur** : provisionner comptes Vercel + Sentry + domaine → débloque E5-S07
+
+---
+
+## E5-clôture — Audit de phase E5 (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-12
+**HEAD :** `<commit E5-clôture>`
+
+### Bilan E5
+
+**Sessions livrées :**
+
+| Session | Objet | Commit |
+|---|---|---|
+| E5-S01 | Cadrage phase E5 | `ca45689` |
+| E5-S02 | Déploiement placeholder | `94e8e19` |
+| E5-S03 | Déblocage Moyennes (blocage) | `58d888f` |
+| E5-S04 | OpenSERP (requalification) | `44af920` |
+| E5-S05 | TecDoc mock | `e96951c` |
+| E5-S06 | Nettoyage Faibles | `cc0b728` |
+| E5-clôture | Audit phase E5 | `<commit>` |
+
+**Objectif E5** : consolidation (placeholder, TecDoc mock, nettoyage) + déploiement.
+→ **ATTEINT** (déploiement réel reporté E6 — comptes absents).
+
+**Livrables :**
+- Mode placeholder (`NEXT_PUBLIC_PLACEHOLDER_MODE`, `src/proxy.ts`, `/placeholder`, `/api/health`)
+- TecDoc mock (connecteur + `'tecdoc'` + agrégateur 4 sources + 8 tests E2E, poids 0.5)
+- Requalification OpenSERP (inadapté — moteur SERP web, pas catalogue de pièces)
+- 2 dettes Faibles clôturées par décision (`D-ts6133-noUnusedLocals`, `D-scoring-weights-table-unused`)
+- 4 documents (`docs/e5-s01-cadrage.md`, `docs/e5-s03-blocage.md`, `docs/e5-s04-openserp-inadapte.md`, `docs/debts-documentation.md`)
+
+**Baseline finale E5 :**
+- ESLint 0/0, TypeScript 0 err, Prettier 0
+- Build 57 routes
+- E2E 243/2/4 (2 échecs environnementaux documentés — `D-e2e-constraints`)
+- Prisma 14 migrations
+
+**Dettes E5 :** 5 (4 M + 1 F)
+
+**Dettes Moyennes reportées E6 :**
+- `D-photo-embedding-backfill` (HF token absent)
+- `D-traceparts-credentials` (JWT — variables déclarées)
+- `D-tecdoc-credentials` (contrat TecDoc/TecAlliance)
+- `D-deploy-comptes` (Vercel/Sentry/domaine)
+
+**Dette Faible documentée :**
+- `D-openserp-inadapte` (OpenSERP = moteur SERP web, inadapté au périmètre)
+
+### Décisions de clôture
+
+- **D-E5-C1** : Phase E5 clôturée (6 sessions + 1 clôture + 1 report)
+- **D-E5-C2** : E5-S07 (déploiement réel) reportée E6 — `D-deploy-comptes` active
+- **D-E5-C3** : OpenSERP requalifié — `D-openserp-inadapte` (Faible), aucun connecteur créé
+- **D-E5-C4** : TecDoc mock intégré — `D-tecdoc-credentials` (Moyenne), poids 0.5
+- **D-E5-C5** : 4 dettes Moyennes bloquantes E6 (HF / JWT TraceParts / TecDoc / Vercel-Sentry)
+- **D-E5-C6** : Phase E6 = catalogue Dockerisé alternatif + `D-completeness-*` — à cadrer en E6-S01
+- **D-E5-C7** : R.5.16 intégrée au PCT — vérifier la nature d'une source (capturer une réponse réelle) avant de la retenir comme `SourceConnector`
+- **D-E5-C8** : 16 règles PCT proposées (R.5.1 à R.5.16, E3-E5) — à intégrer au PCT officiel avant E6
+
+### Règles PCT proposées (E3-E5) — 16 règles
+
+R.5.1 (reconnaissance d'environnement), R.5.2 (synchronisation enum+i18n), R.5.3 (fixtures JSON sans BOM), R.5.4 (timeouts E2E adaptés), R.5.5 (restrictions juridiques), R.5.6 (alignement mappings), R.5.7 (pas d'import Prisma dans specs Playwright), R.5.8 (tests API authentifiés via projet admin), R.5.9 (cohérence tripartite), R.5.10 (variables d'env vides = absentes), R.5.11 (timeouts de charge E2E), R.5.12 (taxonomie des poids), R.5.13 (session sans optimisation légitime), R.5.14 (regroupement dettes documentaires), R.5.15 (`format:check` obligatoire avant clôture), **R.5.16 (vérifier la nature d'une source — née d'E5-S04)**.
+
+### Passation E5 → E6
+
+- **E6-S01** : cadrage phase E6 (périmètre à définir — D6)
+- **Pistes E6** : catalogue Dockerisé alternatif à OpenSERP (R.5.16), `D-completeness-*` (3 dettes E2), déblocage des 4 Moyennes (HF/JWT/TecDoc/Vercel), déploiement réel (si comptes), TecDoc réel (si contrat)
+- **Priorité Coordinateur** : provisionner `HF_API_TOKEN` + `TRACEPARTS_TENANT_UID`/`TRACEPARTS_API_KEY` + comptes Vercel/Sentry/domaine → maximise les déblocages E6
 
 ---
 
