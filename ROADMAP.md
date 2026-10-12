@@ -330,26 +330,44 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ---
 
-## 🏗️ E6 — ÉCOSYSTÈME CLIENT & BIBLIOTHÈQUE ENTREPRISE (cadrage préliminaire)
+## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
 
-**Objectif** : chaque entreprise dispose de son propre référentiel. **Périmètre à définir en E6-S01** (D6 = à définir après E5-clôture).
+**Statut :** 🟢 En cours (E6-S01 cadrage — 2026-10-13)
 
-**Pistes E6 (hors cadrage initial) :**
-- Catalogue Dockerisé alternatif à OpenSERP (R.5.16 — vérifier la nature avant de retenir)
-- `D-completeness-*` (3 dettes E2 : `D-completeness-category-keys`, `D-completeness-material`, `D-completeness-blocking`)
-- Déblocage des 4 dettes Moyennes (HF token, JWT TraceParts, contrat TecDoc, Vercel/Sentry/domaine)
-- Déploiement réel (si comptes provisionnés)
-- TecDoc réel (si contrat commercial TecDoc/TecAlliance signé)
+**Objectif E6 :** débloquer les 4 dettes Moyennes (si dépendances provisionnées), traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), préparer le déploiement réel, brancher TecDoc si contrat.
 
-| Session | Objet | Statut |
+**Périmètre :** Mixte (déblocage + produit). Priorité : Moyennes + produit en parallèle.
+
+### Sessions
+
+| Session | Objet | Type | Statut |
+|---|---|---|---|
+| **E6-S01** | Cadrage phase E6 | Cadrage | ✅ Clôturée 2026-10-13 (`docs/e6-s01-cadrage.md`) |
+| **E6-S02** | Déblocage TraceParts (JWT) | Technique | 🟢 À cadrer — **priorité 1** (variables déjà déclarées) |
+| **E6-S03** | Déblocage photo embeddings (HF) | Technique | 🟢 À cadrer |
+| **E6-S04** | `D-completeness-*` (3 dettes) | Technique | 🟢 À cadrer — **autonome** |
+| **E6-S05** | Catalogue Dockerisé alternatif | Technique | 🟢 À cadrer (source à identifier, R.5.16) |
+| **E6-S06** | Déploiement réel (Vercel/Sentry/domaine) | Infra | 🟢 À cadrer — conditionnel (comptes) |
+| **E6-S07** | TecDoc réel (si contrat) | Technique | 🟢 À cadrer — conditionnel (contrat TecDoc) |
+| **E6-S08** | Nettoyage dettes restantes | Technique | 🟢 À cadrer |
+| **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 À cadrer |
+
+**Total :** 8 sessions + 1 clôture.
+
+### Dépendances externes (Coordinateur)
+
+| Dépendance | Session | Priorité |
 |---|---|---|
-| **E6-S01** | Cadrage phase E6 | 🟢 À cadrer |
+| `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` | E6-S02 | **1 (déblocage le plus rapide)** |
+| `HF_API_TOKEN` | E6-S03 | 2 |
+| Comptes Vercel/Sentry/domaine | E6-S06 | 3 |
+| Contrat TecDoc | E6-S07 | 4 |
 
-**Pistes E5 (hors cadrage initial)** : similarité géométrique, détection d'usure, recommandations proactives, analyse des historiques, système de validation humaine, apprentissage incrémental.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`). E6-S04 (`D-completeness-*`) est autonome — peut démarrer immédiatement.
 
-**Définition de "E5 terminée"** : PartIVA fournit des recommandations basées sur l'historique réel.
+### Baseline cible E6
 
-**Durée estimée** : 4-6 semaines.
+ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 250+ · Prisma 14+ migrations · Dettes Moyennes 0-4 (selon déblocages).
 
 ---
 

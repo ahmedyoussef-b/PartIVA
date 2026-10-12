@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 CLÔTURÉE** (S01-S06 + clôture, S07 reportée E6) → **E6 à cadrer** |
-| **Dernière session** | E5-clôture (clôturée — audit de phase E5 : 6 sessions livrées, 1 reportée E6, 5 dettes 4 M + 1 F) |
-| **Session en cours** | E6-S01 — Cadrage phase E6 (à cadrer) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8 — S01 cadrage, S02 placeholder, S03 rapport de blocage 0/3, S04 OpenSERP rejeté (moteur SERP web, `D-openserp-inadapte` Faible, R.5.16), S05 TecDoc mock (agrégateur 4 sources, 8 tests E2E), S06 nettoyage Faibles (2 clôtures par décision), S07 reportée E6 (comptes absents)), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 5 (4 M + 1 F), E6-S01 à cadrer |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage) |
+| **Dernière session** | E6-S01 (cadrage phase E6 — plan 8 sessions + 1 clôture, `docs/e6-s01-cadrage.md`) |
+| **Session en cours** | E6-S01 — Cadrage phase E6 (terminée — rapport produit) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage — plan 8 sessions + 1 clôture, périmètre mixte, D1-D9 lus par déduction, R.5.17 proposée), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 5 (4 M + 1 F), E6-S02 (TraceParts) priorité 1 |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
 - [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
-- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage phase E6), puis sessions E6
+- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage phase E6 — ✅ clôturée 2026-10-13, plan 8 sessions + 1 clôture), puis sessions E6 (S02 TraceParts prioritaire, S03 HF, S04 complétude, S05 catalogue Dockerisé, S06 déploiement, S07 TecDoc, S08 nettoyage, clôture)
 
 ---
 
@@ -735,6 +735,58 @@ R.5.1 (reconnaissance d'environnement), R.5.2 (synchronisation enum+i18n), R.5.3
 - **E6-S01** : cadrage phase E6 (périmètre à définir — D6)
 - **Pistes E6** : catalogue Dockerisé alternatif à OpenSERP (R.5.16), `D-completeness-*` (3 dettes E2), déblocage des 4 Moyennes (HF/JWT/TecDoc/Vercel), déploiement réel (si comptes), TecDoc réel (si contrat)
 - **Priorité Coordinateur** : provisionner `HF_API_TOKEN` + `TRACEPARTS_TENANT_UID`/`TRACEPARTS_API_KEY` + comptes Vercel/Sentry/domaine → maximise les déblocages E6
+
+---
+
+## E6-S01 — Cadrage phase E6 (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Cadrage (aucun code)
+**HEAD :** `c4998c1`
+
+### Plan de phase E6
+
+**Périmètre :** Mixte (déblocage des Moyennes + avancement produit). Priorité : Moyennes + produit en parallèle.
+**Total :** 8 sessions + 1 clôture.
+
+| Session | Objet | Type | Dépendances |
+|---|---|---|---|
+| E6-S01 | Cadrage phase E6 | Cadrage | — |
+| E6-S02 | Déblocage TraceParts (JWT) | Technique | `TRACEPARTS_*` (déclarées) — **priorité 1** |
+| E6-S03 | Déblocage photo embeddings (HF) | Technique | `HF_API_TOKEN` |
+| E6-S04 | `D-completeness-*` (3 dettes) | Technique | — (autonome) |
+| E6-S05 | Catalogue Dockerisé alternatif | Technique | Source identifiée (R.5.16) |
+| E6-S06 | Déploiement réel (Vercel/Sentry/domaine) | Infra | Comptes provisionnés |
+| E6-S07 | TecDoc réel (si contrat) | Technique | Contrat TecDoc signé |
+| E6-S08 | Nettoyage dettes restantes | Technique | — |
+| E6-clôture | Audit de clôture phase E6 | Clôture | Toutes |
+
+### Lecture des décisions D1-D9
+
+D1 = Oui (cadrage) · D2 = Mixte · D3 = Moyennes + produit en parallèle · D4 = Non défini → 8 + 1 clôture · D5 = Oui (catalogue Dockerisé) · D6 = Oui (`D-completeness-*` en E6) · D7 = Oui (déploiement session dédiée) · D8 = E6 (si contrat) · D9 = Cadrage.
+
+⚠️ Lecture par déduction (options sans coche explicite) — **R.5.17 proposée** (format de décision non ambigu).
+
+### Livrables
+
+- `docs/e6-s01-cadrage.md` (rapport de cadrage complet)
+- ROADMAP.md — section Phase E6 (8 sessions + 1 clôture + dépendances externes)
+- SESSION.md — métadonnées + historique E6-S01
+
+### Baseline E6-S01
+
+ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · E2E 243/2/4 · Prisma 14 migrations — **inchangée** (session documentaire).
+
+### Décision
+
+- **D-E6-S01-1** : Plan de phase E6 adopté — 8 sessions + 1 clôture, périmètre mixte. Priorité 1 : E6-S02 (TraceParts — variables déjà déclarées). E6-S04 (`D-completeness-*`) autonome.
+
+### Passation E6-S01 → E6-S02
+
+- **E6-S02** : déblocage TraceParts (JWT) — **bloqué** en attente de `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY`
+- **E6-S04** : `D-completeness-*` — **autonome**, peut démarrer immédiatement
+- **Priorité Coordinateur** : provisionner `TRACEPARTS_*` (déblocage le plus rapide)
 
 ---
 
