@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 + S05 clôturées, S03 + S04 rapports de blocage) |
-| **Dernière session** | E5-S04 (clôturée — rapport : OpenSERP inadapté au périmètre) |
-| **Session en cours** | E5-S06 — Nettoyage dettes Faibles (à cadrer) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder), **E5-S03 clôturée** (rapport de blocage — 0/3 débloqués), **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces ; `D-openserp-instance` requalifiée `D-openserp-inadapte` Faible), **E5-S05 clôturée** (TecDoc mock — connecteur + `'tecdoc'` + agrégateur 4 sources + 7 tests E2E), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 7 (4 M + 3 F), E5-S06 à cadrer |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 + S05 + S06 clôturées, S03 + S04 rapports de blocage) |
+| **Dernière session** | E5-S06 (clôturée — nettoyage dettes Faibles : 2 clôtures par décision) |
+| **Session en cours** | E5-S07 — Déploiement réel (bloquée — comptes Vercel/Sentry/domaine absents) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder), **E5-S03 clôturée** (rapport de blocage — 0/3 débloqués), **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces ; `D-openserp-instance` requalifiée `D-openserp-inadapte` Faible), **E5-S05 clôturée** (TecDoc mock — connecteur + `'tecdoc'` + agrégateur 4 sources + 7 tests E2E), **E5-S06 clôturée** (nettoyage dettes Faibles — `D-ts6133-noUnusedLocals` + `D-scoring-weights-table-unused` clôturées par décision, `docs/debts-documentation.md` versionné), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 5 (4 M + 1 F), E5-S07 bloquée (comptes) |
 
 ---
 
@@ -47,8 +47,8 @@
 - [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
-- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock)
-- [ ] **Phase 5 — Déploiement** : E5-S06 (nettoyage), E5-S07 (déploiement réel si comptes), E5-clôture
+- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision)
+- [ ] **Phase 5 — Déploiement** : E5-S07 (déploiement réel si comptes), E5-clôture
 
 ---
 
@@ -598,6 +598,73 @@ Intégrer TecDoc (référentiel européen de pièces automobiles, TecAlliance) e
 - **E5-S04** (OpenSERP) : bloquée (Go/Docker absents) — intercalable si provisionnement
 - **E5-S06** : nettoyage dettes Faibles — à cadrer
 - **Priorité Coordinateur** : provisionner Go (~150 Mo) → débloque E5-S04
+
+---
+
+## E5-S06 — Nettoyage dettes Faibles (CLÔTURÉE)
+
+**Date :** 2026-10-12
+**HEAD :** `<commit E5-S06>`
+**Baseline :** lint 0/0, typecheck 0, prettier 0, build 57 routes, E2E 243/2/4 (2 échecs environnementaux), Prisma 14 migrations.
+
+### Objet
+
+Clôturer les dettes Faibles actionnables (`D-ts6133-noUnusedLocals`, `D-scoring-weights-table-unused`) **par décision documentée** — aucune correction de code. Regrouper les dettes documentaires dans `docs/debts-documentation.md` (R.5.14).
+
+### Livrables
+
+- `docs/debts-documentation.md` — document de référence (6 dettes Faibles documentaires clôturées) :
+  - §1 `D-ts6133-noUnusedLocals` — décision : ne pas activer `--noUnusedLocals`
+  - §2 `D-scoring-weights-table-unused` — décision : documenter (Option C), `DEFAULT_WEIGHTS` source de vérité
+  - §3 `D-openserp-inadapte` — réf. `docs/e5-s04-openserp-inadapte.md`
+  - §4 `D-e2e-constraints` — réf. `docs/e2e-constraints.md`
+  - §5 `D-hnsw-drift` — structurel (non corrigeable)
+  - §6 `D-embedding-model-deviation` — acceptée MVP
+- `DEBT.md` — 2 dettes déplacées vers « Dettes résolues (historique) » + références au document
+
+### Décisions verrouillées
+
+- **D-E5-S06-1** : `D-ts6133-noUnusedLocals` clôturée par décision — `--noUnusedLocals` **non activé** dans `tsconfig.json` (absent de `compilerOptions`). `tsc --noEmit` = 0 erreur. 30+ faux positifs (imports `React` requis par JSX transform React 19 + variables de test non lues). Activer nécessiterait `// eslint-disable`/`// @ts-expect-error` sur 30+ occurrences — coût (bruit) > bénéfice.
+- **D-E5-S06-2** : `D-scoring-weights-table-unused` clôturée par décision — **Option C** (documenter). Table `scoring_weights` (migration `20261010160000_add_scoring_weights`) = 0 ligne, non utilisée en production. `DEFAULT_WEIGHTS` (`src/lib/scoring.ts:25`) reste la source de vérité, `loadScoringWeights()` retourne le fallback. **Aucune migration Prisma** (D5 = Non). Peuplement si UI admin d'ajustement des poids créée en E6+.
+- **D-E5-S06-3** : Regroupement documentaire — `docs/debts-documentation.md` versionné (R.5.14). 6 dettes Faibles documentaires clôturées.
+
+### Périmètre (D2-D9 validés)
+
+- **D2** : 2 dettes (`D-ts6133`, `D-scoring-weights-table`)
+- **D3** : Documenter (pas de correction)
+- **D4** : Documenter (pas de migration)
+- **D5** : Aucune migration Prisma
+- **D6** : `D-completeness-*` → E6
+- **D7** : Regroupement documentaire oui
+- **D8** : Aucun test E2E nouveau
+- **D9** : Catalogue Dockerisé → E6
+
+### Validation
+
+- `npx tsc --noEmit` = 0 erreur
+- `npm run lint` = 0/0
+- `npm run format:check` = 0 fichier non conforme (R.5.15)
+- Build 57 routes inchangé
+- E2E 243/2/4 inchangé (échecs environnementaux documentés `D-e2e-constraints`)
+- Prisma 14 migrations inchangé
+
+### Baseline finale E5-S06
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0/0 |
+| TypeScript | ✅ 0 err |
+| Prettier | ✅ 0 |
+| Build | ✅ 57 routes |
+| E2E | ✅ 243/2/4 (2 échecs environnementaux, isolation OK) |
+| Prisma | ✅ 14 migrations |
+| Dettes | 7 (4 M + 3 F) → **5 (4 M + 1 F)** (-2 Faibles) |
+
+### Passation E5-S06 → E5-S07
+
+- **E5-S07** : déploiement réel — **bloqué** (comptes Vercel/Sentry/domaine absents, `D-deploy-comptes`)
+- **E5-clôture** : audit de clôture phase E5 — à cadrer
+- **Priorité Coordinateur** : provisionner comptes Vercel + Sentry + domaine → débloque E5-S07
 
 ---
 
