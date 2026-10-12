@@ -14,6 +14,7 @@ import { aggregateSearch } from '@/lib/connectors/aggregator';
 import { localDbConnector } from '@/lib/connectors/local-db';
 import { wikidataConnector } from '@/lib/connectors/wikidata';
 import { tracePartsConnector } from '@/lib/connectors/traceparts';
+import { tecDocConnector } from '@/lib/connectors/tecdoc';
 
 /**
  * Connecteurs actifs (D-E3-26).
@@ -22,9 +23,9 @@ import { tracePartsConnector } from '@/lib/connectors/traceparts';
  *
  * Ordre = poids décroissant (D-E3-23) : la
  * déduplication (D-E3-24) privilégie la source
- * la plus fiable (local_db > wikidata > traceparts).
+ * la plus fiable (local_db > wikidata > traceparts > tecdoc).
  */
-const ALL_CONNECTORS = [localDbConnector, wikidataConnector, tracePartsConnector];
+const ALL_CONNECTORS = [localDbConnector, wikidataConnector, tracePartsConnector, tecDocConnector];
 
 export async function POST(req: Request) {
   try {

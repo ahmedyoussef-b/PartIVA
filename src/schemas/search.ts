@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const SearchSourceSchema = z.enum([
   'local_db',
   'traceparts',
+  'tecdoc',
   'cadenas',
   'wikidata',
   'manufacturer_catalog',

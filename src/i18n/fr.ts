@@ -49,6 +49,7 @@ export const FR = {
   searchSources: {
     local_db: 'Base de données locale (Atelier)',
     traceparts: 'TraceParts Online (CAD Standard)',
+    tecdoc: 'TecDoc (TecAlliance)',
     cadenas: 'CADENAS PartSolutions',
     wikidata: 'Wikidata (SPARQL)',
     manufacturer_catalog: 'Catalogues constructeurs indexés',

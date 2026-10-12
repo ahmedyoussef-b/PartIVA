@@ -303,10 +303,11 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 |---|---|---|
 | **E5-S01** | Cadrage phase E5 | Cadrage | ✅ Clôturée 2026-10-12 (`docs/e5-s01-cadrage.md`) |
 | **E5-S02** | Déploiement placeholder | Infra | ✅ Clôturée 2026-10-12 (page `/placeholder` + `/api/health` + `src/proxy.ts` étendu + mode `NEXT_PUBLIC_PLACEHOLDER_MODE` — 100% local, aucune dépendance externe) |
-| **E5-S03** | Déblocage dettes Moyennes (HF, TraceParts) | Technique | 🟢 À cadrer (token/JWT à provisionner) |
+| **E5-S03** | Déblocage dettes Moyennes (HF, TraceParts) | Technique | ✅ Clôturée 2026-10-12 (rapport de blocage — 0/3 débloqués, provisioning mis à jour `docs/e5-s03-blocage.md`) |
 | **E5-S04** | E4-S08 (OpenSERP) — build Go | Technique | 🟠 Bloquée (Docker OU Go absents) |
-| **E5-S05** | TecDoc (mock) | Technique | 🟢 À cadrer |
+| **E5-S05** | TecDoc (mock) | Technique | ✅ Clôturée 2026-10-12 (connecteur mock + schéma Zod + `'tecdoc'` dans SearchSourceSchema + agrégateur 4 sources + 7 tests E2E — `D-tecdoc-credentials` créée) |
 | **E5-S06** | Nettoyage dettes Faibles | Technique | 🟢 À cadrer |
+| **E5-S07** | Déploiement réel (si comptes) | Infra | 🟠 Bloquée (Vercel/Sentry/domaine absents) |
 | **E5-clôture** | Audit phase E5 | Clôture | 🟢 À cadrer |
 
 **Pistes E5 (hors cadrage initial)** : similarité géométrique, détection d'usure, recommandations proactives, analyse des historiques, système de validation humaine, apprentissage incrémental.

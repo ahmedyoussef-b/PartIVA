@@ -12,6 +12,8 @@ import type { SourceConnector } from '@/lib/connectors/types';
  *    - local_db = 1.0 (données métier PartIVA)
  *    - wikidata = 0.8 (référence)
  *    - traceparts = 0.6 (catalogue fabricant)
+ *    - tecdoc = 0.5 (référentiel automobile, mock —
+ *      contrat commercial requis, D-tecdoc-credentials)
  *
  * 2. **Poids INTRA-CANDIDAT** (`DEFAULT_WEIGHTS`, src/lib/scoring.ts) :
  *    pondèrent les critères d'un candidat (E2-S06, `computeScore()`).
@@ -33,6 +35,7 @@ export const SOURCE_WEIGHTS: Record<
   local_db: { weight: 1.0, timeoutMs: 2_000 },
   wikidata: { weight: 0.8, timeoutMs: 10_000 },
   traceparts: { weight: 0.6, timeoutMs: 3_000 },
+  tecdoc: { weight: 0.5, timeoutMs: 3_000 },
 } as const;
 
 export type ScoringSource = keyof typeof SOURCE_WEIGHTS;

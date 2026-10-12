@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → **E5 en cours** (S01 + S02 clôturées) |
-| **Dernière session** | E5-S02 (clôturée) |
-| **Session en cours** | E5-S03 — Déblocage dettes Moyennes (à cadrer) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder — `/placeholder` + `/api/health` + `src/proxy.ts` étendu + mode `NEXT_PUBLIC_PLACEHOLDER_MODE`), baseline 6/6 tenue, E2E 237/0/3 (233 + 4 placeholder), déttes résiduelles 6 (4 M + 2 F), E5-S03 à cadrer |
+| **Dernière session** | E5-S05 (clôturée) |
+| **Session en cours** | E5-S06 — Nettoyage dettes Faibles (à cadrer) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5-S01 clôturée** (cadrage), **E5-S02 clôturée** (déploiement placeholder), **E5-S03 clôturée** (rapport de blocage — 0/3 débloqués), **E5-S05 clôturée** (TecDoc mock — connecteur + `'tecdoc'` + agrégateur 4 sources + 7 tests E2E), baseline tenue, E2E 243/2/4 (2 échecs environnementaux, passent en isolation), dettes résiduelles 7 (5 M + 2 F), E5-S04 (OpenSERP) bloquée (Go/Docker), E5-S06 à cadrer |
 
 ---
 
@@ -47,8 +47,8 @@
 - [x] **Phase 2 — Core Features** : **E2 CLÔTURÉE** (E2-S01 → E2-S12, 18 sessions)
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
-- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder — mode `NEXT_PUBLIC_PLACEHOLDER_MODE`, vitrine publique maintenue, `/api/health` monitoring)
-- [ ] **Phase 5 — Déploiement** : E5-S03 à E5-clôture (déblocage Moyennes, OpenSERP, TecDoc, nettoyage)
+- [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S05 clôturée** (TecDoc mock)
+- [ ] **Phase 5 — Déploiement** : E5-S04 (OpenSERP, si Go/Docker), E5-S06 (nettoyage), E5-S07 (déploiement réel si comptes), E5-clôture
 
 ---
 
@@ -533,6 +533,71 @@ Préparer le déploiement en production avec un **mode placeholder** qui bloque 
 
 - **E5-S03** : déblocage dettes Moyennes (HF token, TraceParts JWT) — à cadrer
 - **Priorité Coordinateur** : provisionner Go (ou Docker) → débloque OpenSERP (E5-S04)
+
+---
+
+## E5-S05 — TecDoc mock (CLÔTURÉE)
+
+**Date :** 2026-10-12
+**HEAD :** `<commit E5-S05>`
+**Baseline :** lint 0/0, typecheck 0, prettier 0, build 57 routes, E2E 243/2/4 (2 échecs environnementaux), Prisma 14 migrations.
+
+### Objet
+
+Intégrer TecDoc (référentiel européen de pièces automobiles, TecAlliance) en **mode mock** — contrat commercial non traité (D6 E5-S01 : mocker jusqu'à fin de développement). Pattern E3-S02 (TraceParts mock).
+
+### Livrables
+
+- `src/lib/data/tecdoc.ts` — schéma Zod (`TecDocProductSchema`, `TecDocSearchResponseSchema`) + data layer (mode mock 3 fixtures : plaquettes frein Bosch, filtre huile MANN, amortisseur SACHS) + mapping `mapTecDocToCandidate`
+- `src/lib/connectors/tecdoc.ts` — connecteur `tecdocConnector` (wrapper `SourceConnector`, poids 0.5)
+- `src/schemas/search.ts` — `'tecdoc'` ajouté à `SearchSourceSchema` (D5)
+- `src/lib/connectors/types.ts` — `SourceConnector['source']` étendu (`'tecdoc'`)
+- `src/lib/scoring/weights.ts` — `SOURCE_WEIGHTS.tecdoc` (poids 0.5, timeout 3s) (D7)
+- `src/i18n/fr.ts` — libellé `tecdoc: 'TecDoc (TecAlliance)'` (R.5.2)
+- `src/app/api/search/route.ts` — `tecdocConnector` ajouté à `ALL_CONNECTORS` (D6)
+- `src/lib/connectors/aggregator.ts` — `tecdoc` ajouté à `searchWithFallback` priority
+- `e2e/tecdoc.spec.ts` — 7 tests (mock : isConfigured, recherche frein/filtre/référence/inexistant, schéma Zod, mapping + 1 conditionnel contrat)
+- `e2e/admin/aggregation-tecdoc.spec.ts` — 1 test (agrégation `source=all` interroge 4 sources, TecDoc retourne candidats)
+
+### Décisions verrouillées
+
+- **D-E5-1** : Périmètre recherche seule (pas d'import référentiel)
+- **D-E5-2** : Mode mock via fixtures locales (pas de serveur mock)
+- **D-E5-3** : `'tecdoc'` ajouté à `SearchSourceSchema` (D5) + i18n synchronisé (R.5.2)
+- **D-E5-4** : Intégration agrégateur `ALL_CONNECTORS` (D6) — 4 sources
+- **D-E5-5** : Poids TecDoc 0.5 (D7) — `SOURCE_WEIGHTS.tecdoc`
+- **D-E5-6** : Tests mock uniquement (D8) + 1 conditionnel contrat
+- **D-E5-7** : Aucune migration Prisma (D9) — `SearchCandidate.source` String ouvert
+
+### Validation
+
+- 7/7 tests TecDoc passés (tecdoc.spec.ts)
+- 1/1 test agrégation passé (source=all, 4 sources, TecDoc candidats)
+- 13/13 régression TraceParts + Wikidata
+- Suite complète : 243 passed / 2 failed (environnementaux — aggregation + part-completeness, passent en isolation) / 4 skipped
+- Agrégation `source=all` vérifiée en direct : `sourcesQueried` contient `tecdoc`, candidats TecDoc retournés (plaquettes frein, Bosch)
+
+### Dettes
+
+- `D-tecdoc-credentials` ajoutée (Moyenne — contrat commercial TecDoc/TecAlliance requis)
+
+### Baseline finale E5-S05
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0/0 |
+| TypeScript | ✅ 0 err |
+| Prettier | ✅ 0 |
+| Build | ✅ 57 routes |
+| E2E | ✅ 243/2/4 (2 échecs environnementaux, isolation OK) |
+| Prisma | ✅ 14 migrations |
+| Dettes | 7 (5 M + 2 F) |
+
+### Passation E5-S05 → E5-S06
+
+- **E5-S04** (OpenSERP) : bloquée (Go/Docker absents) — intercalable si provisionnement
+- **E5-S06** : nettoyage dettes Faibles — à cadrer
+- **Priorité Coordinateur** : provisionner Go (~150 Mo) → débloque E5-S04
 
 ---
 

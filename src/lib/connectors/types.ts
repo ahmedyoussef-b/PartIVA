@@ -15,12 +15,13 @@ import type { SearchCandidate } from '@/schemas/search';
  */
 export interface SourceConnector {
   /** Source dans SearchSourceSchema. */
-  readonly source: 'local_db' | 'wikidata' | 'traceparts';
+  readonly source: 'local_db' | 'wikidata' | 'traceparts' | 'tecdoc';
 
   /**
    * Poids de la source pour le score d'agrégation (D-E3-23).
    * local_db = 1.0 (données métier), wikidata = 0.8 (référence),
-   * traceparts = 0.6 (catalogue fabricant).
+   * traceparts = 0.6 (catalogue fabricant), tecdoc = 0.5
+   * (référentiel automobile, mock — contrat commercial requis).
    */
   readonly weight: number;
 
