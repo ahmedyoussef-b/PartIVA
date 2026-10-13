@@ -886,7 +886,7 @@ ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · E2E 243/2/4 �
 **Statut :** ✅ Clôturée (Scénario A — intégration)
 **Date :** 2026-10-13
 **Type :** Technique (autonome)
-**HEAD :** `<commit E6-S05>`
+**HEAD :** `664c928`
 ### Bloc 0 — Identification (R.5.16)
 
 **Catalogue identifié :** dataset Hugging Face `swan07/industrial-parts-data` — **catalogue industriel réel** :
