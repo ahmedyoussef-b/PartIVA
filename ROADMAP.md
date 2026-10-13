@@ -332,7 +332,7 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
 
-**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma + E6-S07-A amendements + E6-S08 connecteur TecDoc mock enrichi clôturés — 2026-10-13)
+**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma + E6-S07-A amendements + E6-S08 connecteur TecDoc mock enrichi + E6-S10 nettoyage dettes clôturés — 2026-10-13)
 
 **Objectif E6 :** traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), nettoyer les dettes restantes. Les 4 déblocages Moyennes sont **requalifiés en dettes bloquées** (reportés phase finale E7).
 
@@ -352,10 +352,10 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 | **E6-S07-A** | Amendements documentaires auto-parts | Documentaire | ✅ **Clôturée 2026-10-13** (commentaire KType+, spec autoCategory R.5.18, `D-tecdoc-auto-parts` enrichie, `docs/positioning.md`, `D-rebrickable-pattern`) |
 | **E6-S08** | Connecteur TecDoc mock enrichi | Technique | ✅ **Clôturée 2026-10-13** (VIN2OE, identification photo+fitment, routes API `/api/search/vehicle` + `/api/search/vin`, fixtures 60 pièces / 25 véhicules / 60 fitments, 26 tests E2E) |
 | **E6-S09** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` / `D-tecdoc-auto-parts` (reportée E7) |
-| **E6-S10** | Nettoyage dettes restantes | Technique | 🟢 **Prochaine** — autonome |
-| **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 À cadrer |
+| **E6-S10** | Nettoyage dettes restantes | Technique | ✅ **Clôturée 2026-10-13** (procédure drift R.4.1-ter `docs/migration-drift.md`, `e2e-constraints` +2 contraintes, `D-searchsource-i18n-sync` vérifiée, reports E7 confirmés) |
+| **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 **Prochaine** — autonome |
 
-**Total :** 10 sessions + 1 clôture. **Plan E6 actif :** E6-S10 + E6-clôture (autonomes).
+**Total :** 10 sessions + 1 clôture. **Plan E6 actif :** E6-clôture (autonome).
 
 ### Sessions bloquées (dettes) — requalification 2026-10-13
 
@@ -378,7 +378,7 @@ Les sessions E6-S02, E6-S03, E6-S06 (déploiement) et E6-S09 sont **bloquées** 
 | Comptes Vercel/Sentry/domaine | E6-S06 (déploiement) | 3 |
 | Contrat TecDoc | E6-S09 | 4 |
 
-**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S08 (connecteur TecDoc mock enrichi) est clôturée — E6-S10 (nettoyage) est autonome et peut démarrer immédiatement.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S08 (connecteur TecDoc mock enrichi) et E6-S10 (nettoyage dettes) sont clôturées — E6-clôture (audit phase E6) est autonome et peut démarrer immédiatement.
 
 ### Baseline cible E6
 
@@ -437,6 +437,14 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 - **E2E** : 26 nouveaux tests (`tecdoc-vehicle.spec.ts` 13 + `tecdoc-vin.spec.ts` 13) — 26/26 passés
 - **Baseline** : ESLint 0/0, TS 0, Prettier 0, **Build 59 routes**, E2E 284/0/4, Prisma 15 migrations
 - **Aucune migration** (D9 = Non — `SearchCandidate.source` String ouvert)
+
+### Bilan E6-S10 (nettoyage dettes restantes)
+
+- **Procédure drift** : `docs/migration-drift.md` créé (R.4.1-ter — procédure manuelle en l'absence de `SHADOW_DATABASE_URL`)
+- **`e2e-constraints.md`** : +2 contraintes (`D-e2e-tecdoc-mock`, `D-e2e-fixtures-tecdoc`) — 7 → 9 dettes regroupées
+- **`D-searchsource-i18n-sync`** : vérifiée (synchronisation R.5.2 appliquée, `tsc --noEmit` = 0) — dette documentaire permanente
+- **Reports E7 confirmés** : 5 Moyennes + `D-completeness-category-keys` + `D-completeness-blocking` + `D-industrial-catalog-dataset`
+- **Baseline inchangée** : ESLint 0/0, TS 0, Prettier 0, Build 59 routes, E2E 284/0/4, Prisma 15 migrations
 
 ---
 

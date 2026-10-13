@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma) |
-| **Dernière session** | E6-S08 — Connecteur TecDoc mock enrichi (VIN2OE, identification photo+fitment, routes API /api/search/vehicle + /api/search/vin, fixtures 60 pièces / 25 véhicules / 60 fitments, 26 tests E2E) |
-| **Session en cours** | E6-S08 — Connecteur TecDoc mock enrichi (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire), **E6-S05 CLÔTURÉE** (catalogue industriel HF — Scénario A), **E6-S06 CLÔTURÉE** (spécification auto-parts — D1-D7 confirmés R.5.17), **E6-S07 CLÔTURÉE** (modèle Prisma + migration 14→15 — R.5.18 autoCategory, R.5.19 renumérotation), **E6-S07-A CLÔTURÉE** (amendements documentaires — commentaire KType+, spec autoCategory, positioning.md, D-rebrickable-pattern), **E6-S08 CLÔTURÉE** (connecteur TecDoc mock enrichi — VIN2OE, photo+fitment, routes API vehicle/vin, 26 tests E2E), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), E6-S10 (nettoyage) prochaine |
+| **Dernière session** | E6-S10 — Nettoyage dettes restantes (procédure drift R.4.1-ter, e2e-constraints +2 contraintes, D-searchsource-i18n-sync vérifiée, reports E7 confirmés) |
+| **Session en cours** | E6-S10 — Nettoyage dettes restantes (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire), **E6-S05 CLÔTURÉE** (catalogue industriel HF — Scénario A), **E6-S06 CLÔTURÉE** (spécification auto-parts — D1-D7 confirmés R.5.17), **E6-S07 CLÔTURÉE** (modèle Prisma + migration 14→15 — R.5.18 autoCategory, R.5.19 renumérotation), **E6-S07-A CLÔTURÉE** (amendements documentaires — commentaire KType+, spec autoCategory, positioning.md, D-rebrickable-pattern), **E6-S08 CLÔTURÉE** (connecteur TecDoc mock enrichi — VIN2OE, photo+fitment, routes API vehicle/vin, 26 tests E2E), **E6-S10 CLÔTURÉE** (nettoyage dettes — procédure drift R.4.1-ter, e2e-constraints +2, D-searchsource-i18n-sync vérifiée), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), E6-clôture prochaine |
 
 ---
 
@@ -1133,6 +1133,34 @@ Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · 
 - **E6-S09** : TecDoc réel — **bloqué** (contrat commercial TecDoc/TecAlliance — `D-tecdoc-credentials` / `D-tecdoc-auto-parts`)
 - **E6-S10** : nettoyage dettes restantes — **autonome**
 - **E6-clôture** : audit de clôture phase E6
+
+---
+
+## E6-S10 — Nettoyage dettes restantes (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Documentaire + vérifications
+**HEAD :** `ae2410d`
+
+### Livrables (Blocs A-G)
+
+- **Bloc A** — Audit des dettes Faibles (DEBT.md lu intégralement)
+- **Bloc B** — Vérification `D-searchsource-i18n-sync` : synchronisation R.5.2 appliquée (`tecdoc`, `industrial_catalog` dans `fr.ts` ; `AUTO_CATEGORY_LABELS`, `AUTO_MATERIAL_LABELS` dans `enum-labels.ts`) — `tsc --noEmit` = 0. Dette **documentaire permanente** (règle, pas action)
+- **Bloc C** — Procédure drift documentée : `docs/migration-drift.md` créé (R.4.1-ter — procédure manuelle en l'absence de `SHADOW_DATABASE_URL` : migration SQL à la main, exclure `DROP INDEX part_images_embedding_hnsw`, `prisma db execute` + `prisma migrate resolve --applied`)
+- **Bloc D** — `docs/e2e-constraints.md` mis à jour : +2 contraintes (`D-e2e-tecdoc-mock`, `D-e2e-fixtures-tecdoc`) — 7 → 9 dettes regroupées
+- **Bloc E** — `DEBT.md` mis à jour : `D-hnsw-drift` (référence procédure), `D-e2e-constraints` (9 contraintes), `D-searchsource-i18n-sync` (vérifiée)
+- **Bloc F** — Validation : ESLint 0/0, TS 0, Prettier 0
+- **Bloc G** — Commit `ae2410d`
+
+### Baseline E6-S10
+
+Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+### Passation E6-S10 → E6-clôture
+
+- **E6-clôture** : audit de clôture phase E6 — **autonome**
+- **E6-S09** : TecDoc réel — **bloqué** (contrat TecDoc/TecAlliance, reporté E7)
 
 ---
 
