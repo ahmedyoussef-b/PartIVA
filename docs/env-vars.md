@@ -76,6 +76,19 @@
 
 **Note :** `NEXT_PUBLIC_` autorisé car **non sensible** (mode démo).
 
+### 3.7 Admin (seed production — E7-S01)
+
+| Variable | Objet | Obligatoire en |
+|---|---|---|
+| `ADMIN_EMAIL` | Email admin réel | prod |
+| `ADMIN_PASSWORD` | Mot de passe admin réel (≥ 12 caractères, mixte) | prod |
+| `ADMIN_NAME` | Nom admin | prod (défaut : `Admin PartIVA`) |
+
+**Note :** si absents, les utilisateurs mock sont utilisés (dev uniquement).
+**Sécurité #7 :** jamais en `NEXT_PUBLIC_`.
+**R.5.10 :** variable vide = absente.
+**E2E :** `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` prévalent, puis `ADMIN_EMAIL`/`ADMIN_PASSWORD`, puis mock.
+
 ---
 
 ## 4. Variables par environnement
@@ -92,6 +105,9 @@
 | `TECDOC_*` | ⚠️ | ⚠️ | ✅ |
 | `WIKIDATA_USER_AGENT` | ✅ | ✅ | ✅ |
 | `NEXT_PUBLIC_PLACEHOLDER_MODE` | ✅ | ❌ | ❌ |
+| `ADMIN_EMAIL` | ⚠️ | ✅ | ✅ |
+| `ADMIN_PASSWORD` | ⚠️ | ✅ | ✅ |
+| `ADMIN_NAME` | ⚠️ | ✅ | ✅ |
 
 **Légende :** ✅ requis · ⚠️ optionnel · ❌ interdit
 

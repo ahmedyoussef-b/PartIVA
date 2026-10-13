@@ -41,6 +41,15 @@
 - [ ] Aucun secret dans le code
 - [ ] HTTPS activé (Vercel par défaut)
 
+### 1.6 Admin réel (E7-S01)
+
+- [ ] `ADMIN_EMAIL` défini (Vercel)
+- [ ] `ADMIN_PASSWORD` défini (fort, ≥ 12 caractères)
+- [ ] `ADMIN_NAME` défini
+- [ ] Seed exécuté (`npx prisma db seed`)
+- [ ] Connexion admin testée
+- [ ] Utilisateurs mock supprimés
+
 ---
 
 ## 2. Déploiement

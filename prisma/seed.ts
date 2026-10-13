@@ -47,92 +47,136 @@ async function main() {
   await prisma.searchCandidate.deleteMany();
 
   // ── Users ───────────────────────────────────────────────────────────
-  console.log('👤 Creating users...');
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@partiva.dev' },
-    update: { name: 'Marc Dubois', role: 'ADMIN' },
-    create: {
-      email: 'admin@partiva.dev',
-      name: 'Marc Dubois',
-      role: 'ADMIN',
-    },
-  });
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminName = process.env.ADMIN_NAME ?? 'Admin PartIVA';
 
-  const user = await prisma.user.upsert({
-    where: { email: 'user@partiva.dev' },
-    update: { name: 'Sophie Martin', role: 'USER' },
-    create: {
-      email: 'user@partiva.dev',
-      name: 'Sophie Martin',
-      role: 'USER',
-    },
-  });
+  let admin: Awaited<ReturnType<typeof prisma.user.upsert>>;
+  let user: Awaited<ReturnType<typeof prisma.user.upsert>>;
+  let viewer: Awaited<ReturnType<typeof prisma.user.upsert>>;
+  let client2: Awaited<ReturnType<typeof prisma.user.upsert>>;
 
-  const viewer = await prisma.user.upsert({
-    where: { email: 'viewer@partiva.dev' },
-    update: { name: 'Thomas Bernard', role: 'VIEWER' },
-    create: {
-      email: 'viewer@partiva.dev',
-      name: 'Thomas Bernard',
-      role: 'VIEWER',
-    },
-  });
+  if (adminEmail && adminPassword) {
+    // ── Production : admin réel (E7-S01) ──────────────────────────
+    console.log('👤 Creating real admin (ADMIN_EMAIL/ADMIN_PASSWORD defined)...');
+    admin = await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { name: adminName, role: 'ADMIN' },
+      create: {
+        email: adminEmail,
+        name: adminName,
+        role: 'ADMIN',
+      },
+    });
 
-  const client2 = await prisma.user.upsert({
-    where: { email: 'client2@partiva.dev' },
-    update: { name: 'Marie Lefèvre', role: 'USER' },
-    create: {
-      email: 'client2@partiva.dev',
-      name: 'Marie Lefèvre',
-      role: 'USER',
-    },
-  });
+    const adminPasswordHash = await hashPassword(adminPassword);
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: admin.id } },
+      update: { password: adminPasswordHash },
+      create: {
+        userId: admin.id,
+        accountId: admin.id,
+        providerId: 'credential',
+        password: adminPasswordHash,
+      },
+    });
+    console.log(`✅ Admin réel créé : ${adminEmail}`);
 
-  const devPasswordHash = await hashPassword('PartIVA-dev-2026!');
+    // En production, l'admin réel porte aussi les rôles de référence
+    // du seed (user/viewer/client2 pointent sur le même admin).
+    user = admin;
+    viewer = admin;
+    client2 = admin;
+  } else {
+    // ── Dev : utilisateurs mock (E7-S01) ──────────────────────────
+    console.log('⚠️  ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock (dev uniquement)');
+    console.log('👤 Creating users...');
+    admin = await prisma.user.upsert({
+      where: { email: 'admin@partiva.dev' },
+      update: { name: 'Marc Dubois', role: 'ADMIN' },
+      create: {
+        email: 'admin@partiva.dev',
+        name: 'Marc Dubois',
+        role: 'ADMIN',
+      },
+    });
 
-  await prisma.account.upsert({
-    where: { providerId_accountId: { providerId: 'credential', accountId: admin.id } },
-    update: { password: devPasswordHash },
-    create: {
-      userId: admin.id,
-      accountId: admin.id,
-      providerId: 'credential',
-      password: devPasswordHash,
-    },
-  });
+    user = await prisma.user.upsert({
+      where: { email: 'user@partiva.dev' },
+      update: { name: 'Sophie Martin', role: 'USER' },
+      create: {
+        email: 'user@partiva.dev',
+        name: 'Sophie Martin',
+        role: 'USER',
+      },
+    });
 
-  await prisma.account.upsert({
-    where: { providerId_accountId: { providerId: 'credential', accountId: user.id } },
-    update: { password: devPasswordHash },
-    create: {
-      userId: user.id,
-      accountId: user.id,
-      providerId: 'credential',
-      password: devPasswordHash,
-    },
-  });
+    viewer = await prisma.user.upsert({
+      where: { email: 'viewer@partiva.dev' },
+      update: { name: 'Thomas Bernard', role: 'VIEWER' },
+      create: {
+        email: 'viewer@partiva.dev',
+        name: 'Thomas Bernard',
+        role: 'VIEWER',
+      },
+    });
 
-  await prisma.account.upsert({
-    where: { providerId_accountId: { providerId: 'credential', accountId: viewer.id } },
-    update: { password: devPasswordHash },
-    create: {
-      userId: viewer.id,
-      accountId: viewer.id,
-      providerId: 'credential',
-      password: devPasswordHash,
-    },
-  });
+    client2 = await prisma.user.upsert({
+      where: { email: 'client2@partiva.dev' },
+      update: { name: 'Marie Lefèvre', role: 'USER' },
+      create: {
+        email: 'client2@partiva.dev',
+        name: 'Marie Lefèvre',
+        role: 'USER',
+      },
+    });
 
-  await prisma.account.upsert({
-    where: { providerId_accountId: { providerId: 'credential', accountId: client2.id } },
-    update: { password: devPasswordHash },
-    create: {
-      userId: client2.id,
-      accountId: client2.id,
-      providerId: 'credential',
-      password: devPasswordHash,
-    },
-  });
+    const devPasswordHash = await hashPassword('PartIVA-dev-2026!');
+
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: admin.id } },
+      update: { password: devPasswordHash },
+      create: {
+        userId: admin.id,
+        accountId: admin.id,
+        providerId: 'credential',
+        password: devPasswordHash,
+      },
+    });
+
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: user.id } },
+      update: { password: devPasswordHash },
+      create: {
+        userId: user.id,
+        accountId: user.id,
+        providerId: 'credential',
+        password: devPasswordHash,
+      },
+    });
+
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: viewer.id } },
+      update: { password: devPasswordHash },
+      create: {
+        userId: viewer.id,
+        accountId: viewer.id,
+        providerId: 'credential',
+        password: devPasswordHash,
+      },
+    });
+
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: client2.id } },
+      update: { password: devPasswordHash },
+      create: {
+        userId: client2.id,
+        accountId: client2.id,
+        providerId: 'credential',
+        password: devPasswordHash,
+      },
+    });
+  }
 
   // ── Materials ────────────────────────────────────────────────────────
   console.log('🧪 Creating materials...');

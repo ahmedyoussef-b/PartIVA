@@ -51,10 +51,27 @@ PartIVA est déployé sur **Vercel** (Next.js 16 App Router) avec **PostgreSQL N
 | `HF_API_TOKEN` | Embeddings photo (HuggingFace) | Compte HF |
 | `WIKIDATA_USER_AGENT` | User-Agent Wikidata | Défaut |
 | `SENTRY_DSN` | Monitoring Sentry | Compte Sentry |
+| `ADMIN_EMAIL` | Admin réel (seed) | Défini par l'équipe |
+| `ADMIN_PASSWORD` | Mot de passe admin réel | Défini par l'équipe |
+| `ADMIN_NAME` | Nom admin | Défaut : `Admin PartIVA` |
 
 **⚠️ Sécurité #7 :** aucun token en `NEXT_PUBLIC_`.
 
 **⚠️ R.5.10 :** variables d'env vides = absentes (ne pas définir `TECDOC_API_KEY=""`).
+
+### 3.3 Admin réel (production — E7-S01)
+
+En production, définir `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` dans Vercel.
+Le seed créera un admin réel au premier déploiement (upsert + compte credential BetterAuth).
+
+**Procédure :**
+1. Définir les variables dans Vercel Dashboard
+2. Exécuter `npx prisma db seed`
+3. Se connecter avec les credentials admin
+4. Supprimer les utilisateurs mock (si présents)
+
+**Note :** si `ADMIN_EMAIL`/`ADMIN_PASSWORD` sont absents, les utilisateurs mock sont créés (dev uniquement).
+**Sécurité #7 :** `ADMIN_PASSWORD` jamais en `NEXT_PUBLIC_`.
 
 ---
 
