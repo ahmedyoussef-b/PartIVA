@@ -830,7 +830,7 @@ D1-D11 (cf. `docs/e6-s04-cadrage.md` §4) — validation requise avant exécutio
 **Statut :** ✅ Clôturée (session documentaire — pattern E5-S06)
 **Date :** 2026-10-13
 **Type :** Documentaire (aucun code, aucune migration)
-**HEAD :** `<commit E6-S04>`
+**HEAD :** `8cdfc53`
 
 ### Constat Bloc 0 (déjà réalisé — `docs/e6-s04-cadrage.md` §0)
 
