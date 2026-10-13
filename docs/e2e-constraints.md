@@ -80,6 +80,30 @@
 
 ---
 
+## 8. `D-e2e-tecdoc-mock` — Tests TecDoc mock (E6-S08)
+
+**Statut** : documentée (E6-S10).
+
+**Constat** : les tests TecDoc (`e2e/tecdoc.spec.ts`, `e2e/tecdoc-vehicle.spec.ts`, `e2e/tecdoc-vin.spec.ts`) manipulent directement `process.env.TECDOC_API_KEY` / `process.env.TECDOC_PROVIDER_ID` pour forcer le mode mock (pattern `withMockMode`). Les tests sont **unitaires** (pas d'UI) — ils n'ont pas besoin du webServer Playwright, mais le config `reuseExistingServer` les lance quand même.
+
+**Contournement** : exécuter les specs TecDoc en isolation (`npx playwright test e2e/tecdoc*.spec.ts --project=chromium`) — 26/26 passés en 5s. Le webServer timeout (filesystem `F:\` lent, `D-e2e-isolation`) n'affecte pas les tests unitaires si un serveur est déjà lancé.
+
+**Note** : le mode réel (E6-S09) est conditionnel au contrat TecDoc (`D-tecdoc-credentials`) — test skip automatiquement si `TECDOC_API_KEY` absent.
+
+---
+
+## 9. `D-e2e-fixtures-tecdoc` — Fixtures enrichies (E6-S08)
+
+**Statut** : documentée (E6-S10).
+
+**Constat** : les fixtures TecDoc enrichies (`src/lib/data/tecdoc-fixtures.ts` — 60 pièces, 25 véhicules, 60 fitments) sont **embarquées** (pas de fetch runtime). Les tests de cohérence référentielle (fitments → produits + véhicules) sont exécutés en mode mock uniquement.
+
+**Contournement** : validation Zod `TecDocFixturesSchema` au chargement (`validateFixtures()`). Les tests de cohérence (`fixtures — cohérence référentielle`, `fixtures — 50+ pièces, 20+ véhicules`) vérifient l'intégrité des fixtures.
+
+**Règle** : toute modification des fixtures doit maintenir la cohérence référentielle (fitments → produits + véhicules existants) — sinon les tests échouent.
+
+---
+
 ## Synthèse
 
 | Contrainte | Classe | Contournement |
@@ -91,7 +115,9 @@
 | `D-e2e-skip-conditional` | Déterminisme | fixture `ensureSubmittedPart` |
 | `D-e2e-residues` | Résidus DB | cleanup ciblé (session dédiée) |
 | `D-e2e-parts-residues` | Résidus DB | `DELETE /api/parts/[id]` (session dédiée) |
+| `D-e2e-tecdoc-mock` | Mock env | isolation des specs TecDoc |
+| `D-e2e-fixtures-tecdoc` | Fixtures | validation Zod + cohérence référentielle |
 
-**Total** : 7 dettes Faibles regroupées en **1 dette** `D-e2e-constraints` (Faible).
+**Total** : 9 dettes Faibles regroupées en **1 dette** `D-e2e-constraints` (Faible).
 
 **Règle R.5.13** : une session de performance peut légitimement ne pas optimiser si les mesures montrent que ce n'est pas nécessaire (E4-S05 — livrable = mesure instrumentée + documentation).
