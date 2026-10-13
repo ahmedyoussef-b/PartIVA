@@ -453,6 +453,38 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
+## 🏗️ E8 — STABILISATION, DOCUMENTATION FINALE, PRODUCTION PRÉPARÉE (🔄 EN COURS)
+
+**Statut :** 🔄 **En cours** (E8-S01 cadrage 2026-10-13 — `docs/e8-s01-cadrage.md`)
+
+**Nature :** Documentaire + préparation production. **Fallback de E7** (déblocage 5 Moyennes bloqué par credentials externes). **Aucun credential externe requis.**
+
+**Objectif :** stabiliser le code (audit qualité, dette technique résiduelle), documenter le projet (README, architecture, guide de déploiement), préparer la production (config, variables d'env, checklist), préparer E7 (documenter les credentials requis).
+
+**⚠️ Note de numérotation** : cette phase E8 (stabilisation) est **distincte** de la section « E8 — FINALISATION, QA & DÉPLOIEMENT » originale (plus bas dans ce document, ~l.544) qui décrit la vision initiale (tests, perf, SEO, monitoring, CI/CD, prod). La présente section E8 est la phase de stabilisation/documentation exécutée en 2026-10-13 comme fallback de E7. La section originale E8 (Finalisation) reste d'actualité pour la phase finale de production.
+
+### Sessions
+
+| Session | Objet | Nature | Statut |
+|---|---|---|---|
+| **E8-S01** | Cadrage phase E8 | Documentaire | ✅ Clôturée 2026-10-13 (`docs/e8-s01-cadrage.md`) |
+| **E8-S02** | Audit qualité + dette technique | Audit | 🟢 À cadrer |
+| **E8-S03** | Documentation projet (README, architecture) | Documentaire | 🟢 À cadrer |
+| **E8-S04** | Guide de déploiement production | Documentaire | 🟢 À cadrer |
+| **E8-S05** | Checklist production + variables d'env | Documentaire | 🟢 À cadrer |
+| **E8-S06** | Préparation E7 (credentials requis) | Documentaire | 🟢 À cadrer |
+| **E8-clôture** | Audit de clôture phase E8 | Audit | 🟢 À cadrer |
+
+**Total estimé :** 7-9 h.
+
+**Baseline E8 (inchangée) :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations · 0 dette Haute.
+
+**Contraintes :** aucun credential externe requis, aucune modification de code (E8 = documentaire + audit), baseline inchangée, R.5.21 (avance par défaut).
+
+**Livrables E8 :** `docs/e8-s01-cadrage.md`, `docs/e8-s02-audit.md`, `README.md` (mis à jour), `docs/architecture.md` (nouveau), `docs/deployment.md` (mis à jour), `docs/production-checklist.md` (nouveau), `docs/e7-credentials.md` (nouveau), `docs/e8-close-report.md`.
+
+---
+
 ## 🏗️ E4 — ACQUISITION INTELLIGENTE & REVERSE ENGINEERING
 **Objectif** : traiter les pièces inconnues — mesure, scan, reconstruction CAO.
 

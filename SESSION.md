@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E7 À CADRER** (déblocage 5 Moyennes) |
-| **Dernière session** | E6-clôture — Audit de clôture phase E6 (bilan 8/10 sessions, baseline 59 routes/284 E2E/15 migrations, D-E6-C1 à C8, rapport e6-close-report.md) |
-| **Session en cours** | E6-clôture — Audit de clôture phase E6 (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), **E7 prochaine** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 EN COURS** (stabilisation, documentation finale, production préparée — fallback E7, S01 cadrage) |
+| **Dernière session** | E8-S01 — Cadrage phase E8 (stabilisation, documentation finale, production préparée — fallback E7) |
+| **Session en cours** | E8-S01 — Cadrage phase E8 (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), **E8 EN COURS** (S01 cadrage — stabilisation/documentaire, fallback E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), **E7 bloquée** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback, aucun credential requis) |
 
 ---
 
@@ -1224,6 +1224,70 @@ ESLint 0/0 · TypeScript 0 err · Prettier 0 · **Build 59 routes** · **E2E 284
 - **E7** : déblocage des 5 Moyennes — **à cadrer** (credentials requis : `HF_API_TOKEN`, `TRACEPARTS_*`, comptes Vercel/Sentry/domaine, contrat TecDoc)
 - **E8** : stabilisation, documentation finale, production — **à cadrer** (fallback si credentials absents)
 - **Recommandation (R.5.21)** : E8 est le fallback naturel tant que les credentials E7 ne sont pas confirmés
+
+---
+
+## E8-S01 — Cadrage phase E8 (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Documentaire (cadrage — aucun code)
+**HEAD :** `<commit E8-S01>`
+**Document de référence :** `docs/e8-s01-cadrage.md`
+
+### Contexte
+
+La phase E6 est clôturée (8/10 sessions, commit `bde44d0`). La phase E7 (déblocage 5 Moyennes) est bloquée par des credentials externes (HF, TraceParts, Vercel/Sentry, TecDoc). **E8 = fallback de E7.** E8 ne dépend d'aucun credential externe.
+
+### Bloc 0 — Vérifications
+
+- HEAD = `bde44d0` ✅
+- Working tree clean ✅ (restauration `next-env.d.ts` auto-généré — fichier Next.js régénéré automatiquement, règle #32)
+- Prisma : 15 migrations ✅ (`npx prisma migrate status` — "Database schema is up to date!")
+
+### Livrables (Blocs A-E)
+
+- **Bloc A** — Création `docs/e8-s01-cadrage.md` (cadrage phase E8 — 64 lignes)
+- **Bloc B** — Mise à jour `ROADMAP.md` : section **E8 — STABILISATION, DOCUMENTATION FINALE, PRODUCTION PRÉPARÉE** (statut En cours, sessions E8-S01 → E8-clôture, note de numérotation vs E8 Finalisation originale)
+- **Bloc C** — Mise à jour `SESSION.md` : métadonnées (phase E8 en cours) + entrée E8-S01 (cette section)
+- **Bloc D** — Validation : ESLint 0/0, TS 0, Prettier 0
+- **Bloc E** — Commit
+
+### Plan de phase E8
+
+| Session | Objet | Nature | Durée |
+|---|---|---|---|
+| E8-S01 | Cadrage phase E8 | Documentaire | 30 min |
+| E8-S02 | Audit qualité + dette technique | Audit | 1 h |
+| E8-S03 | Documentation projet (README, architecture) | Documentaire | 2 h |
+| E8-S04 | Guide de déploiement production | Documentaire | 1-2 h |
+| E8-S05 | Checklist production + variables d'env | Documentaire | 1 h |
+| E8-S06 | Préparation E7 (credentials requis) | Documentaire | 1 h |
+| E8-clôture | Audit de clôture phase E8 | Audit | 1 h |
+
+**Total estimé :** 7-9 h.
+
+### Baseline E8-S01
+
+Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+### Décisions (R.5.21 — avance par défaut)
+
+- **D1** = Oui (création `docs/e8-s01-cadrage.md`)
+- **D2** = Oui (mise à jour ROADMAP.md — section E8)
+- **D3** = Oui (mise à jour SESSION.md — métadonnées + historique)
+- **D4** = Oui (validation baseline — ESLint/TS/Prettier)
+- **D5** = Oui (commit final)
+
+### Passation E8-S01 → E8-S02
+
+- **E8-S02** : audit qualité + dette technique — **autonome** (documentaire + audit)
+- **E8-S03** : documentation projet (README, architecture)
+- **E8-S04** : guide de déploiement production
+- **E8-S05** : checklist production + variables d'env
+- **E8-S06** : préparation E7 (credentials requis)
+- **E8-clôture** : audit de clôture phase E8
+- **E7** : déblocage 5 Moyennes — **bloquée** (credentials requis)
 
 ---
 
