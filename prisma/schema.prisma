@@ -82,6 +82,8 @@ model Part {
   status         PartStatus                  @default(DRAFT)
   categoryId     String?
   clientId       String?
+  material       String?
+  autoCategory   String?
   searchVector   Unsupported("tsvector")?    @map("search_vector")
   createdAt      DateTime                    @default(now())
   updatedAt      DateTime                    @updatedAt
@@ -93,12 +95,47 @@ model Part {
   client         User?                       @relation("PartClient", fields: [clientId], references: [id], onDelete: SetNull)
   projects       ReverseEngineeringProject[]
   versions       PartVersion[]
+  vehicleFitments Fitment[]
 
   @@index([partNumber])
   @@index([status])
   @@index([categoryId])
   @@index([clientId])
   @@map("parts")
+}
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  make      String
+  model     String
+  year      Int
+  engine    String?
+  ktype     String?  @unique
+  vin       String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fitments  Fitment[]
+
+  @@index([make, model, year])
+  @@index([ktype])
+  @@map("vehicles")
+}
+
+model Fitment {
+  id        String   @id @default(cuid())
+  partId    String
+  vehicleId String
+  notes     String?
+  createdAt DateTime @default(now())
+
+  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([partId, vehicleId])
+  @@index([partId])
+  @@index([vehicleId])
+  @@map("fitments")
 }
 
 model PartCategory {

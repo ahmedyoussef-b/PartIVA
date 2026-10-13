@@ -36,6 +36,8 @@ async function main() {
   await prisma.attachment.deleteMany();
   await prisma.partImage.deleteMany();
   await prisma.partSpecification.deleteMany();
+  await prisma.fitment.deleteMany();
+  await prisma.vehicle.deleteMany();
   await prisma.part.deleteMany();
   await prisma.supplier.deleteMany();
   await prisma.partCategory.deleteMany();
@@ -456,9 +458,89 @@ async function main() {
     },
   });
 
+  // ── Vehicles (auto-parts fitment, E6-S07) ──────────────────
+  console.log('🚗 Creating vehicles...');
+  const vehiclesData = [
+    { make: 'BMW', model: 'X5', year: 2019, engine: '3.0d' },
+    { make: 'Renault', model: 'Clio', year: 2020, engine: '1.5 dCi' },
+    { make: 'Peugeot', model: '308', year: 2021, engine: '1.2 PureTech' },
+    { make: 'Volkswagen', model: 'Golf', year: 2018, engine: '2.0 TDI' },
+    { make: 'Toyota', model: 'Corolla', year: 2022, engine: '1.8 Hybrid' },
+  ];
+  const vehicles: Array<Awaited<ReturnType<typeof prisma.vehicle.create>>> = [];
+  for (const data of vehiclesData) {
+    vehicles.push(await prisma.vehicle.create({ data }));
+  }
+
+  // ── Plastic parts (auto-parts, E6-S07) ─────────────────────
+  console.log('🔧 Creating plastic parts (auto-parts)...');
+  const plasticPartsData = [
+    {
+      partNumber: 'AUTO-BUMPER-ABS-001',
+      name: 'Pare-chocs avant',
+      description: 'Pare-chocs avant ABS, catégorie carrosserie',
+      material: 'ABS',
+      autoCategory: 'body',
+    },
+    {
+      partNumber: 'AUTO-GRILLE-ABSPC-002',
+      name: 'Calandre',
+      description: 'Calandre ABS/PC, catégorie carrosserie',
+      material: 'ABS/PC',
+      autoCategory: 'body',
+    },
+    {
+      partNumber: 'AUTO-DOOR-PP-003',
+      name: 'Panneau de porte',
+      description: 'Panneau de porte PP, catégorie intérieur',
+      material: 'PP',
+      autoCategory: 'interior',
+    },
+    {
+      partNumber: 'AUTO-CONSOLE-ABS-004',
+      name: 'Console centrale',
+      description: 'Console centrale ABS, catégorie intérieur',
+      material: 'ABS',
+      autoCategory: 'interior',
+    },
+    {
+      partNumber: 'AUTO-MIRROR-PA-005',
+      name: 'Rétroviseur extérieur',
+      description: 'Rétroviseur extérieur PA, catégorie extérieur',
+      material: 'PA',
+      autoCategory: 'exterior',
+    },
+  ];
+  const plasticParts: Array<Awaited<ReturnType<typeof prisma.part.create>>> = [];
+  for (const data of plasticPartsData) {
+    plasticParts.push(await prisma.part.create({ data }));
+  }
+
+  // ── Fitments (E6-S07) ────────────────────────────────────────
+  console.log('🔗 Creating fitments...');
+  const fitmentNotes = [
+    'Pare-chocs avant BMW X5 2019',
+    'Calandre Renault Clio 2020',
+    'Panneau de porte Peugeot 308 2021',
+    'Console centrale VW Golf 2018',
+    'Rétroviseur Toyota Corolla 2022',
+  ];
+  for (let i = 0; i < plasticParts.length; i++) {
+    const part = plasticParts[i];
+    const vehicle = vehicles[i];
+    if (!part || !vehicle) continue;
+    await prisma.fitment.create({
+      data: {
+        partId: part.id,
+        vehicleId: vehicle.id,
+        notes: fitmentNotes[i],
+      },
+    });
+  }
+
   // ── PartVersions ──────────────────────────────────────────────
   console.log('📜 Creating initial part versions...');
-  for (const part of [part1, part2, part3, part4, part5, part6]) {
+  for (const part of [...[part1, part2, part3, part4, part5, part6], ...plasticParts]) {
     await prisma.partVersion.create({
       data: {
         partId: part.id,
@@ -913,6 +995,8 @@ async function main() {
     machines: await prisma.machine.count(),
     requests: await prisma.request.count(),
     searchCandidates: await prisma.searchCandidate.count(),
+    vehicles: await prisma.vehicle.count(),
+    fitments: await prisma.fitment.count(),
   };
 
   for (const [table, count] of Object.entries(counts)) {

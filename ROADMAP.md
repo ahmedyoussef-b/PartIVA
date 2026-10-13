@@ -332,7 +332,7 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
 
-**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 clôturés — 2026-10-13)
+**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma clôturés — 2026-10-13)
 
 **Objectif E6 :** traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), nettoyer les dettes restantes. Les 4 déblocages Moyennes sont **requalifiés en dettes bloquées** (reportés phase finale E7).
 
@@ -347,21 +347,24 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 | **E6-S03** | Déblocage photo embeddings (HF) | Technique | 🟠 **Bloquée** — `D-photo-embedding-backfill` (reportée E7) |
 | **E6-S04** | `D-completeness-*` (3 dettes) | Technique | ✅ **Clôturée 2026-10-13** (session documentaire — `D-completeness-material` clôturée par décision, `category-keys` + `blocking` reportées E7) |
 | **E6-S05** | Catalogue Dockerisé alternatif | Technique | ✅ **Clôturée 2026-10-13** (Scénario A — catalogue industriel HF `swan07/industrial-parts-data` intégré, 5 sources, 13 tests E2E) |
-| **E6-S06** | Déploiement réel (Vercel/Sentry/domaine) | Infra | 🟠 **Bloquée** — `D-deploy-comptes` (reportée E7) |
-| **E6-S07** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` (reportée E7) |
-| **E6-S08** | Nettoyage dettes restantes | Technique | 🟢 **Prochaine** — autonome |
+| **E6-S06** | Spécification auto-parts (fitment) | Cadrage | ✅ **Clôturée 2026-10-13** (`docs/e6-s05-auto-parts-spec.md` — TecDoc mock, Prisma, route `/api/search/vehicle`, focus plastique — D1-D7 confirmés R.5.17) |
+| **E6-S07** | Modèle Prisma + migration auto-parts | Technique | ✅ **Clôturée 2026-10-13** (modèles `Vehicle`/`Fitment` + extension `Part` `material`/`autoCategory`/`vehicleFitments` — migration 14→15, R.4.1-ter drift GIN/HNSW) |
+| **E6-S08** | Connecteur TecDoc mock enrichi | Technique | 🟢 **À cadrer** (fitment VIN/KType, catégories plastique — dépend E6-S07) |
+| **E6-S09** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` / `D-tecdoc-auto-parts` (reportée E7) |
+| **E6-S10** | Nettoyage dettes restantes | Technique | 🟢 **Prochaine** — autonome |
 | **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 À cadrer |
 
-**Total :** 8 sessions + 1 clôture. **Plan E6 actif :** E6-S08 + E6-clôture (autonomes).
+**Total :** 10 sessions + 1 clôture. **Plan E6 actif :** E6-S08 (connecteur mock) + E6-S10 + E6-clôture (autonomes).
 
 ### Sessions bloquées (dettes) — requalification 2026-10-13
 
-Les sessions E6-S02, E6-S03, E6-S06 et E6-S07 sont **bloquées** par des dépendances externes (credentials, comptes, contrat). Elles sont **retirées du plan actif** et **reportées en phase finale (E7)**. Elles sont tracées en dettes (déjà présentes dans `DEBT.md`) :
+Les sessions E6-S02, E6-S03, E6-S06 (déploiement) et E6-S09 sont **bloquées** par des dépendances externes (credentials, comptes, contrat). Elles sont **retirées du plan actif** et **reportées en phase finale (E7)**. Elles sont tracées en dettes (déjà présentes dans `DEBT.md`) :
 
 - `D-traceparts-credentials` (Moyenne) → E6-S02 — `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY`
 - `D-photo-embedding-backfill` (Moyenne) → E6-S03 — `HF_API_TOKEN`
-- `D-deploy-comptes` (Moyenne) → E6-S06 — comptes Vercel/Sentry/domaine
-- `D-tecdoc-credentials` (Moyenne) → E6-S07 — contrat TecDoc/TecAlliance
+- `D-deploy-comptes` (Moyenne) → E6-S06 (déploiement réel, renommée depuis E6-S06 ancien) — comptes Vercel/Sentry/domaine
+- `D-tecdoc-credentials` (Moyenne) → E6-S09 — contrat TecDoc/TecAlliance
+- `D-tecdoc-auto-parts` (Moyenne) → E6-S09 — contrat TecDoc (fitment auto-parts, créée E6-S07)
 
 **Bénéfice :** le plan E6 devient réaliste (sessions autonomes uniquement), les dettes sont visibles dans `DEBT.md`, le Coordinateur peut provisionner à son rythme, les sessions seront rouvertes dès que les dépendances sont disponibles.
 
@@ -371,14 +374,14 @@ Les sessions E6-S02, E6-S03, E6-S06 et E6-S07 sont **bloquées** par des dépend
 |---|---|---|
 | `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` | E6-S02 | **1 (déblocage le plus rapide)** |
 | `HF_API_TOKEN` | E6-S03 | 2 |
-| Comptes Vercel/Sentry/domaine | E6-S06 | 3 |
-| Contrat TecDoc | E6-S07 | 4 |
+| Comptes Vercel/Sentry/domaine | E6-S06 (déploiement) | 3 |
+| Contrat TecDoc | E6-S09 | 4 |
 
-**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S05 (catalogue Dockerisé) est autonome — peut démarrer immédiatement.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S08 (connecteur TecDoc mock) est autonome — peut démarrer immédiatement.
 
 ### Baseline cible E6
 
-ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 256+ · Prisma 14+ migrations · Dettes Moyennes 4 (reportées E7).
+ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 256+ · Prisma 15+ migrations · Dettes Moyennes 5 (reportées E7).
 
 ### Bilan E6-S04 (session documentaire)
 
@@ -394,6 +397,22 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 256+ · Prisma 1
 - **E2E** : 256/0/4 (243 + 13 nouveaux tests)
 - **Dette** : `D-industrial-catalog-dataset` (Faible — import dataset complet E7)
 - **Note** : extrait embarqué (fichiers `.jsonl` HF trop gros pour fetch runtime) — endpoint HF documenté pour import batch E7
+
+### Bilan E6-S06 (spécification auto-parts — cadrage)
+
+- **Spécification** : `docs/e6-s05-auto-parts-spec.md` — recherche pièces auto par véhicule (fitment), focus plastique
+- **Décisions D1-D7 confirmées** (R.5.17) : TecDoc mock (D2), Prisma (D3), migration autorisée (D4), route `/api/search/vehicle` (D5), filtrage plastique (D6), séquentiel (D7)
+- **Livrable** : spécification 6 blocs (sources, modèle, SearchCandidate, interface, routes, plastique) — aucun code
+- **Dette** : `D-tecdoc-auto-parts` (Moyenne — contrat TecDoc pour fitment)
+
+### Bilan E6-S07 (modèle Prisma + migration auto-parts)
+
+- **Modèles** : `Vehicle` (make, model, year, engine, ktype, vin — index `[make,model,year]` + `ktype`), `Fitment` (partId, vehicleId, notes — `@@unique([partId,vehicleId])`, cascade), extension `Part` (`material?`, `autoCategory?`, `vehicleFitments`)
+- **R.5.18 appliquée** : `autoCategory` (pas `category` — collision évitée avec la relation `PartCategory` existante)
+- **Migration** : `20261013020211_add_vehicle_fitment_auto_parts` — **14 → 15 migrations** (R.4.1-ter — migration manuelle, `DROP INDEX part_images_embedding_hnsw` exclu pour préserver l'index HNSW)
+- **Seed** : 5 véhicules, 5 pièces plastique (ABS, ABS/PC, PP, PA), 5 fitments, 11 partVersions
+- **Baseline** : ESLint 0/0, TS 0 err, Prettier 0, Build 57 routes, E2E 258/0/4, Prisma 15 migrations
+- **Dette** : `D-tecdoc-auto-parts` (Moyenne — connecteur E6-S08, réel E6-S09 si contrat)
 
 ---
 

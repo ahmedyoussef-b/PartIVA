@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage, S04 complétude, S05 catalogue industriel) |
-| **Dernière session** | E6-S05 — Catalogue Dockerisé alternatif (connecteur catalogue industriel HF `swan07/industrial-parts-data` intégré — Scénario A, 5 sources, 13 tests E2E) |
-| **Session en cours** | E6-S05 — Catalogue Dockerisé alternatif (terminée — Scénario A) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire), **E6-S05 CLÔTURÉE** (catalogue industriel HF intégré — Scénario A, 5 sources, 13 tests E2E), baseline tenue, E2E 256/0/4 (243 + 13), dettes résiduelles 5 (4 M + 1 F), E6-S08 (nettoyage) prochaine |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma) |
+| **Dernière session** | E6-S07 — Modèle Prisma + migration auto-parts (Vehicle, Fitment, extension Part material/autoCategory/vehicleFitments — migration 14→15, R.4.1-ter drift GIN/HNSW) |
+| **Session en cours** | E6-S07 — Modèle Prisma + migration auto-parts (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire), **E6-S05 CLÔTURÉE** (catalogue industriel HF — Scénario A), **E6-S06 CLÔTURÉE** (spécification auto-parts — D1-D7 confirmés R.5.17), **E6-S07 CLÔTURÉE** (modèle Prisma + migration 14→15 — R.5.18 autoCategory, R.5.19 renumérotation), baseline tenue, E2E 258/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), E6-S08 (connecteur TecDoc mock) prochaine |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
 - [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
-- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅) + E6-S05 (catalogue industriel HF — ✅ Scénario A), puis sessions E6 actives (S08 nettoyage, clôture)
+- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅) + E6-S05 (catalogue industriel HF — ✅ Scénario A) + E6-S06 (spécification auto-parts — ✅) + E6-S07 (modèle Prisma + migration — ✅ 14→15), puis sessions E6 actives (S08 connecteur TecDoc mock, S10 nettoyage, clôture)
 
 ---
 
@@ -929,6 +929,120 @@ ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · E2E 243/2/4 �
 - **E6-S08** : nettoyage dettes restantes — **autonome**
 - **E6-clôture** : audit de clôture phase E6
 - **Amélioration E7** : importer le dataset HF complet (batch) pour un catalogue exhaustif
+
+---
+
+## E6-S06 — Spécification auto-parts (fitment) (CLÔTURÉE — cadrage)
+
+**Statut :** ✅ Clôturée (session documentaire — aucun code)
+**Date :** 2026-10-13
+**Type :** Cadrage / Spécification
+**HEAD :** `960af1b`
+**Document de référence :** `docs/e6-s05-auto-parts-spec.md`
+
+### Bloc 0 — Évaluation des sources
+
+**Source retenue (D2 = TecDoc mock) :** TecDoc (standard aftermarket, fitment complet VIN/KType, catégorie plastique). Alternatives évaluées : RockAuto, NAPA (scrapers, CGU restrictives), O'Reilly (rejeté — pas de catégorie plastique), FAPI (à évaluer), auto-parts-db (rejeté — base statique).
+
+### Spécification (6 blocs)
+
+- **Bloc A** — Modèle fitment Prisma (D3) : `Vehicle` (make, model, year, engine, ktype, vin), `Fitment` (partId, vehicleId, notes, `@@unique([partId,vehicleId])`), extension `Part` (`material?`, `category?`, `vehicleFitments`)
+- **Bloc B** — Extension `SearchCandidate` (optionnel, rétro-compat) : `vehicleFitment?`, `material?`, `category?`
+- **Bloc C** — Interface `AutoPartsConnector` (E6-S08) : `searchByVehicle`, `searchByVIN`, `searchByPartNumber`, `searchByCategory`
+- **Bloc D** — Routes API (D5) : `POST /api/search/vehicle`, `POST /api/search/vin`, `POST /api/search/part-number` (auth VIEWER+)
+- **Bloc E** — Focus plastique (D6) : catégories (body, interior, exterior) + matières (ABS, ABS/PC, PP, PC, PA, PUR, TPO)
+- **Bloc F** — Livrable : ce document
+
+### Décisions D1-D7 (R.5.17 — confirmées explicitement)
+
+- **D1** = Oui (E6-S05 = spécification auto-parts)
+- **D2** = TecDoc mock (enrichi)
+- **D3** = Prisma (modèle fitment)
+- **D4** = Oui (migration Prisma autorisée E6-S07)
+- **D5** = Oui (route API véhicule `/api/search/vehicle`)
+- **D6** = Oui (filtrage matière plastique)
+- **D7** = Séquentiel (priorité sessions)
+
+### Baseline E6-S06
+
+- ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes
+- E2E 256/0/4 · Prisma 14 migrations (aucune migration — session documentaire)
+- **Dette : 6 (5 M + 1 F)** — nouvelle dette `D-tecdoc-auto-parts` (Moyenne)
+
+### Décision
+
+- **D-E6-S06-1** : Spécification auto-parts (fitment) produite. TecDoc mock (E6-S08), Prisma (E6-S07), route `/api/search/vehicle`, focus plastique. D1-D7 confirmés (R.5.17).
+
+### Passation E6-S06 → E6-S07
+
+- **E6-S07** : modèle Prisma + migration (D4 = Oui) — **autonome**, peut démarrer immédiatement
+- **E6-S08** : connecteur TecDoc mock enrichi (dépend E6-S07)
+- **E6-S09** : TecDoc réel (si contrat — `D-tecdoc-credentials` / `D-tecdoc-auto-parts`)
+
+---
+
+## E6-S07 — Modèle Prisma + migration auto-parts (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Technique (autonome — migration Prisma autorisée D4 = Oui)
+**HEAD :** `<commit E6-S07>`
+
+### Bloc 0 — Reconnaissance (R.5.1)
+
+- `Part` (schema.prisma:76-105) : `partNumber`, `ptvReference`, `name`, `description`, `status`, `categoryId`, `clientId`, `searchVector` + relations. **`category` = relation `PartCategory?` (l.94)** — utilisée en production (`src/lib/data/parts.ts:57,90`, `src/app/api/parts/route.ts:45`)
+- `SearchCandidate` (schema.prisma:427-445) : standalone, aucune relation vers `Part`
+- Aucun `Vehicle` ni `Fitment` — Blocs A/B applicables
+- 14 migrations confirmées (`npx prisma migrate status`)
+
+### STOP-D Bloc C (Règle #10 + Règle #1) — résolu
+
+**Constat :** `Part.category` existe déjà (relation `PartCategory?`). Le Bloc C demandait `category String?` → **collision Prisma** (deux champs même nom interdits).
+
+**Résolution (D1 = Option 1, R.5.17) :** renommer le champ scalaire en **`autoCategory`** (non destructif — n'impacte pas la relation existante). **R.5.18 née** (vérifier collision de nommage Prisma avant ajout).
+
+### Livrables (Blocs A-G)
+
+- **Bloc A** — Modèle `Vehicle` (make, model, year, engine, ktype @unique, vin @unique, index `[make,model,year]` + `[ktype]`, `@@map("vehicles")`)
+- **Bloc B** — Modèle `Fitment` (partId, vehicleId, notes, `@@unique([partId,vehicleId])`, cascade, index partId/vehicleId, `@@map("fitments")`)
+- **Bloc C** — Extension `Part` : `material String?` + `autoCategory String?` + `vehicleFitments Fitment[]` (relation `category PartCategory?` intacte)
+- **Bloc D** — Migration `20261013020211_add_vehicle_fitment_auto_parts` — **14 → 15 migrations** (R.4.1-ter — migration manuelle via `prisma migrate diff` + `db execute` + `migrate resolve --applied` ; `DROP INDEX part_images_embedding_hnsw` **exclu** pour préserver l'index HNSW — drift structurel `D-hnsw-drift`)
+- **Bloc E** — Seed enrichi : 5 véhicules (BMW X5, Renault Clio, Peugeot 308, VW Golf, Toyota Corolla), 5 pièces plastique (ABS, ABS/PC, PP, PP, PA — body/interior/exterior), 5 fitments, 11 partVersions
+- **Bloc F** — Validation : `prisma validate` ✅, `migrate status` 15 ✅, `generate` ✅, `tsc --noEmit` 0 err ✅, `lint` 0/0 ✅, `format:check` 0 diff ✅, `next build` 57 routes ✅, `playwright test` 258/0/4 ✅
+- **Bloc G** — DEBT.md (`D-tecdoc-auto-parts` Moyenne) + SESSION.md (cette section) + ROADMAP.md (renumérotation E6)
+
+### Renumérotation E6 (D3 = Oui, R.5.19)
+
+- E6-S05 = Catalogue Dockerisé (inchangé)
+- **E6-S06 = Spécification auto-parts** (nouveau — `960af1b`)
+- **E6-S07 = Modèle Prisma + migration** (cette session)
+- **E6-S08 = Connecteur TecDoc mock enrichi** (ex-E6-S07)
+- **E6-S09 = TecDoc réel (si contrat)** (ex-E6-S08)
+- **E6-S10 = Nettoyage dettes restantes** (ex-E6-S08 nettoyage)
+- E6-clôture = inchangé
+
+**R.5.19 née** (numérotation unique des sessions — doublon E6-S05 résolu).
+
+### Baseline E6-S07
+
+- ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes
+- **E2E : 258/0/4** (256 + 2 — correction seed pièces AUTO avec versions)
+- **Prisma : 15 migrations** (14 → 15)
+- **Dettes : 6 (5 M + 1 F)** — `D-tecdoc-auto-parts` (Moyenne) ajoutée
+
+### Décisions
+
+- **D-E6-S07-1** : Modèle `Vehicle` (make, model, year, engine, ktype, vin)
+- **D-E6-S07-2** : Modèle `Fitment` (partId, vehicleId, notes, `@@unique([partId,vehicleId])`)
+- **D-E6-S07-3** : Extension `Part` (`material`, `autoCategory`, `vehicleFitments`) — `autoCategory` (pas `category` — R.5.18)
+- **D-E6-S07-4** : Migration appliquée (14 → 15) — R.4.1-ter (drift GIN/HNSW, DROP INDEX exclu)
+
+### Passation E6-S07 → E6-S08
+
+- **E6-S08** : connecteur TecDoc mock enrichi (fitment VIN/KType, catégories plastique) — **autonome**, dépend E6-S07 (modèle prêt)
+- **E6-S09** : TecDoc réel (si contrat — `D-tecdoc-credentials` / `D-tecdoc-auto-parts`)
+- **E6-S10** : nettoyage dettes restantes — autonome
+- **E6-clôture** : audit de clôture phase E6
 
 ---
 
