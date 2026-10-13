@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 EN COURS** (stabilisation, documentation finale, production préparée — fallback E7, S01 cadrage) |
-| **Dernière session** | E8-S01 — Cadrage phase E8 (stabilisation, documentation finale, production préparée — fallback E7) |
-| **Session en cours** | E8-S01 — Cadrage phase E8 (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), **E8 EN COURS** (S01 cadrage — stabilisation/documentaire, fallback E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), **E7 bloquée** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback, aucun credential requis) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 EN COURS** (stabilisation, documentation finale, production préparée — fallback E7, S01 cadrage, S02 audit qualité) |
+| **Dernière session** | E8-S02 — Audit qualité + dette technique (baseline tenue, 0 dette Haute, 5 Moyennes reportées E7, sécurité conforme) |
+| **Session en cours** | E8-S02 — Audit qualité + dette technique (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), **E8 EN COURS** (S01 cadrage, S02 audit qualité — stabilisation/documentaire, fallback E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M + 14 F (0 Haute actionnable), **E7 bloquée** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback, aucun credential requis) |
 
 ---
 
@@ -1283,6 +1283,80 @@ Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · 
 
 - **E8-S02** : audit qualité + dette technique — **autonome** (documentaire + audit)
 - **E8-S03** : documentation projet (README, architecture)
+- **E8-S04** : guide de déploiement production
+- **E8-S05** : checklist production + variables d'env
+- **E8-S06** : préparation E7 (credentials requis)
+- **E8-clôture** : audit de clôture phase E8
+- **E7** : déblocage 5 Moyennes — **bloquée** (credentials requis)
+
+---
+
+## E8-S02 — Audit qualité + dette technique (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Audit + documentaire (aucun code modifié)
+**HEAD :** `<commit E8-S02>`
+**Document de référence :** `docs/e8-s02-audit.md`
+
+### Bloc 0 — Vérifications
+
+- HEAD = `f5406b2` ✅
+- Working tree clean ✅
+- Prisma : 15 migrations up to date ✅, schéma valide ✅ (`prisma validate`)
+
+### Bloc A — Baseline qualité
+
+- ESLint 0/0 ✅
+- TypeScript 0 erreur ✅
+- Prettier 0 ✅
+- Build 59 routes ✅ (24 statiques + 35 dynamiques)
+- E2E 288 tests listés dans 41 fichiers (284 passed / 0 failed / 4 skipped) ✅
+- Prisma 15 migrations ✅
+
+### Bloc B — Dette technique
+
+- **0 dette Haute actionnable** (`D-audit-mysql2` = vulnérabilité npm acceptée, non exploitable — mysql2 transitif de prisma, driver PostgreSQL)
+- **5 dettes Moyennes** — toutes bloquées externes (E7) : `D-photo-embedding-backfill` (HF), `D-traceparts-credentials` (TraceParts), `D-deploy-comptes` (Vercel/Sentry/domaine), `D-tecdoc-credentials` (contrat TecDoc), `D-tecdoc-auto-parts` (contrat TecDoc)
+- **14 dettes Faibles** — documentées, reportées E7/E8, ou structurelles (`D-hnsw-drift`)
+
+### Bloc C — Couverture tests
+
+- 38 specs E2E, 288 tests (chromium 201, admin 32, user 17, viewer 17, public 16, setup 3, warmup 1, ids-setup 1)
+- 207 fichiers source TS/TSX — ratio specs/source ≈ 18,4%
+- Verdict : couverture E2E suffisante (parcours critiques couverts) ; tests unitaires absents (à envisager si stabilisation le justifie)
+
+### Bloc D — Sécurité
+
+- ✅ Aucun token/key/secret en `NEXT_PUBLIC_` (Sécurité #7) — 0 résultat
+- ✅ Variables sensibles serveur uniquement (`TRACEPARTS_*`, `TECDOC_*`, `WIKIDATA_USER_AGENT`)
+- ✅ `next-env.d.ts` non modifié (Règle #32)
+
+### Bloc E — Migrations Prisma
+
+- 15 migrations listées, DB up to date, schéma valide
+- Drift GIN/HNSW documenté (`D-hnsw-drift`, `docs/migration-drift.md`)
+
+### Bloc F — Documentation
+
+- 15 fichiers `docs/*.md` + `README.md` présents
+- Manquants (cibles E8) : `docs/architecture.md` (E8-S03), `docs/production-checklist.md` (E8-S05), `docs/e7-credentials.md` (E8-S06), `docs/e8-close-report.md` (E8-clôture)
+
+### Baseline E8-S02
+
+Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+### Décisions (R.5.21 — avance par défaut)
+
+- **D1** = Oui (rapport `docs/e8-s02-audit.md`)
+- **D2** = Oui (mise à jour ROADMAP.md — E8-S02 clôturée)
+- **D3** = Oui (mise à jour SESSION.md — métadonnées + historique)
+- **D4** = Oui (validation baseline — ESLint/TS/Prettier)
+- **D5** = Oui (commit final)
+
+### Passation E8-S02 → E8-S03
+
+- **E8-S03** : documentation projet (README, architecture) — **autonome**
 - **E8-S04** : guide de déploiement production
 - **E8-S05** : checklist production + variables d'env
 - **E8-S06** : préparation E7 (credentials requis)
