@@ -465,7 +465,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 |---|---|---|---|
 | **E7-S01** | Utilisateurs réels (admin + suppression mock) | Code | ✅ **Clôturée 2026-10-13** (commit `2c2aca3` — admin via `ADMIN_EMAIL`/`ADMIN_PASSWORD`, seed conditionnel, setup E2E, docs) |
 | **E7-S02-ter** | Embeddings photo (backfill) | Code + données | 🟡 **Partiel** — code 3 providers commité (R.5.23), backfill en attente service Lightweight (503) |
-| **E7-S03** | Déploiement Vercel (staging) | Code + docs | 🟢 À cadrer |
+| **E7-S03** | Déploiement Vercel (staging) | Code + config | ✅ **Clôturée 2026-10-13** (build corrigé `postinstall` commit `e9803c1`, déploiement production READY `part-iva.vercel.app`, env `NEXT_PUBLIC_APP_URL`/`BETTER_AUTH_URL` corrigées — E7-S03-quater + quinquies) |
 | **E7-S04** | Requalification OpenSERP (local) | Code + docs | 🟢 À cadrer |
 | **E7-S05** | Vérification drift HNSW (`SHADOW_DATABASE_URL`) | Vérification | 🟢 À cadrer |
 | **E7-S06** | AWS S3 (si nécessaire) | Code + docs | 🟢 À cadrer |
