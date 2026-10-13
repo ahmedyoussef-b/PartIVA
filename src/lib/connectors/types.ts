@@ -15,7 +15,7 @@ import type { SearchCandidate } from '@/schemas/search';
  */
 export interface SourceConnector {
   /** Source dans SearchSourceSchema. */
-  readonly source: 'local_db' | 'wikidata' | 'traceparts' | 'tecdoc';
+  readonly source: 'local_db' | 'wikidata' | 'traceparts' | 'tecdoc' | 'industrial_catalog';
 
   /**
    * Poids de la source pour le score d'agrégation (D-E3-23).

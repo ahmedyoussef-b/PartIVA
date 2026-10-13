@@ -8,6 +8,7 @@ export const SearchSourceSchema = z.enum([
   'wikidata',
   'manufacturer_catalog',
   'geometric_search',
+  'industrial_catalog',
 ]);
 export type SearchSource = z.infer<typeof SearchSourceSchema>;
 

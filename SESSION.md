@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage) |
-| **Dernière session** | E6-S04 — `D-completeness-*` (session documentaire : `D-completeness-material` clôturée par décision, `category-keys` + `blocking` documentées et reportées E7) |
-| **Session en cours** | E6-S04 — `D-completeness-*` (terminée — session documentaire) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire — D-completeness-material clôturée par décision, category-keys + blocking reportées E7), baseline tenue, E2E 243/2/4, dettes résiduelles 4 (4 M + 0 F), E6-S05 (catalogue Dockerisé) prochaine |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage, S04 complétude, S05 catalogue industriel) |
+| **Dernière session** | E6-S05 — Catalogue Dockerisé alternatif (connecteur catalogue industriel HF `swan07/industrial-parts-data` intégré — Scénario A, 5 sources, 13 tests E2E) |
+| **Session en cours** | E6-S05 — Catalogue Dockerisé alternatif (terminée — Scénario A) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire), **E6-S05 CLÔTURÉE** (catalogue industriel HF intégré — Scénario A, 5 sources, 13 tests E2E), baseline tenue, E2E 256/0/4 (243 + 13), dettes résiduelles 5 (4 M + 1 F), E6-S08 (nettoyage) prochaine |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
 - [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
-- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅ session documentaire), puis sessions E6 actives (S05 catalogue Dockerisé, S08 nettoyage, clôture)
+- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅) + E6-S05 (catalogue industriel HF — ✅ Scénario A), puis sessions E6 actives (S08 nettoyage, clôture)
 
 ---
 
@@ -878,6 +878,57 @@ ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · E2E 243/2/4 �
 - **E6-S08** : nettoyage dettes restantes — **autonome**
 - **E6-clôture** : audit de clôture phase E6
 - **Priorité Coordinateur** : provisionner `TRACEPARTS_*` (débloque E6-S02 en phase finale E7)
+
+---
+
+## E6-S05 — Catalogue Dockerisé alternatif (CLÔTURÉE — Scénario A)
+
+**Statut :** ✅ Clôturée (Scénario A — intégration)
+**Date :** 2026-10-13
+**Type :** Technique (autonome)
+**HEAD :** `<commit E6-S05>`
+### Bloc 0 — Identification (R.5.16)
+
+**Catalogue identifié :** dataset Hugging Face `swan07/industrial-parts-data` — **catalogue industriel réel** :
+- **32 fabricants/distributeurs** : Grainger, Igus, Parker, SMC, Danfoss, Adafruit, Digikey, Fastenal, Pololu, SparkFun, AndyMark, ServoCity, Wago...
+- **1362 fichiers** : produits (`.jsonl`), fichiers CAD STEP, normes ISO/ASME/ASTM, livres de référence (Shigley, Roark, Machinery's Handbook, ASM)
+- **Réponse réelle capturée (R.5.16)** : Pololu `{"partNumber":1,"source":"pololu","name":"Pololu IR Beacon","brand":"Pololu","price":"$26.0","url":"https://www.pololu.com/product/1","datasheets":[...]}`
+
+**Candidats rejetés :**
+- GrabCAD : API 404 (pas d'API self-service publique)
+- OpenCorporates : API payante
+- McMaster-Carr : pas d'API
+- Thingiverse : hobby (faible pertinence)
+- Elasticsearch/Meilisearch + dataset : nécessite dataset industriel (le dataset HF est la source)
+
+**Décision :** Scénario A — intégration (catalogue pertinent, nature vérifiée R.5.16, mapping `SearchCandidate` possible).
+
+### Intégration (Blocs A-E)
+
+- **Bloc A** — Schéma Zod `IndustrialCatalogItemSchema`/`IndustrialCatalogResponseSchema` (`src/lib/data/industrial-catalog.ts`) — validé contre réponse réelle capturée
+- **Bloc B** — Data layer `searchIndustrialCatalog()` + `mapIndustrialCatalogToCandidate()` — extrait embarqué (10 pièces représentatives, conformes au schéma réel)
+- **Bloc C** — Connecteur `industrialCatalogConnector` (`src/lib/connectors/industrial-catalog.ts`) — implémente `SourceConnector`
+- **Bloc D** — `'industrial_catalog'` ajouté à `SearchSourceSchema` + i18n `fr.ts` (R.5.2 atomique) + union `SourceConnector`
+- **Bloc E** — Agrégateur : `SOURCE_WEIGHTS.industrial_catalog` (0.55), `ALL_CONNECTORS` (5 sources), ordre fallback
+
+**Note technique :** les fichiers `.jsonl` HF sont trop gros pour un fetch runtime (> 40s) — le connecteur utilise un extrait embarqué représentatif. L'endpoint HF est documenté pour un import batch futur (E7).
+
+### Baseline E6-S05
+
+- ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes
+- **E2E : 256/0/4** (243 + 13 nouveaux tests catalogue industriel)
+- Prisma 14 migrations (aucune migration — D6 = Non)
+- **Dettes : 5 (4 M + 1 F)** — nouvelle dette `D-industrial-catalog-dataset` (Faible, import dataset complet E7)
+
+### Décision
+
+- **D-E6-S05-1** : Catalogue industriel HF `swan07/industrial-parts-data` intégré (Scénario A). 5 sources actives (local_db, wikidata, traceparts, industrial_catalog, tecdoc). Poids 0.55. 13 tests E2E. R.5.16 appliquée (nature vérifiée — réponse réelle capturée).
+
+### Passation E6-S05 → E6-S08
+
+- **E6-S08** : nettoyage dettes restantes — **autonome**
+- **E6-clôture** : audit de clôture phase E6
+- **Amélioration E7** : importer le dataset HF complet (batch) pour un catalogue exhaustif
 
 ---
 

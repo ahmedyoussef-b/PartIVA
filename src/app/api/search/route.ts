@@ -15,6 +15,7 @@ import { localDbConnector } from '@/lib/connectors/local-db';
 import { wikidataConnector } from '@/lib/connectors/wikidata';
 import { tracePartsConnector } from '@/lib/connectors/traceparts';
 import { tecDocConnector } from '@/lib/connectors/tecdoc';
+import { industrialCatalogConnector } from '@/lib/connectors/industrial-catalog';
 
 /**
  * Connecteurs actifs (D-E3-26).
@@ -23,9 +24,15 @@ import { tecDocConnector } from '@/lib/connectors/tecdoc';
  *
  * Ordre = poids décroissant (D-E3-23) : la
  * déduplication (D-E3-24) privilégie la source
- * la plus fiable (local_db > wikidata > traceparts > tecdoc).
+ * la plus fiable (local_db > wikidata > traceparts > industrial_catalog > tecdoc).
  */
-const ALL_CONNECTORS = [localDbConnector, wikidataConnector, tracePartsConnector, tecDocConnector];
+const ALL_CONNECTORS = [
+  localDbConnector,
+  wikidataConnector,
+  tracePartsConnector,
+  industrialCatalogConnector,
+  tecDocConnector,
+];
 
 export async function POST(req: Request) {
   try {

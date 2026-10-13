@@ -54,6 +54,7 @@ export const FR = {
     wikidata: 'Wikidata (SPARQL)',
     manufacturer_catalog: 'Catalogues constructeurs indexés',
     geometric_search: 'Recherche géométrique 3D / IA',
+    industrial_catalog: 'Catalogue industriel (dataset HF)',
   } satisfies Record<SearchSource, string>,
   steps: {
     identification: '1. Identification client',

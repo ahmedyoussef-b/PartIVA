@@ -14,6 +14,8 @@ import type { SourceConnector } from '@/lib/connectors/types';
  *    - traceparts = 0.6 (catalogue fabricant)
  *    - tecdoc = 0.5 (référentiel automobile, mock —
  *      contrat commercial requis, D-tecdoc-credentials)
+ *    - industrial_catalog = 0.55 (catalogue industriel
+ *      dataset HF `swan07/industrial-parts-data`, E6-S05)
  *
  * 2. **Poids INTRA-CANDIDAT** (`DEFAULT_WEIGHTS`, src/lib/scoring.ts) :
  *    pondèrent les critères d'un candidat (E2-S06, `computeScore()`).
@@ -36,6 +38,7 @@ export const SOURCE_WEIGHTS: Record<
   wikidata: { weight: 0.8, timeoutMs: 10_000 },
   traceparts: { weight: 0.6, timeoutMs: 3_000 },
   tecdoc: { weight: 0.5, timeoutMs: 3_000 },
+  industrial_catalog: { weight: 0.55, timeoutMs: 5_000 },
 } as const;
 
 export type ScoringSource = keyof typeof SOURCE_WEIGHTS;
