@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 EN COURS** (stabilisation, documentation finale, production préparée — fallback E7, S01 cadrage, S02 audit qualité, S03 documentation projet) |
-| **Dernière session** | E8-S03 — Documentation projet (README mis à jour, docs/architecture.md créé) |
-| **Session en cours** | E8-S03 — Documentation projet (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), **E8 EN COURS** (S01 cadrage, S02 audit qualité, S03 documentation projet — stabilisation/documentaire, fallback E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M + 14 F (0 Haute actionnable), **E7 bloquée** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback, aucun credential requis) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 EN COURS** (stabilisation, documentation finale, production préparée — fallback E7, S01 cadrage, S02 audit qualité, S03 documentation projet, S04 guide de déploiement) |
+| **Dernière session** | E8-S04 — Guide de déploiement production (docs/deployment.md mis à jour) |
+| **Session en cours** | E8-S04 — Guide de déploiement production (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), **E8 EN COURS** (S01 cadrage, S02 audit qualité, S03 documentation projet, S04 guide de déploiement — stabilisation/documentaire, fallback E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M + 14 F (0 Haute actionnable), **E7 bloquée** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback, aucun credential requis) |
 
 ---
 
@@ -1403,6 +1403,60 @@ Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · 
 
 - **E8-S04** : guide de déploiement production — **autonome**
 - **E8-S05** : checklist production + variables d'env
+- **E8-S06** : préparation E7 (credentials requis)
+- **E8-clôture** : audit de clôture phase E8
+- **E7** : déblocage 5 Moyennes — **bloquée** (credentials requis)
+
+---
+
+## E8-S04 — Guide de déploiement production (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Documentaire (aucun code modifié)
+**HEAD :** `<commit E8-S04>`
+
+### Bloc 0 — Vérifications
+
+- HEAD = `145486e` ✅
+- Working tree clean ✅
+- `docs/deployment.md` présent (161 lignes, E4-S07) ✅
+
+### Bloc A — Sources lues
+
+- `package.json` (scripts, dépendances)
+- `next.config.mjs` (reactStrictMode, remotePatterns images)
+- `.env.example` (73 lignes — DATABASE_URL, DIRECT_URL, CLOUDINARY_*, HF_API_TOKEN, TRACEPARTS_*, WIKIDATA_USER_AGENT, NEXT_PUBLIC_PLACEHOLDER_MODE)
+- `docs/migration-drift.md` (procédure R.4.1-ter)
+- `docs/e2e-constraints.md` (référencé)
+
+### Bloc B — docs/deployment.md mis à jour
+
+- **Vue d'ensemble** : Vercel + Neon PostgreSQL (pgvector)
+- **Prérequis** : compte Vercel, Neon, domaine, Sentry
+- **Variables d'environnement** : obligatoires (DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL) + optionnelles (TECDOC_*, TRACEPARTS_*, HF_API_TOKEN, WIKIDATA_USER_AGENT, SENTRY_DSN) — Sécurité #7, R.5.10
+- **Procédure de déploiement** : première mise en production + mise à jour
+- **Migrations Prisma** : `migrate deploy` standard + drift GIN/HNSW (R.4.1-ter, réf migration-drift.md)
+- **Monitoring** : healthcheck `/api/health`, Sentry (optionnel), logs Vercel
+- **Rollback** : application (`vercel rollback`) + migration (manuelle — Prisma pas de rollback auto)
+- **Checklist pré-déploiement** : réf production-checklist.md (E8-S05)
+- **Dettes bloquantes** : D-deploy-comptes, D-tecdoc-credentials, D-traceparts-credentials, D-photo-embedding-backfill
+
+### Baseline E8-S04
+
+Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+### Décisions (R.5.21 — avance par défaut)
+
+- **D1** = Oui (docs/deployment.md mis à jour)
+- **D2** = Oui (mise à jour ROADMAP.md — E8-S04 clôturée)
+- **D3** = Oui (mise à jour SESSION.md — métadonnées + historique)
+- **D4** = Oui (validation baseline — ESLint/TS/Prettier)
+- **D5** = Oui (commit final)
+
+### Passation E8-S04 → E8-S05
+
+- **E8-S05** : checklist production + variables d'env — **autonome**
 - **E8-S06** : préparation E7 (credentials requis)
 - **E8-clôture** : audit de clôture phase E8
 - **E7** : déblocage 5 Moyennes — **bloquée** (credentials requis)
