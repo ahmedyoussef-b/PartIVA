@@ -93,15 +93,36 @@ E7 (déblocage des 5 dettes Moyennes) nécessite des **credentials externes**. C
 
 ---
 
+### 2.5 Clés placeholder (R.5.22)
+
+**Contexte :** les contrats TecDoc et TraceParts sont **en attente de réponse**. Des **clés placeholder** sont en place pour permettre au connecteur de fonctionner en mode mock.
+
+**Règle R.5.22 — Clés placeholder non bloquantes :**
+
+> Une clé placeholder (valeur factice) ne bloque aucune session. Le connecteur bascule automatiquement en mode mock si la clé est absente ou placeholder. La session concernée est marquée « en attente contrat » mais **n'est pas bloquée**.
+
+**Clés placeholder actuelles :**
+
+| Variable | Valeur placeholder | Comportement |
+|---|---|---|
+| `TECDOC_API_KEY` | `placeholder` | Mode mock |
+| `TECDOC_PROVIDER_ID` | `placeholder` | Mode mock |
+| `TRACEPARTS_TENANT_UID` | `placeholder` | Mode mock |
+| `TRACEPARTS_API_KEY` | `placeholder` | Mode mock |
+
+**Impact :** les fonctionnalités TecDoc/TraceParts fonctionnent en mode mock. Aucune session n'est bloquée.
+
+---
+
 ## 3. Tableau récapitulatif
 
-| Dette | Credential(s) | Source | Bloque E7 ? |
+| Dette | Credential(s) | Source | Statut |
 |---|---|---|---|
-| `D-photo-embedding-backfill` | `HF_API_TOKEN` | HuggingFace | ⚠️ Partiel |
-| `D-traceparts-credentials` | `TRACEPARTS_*` | TraceParts | ⚠️ Partiel |
-| `D-deploy-comptes` | Vercel/Sentry/domaine | Multi | ⚠️ Partiel |
-| `D-tecdoc-credentials` | `TECDOC_*` | TecDoc | ⚠️ Partiel |
-| `D-tecdoc-auto-parts` | `TECDOC_*` | TecDoc | ⚠️ Partiel |
+| `D-photo-embedding-backfill` | `HF_API_TOKEN` | HuggingFace | 🟠 Bloquée |
+| `D-traceparts-credentials` | `TRACEPARTS_*` | TraceParts | 🟡 **En attente contrat** |
+| `D-deploy-comptes` | Vercel/Sentry/domaine | Multi | 🟠 Bloquée |
+| `D-tecdoc-credentials` | `TECDOC_*` | TecDoc | 🟡 **En attente contrat** |
+| `D-tecdoc-auto-parts` | `TECDOC_*` | TecDoc | 🟡 **En attente contrat** |
 
 **Verdict :** E7 peut être **partiellement débloquée** si certains credentials sont disponibles. Chaque credential débloque une fonctionnalité.
 

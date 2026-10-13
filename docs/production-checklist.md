@@ -89,11 +89,12 @@
 | Dette | Sévérité | Impact | Bloque la prod ? |
 |---|---|---|---|
 | `D-deploy-comptes` | Moyenne | Vercel/Sentry/domaine non provisionnés | ⚠️ Partiel |
-| `D-tecdoc-credentials` | Moyenne | Connecteur TecDoc réel désactivé | ❌ Non (mock) |
-| `D-traceparts-credentials` | Moyenne | Connecteur TraceParts réel désactivé | ❌ Non (mock) |
+| `D-tecdoc-credentials` | Moyenne | Connecteur TecDoc mock (R.5.22) | ❌ Non |
+| `D-traceparts-credentials` | Moyenne | Connecteur TraceParts mock (R.5.22) | ❌ Non |
 | `D-photo-embedding-backfill` | Moyenne | Embeddings photo désactivés | ❌ Non |
+| `D-tecdoc-auto-parts` | Moyenne | Connecteur TecDoc mock (R.5.22) | ❌ Non |
 
-**Verdict :** la production est possible en mode dégradé (mocks). Les credentials activent les fonctionnalités réelles.
+**Verdict :** la production est possible en mode dégradé (mocks). Les credentials activent les fonctionnalités réelles. Les dettes TecDoc/TraceParts sont **en attente contrat** (R.5.22 — clés placeholder, non bloquantes).
 
 ---
 

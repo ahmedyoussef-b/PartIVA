@@ -453,9 +453,9 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E8 — STABILISATION, DOCUMENTATION FINALE, PRODUCTION PRÉPARÉE (🔄 EN COURS)
+## 🏗️ E8 — STABILISATION, DOCUMENTATION FINALE, PRODUCTION PRÉPARÉE (✅ CLÔTURÉE)
 
-**Statut :** 🔄 **En cours** (E8-S01 cadrage 2026-10-13 — `docs/e8-s01-cadrage.md`)
+**Statut :** ✅ **Clôturée** (E8-clôture 2026-10-13 — D-E8-C1 à C8, rapport `docs/e8-close-report.md`)
 
 **Nature :** Documentaire + préparation production. **Fallback de E7** (déblocage 5 Moyennes bloqué par credentials externes). **Aucun credential externe requis.**
 
@@ -473,15 +473,29 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 | **E8-S04** | Guide de déploiement production | Documentaire | ✅ Clôturée 2026-10-13 (`docs/deployment.md` mis à jour — prérequis, variables d'env, procédure, migrations, monitoring, rollback, dettes bloquantes) |
 | **E8-S05** | Checklist production + variables d'env | Documentaire | ✅ Clôturée 2026-10-13 (`docs/env-vars.md` + `docs/production-checklist.md` créés, `docs/deployment.md` référencé) |
 | **E8-S06** | Préparation E7 (credentials requis) | Documentaire | ✅ Clôturée 2026-10-13 (`docs/e7-credentials.md` + `docs/e7-readiness.md` créés, `docs/deployment.md` référencé) |
-| **E8-clôture** | Audit de clôture phase E8 | Audit | 🟢 À cadrer |
+| **E8-clôture** | Audit de clôture phase E8 | Audit | ✅ Clôturée 2026-10-13 (`docs/e8-close-report.md` — D-E8-C1 à C8, R.5.22 actée) |
 
-**Total estimé :** 7-9 h.
+**Total :** 7 sessions + 1 clôture. **Phase E8 CLÔTURÉE.**
 
 **Baseline E8 (inchangée) :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations · 0 dette Haute.
 
-**Contraintes :** aucun credential externe requis, aucune modification de code (E8 = documentaire + audit), baseline inchangée, R.5.21 (avance par défaut).
+**Contraintes :** aucun credential externe requis, aucune modification de code (E8 = documentaire + audit), baseline inchangée, R.5.21 (avance par défaut), **R.5.22 (clés placeholder non bloquantes)**.
 
-**Livrables E8 :** `docs/e8-s01-cadrage.md`, `docs/e8-s02-audit.md`, `README.md` (mis à jour), `docs/architecture.md` (nouveau), `docs/deployment.md` (mis à jour), `docs/production-checklist.md` (nouveau), `docs/e7-credentials.md` (nouveau), `docs/e8-close-report.md`.
+**Livrables E8 :** `docs/e8-s01-cadrage.md`, `docs/e8-s02-audit.md`, `README.md` (mis à jour), `docs/architecture.md` (nouveau), `docs/deployment.md` (mis à jour), `docs/env-vars.md` (nouveau), `docs/production-checklist.md` (nouveau), `docs/e7-credentials.md` (nouveau), `docs/e7-readiness.md` (nouveau), `docs/e8-close-report.md`.
+
+### Bilan E8
+
+- **Sessions** : 7/7 clôturées (S01 → S06 + clôture)
+- **Documentation** : README, architecture, déploiement, env-vars, production-checklist, e7-credentials, e7-readiness
+- **Règles** : R.5.21 (avance par défaut), **R.5.22 (clés placeholder non bloquantes)**
+- **Dettes E7** : 5 Moyennes — 3/5 **en attente contrat** (TecDoc, TraceParts — R.5.22), 2/5 bloquées (HF, Vercel)
+- **Baseline** : tenue (59 routes, 284 E2E, 15 migrations)
+
+### Passation E8 → E7 / clôture projet
+
+- **E7** : déblocage 5 Moyennes — **partiellement débloquable** (3/5 en attente contrat R.5.22, 2/5 bloquées HF/Vercel)
+- **Clôture projet** : alternative si E7 reste bloquée
+- **Recommandation (R.5.21)** : E7 cadrable session par session, selon les credentials disponibles
 
 ---
 

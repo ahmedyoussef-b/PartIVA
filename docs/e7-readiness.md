@@ -21,12 +21,12 @@ E7 (déblocage des 5 dettes Moyennes) est **bloquée** par des credentials exter
 | Dette | Sévérité | Credential requis | Statut |
 |---|---|---|---|
 | `D-photo-embedding-backfill` | Moyenne | `HF_API_TOKEN` | 🟠 Bloquée |
-| `D-traceparts-credentials` | Moyenne | `TRACEPARTS_*` | 🟠 Bloquée |
+| `D-traceparts-credentials` | Moyenne | `TRACEPARTS_*` | 🟡 **En attente contrat** |
 | `D-deploy-comptes` | Moyenne | Vercel/Sentry/domaine | 🟠 Bloquée |
-| `D-tecdoc-credentials` | Moyenne | `TECDOC_*` | 🟠 Bloquée |
-| `D-tecdoc-auto-parts` | Moyenne | `TECDOC_*` | 🟠 Bloquée |
+| `D-tecdoc-credentials` | Moyenne | `TECDOC_*` | 🟡 **En attente contrat** |
+| `D-tecdoc-auto-parts` | Moyenne | `TECDOC_*` | 🟡 **En attente contrat** |
 
-**5/5 bloquées.**
+**Verdict :** 3/5 en attente contrat (non bloquantes, R.5.22), 2/5 bloquées.
 
 ---
 

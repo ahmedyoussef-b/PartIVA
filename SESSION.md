@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 EN COURS** (stabilisation, documentation finale, production préparée — fallback E7, S01 cadrage, S02 audit qualité, S03 documentation projet, S04 guide de déploiement, S05 checklist production, S06 préparation E7) |
-| **Dernière session** | E8-S06 — Préparation E7 (docs/e7-credentials.md + docs/e7-readiness.md créés) |
-| **Session en cours** | E8-S06 — Préparation E7 (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), **E8 EN COURS** (S01 cadrage, S02 audit qualité, S03 documentation projet, S04 guide de déploiement, S05 checklist production, S06 préparation E7 — stabilisation/documentaire, fallback E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M + 14 F (0 Haute actionnable), **E7 bloquée** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback, aucun credential requis) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 CLÔTURÉE** (S01 cadrage, S02 audit qualité, S03 documentation projet, S04 guide de déploiement, S05 checklist production, S06 préparation E7, clôture — D-E8-C1 à C8, R.5.22 actée) |
+| **Dernière session** | E8-clôture — Audit de clôture phase E8 (7/7 sessions, baseline tenue, R.5.22 actée, D-E8-C1 à C8, rapport e8-close-report.md) |
+| **Session en cours** | E8-clôture — Audit de clôture phase E8 (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8), **E8 CLÔTURÉE** (D-E8-C1 à D-E8-C8 — 7/7 sessions, R.5.21 + R.5.22), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M (3 en attente contrat R.5.22 + 2 bloquées HF/Vercel) + 14 F, **0 dette Haute**, **E7 prochaine** (déblocage 5 Moyennes — 3/5 en attente contrat, 2/5 bloquées) ou **clôture projet** |
 
 ---
 
@@ -1592,7 +1592,84 @@ Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · 
 ### Passation E8-S06 → E8-clôture
 
 - **E8-clôture** : audit de clôture phase E8 — **autonome**
-- **E7** : déblocage 5 Moyennes — **bloquée** (credentials requis)
+- **E7** : déblocage 5 Moyennes — **partiellement débloquable** (3/5 en attente contrat R.5.22, 2/5 bloquées HF/Vercel)
+
+---
+
+## E8-clôture — Audit de clôture phase E8 (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Audit + documentaire (aucun code modifié)
+**HEAD :** `<commit E8-clôture>`
+**Rapport de clôture :** `docs/e8-close-report.md`
+
+### Bloc 0 — Vérifications
+
+- HEAD = `ac0e573` ✅
+- Working tree clean ✅
+- Prisma : 15 migrations up to date ✅, schéma valide ✅
+
+### Bloc A — Baseline
+
+- ESLint 0/0 ✅
+- TypeScript 0 erreur ✅
+- Prettier 0 ✅
+- Build 59 routes ✅ (compiled successfully)
+- E2E 288 tests listés dans 41 fichiers (284 passed / 0 failed / 4 skipped) ✅
+- Prisma 15 migrations ✅
+
+### Bloc B — Mise à jour R.5.22 (4 documents)
+
+- **`docs/e7-credentials.md`** : §2.5 ajoutée (clés placeholder R.5.22), §3 mis à jour (statuts : 3/5 en attente contrat, 2/5 bloquées)
+- **`docs/e7-readiness.md`** : §2 mis à jour (3/5 en attente contrat R.5.22, 2/5 bloquées)
+- **`docs/production-checklist.md`** : §5 mis à jour (TecDoc/TraceParts mock R.5.22, non bloquantes)
+- **`DEBT.md`** : en-tête mis à jour (phase E8 clôturée, R.5.22), `D-tecdoc-credentials`/`D-traceparts-credentials`/`D-tecdoc-auto-parts` → « en attente contrat » (R.5.22, non bloquantes)
+
+### Bloc C — Audit sessions E8
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| E8-S01 | Cadrage phase E8 | `f5406b2` | ✅ |
+| E8-S02 | Audit qualité + dette technique | `b12368b` | ✅ |
+| E8-S03 | Documentation projet | `145486e` | ✅ |
+| E8-S04 | Guide de déploiement | `9005802` | ✅ |
+| E8-S05 | Checklist production + env | `09106e6` | ✅ |
+| E8-S06 | Préparation E7 | `ac0e573` | ✅ |
+| E8-clôture | Audit phase E8 | — | ✅ |
+
+**7/7 sessions clôturées.**
+
+### Bloc E — Décisions de clôture (D-E8-C1 à C8)
+
+- **D-E8-C1** : Phase E8 clôturée (7/7 sessions)
+- **D-E8-C2** : Baseline E8 validée (59 routes, 284 E2E, 15 migrations)
+- **D-E8-C3** : Documentation E8 complète (README, architecture, déploiement, env-vars, production-checklist, e7-credentials, e7-readiness)
+- **D-E8-C4** : R.5.22 (clés placeholder non bloquantes) actée
+- **D-E8-C5** : E7 — 3/5 en attente contrat (TecDoc, TraceParts)
+- **D-E8-C6** : E7 partiellement débloquable (HF, Vercel)
+- **D-E8-C7** : Prochaine phase = E7 (si credentials) ou clôture projet
+- **D-E8-C8** : R.5.21 + R.5.22 confirmées pour E7+
+
+### Baseline E8-clôture
+
+Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+### Décisions (R.5.21 — avance par défaut)
+
+- **D1** = Oui (mise à jour R.5.22 — 4 documents)
+- **D2** = Oui (docs/e8-close-report.md créé)
+- **D3** = Oui (mise à jour ROADMAP.md — phase E8 clôturée)
+- **D4** = Oui (mise à jour SESSION.md — métadonnées + historique)
+- **D5** = Oui (mise à jour DEBT.md — statuts R.5.22)
+- **D6** = Oui (validation baseline — ESLint/TS/Prettier)
+- **D7** = Oui (commit final)
+
+### Passation E8-clôture → E7 / clôture projet
+
+- **E7** : déblocage 5 Moyennes — **partiellement débloquable** (3/5 en attente contrat R.5.22, 2/5 bloquées HF/Vercel)
+- **Clôture projet** : alternative si E7 reste bloquée
+- **Recommandation (R.5.21)** : E7 cadrable session par session, selon les credentials disponibles
 
 ---
 
