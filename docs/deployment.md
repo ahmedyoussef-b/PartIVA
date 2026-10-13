@@ -30,6 +30,8 @@ PartIVA est déployé sur **Vercel** (Next.js 16 App Router) avec **PostgreSQL N
 
 ## 3. Variables d'environnement
 
+**Référence exhaustive :** [docs/env-vars.md](env-vars.md) (E8-S05).
+
 ### 3.1 Obligatoires
 
 | Variable | Objet | Source |
@@ -166,7 +168,9 @@ Procédure manuelle :
 
 ## 8. Checklist pré-déploiement
 
-Voir [docs/production-checklist.md](production-checklist.md) (E8-S05).
+**Checklist exhaustive :** [docs/production-checklist.md](production-checklist.md) (E8-S05).
+
+**Résumé :** variables obligatoires, migrations à jour, build vert, E2E 100%, aucun secret en `NEXT_PUBLIC_`.
 
 ---
 
