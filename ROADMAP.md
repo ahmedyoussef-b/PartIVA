@@ -472,7 +472,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 | **E8-S03** | Documentation projet (README, architecture) | Documentaire | ✅ Clôturée 2026-10-13 (`README.md` mis à jour, `docs/architecture.md` créé) |
 | **E8-S04** | Guide de déploiement production | Documentaire | ✅ Clôturée 2026-10-13 (`docs/deployment.md` mis à jour — prérequis, variables d'env, procédure, migrations, monitoring, rollback, dettes bloquantes) |
 | **E8-S05** | Checklist production + variables d'env | Documentaire | ✅ Clôturée 2026-10-13 (`docs/env-vars.md` + `docs/production-checklist.md` créés, `docs/deployment.md` référencé) |
-| **E8-S06** | Préparation E7 (credentials requis) | Documentaire | 🟢 À cadrer |
+| **E8-S06** | Préparation E7 (credentials requis) | Documentaire | ✅ Clôturée 2026-10-13 (`docs/e7-credentials.md` + `docs/e7-readiness.md` créés, `docs/deployment.md` référencé) |
 | **E8-clôture** | Audit de clôture phase E8 | Audit | 🟢 À cadrer |
 
 **Total estimé :** 7-9 h.
