@@ -2,6 +2,10 @@
 
 > Registre vivant. Mis à jour à chaque clôture de session.
 > Format : ID / Description / Sévérité / Phase cible / Bloquant / Décision
+>
+> **Phase E6 CLÔTURÉE** (2026-10-13 — D-E6-C1 à C8, rapport `docs/e6-close-report.md`).
+> Dettes E6 : `D-tecdoc-auto-parts` (M, reportée E7), `D-rebrickable-pattern` (F, reportée E8).
+> Prochaine phase : **E7** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback).
 
 ---
 

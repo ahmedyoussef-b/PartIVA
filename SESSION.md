@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma) |
-| **Dernière session** | E6-S10 — Nettoyage dettes restantes (procédure drift R.4.1-ter, e2e-constraints +2 contraintes, D-searchsource-i18n-sync vérifiée, reports E7 confirmés) |
-| **Session en cours** | E6-S10 — Nettoyage dettes restantes (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire), **E6-S05 CLÔTURÉE** (catalogue industriel HF — Scénario A), **E6-S06 CLÔTURÉE** (spécification auto-parts — D1-D7 confirmés R.5.17), **E6-S07 CLÔTURÉE** (modèle Prisma + migration 14→15 — R.5.18 autoCategory, R.5.19 renumérotation), **E6-S07-A CLÔTURÉE** (amendements documentaires — commentaire KType+, spec autoCategory, positioning.md, D-rebrickable-pattern), **E6-S08 CLÔTURÉE** (connecteur TecDoc mock enrichi — VIN2OE, photo+fitment, routes API vehicle/vin, 26 tests E2E), **E6-S10 CLÔTURÉE** (nettoyage dettes — procédure drift R.4.1-ter, e2e-constraints +2, D-searchsource-i18n-sync vérifiée), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), E6-clôture prochaine |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E7 À CADRER** (déblocage 5 Moyennes) |
+| **Dernière session** | E6-clôture — Audit de clôture phase E6 (bilan 8/10 sessions, baseline 59 routes/284 E2E/15 migrations, D-E6-C1 à C8, rapport e6-close-report.md) |
+| **Session en cours** | E6-clôture — Audit de clôture phase E6 (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8 — S01, S04, S05, S06, S07, S07-A, S08, S10, clôture ; S09 reportée E7), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 6 (5 M + 1 F), **E7 prochaine** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback) |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
 - [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
-- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅) + E6-S05 (catalogue industriel HF — ✅ Scénario A) + E6-S06 (spécification auto-parts — ✅) + E6-S07 (modèle Prisma + migration — ✅ 14→15), puis sessions E6 actives (S08 connecteur TecDoc mock, S10 nettoyage, clôture)
+- [x] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06-déploiement/S09 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅) + E6-S05 (catalogue industriel HF — ✅ Scénario A) + E6-S06 (spécification auto-parts — ✅) + E6-S07 (modèle Prisma + migration — ✅ 14→15) + E6-S07-A (amendements — ✅) + E6-S08 (connecteur TecDoc mock enrichi — ✅ VIN2OE, photo+fitment, routes API vehicle/vin) + E6-S10 (nettoyage dettes — ✅) + E6-clôture (audit phase — ✅ D-E6-C1 à C8, `docs/e6-close-report.md`) — **E6 CLÔTURÉE** (S09 TecDoc réel reportée E7)
 
 ---
 
@@ -1161,6 +1161,69 @@ Inchangée : ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 59 routes · 
 
 - **E6-clôture** : audit de clôture phase E6 — **autonome**
 - **E6-S09** : TecDoc réel — **bloqué** (contrat TecDoc/TecAlliance, reporté E7)
+
+---
+
+## E6-clôture — Audit de clôture phase E6 (CLÔTURÉE)
+
+**Statut :** ✅ Clôturée
+**Date :** 2026-10-13
+**Type :** Audit + documentaire
+**HEAD :** `<commit E6-clôture>`
+**Rapport de clôture :** `docs/e6-close-report.md`
+
+### Bilan E6
+
+**Sessions :** 10 (8 clôturées, 1 bloquée reportée E7, 1 clôture)
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| E6-S01 | Cadrage phase E6 | `c0c889d` | ✅ |
+| E6-S04 | D-completeness-* | `8cdfc53` | ✅ |
+| E6-S05 | Catalogue Dockerisé | `664c928` | ✅ |
+| E6-S06 | Spécification auto-parts | `960af1b` | ✅ |
+| E6-S07 | Modèle Prisma + migration | `7dc7056` | ✅ |
+| E6-S07-A | Amendements | `e2e9b79` | ✅ |
+| E6-S08 | Connecteur TecDoc mock | `47881b2` | ✅ |
+| E6-S10 | Nettoyage dettes | `ae2410d` + `b1f7f01` | ✅ |
+| E6-S09 | TecDoc réel | — | 🟠 Bloquée (reportée E7) |
+| E6-clôture | Audit phase E6 | `<commit>` | ✅ |
+
+### Livrables E6
+
+- **Code** : `Vehicle`, `Fitment`, extension `Part` (material, autoCategory), migration 14→15, connecteur TecDoc mock enrichi (VIN2OE, photo+fitment), routes API `/api/search/vehicle` + `/api/search/vin`, fixtures 60 pièces/25 véhicules/60 fitments, 26 tests E2E
+- **Docs** : `docs/e6-s01-cadrage.md`, `docs/e6-s04-cadrage.md`, `docs/e6-s05-cadrage.md`, `docs/e6-s05-auto-parts-spec.md`, `docs/positioning.md`, `docs/migration-drift.md`, `docs/e2e-constraints.md` (étendu), `docs/e6-close-report.md`
+- **Dettes** : créées `D-tecdoc-auto-parts` (M, E7) + `D-rebrickable-pattern` (F, E8) ; clôturée `D-completeness-material` (E6-S04)
+
+### Décisions de clôture (D-E6-C1 à C8)
+
+- **D-E6-C1** : Phase E6 clôturée (8/10 sessions + 1 bloquée reportée E7 + 1 clôture)
+- **D-E6-C2** : E6-S09 (TecDoc réel) reportée en E7 (contrat TecDoc/TecAlliance requis)
+- **D-E6-C3** : 5 dettes Moyennes reportées en E7 (credentials externes requis)
+- **D-E6-C4** : Dettes Faibles restantes reportées en E7/E8
+- **D-E6-C5** : Baseline E6 validée (59 routes, 284 E2E, 15 migrations)
+- **D-E6-C6** : Documentation E6 complète (specs, rapports, positioning, migration-drift)
+- **D-E6-C7** : R.5.21 (avance par défaut) confirmée pour E7/E8
+- **D-E6-C8** : Prochaine phase = E7 (déblocage 5 Moyennes) ou E8 (fallback si credentials absents)
+
+### Baseline E6-clôture
+
+ESLint 0/0 · TypeScript 0 err · Prettier 0 · **Build 59 routes** · **E2E 284/0/4** · **Prisma 15 migrations** — **inchangée** (session documentaire).
+
+### Leçons E6
+
+1. **R.5.18** (collision Prisma) — `category` déjà pris (relation `PartCategory`), `autoCategory` utilisé
+2. **R.5.19** (numérotation) — E6-S07-A séparée de E6-S08
+3. **R.5.21** (avance par défaut) — gain de temps significatif
+4. **R.4.1-ter** (drift) — procédure manuelle documentée (`docs/migration-drift.md`)
+5. **R.5.2** (enum+i18n) — synchronisation atomique appliquée
+6. **R.5.16** (nature d'une source) — réponse réelle capturée avant de retenir une source
+
+### Passation E6 → E7/E8
+
+- **E7** : déblocage des 5 Moyennes — **à cadrer** (credentials requis : `HF_API_TOKEN`, `TRACEPARTS_*`, comptes Vercel/Sentry/domaine, contrat TecDoc)
+- **E8** : stabilisation, documentation finale, production — **à cadrer** (fallback si credentials absents)
+- **Recommandation (R.5.21)** : E8 est le fallback naturel tant que les credentials E7 ne sont pas confirmés
 
 ---
 

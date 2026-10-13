@@ -330,9 +330,14 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ---
 
-## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
+## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, AUTO-PARTS (✅ CLÔTURÉE)
 
-**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma + E6-S07-A amendements + E6-S08 connecteur TecDoc mock enrichi + E6-S10 nettoyage dettes clôturés — 2026-10-13)
+**Statut :** ✅ **Clôturée 2026-10-13** (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma + E6-S07-A amendements + E6-S08 connecteur TecDoc mock enrichi + E6-S10 nettoyage dettes + E6-clôture — 8/10 sessions clôturées, 1 bloquée reportée E7, 1 clôture)
+
+**Bilan E6 :** 8/10 sessions clôturées, 1 bloquée (E6-S09 TecDoc réel, reportée E7), 1 clôture.
+**Baseline :** ESLint 0/0, TS 0, Prettier 0, **59 routes**, **284 E2E**, **15 migrations**, 0 dette Haute.
+**Livrables :** `Vehicle`/`Fitment` + extension `Part` (material, autoCategory), migration 14→15, connecteur TecDoc mock enrichi (VIN2OE, photo+fitment), routes API `/api/search/vehicle` + `/api/search/vin`, fixtures 60 pièces/25 véhicules/60 fitments, `docs/positioning.md`, `docs/migration-drift.md`, 26 tests E2E.
+**Rapport de clôture :** `docs/e6-close-report.md`.
 
 **Objectif E6 :** traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), nettoyer les dettes restantes. Les 4 déblocages Moyennes sont **requalifiés en dettes bloquées** (reportés phase finale E7).
 
@@ -353,9 +358,9 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 | **E6-S08** | Connecteur TecDoc mock enrichi | Technique | ✅ **Clôturée 2026-10-13** (VIN2OE, identification photo+fitment, routes API `/api/search/vehicle` + `/api/search/vin`, fixtures 60 pièces / 25 véhicules / 60 fitments, 26 tests E2E) |
 | **E6-S09** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` / `D-tecdoc-auto-parts` (reportée E7) |
 | **E6-S10** | Nettoyage dettes restantes | Technique | ✅ **Clôturée 2026-10-13** (procédure drift R.4.1-ter `docs/migration-drift.md`, `e2e-constraints` +2 contraintes, `D-searchsource-i18n-sync` vérifiée, reports E7 confirmés) |
-| **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 **Prochaine** — autonome |
+| **E6-clôture** | Audit de clôture phase E6 | Clôture | ✅ **Clôturée 2026-10-13** (`docs/e6-close-report.md` — D-E6-C1 à C8, baseline 59 routes/284 E2E/15 migrations) |
 
-**Total :** 10 sessions + 1 clôture. **Plan E6 actif :** E6-clôture (autonome).
+**Total :** 10 sessions + 1 clôture. **Phase E6 CLÔTURÉE.** Prochaine phase : **E7** (déblocage 5 Moyennes — credentials requis) ou **E8** (stabilisation, production — fallback).
 
 ### Sessions bloquées (dettes) — requalification 2026-10-13
 
@@ -378,7 +383,7 @@ Les sessions E6-S02, E6-S03, E6-S06 (déploiement) et E6-S09 sont **bloquées** 
 | Comptes Vercel/Sentry/domaine | E6-S06 (déploiement) | 3 |
 | Contrat TecDoc | E6-S09 | 4 |
 
-**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S08 (connecteur TecDoc mock enrichi) et E6-S10 (nettoyage dettes) sont clôturées — E6-clôture (audit phase E6) est autonome et peut démarrer immédiatement.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. **Phase E6 clôturée** — E7 (déblocage 5 Moyennes) ou E8 (stabilisation, production) est la prochaine phase.
 
 ### Baseline cible E6
 
