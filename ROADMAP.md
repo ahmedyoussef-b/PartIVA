@@ -332,7 +332,7 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
 
-**Statut :** 🟢 En cours (E6-S01 cadrage + requalification — 2026-10-13)
+**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 clôturée — 2026-10-13)
 
 **Objectif E6 :** traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), nettoyer les dettes restantes. Les 4 déblocages Moyennes sont **requalifiés en dettes bloquées** (reportés phase finale E7).
 
@@ -345,14 +345,14 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 | **E6-S01** | Cadrage phase E6 | Cadrage | ✅ Clôturée 2026-10-13 (`docs/e6-s01-cadrage.md`) |
 | **E6-S02** | Déblocage TraceParts (JWT) | Technique | 🟠 **Bloquée** — `D-traceparts-credentials` (reportée E7) |
 | **E6-S03** | Déblocage photo embeddings (HF) | Technique | 🟠 **Bloquée** — `D-photo-embedding-backfill` (reportée E7) |
-| **E6-S04** | `D-completeness-*` (3 dettes) | Technique | 🟢 **Prochaine** — autonome |
-| **E6-S05** | Catalogue Dockerisé alternatif | Technique | 🟢 Autonome (source à identifier, R.5.16) |
+| **E6-S04** | `D-completeness-*` (3 dettes) | Technique | ✅ **Clôturée 2026-10-13** (session documentaire — `D-completeness-material` clôturée par décision, `category-keys` + `blocking` reportées E7) |
+| **E6-S05** | Catalogue Dockerisé alternatif | Technique | 🟢 **Prochaine** — autonome (source à identifier, R.5.16) |
 | **E6-S06** | Déploiement réel (Vercel/Sentry/domaine) | Infra | 🟠 **Bloquée** — `D-deploy-comptes` (reportée E7) |
 | **E6-S07** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` (reportée E7) |
 | **E6-S08** | Nettoyage dettes restantes | Technique | 🟢 Autonome |
 | **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 À cadrer |
 
-**Total :** 8 sessions + 1 clôture. **Plan E6 actif :** E6-S04, E6-S05, E6-S08 + E6-clôture (autonomes).
+**Total :** 8 sessions + 1 clôture. **Plan E6 actif :** E6-S05, E6-S08 + E6-clôture (autonomes).
 
 ### Sessions bloquées (dettes) — requalification 2026-10-13
 
@@ -374,11 +374,19 @@ Les sessions E6-S02, E6-S03, E6-S06 et E6-S07 sont **bloquées** par des dépend
 | Comptes Vercel/Sentry/domaine | E6-S06 | 3 |
 | Contrat TecDoc | E6-S07 | 4 |
 
-**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S04 (`D-completeness-*`) est autonome — peut démarrer immédiatement.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S05 (catalogue Dockerisé) est autonome — peut démarrer immédiatement.
 
 ### Baseline cible E6
 
 ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 250+ · Prisma 14+ migrations · Dettes Moyennes 4 (reportées E7).
+
+### Bilan E6-S04 (session documentaire)
+
+- **`D-completeness-material`** : ✅ clôturée par décision (`material` exclu — dimensionnel ≠ textuel)
+- **`D-completeness-category-keys`** : 🟠 documentée, reportée E7 (migration Prisma `CategoryRequiredSpec`)
+- **`D-completeness-blocking`** : 🟠 documentée, reportée E7 (arbitrage workflow)
+- **Dettes résiduelles** : 4 (4 Moyennes reportées E7 + 0 Faible)
+- **Document de référence** : `docs/debts-documentation.md` §7-9
 
 ---
 

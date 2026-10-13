@@ -98,6 +98,54 @@
 
 ---
 
+## 7. `D-completeness-category-keys` — Liste de specs requises par catégorie
+
+**Statut** : 🟠 **documentée, reportée E7** (E6-S04, D9 = Documenter).
+
+**Nature** : `REQUIRED_SPEC_KEYS` (`src/lib/part-required-specs.ts`) est une **liste globale fixe** (8 clés dimensionnelles : `diameter_ext`, `diameter_int`, `width`, `weight`, `module`, `teeth`, `bore`, `contact_angle`). Une liste **par catégorie** de pièce (`PartCategory`) nécessiterait un modèle `CategoryRequiredSpec` (categoryId + key) + migration Prisma + UI admin de configuration.
+
+**Constat** (Bloc 0 E6-S04) : la personnalisation par catégorie est **intrinsèquement un modèle de données** — aucune alternative sans migration. `getPartCompleteness()` (`src/lib/data/part-completeness.ts`) calcule `score = présent / REQUIRED_SPEC_KEYS.length` (dénominateur global 8).
+
+**Décision** : **documenter** — la liste globale est justifiée pour le MVP (8 clés dimensionnelles communes). La personnalisation par catégorie est **reportée E7** (session dédiée avec migration Prisma `CategoryRequiredSpec`).
+
+**Justification** : Q5 = Non (aucune migration Prisma en E6). Une liste par catégorie nécessite un nouveau modèle + migration + UI — hors périmètre E6-S04 (session documentaire). Partiellement atténuée en E2-S08 (auto-complétion des clés requises — dropdown UI « Mesures manquantes »).
+
+**Report E7** : modèle `CategoryRequiredSpec` + migration + UI admin de configuration des clés requises par catégorie + refonte `getPartCompleteness()` (résolution par catégorie).
+
+---
+
+## 8. `D-completeness-material` — `material` exclu des clés requises
+
+**Statut** : ✅ **clôturée par décision** (E6-S04, D10 = Documenter).
+
+**Nature** : `material` est **exclu** de `REQUIRED_SPEC_KEYS` (textuel, pas dimensionnel — décision 2-i E2-S07). ROADMAP ne le cite pas, seed non garanti.
+
+**Constat** (Bloc 0 E6-S04) : ajouter `material` aux clés requises change le **dénominateur de complétude** (8 → 9) pour **toutes les pièces** — régression sur les tests E2E existants (`e2e/part-completeness.spec.ts` : `expect(body.total).toBe(8)`). Nécessite aussi que le seed contienne `material` pour toutes les pièces (sinon score < 1 partout).
+
+**Décision** : **clôturer par décision** — `material` reste **exclu** des clés requises dimensionnelles. La complétude mesure les **8 clés dimensionnelles** (signaux techniques mesurables), pas les attributs textuels.
+
+**Justification** : `material` est un attribut textuel (libre), pas une mesure dimensionnelle. L'inclure dans le calcul de complétude mélangerait deux natures (dimensionnel vs textuel) et casserait la cohérence du score (dénominateur 8). Si `material` doit devenir un signal, ce serait une **liste distincte** `REQUIRED_TEXT_KEYS` (informative, non bloquante) — arbitrage E7, pas une modification du calcul existant.
+
+**Note** : `material` reste consultable via `PartSpecification` (clé `material`) — il n'est pas perdu, juste non compté dans le score de complétude.
+
+---
+
+## 9. `D-completeness-blocking` — Blocage workflow par complétude
+
+**Statut** : 🟠 **documentée, reportée E7** (E6-S04, D11 = Documenter).
+
+**Nature** : la complétude est une **suggestion passive** (badge + « Il manque : X, Y, Z » dans l'onglet Mesures) — aucun blocage de transition workflow si complétude < seuil.
+
+**Constat** (Bloc 0 E6-S04) : bloquer SUBMITTED→IDENTIFYING si complétude < seuil est un **changement de comportement workflow** — modifie `transitionPartStatus()` (`src/lib/data/part-transitions.ts`), logique métier critique. Risque de régression sur `e2e/part-transitions.spec.ts` (transitions existantes). Nécessite un seuil arbitré (100 % ? 80 % ?).
+
+**Décision** : **documenter** — la suggestion passive est le comportement actuel (décision 4a E2-S07). Le blocage workflow est un **changement de processus** à arbitrer par le Coordinateur — **reporté E7** (session dédiée avec tests de régression complets).
+
+**Justification** : un blocage de transition impacte le processus métier (une pièce incomplète ne peut plus avancer). C'est une décision produit/processus, pas technique — elle nécessite un arbitrage (seuil, périmètre, exceptions) et des tests de régression sur toutes les transitions. Hors périmètre E6-S04 (session documentaire, aucun changement de workflow).
+
+**Report E7** : arbitrage Coordinateur (seuil de complétude, transitions concernées, exceptions) + implémentation dans `transitionPartStatus()` + tests de régression `part-transitions.spec.ts`.
+
+---
+
 ## Récapitulatif
 
 | Dette | Sévérité | Statut | Décision |
@@ -108,8 +156,11 @@
 | `D-e2e-constraints` | Faible | ✅ documentée (E4-S06) | Regroupement 7 contraintes |
 | `D-hnsw-drift` | Faible | ✅ documentée (E4-S05) | Structurel — non corrigeable |
 | `D-embedding-model-deviation` | Faible | ✅ documentée (E2-S05) | Acceptée MVP |
+| `D-completeness-category-keys` | Faible | 🟠 documentée, reportée E7 (E6-S04) | Migration Prisma `CategoryRequiredSpec` |
+| `D-completeness-material` | Faible | ✅ clôturée par décision (E6-S04) | `material` exclu (dimensionnel ≠ textuel) |
+| `D-completeness-blocking` | Faible | 🟠 documentée, reportée E7 (E6-S04) | Arbitrage workflow (changement de processus) |
 
-**6 dettes Faibles documentaires clôturées** (E5-S06 : 2 nouvelles clôtures — `D-ts6133`, `D-scoring-weights-table`).
+**9 dettes Faibles documentaires** (E6-S04 : 1 clôture par décision — `D-completeness-material` ; 2 reports E7 — `category-keys`, `blocking`).
 
 ---
 

@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 EN COURS** (S01 cadrage) |
-| **Dernière session** | E6-S01 + requalification (4 sessions bloquées → dettes, reportées E7 — `docs/e6-s04-cadrage.md`) |
-| **Session en cours** | E6-S04 — `D-completeness-*` (3 dettes Faibles — cadrage produit, prochaine session active) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage — plan 8 sessions + 1 clôture), **E6 requalifiée** (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7 — plan actif : E6-S04, E6-S05, E6-S08 + clôture), baseline tenue, E2E 243/2/4, dettes résiduelles 5 (4 M + 1 F), E6-S04 (`D-completeness-*`) prochaine |
+| **Dernière session** | E6-S04 — `D-completeness-*` (session documentaire : `D-completeness-material` clôturée par décision, `category-keys` + `blocking` documentées et reportées E7) |
+| **Session en cours** | E6-S04 — `D-completeness-*` (terminée — session documentaire) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6-S01 CLÔTURÉE** (cadrage), **E6 requalifiée** (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7), **E6-S04 CLÔTURÉE** (session documentaire — D-completeness-material clôturée par décision, category-keys + blocking reportées E7), baseline tenue, E2E 243/2/4, dettes résiduelles 4 (4 M + 0 F), E6-S05 (catalogue Dockerisé) prochaine |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] **Phase 3 — Features secondaires** : **E3 CLÔTURÉE** (E3-S01 → E3-S05 + E3-clôture — Wikidata réel, TraceParts mock, agrégation + fallback, CADENAS abandonné)
 - [x] **Phase 4 — Polish & QA** : **E4 CLÔTURÉE** (E4-S01 → E4-S07 + E4-clôture — tuning, UX, performance, qualité, préparation déploiement — 5 dettes résiduelles)
 - [x] **Phase 5 — Déploiement** : **E5-S01 clôturée** (cadrage) + **E5-S02 clôturée** (déploiement placeholder) + **E5-S03 clôturée** (rapport de blocage) + **E5-S04 clôturée** (rapport — OpenSERP rejeté : moteur SERP web, pas catalogue de pièces) + **E5-S05 clôturée** (TecDoc mock) + **E5-S06 clôturée** (nettoyage dettes Faibles — 2 clôtures par décision) + **E5-clôture clôturée** (audit phase — D-E5-C1 à D-E5-C8, S07 reportée E6)
-- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7), puis sessions E6 actives (S04 complétude, S05 catalogue Dockerisé, S08 nettoyage, clôture)
+- [ ] **Phase 6 — Écosystème client** : E6-S01 (cadrage — ✅) + requalification (E6-S02/S03/S06/S07 bloquées → dettes, reportées E7) + E6-S04 (`D-completeness-*` — ✅ session documentaire), puis sessions E6 actives (S05 catalogue Dockerisé, S08 nettoyage, clôture)
 
 ---
 
@@ -822,6 +822,62 @@ Les 4 sessions bloquées par dépendances externes sont **retirées du plan acti
 ### Décisions en attente (Coordinateur)
 
 D1-D11 (cf. `docs/e6-s04-cadrage.md` §4) — validation requise avant exécution E6-S04.
+
+---
+
+## E6-S04 — `D-completeness-*` (session documentaire, CLÔTURÉE)
+
+**Statut :** ✅ Clôturée (session documentaire — pattern E5-S06)
+**Date :** 2026-10-13
+**Type :** Documentaire (aucun code, aucune migration)
+**HEAD :** `<commit E6-S04>`
+
+### Constat Bloc 0 (déjà réalisé — `docs/e6-s04-cadrage.md` §0)
+
+Les 3 dettes `D-completeness-*` ne sont **pas actionnables en code** sans migration Prisma ou arbitrage métier/workflow :
+- `D-completeness-category-keys` : nécessite modèle `CategoryRequiredSpec` + **migration Prisma** (Q5 = Non)
+- `D-completeness-material` : ajouter `material` change le dénominateur (8→9) → **régression** tests E2E (`total=8`)
+- `D-completeness-blocking` : bloquer SUBMITTED→IDENTIFYING = **changement de workflow** (régression `part-transitions.spec.ts`)
+
+### Décisions D9-D11 (Superviseur, déduction R.5.17)
+
+- **D9 = Documenter** — `D-completeness-category-keys` : liste globale justifiée (8 clés dimensionnelles). Personnalisation par catégorie = migration Prisma → **reportée E7** (session dédiée).
+- **D10 = Clôturer par décision** — `D-completeness-material` : `material` reste exclu (dimensionnel ≠ textuel). Ajout = régression dénominateur. **Clôturée** (documentée `docs/debts-documentation.md` §8).
+- **D11 = Documenter** — `D-completeness-blocking` : suggestion passive = comportement actuel. Blocage = arbitrage workflow → **reporté E7** (session dédiée).
+
+### Livrables
+
+- `docs/debts-documentation.md` — 3 sections ajoutées (§7 category-keys, §8 material, §9 blocking) + récapitulatif (9 dettes)
+- `DEBT.md` — `D-completeness-material` clôturée (déplacée en « résolues »), `category-keys` + `blocking` reportées E7
+- `SESSION.md` + `ROADMAP.md` — E6-S04 clôturée
+
+### Baseline E6-S04
+
+ESLint 0/0 · TypeScript 0 err · Prettier 0 · Build 57 routes · E2E 243/2/4 · Prisma 14 migrations — **inchangée** (session documentaire).
+
+### Dettes après E6-S04
+
+**4 dettes résiduelles (4 Moyennes + 0 Faible)** :
+- `D-traceparts-credentials` (M) — reportée E7
+- `D-photo-embedding-backfill` (M) — reportée E7
+- `D-deploy-comptes` (M) — reportée E7
+- `D-tecdoc-credentials` (M) — reportée E7
+
+**Dettes Faibles complétude** :
+- `D-completeness-material` — ✅ clôturée (E6-S04)
+- `D-completeness-category-keys` — 🟠 reportée E7 (migration)
+- `D-completeness-blocking` — 🟠 reportée E7 (workflow)
+
+### Décision
+
+- **D-E6-S04-1** : E6-S04 = session documentaire (clôture par décision, pattern E5-S06). Aucune migration, aucun changement de workflow. `D-completeness-material` clôturée, `category-keys` + `blocking` reportées E7.
+
+### Passation E6-S04 → E6-S05
+
+- **E6-S05** : catalogue Dockerisé alternatif — **autonome** (source à identifier, R.5.16)
+- **E6-S08** : nettoyage dettes restantes — **autonome**
+- **E6-clôture** : audit de clôture phase E6
+- **Priorité Coordinateur** : provisionner `TRACEPARTS_*` (débloque E6-S02 en phase finale E7)
 
 ---
 
