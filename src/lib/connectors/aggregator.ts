@@ -1,5 +1,6 @@
 import type { SearchCandidate } from '@/schemas/search';
 import type { SourceConnector } from './types';
+import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
 
 /**
  * Timeout global d'agrégation (D-E3-21).
@@ -134,6 +135,82 @@ function deduplicateCandidates(candidates: SearchCandidate[]): SearchCandidate[]
   }
 
   return result;
+}
+
+/**
+ * Recherche enrichie par VIN (VIN2OE — innovation #1 E6-S08).
+ *
+ * Décodage VIN (TecDoc) → véhicule → fitments → candidats.
+ * Retourne les candidats + le véhicule décodé.
+ *
+ * @param vin - Numéro VIN (11-17 caractères)
+ * @param options - Limite
+ */
+export async function aggregateSearchByVIN(
+  vin: string,
+  options: { limit?: number } = {},
+): Promise<{
+  candidates: SearchCandidate[];
+  vehicle: {
+    id: string;
+    make: string;
+    model: string;
+    year: number;
+    engine: string | null;
+    ktype: string | null;
+    vin: string | null;
+  } | null;
+}> {
+  return searchTecDocByVIN(vin, options);
+}
+
+/**
+ * Recherche enrichie par véhicule (innovation #4 E6-S08).
+ *
+ * make/model/year/engine → fitments → candidats.
+ * Filtrage optionnel sur autoCategory / material (focus plastique).
+ *
+ * @param params - Critères véhicule
+ * @param options - Limite, filtres
+ */
+export async function aggregateSearchByVehicle(
+  params: {
+    make: string;
+    model: string;
+    year: number;
+    engine?: string;
+  },
+  options: {
+    limit?: number;
+    autoCategory?: string;
+    material?: string;
+  } = {},
+): Promise<SearchCandidate[]> {
+  return searchTecDocByVehicle(params, options);
+}
+
+/**
+ * Recherche enrichie par photo + véhicule (innovation #4 E6-S08).
+ *
+ * Photo (base64) + véhicule → fitment → candidats.
+ * En mode mock, la photo est ignorée (pas d'embedding mock) —
+ * le fitment véhicule est le filtre principal.
+ *
+ * @param photo - Photo base64 (JPEG/PNG)
+ * @param vehicle - Critères véhicule
+ * @param options - Limite
+ */
+export async function aggregateSearchByPhotoAndVehicle(
+  photo: string,
+  vehicle: {
+    make: string;
+    model: string;
+    year: number;
+    engine?: string;
+  },
+  options: { limit?: number } = {},
+): Promise<SearchCandidate[]> {
+  return searchTecDocByPhotoAndVehicle(photo, vehicle, options);
 }
 
 /**

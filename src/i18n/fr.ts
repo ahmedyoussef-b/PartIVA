@@ -56,6 +56,21 @@ export const FR = {
     geometric_search: 'Recherche géométrique 3D / IA',
     industrial_catalog: 'Catalogue industriel (dataset HF)',
   } satisfies Record<SearchSource, string>,
+  autoCategories: {
+    body: 'Carrosserie',
+    interior: 'Intérieur',
+    exterior: 'Extérieur',
+    mechanical: 'Mécanique',
+  },
+  autoMaterials: {
+    ABS: 'ABS (acrylonitrile butadiène styrène)',
+    'ABS/PC': 'ABS/PC (mélange ABS/polycarbonate)',
+    PP: 'PP (polypropylène)',
+    PC: 'PC (polycarbonate)',
+    PA: 'PA (polyamide / nylon)',
+    PUR: 'PUR (polyuréthane)',
+    TPO: 'TPO (polyoléfine thermoplastique)',
+  },
   steps: {
     identification: '1. Identification client',
     machine: '2. Machine & Contexte',

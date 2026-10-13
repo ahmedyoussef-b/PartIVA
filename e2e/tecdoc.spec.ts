@@ -37,16 +37,16 @@ test.describe('TecDoc connector (E5-S05)', () => {
     });
   });
 
-  test('mode mock — recherche "frein" retourne 1 produit', async () => {
+  test('mode mock — recherche "frein" retourne des produits', async () => {
     const result = await withMockMode(() => searchTecDoc('frein'));
-    expect(result.products).toHaveLength(1);
+    expect(result.products.length).toBeGreaterThanOrEqual(1);
     expect(result.products[0]!.id).toBe('TD-001');
     expect(result.products[0]!.name).toContain('frein');
   });
 
-  test('mode mock — recherche "filtre" retourne 1 produit', async () => {
+  test('mode mock — recherche "filtre" retourne des produits', async () => {
     const result = await withMockMode(() => searchTecDoc('filtre'));
-    expect(result.products).toHaveLength(1);
+    expect(result.products.length).toBeGreaterThanOrEqual(1);
     expect(result.products[0]!.id).toBe('TD-002');
   });
 
@@ -55,7 +55,6 @@ test.describe('TecDoc connector (E5-S05)', () => {
     expect(result.products).toHaveLength(1);
     expect(result.products[0]!.partNumber).toBe('0 986 494 028');
   });
-
   test('mode mock — recherche "inexistant" retourne 0 produit', async () => {
     const result = await withMockMode(() => searchTecDoc('inexistant-xyz'));
     expect(result.products).toHaveLength(0);

@@ -332,7 +332,7 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 
 ## 🏗️ E6 — DÉBLOCAGE, CATALOGUE, DÉPLOIEMENT
 
-**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma clôturés — 2026-10-13)
+**Statut :** 🟢 En cours (E6-S01 cadrage + requalification + E6-S04 + E6-S05 catalogue + E6-S06 spec auto-parts + E6-S07 modèle Prisma + E6-S07-A amendements + E6-S08 connecteur TecDoc mock enrichi clôturés — 2026-10-13)
 
 **Objectif E6 :** traiter `D-completeness-*`, identifier un catalogue Dockerisé pertinent métier (R.5.16), nettoyer les dettes restantes. Les 4 déblocages Moyennes sont **requalifiés en dettes bloquées** (reportés phase finale E7).
 
@@ -349,12 +349,13 @@ PartIVA est consolidé (dettes résolues ou documentées), l'UX client est amél
 | **E6-S05** | Catalogue Dockerisé alternatif | Technique | ✅ **Clôturée 2026-10-13** (Scénario A — catalogue industriel HF `swan07/industrial-parts-data` intégré, 5 sources, 13 tests E2E) |
 | **E6-S06** | Spécification auto-parts (fitment) | Cadrage | ✅ **Clôturée 2026-10-13** (`docs/e6-s05-auto-parts-spec.md` — TecDoc mock, Prisma, route `/api/search/vehicle`, focus plastique — D1-D7 confirmés R.5.17) |
 | **E6-S07** | Modèle Prisma + migration auto-parts | Technique | ✅ **Clôturée 2026-10-13** (modèles `Vehicle`/`Fitment` + extension `Part` `material`/`autoCategory`/`vehicleFitments` — migration 14→15, R.4.1-ter drift GIN/HNSW) |
-| **E6-S08** | Connecteur TecDoc mock enrichi | Technique | 🟢 **À cadrer** (fitment VIN/KType, catégories plastique — dépend E6-S07) |
+| **E6-S07-A** | Amendements documentaires auto-parts | Documentaire | ✅ **Clôturée 2026-10-13** (commentaire KType+, spec autoCategory R.5.18, `D-tecdoc-auto-parts` enrichie, `docs/positioning.md`, `D-rebrickable-pattern`) |
+| **E6-S08** | Connecteur TecDoc mock enrichi | Technique | ✅ **Clôturée 2026-10-13** (VIN2OE, identification photo+fitment, routes API `/api/search/vehicle` + `/api/search/vin`, fixtures 60 pièces / 25 véhicules / 60 fitments, 26 tests E2E) |
 | **E6-S09** | TecDoc réel (si contrat) | Technique | 🟠 **Bloquée** — `D-tecdoc-credentials` / `D-tecdoc-auto-parts` (reportée E7) |
 | **E6-S10** | Nettoyage dettes restantes | Technique | 🟢 **Prochaine** — autonome |
 | **E6-clôture** | Audit de clôture phase E6 | Clôture | 🟢 À cadrer |
 
-**Total :** 10 sessions + 1 clôture. **Plan E6 actif :** E6-S08 (connecteur mock) + E6-S10 + E6-clôture (autonomes).
+**Total :** 10 sessions + 1 clôture. **Plan E6 actif :** E6-S10 + E6-clôture (autonomes).
 
 ### Sessions bloquées (dettes) — requalification 2026-10-13
 
@@ -377,11 +378,11 @@ Les sessions E6-S02, E6-S03, E6-S06 (déploiement) et E6-S09 sont **bloquées** 
 | Comptes Vercel/Sentry/domaine | E6-S06 (déploiement) | 3 |
 | Contrat TecDoc | E6-S09 | 4 |
 
-**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S08 (connecteur TecDoc mock) est autonome — peut démarrer immédiatement.
+**Recommandation forte :** provisionner `TRACEPARTS_*` en priorité (variables déjà déclarées dans `.env.example`) — débloquera E6-S02 en phase finale. E6-S08 (connecteur TecDoc mock enrichi) est clôturée — E6-S10 (nettoyage) est autonome et peut démarrer immédiatement.
 
 ### Baseline cible E6
 
-ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 256+ · Prisma 15+ migrations · Dettes Moyennes 5 (reportées E7).
+ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 migrations · Dettes Moyennes 5 (reportées E7).
 
 ### Bilan E6-S04 (session documentaire)
 
@@ -413,6 +414,29 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 57+ routes · E2E 256+ · Prisma 1
 - **Seed** : 5 véhicules, 5 pièces plastique (ABS, ABS/PC, PP, PA), 5 fitments, 11 partVersions
 - **Baseline** : ESLint 0/0, TS 0 err, Prettier 0, Build 57 routes, E2E 258/0/4, Prisma 15 migrations
 - **Dette** : `D-tecdoc-auto-parts` (Moyenne — connecteur E6-S08, réel E6-S09 si contrat)
+
+### Bilan E6-S07-A (amendements documentaires)
+
+- **Commentaire KType+** : `prisma/schema.prisma` (modèle `Vehicle`, champ `ktype`)
+- **Spec amendée** : `docs/e6-s05-auto-parts-spec.md` §3.3 — `autoCategory` (R.5.18)
+- **`D-tecdoc-auto-parts` enrichie** : 3 sous-sections (Modèle, Connecteur, Mode réel)
+- **`docs/positioning.md` créé** : positionnement Rebrickable, 7 innovations aftermarket
+- **`D-rebrickable-pattern`** (Faible) ajoutée — cible E8
+- **Baseline inchangée** : ESLint 0/0, TS 0, Prettier 0, Build 57 routes, E2E 258/0/4, Prisma 15 migrations
+
+### Bilan E6-S08 (connecteur TecDoc mock enrichi)
+
+- **Schéma Zod enrichi** : `TecDocProductSchema` (`autoCategory`, `material`), `TecDocVehicleSearchResponseSchema` (produits + véhicules + fitments)
+- **Fixtures enrichies** : `src/lib/data/tecdoc-fixtures.ts` — 60 pièces, 25 véhicules (KType+, VIN), 60 fitments
+- **Data layer** : `searchTecDoc` (enrichi), `searchByVIN` (VIN2OE), `searchByVehicle`, `searchByPhotoAndVehicle`
+- **Connecteur enrichi** : `searchTecDocByVIN`, `searchTecDocByVehicle`, `searchTecDocByPhotoAndVehicle` (candidats avec `vehicleFitment` en metadata)
+- **Enum + i18n (R.5.2)** : `AUTO_CATEGORY_LABELS` + `AUTO_MATERIAL_LABELS` (`enum-labels.ts`), `autoCategories` + `autoMaterials` (`fr.ts`)
+- **Agrégateur** : `aggregateSearchByVIN`, `aggregateSearchByVehicle`, `aggregateSearchByPhotoAndVehicle`
+- **Routes API** : `POST /api/search/vehicle`, `POST /api/search/vin` (auth VIEWER+)
+- **Innovations** : #1 VIN2OE, #4 identification photo + fitment
+- **E2E** : 26 nouveaux tests (`tecdoc-vehicle.spec.ts` 13 + `tecdoc-vin.spec.ts` 13) — 26/26 passés
+- **Baseline** : ESLint 0/0, TS 0, Prettier 0, **Build 59 routes**, E2E 284/0/4, Prisma 15 migrations
+- **Aucune migration** (D9 = Non — `SearchCandidate.source` String ouvert)
 
 ---
 
