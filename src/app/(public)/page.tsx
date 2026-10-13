@@ -86,124 +86,65 @@ export default function HomePage() {
 
       {/* PROBLEMES + SOLUTION */}
       <section className="container py-16 md:py-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Badge variant="outline" className="border-destructive/30 text-destructive">
-                Le problème
-              </Badge>
-              <h2 className="text-3xl font-bold tracking-tight">
-                Les pièces cassées paralysent votre usine
-              </h2>
-              <p className="text-muted-foreground">
-                Trois impasses majeures que nous résolvons chaque jour pour les directeurs de
-                maintenance en Tunisie.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <Card className="border-border/60">
-                <CardContent className="flex gap-4 p-5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
-                    <Search className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="mb-1 text-base">Pièce introuvable</CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                      Fabricant disparu, référence obsolète. Nous modélisons en CAO 3D et usinons à
-                      l&apos;identique.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/60">
-                <CardContent className="flex gap-4 p-5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
-                    <Hammer className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="mb-1 text-base">Délais d&apos;import bloquants</CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                      6 à 12 semaines d&apos;attente depuis l&apos;Europe ou l&apos;Asie. Nous
-                      fabriquons localement en 24-72h.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/60">
-                <CardContent className="flex gap-4 p-5">
-                  <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-                    <Layers className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="mb-1 text-base">Coûts prohibitifs</CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                      Frais de port, douane, marges. Jusqu&apos;à 10x le prix d&apos;une pièce.
-                      Fabriqué localement = maîtrisé.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+        <div className="mx-auto max-w-3xl space-y-6">
+          <div className="space-y-2">
+            <Badge variant="outline" className="border-destructive/30 text-destructive">
+              Le problème
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight">
+              Les pièces cassées paralysent votre usine
+            </h2>
+            <p className="text-muted-foreground">
+              Trois impasses majeures que nous résolvons chaque jour pour les directeurs de
+              maintenance en Tunisie.
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Badge variant="outline" className="border-primary/30 text-primary">
-                Notre méthode
-              </Badge>
-              <h2 className="text-3xl font-bold tracking-tight">
-                De la pièce usée au composant neuf certifié
-              </h2>
-              <p className="text-muted-foreground">
-                Un processus d&apos;ingénierie rigoureux en 5 étapes.
-              </p>
-            </div>
+          <div className="space-y-4">
+            <Card className="border-border/60">
+              <CardContent className="flex gap-4 p-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
+                  <Search className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="mb-1 text-base">Pièce introuvable</CardTitle>
+                  <p className="text-muted-foreground text-sm">
+                    Fabricant disparu, référence obsolète. Nous modélisons en CAO 3D et usinons à
+                    l&apos;identique.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="relative">
-              <div className="bg-border absolute top-0 bottom-0 left-5 w-px" />
-              <div className="space-y-6">
-                {[
-                  {
-                    step: '01',
-                    title: 'Envoi & Diagnostic',
-                    desc: 'Photos, dimensions ou échantillon physique.',
-                  },
-                  {
-                    step: '02',
-                    title: 'Recherche Multi-Sources',
-                    desc: 'BDD, TraceParts, CADENAS et analyse géométrique IA.',
-                  },
-                  {
-                    step: '03',
-                    title: 'Reverse Engineering',
-                    desc: 'Relevé dimensionnel et modélisation CAO 3D (STEP).',
-                  },
-                  {
-                    step: '04',
-                    title: 'Usinage CNC Précis',
-                    desc: 'Tournage ou fraisage dans le plastique technique adapté.',
-                  },
-                  {
-                    step: '05',
-                    title: 'Contrôle & Livraison',
-                    desc: 'Contrôle MMT et expédition sous 24-72h en Tunisie.',
-                  },
-                ].map((s) => (
-                  <div key={s.step} className="relative flex gap-4">
-                    <div className="bg-primary text-primary-foreground relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold">
-                      {s.step}
-                    </div>
-                    <div className="pt-1.5">
-                      <h3 className="text-sm font-semibold">{s.title}</h3>
-                      <p className="text-muted-foreground mt-0.5 text-xs">{s.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Card className="border-border/60">
+              <CardContent className="flex gap-4 p-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
+                  <Hammer className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="mb-1 text-base">Délais d&apos;import bloquants</CardTitle>
+                  <p className="text-muted-foreground text-sm">
+                    6 à 12 semaines d&apos;attente depuis l&apos;Europe ou l&apos;Asie. Nous
+                    fabriquons localement en 24-72h.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardContent className="flex gap-4 p-5">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="mb-1 text-base">Coûts prohibitifs</CardTitle>
+                  <p className="text-muted-foreground text-sm">
+                    Frais de port, douane, marges. Jusqu&apos;à 10x le prix d&apos;une pièce.
+                    Fabriqué localement = maîtrisé.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
