@@ -453,6 +453,29 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
+## 🔧 E7 — DÉBLOCAGE DETTES MOYENNES (🔄 EN COURS)
+
+**Statut :** 🔄 **En cours** (S01 ✅ clôturée, S02-ter-partiel ✅ code commité R.5.23)
+
+**Nature :** Déblocage des 5 dettes Moyennes reportées par E6/E8. Sessions courtes, dépendantes de credentials externes.
+
+**Sessions :**
+
+| Session | Objet | Nature | Statut |
+|---|---|---|---|
+| **E7-S01** | Utilisateurs réels (admin + suppression mock) | Code | ✅ **Clôturée 2026-10-13** (commit `2c2aca3` — admin via `ADMIN_EMAIL`/`ADMIN_PASSWORD`, seed conditionnel, setup E2E, docs) |
+| **E7-S02-ter** | Embeddings photo (backfill) | Code + données | 🟡 **Partiel** — code 3 providers commité (R.5.23), backfill en attente service Lightweight (503) |
+| **E7-S03** | Déploiement Vercel (staging) | Code + docs | 🟢 À cadrer |
+| **E7-S04** | Requalification OpenSERP (local) | Code + docs | 🟢 À cadrer |
+| **E7-S05** | Vérification drift HNSW (`SHADOW_DATABASE_URL`) | Vérification | 🟢 À cadrer |
+| **E7-S06** | AWS S3 (si nécessaire) | Code + docs | 🟢 À cadrer |
+
+**Note E7-S02-ter** : le code supporte 3 providers d'embeddings (Lightweight self-host, DeepInfra, HuggingFace). Le backfill est bloqué par le service public Lightweight (`lamhieu/lightweight-embeddings.hf.space` → 503). **Solution 100% gratuite recommandée** : self-host Lightweight local via Docker (`docs/e7-s02-embeddings.md`).
+
+**Baseline (inchangée) :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+---
+
 ## 🏗️ E8 — STABILISATION, DOCUMENTATION FINALE, PRODUCTION PRÉPARÉE (✅ CLÔTURÉE)
 
 **Statut :** ✅ **Clôturée** (E8-clôture 2026-10-13 — D-E8-C1 à C8, rapport `docs/e8-close-report.md`)

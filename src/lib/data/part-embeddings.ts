@@ -37,25 +37,8 @@ export async function backfillImageEmbeddings(
   for (const image of images) {
     result.processed += 1;
 
-    let buffer: Buffer;
     try {
-      const response = await fetch(image.url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      buffer = Buffer.from(arrayBuffer);
-    } catch (cause) {
-      result.failed += 1;
-      result.errors.push({
-        imageId: image.id,
-        reason: `téléchargement échoué : ${cause instanceof Error ? cause.message : String(cause)}`,
-      });
-      continue;
-    }
-
-    try {
-      const vector = await computeImageEmbedding(buffer);
+      const vector = await computeImageEmbedding(image.url);
       const literal = `[${vector.map((v) => String(v)).join(',')}]`;
       await prisma.$executeRaw`
         UPDATE "part_images"

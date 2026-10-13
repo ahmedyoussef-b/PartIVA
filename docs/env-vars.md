@@ -36,13 +36,27 @@
 | `CLOUDINARY_API_KEY` | Clé API | Cloudinary Dashboard |
 | `CLOUDINARY_API_SECRET` | Secret API | Cloudinary Dashboard |
 
-### 3.2 HuggingFace (embeddings photo)
+### 3.2 Embeddings (3 providers — E7-S02-ter)
 
-| Variable | Objet | Source |
-|---|---|---|
-| `HF_API_TOKEN` | Token HuggingFace | Compte HF |
+Le code (`src/lib/embeddings.ts`) supporte **3 providers** d'embeddings, détectés automatiquement via `HF_API_URL`. CLIP (image → vecteur 768 dims) est requis pour la recherche visuelle (pgvector).
+
+| Provider | `HF_API_URL` | Coût | CLIP ? |
+|---|---|---|---|
+| **Lightweight** (self-host local) | `http://localhost:8000/v1/embeddings` | ✅ Gratuit | ✅ Oui |
+| **DeepInfra** | `https://api.deepinfra.com/v1/inference` | 💰 ~$0.005/1M tokens | ✅ Oui |
+| **HuggingFace** (hf-inference) | `https://router.huggingface.co/hf-inference/models` | ✅ Gratuit | ❌ Non |
+
+| Variable | Objet |
+|---|---|
+| `HF_API_URL` | Endpoint du provider |
+| `HF_API_TOKEN` | Token (vide pour Lightweight self-host) |
+| `HF_EMBEDDING_MODEL` | Modèle d'embedding (ex : `siglip-base-patch16-256-multilingual`) |
+
+**Recommandation 100% gratuite :** Lightweight self-host local (voir `.env.example` et `docs/e7-s02-embeddings.md`).
 
 **Dette associée :** `D-photo-embedding-backfill` (Moyenne, E7).
+
+**Sécurité #7 :** `HF_API_TOKEN` jamais en `NEXT_PUBLIC_`.
 
 ### 3.3 TraceParts (connecteur)
 
