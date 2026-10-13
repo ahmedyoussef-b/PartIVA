@@ -110,6 +110,8 @@ model Vehicle {
   model     String
   year      Int
   engine    String?
+  /// Identifiant KType+ (standard TecDoc/TecAlliance) — aligné sur le format
+  /// KType+ utilisé par les sources aftermarket. Unique si renseigné.
   ktype     String?  @unique
   vin       String?  @unique
   createdAt DateTime @default(now())

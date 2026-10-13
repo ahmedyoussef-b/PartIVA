@@ -118,7 +118,7 @@
 | Champ | Type | Description |
 |---|---|---|
 | `material` | String? | ABS, PP, PC, PA, PUR, TPO |
-| `category` | String? | body, interior, exterior, mechanical |
+| `autoCategory` | String? | body, interior, exterior, mechanical — R.5.18 : `autoCategory` (collision `category` évitée avec la relation `PartCategory`) |
 | `vehicleFitments` | Fitment[] | relation |
 
 **Note :** `material` existe déjà comme clé `PartSpecification` (textuel, exclu de `REQUIRED_SPEC_KEYS` — `D-completeness-material` clôturée E6-S04). L'extension `Part.material` est un champ dénormalisé pour le filtrage rapide.
@@ -158,10 +158,11 @@ vehicleFitment: z.array(z.object({
   engine: z.string().optional(),
 })).optional(),
 material: z.string().optional(),
-category: z.enum(['body', 'interior', 'exterior', 'mechanical']).optional(),
+autoCategory: z.enum(['body', 'interior', 'exterior', 'mechanical']).optional(),
 ```
 
-**R.5.2 :** si `category` devient un enum, synchroniser i18n `fr.ts`.
+**R.5.2 :** si `autoCategory` devient un enum, synchroniser i18n `fr.ts`.
+**R.5.18 :** `autoCategory` (pas `category`) — collision évitée avec la relation `PartCategory` sur `Part`.
 
 ---
 
