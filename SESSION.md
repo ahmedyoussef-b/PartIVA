@@ -4860,6 +4860,76 @@ Ces 5 décisions sont figées dans `docs/e8-desktop-tauri-scope.md` §11 (§6.3 
 
 ---
 
+## E8P-S03 — Schéma BDD locale + migrations (2026-10-14)
+
+**Statut :** ✅ Clôturée (exécution)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `7600a9a` (E8P-S02) · branche `master` · working tree propre
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `7600a9a` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+- `cargo check` exit 0 ✅ · `cargo test` exit 0 (profil test recompilé) ✅
+
+### Bloc B — Lecture préalable (R.4.2)
+
+| Fichier | Remarque |
+|---|---|
+| `docs/e8-desktop-tauri-scope.md` | §6 (sync), §9 (plan) — colonnes cibles et stratégie |
+| `prisma/schema.prisma` (l.76-141, 158-175, 309-324) | Extraction exacte : `Part` (16 colonnes), `Vehicle` (9), `Fitment` (5, **sans updatedAt**), `PartImage` (10, **sans updatedAt**, embedding vector(768) exclu), `PartVersion` (7, **sans updatedAt**) |
+| `SESSION.md` (E8P-S01/S02) | Conventions, incidents E8P-S02 (junction, E0599) |
+| `desktop/src-tauri/{Cargo.toml,src/db.rs,tauri.conf.json}` | État du squelette E8P-S02 |
+
+Table `table | colonnes | types | updatedAt?` : `part` (id, part_number, ptv_reference, name, description, status[CHECK enum], category_id, client_id, material, auto_category, created_at, updated_at) ✅ · `vehicle` (id, make, model, year, engine, ktype, vin, created_at, updated_at) ✅ · `fitment` (id, part_id, vehicle_id, notes, created_at) ❌ · `part_image` (id, part_id, url, public_id, alt_text, caption, sort_order, is_primary, created_at) ❌ · `part_version` (id, part_id, version_number, snapshot, audit_log_id, created_by_id, created_at) ❌.
+
+### Blocs C→J — Migrations SQLx
+
+- **C** — `desktop/src-tauri/migrations/` créé.
+- **D** — `0001_init.sql` : `part`, `vehicle`, `fitment` (+ index : part_number, status, category_id, client_id, vehicle(make,model,year), ktype, uq_fitment_part_vehicle, fitment part/vehicle).
+- **E** — `0002_add_partimage_partversion.sql` : `part_image` (embedding exclu — D-E8P-S01-11), `part_version` (snapshot Json → TEXT, audit_log_id/created_by_id sans FK croisée).
+- **F** — `0003_sync_metadata.sql` : table locale de suivi (table_name PK, last_sync_at, last_sync_since, row_count, full_refresh_required) + amorçage INSERT OR IGNORE (fitment/part_image/part_version = 1 ; part/vehicle = 0).
+- **G** — `src/db.rs` : `connect()` factorisé (création pool + `sqlx::migrate!("./migrations").run(&pool)`), log « Migrations appliquées ».
+- **H** — Vérification par test Rust (alternative retenue, `cargo run` ouvrant une fenêtre bloquante) : `#[tokio::test] migrations_apply_on_empty_db` → **1 passed / 0 failed** (tables part, vehicle, fitment, part_image, part_version, sync_metadata, _sqlx_migrations vérifiées sur base vide temporaire). Materialisation de `%APPDATA%\PartIVA\partiva.db` au premier lancement GUI (E8P-S08).
+- **I** — `migrations/README.md` : stratégie par table, mapping Prisma → SQLite, volumétries mesurées (part 1 521 / vehicle 500 / fitment 1 505 ; part_image + part_version à mesurer E8P-S04), tables hors périmètre V1, flag `PartSpecification`/`PartCategory` (Must cadrage, hors ordre S03 → migration 0004 en S04/S05).
+- **J** — `git check-ignore desktop/src-tauri/migrations/0001_init.sql` → exit 1 (non ignoré) ✅.
+
+### Décision appliquée (R.5.21)
+
+- **`D-E8P-S03-1` = Option B** : `fitment`/`part_image`/`part_version` en **full-refresh** — aucune migration Prisma web (baseline web = 15 migrations inchangée). Acté dans le cadrage §6.1.
+- ⚠️ `D-junction-npm-prefix` (dette Faible proposée par le Superviseur pour la junction npm `--prefix`) : **non inscrite dans `DEBT.md`** — en attente de validation Coordinateur explicite (condition de l'ordre Bloc K). Incident déjà tracé dans la section E8P-S02.
+
+### Écart de périmètre signalé (Règle #1)
+
+- `PartSpecification` + `PartCategory` sont classées **Must** au cadrage §6.2 (recherche par spécifications/modes web) mais absentes de l'ordre E8P-S03 (tables cibles = Part, Vehicle, Fitment, PartImage, PartVersion). Non ajoutées (respect du périmètre de session) — ajout prévu en migration `0004` lors du client sync (E8P-S04/S05). Signalé au Coordinateur.
+
+### Baseline (vérifiée)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 erreur ✅ |
+| Prettier | 0 ✅ |
+| Build Next.js | 59 routes ✅ (exit 0) |
+| Prisma (web) | **15 migrations, 0 drift** ✅ (aucune nouvelle) |
+| `cargo check` | exit 0 ✅ |
+| `cargo test` | 1 passed / 0 failed ✅ |
+| E2E web | 284/0/4 (non relancé — aucun changement web) |
+
+### Livrables
+
+- `desktop/src-tauri/migrations/{0001_init,0002_add_partimage_partversion,0003_sync_metadata}.sql`
+- `desktop/src-tauri/migrations/README.md`
+- `desktop/src-tauri/src/db.rs` (migrate! + test)
+- `docs/e8-desktop-tauri-scope.md` (§6.1 Option B, §6.2 implémentation)
+- `SESSION.md` (cette entrée)
+- Aucune modification de `prisma/schema.prisma`, `package.json`, `next.config` ; `next-env.d.ts` restauré avant commit (règle #32).
+
+### Prochaine session
+
+**E8P-S04 — Endpoints API sync (Next.js)** : `GET /api/desktop/sync/manifest` + `GET /api/desktop/sync/pull?since=<ts>&table=<name>` (namespace D-E8P-S01-12 = B) — première route web ajoutée par la phase E8P (impact baseline : 59 → 60 routes attendu).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S03 — schéma BDD locale + migrations)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S04 — endpoints API sync)
 ═══════════════════════════════════════════════════════════════

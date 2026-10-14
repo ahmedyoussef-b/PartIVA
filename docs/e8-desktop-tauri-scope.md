@@ -233,7 +233,9 @@ Note modes de recherche : la recherche **photo** web (E2-S09, dépendante des em
 
 ⚠️ Contrainte de schéma identifiée (E8P-S01, lecture `schema.prisma`) : les modèles `Fitment`, `PartImage` et `PartVersion` **n'ont pas de colonne `updatedAt`** (seulement `createdAt`). Un incrémentiel `updatedAt`-only est donc impossible sur ces tables. Options (à trancher en E8P-S03/S04) : s'appuyer sur `createdAt` + version de manifest, ou ajouter `updatedAt` via migration (hors périmètre de cette session documentaire).
 
-Stratégie de reprise : checkpoint local du dernier curseur appliqué, application idempotente (upsert par `id`).
+**Stratégie de reprise :** checkpoint local du dernier curseur appliqué, application idempotente (upsert par `id`).
+
+**Décision `D-E8P-S03-1` = Option B (R.5.21 — avance par défaut)** : les 3 tables sans `updatedAt` (`Fitment`, `PartImage`, `PartVersion`) sont synchronisées en **full-refresh** — pas de migration `updatedAt` côté web (baseline web maintenue à 15 migrations, risque production écarté). Le suivi par table est porté par la table locale `sync_metadata` (`full_refresh_required`, cf. migration `0003`). Réévaluation prévue si la volumétrie croît fortement (V1.x).
 
 ### 6.2 Données à synchroniser (tables réelles du schéma)
 
@@ -253,6 +255,8 @@ Stratégie de reprise : checkpoint local du dernier curseur appliqué, applicati
 | `User` (profil du compte connecté) | 1 | à chaque démarrage | Must |
 | `ScoringWeights` | 1 (défaut `default`) | à chaque démarrage | Should (affichage local des scores) |
 | `AuditLog`, `Session`, `Account`, `Verification`, `Request`, `ReverseEngineering*`, `CadFile`, `SearchCandidate` | — | — | **Non synchronisés en V1** (auth serveur + workflow écriture + cache éphémère) |
+
+**Implémentation E8P-S03** : migrations SQLx `desktop/src-tauri/migrations/0001_init.sql` (part, vehicle, fitment) · `0002_add_partimage_partversion.sql` (part_image, part_version) · `0003_sync_metadata.sql` (sync_metadata) — miroir fidèle, `enums` → `TEXT` + `CHECK`, `DateTime` → `TEXT` ISO 8601, `Json` → `TEXT`, `search_vector`/`embedding` exclus. Détails : `desktop/src-tauri/migrations/README.md`. ⚠️ `PartSpecification`/`PartCategory` (Must du cadrage) hors périmètre de l'ordre E8P-S03 → à ajouter en migration `0004` avec le client sync (E8P-S04/S05).
 
 ### 6.3 Endpoints API à créer (Next.js)
 
