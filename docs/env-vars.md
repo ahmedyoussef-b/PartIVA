@@ -1,6 +1,6 @@
 # Référence des variables d'environnement — PartIVA
 
-**Date :** 2026-10-13
+**Date :** 2026-10-13 (MAJ 2026-10-14 — E7-S02-reprise, §3.2 Embeddings)
 **Auteur :** Superviseur IA
 **Statut :** Validé (E8-S05)
 
@@ -36,13 +36,13 @@
 | `CLOUDINARY_API_KEY` | Clé API | Cloudinary Dashboard |
 | `CLOUDINARY_API_SECRET` | Secret API | Cloudinary Dashboard |
 
-### 3.2 Embeddings (3 providers — E7-S02-ter)
+### 3.2 Embeddings (3 providers — E7-S02-ter, configuré E7-S02-reprise)
 
 Le code (`src/lib/embeddings.ts`) supporte **3 providers** d'embeddings, détectés automatiquement via `HF_API_URL`. CLIP (image → vecteur 768 dims) est requis pour la recherche visuelle (pgvector).
 
 | Provider | `HF_API_URL` | Coût | CLIP ? |
 |---|---|---|---|
-| **Lightweight** (self-host local) | `http://localhost:8000/v1/embeddings` | ✅ Gratuit | ✅ Oui |
+| **Lightweight** (self-host local) | `http://localhost:7860/v1/embeddings` | ✅ Gratuit | ✅ Oui |
 | **DeepInfra** | `https://api.deepinfra.com/v1/inference` | 💰 ~$0.005/1M tokens | ✅ Oui |
 | **HuggingFace** (hf-inference) | `https://router.huggingface.co/hf-inference/models` | ✅ Gratuit | ❌ Non |
 
@@ -52,9 +52,9 @@ Le code (`src/lib/embeddings.ts`) supporte **3 providers** d'embeddings, détect
 | `HF_API_TOKEN` | Token (vide pour Lightweight self-host) |
 | `HF_EMBEDDING_MODEL` | Modèle d'embedding (ex : `siglip-base-patch16-256-multilingual`) |
 
-**Recommandation 100% gratuite :** Lightweight self-host local (voir `.env.example` et `docs/e7-s02-embeddings.md`).
+**Configuration active (E7-S02-reprise, 2026-10-14) :** **Lightweight self-host local par défaut** — conteneur Docker `lwe` (image `lightweight-embeddings`, healthcheck `healthy`) sur le port `7860`, modèle `siglip-base-patch16-256-multilingual` (768 dims). Démarrage : `docker run -d --name lwe -p 7860:7860 -e LWE_MODELS_PRELOAD=siglip-base-patch16-256-multilingual lightweight-embeddings`. Vérification : `curl http://localhost:7860/v1/models`. Détails : `docs/e7-s02-embeddings.md` §6.
 
-**Dette associée :** `D-photo-embedding-backfill` (Moyenne, E7).
+**Dette associée :** `D-photo-embedding-backfill` — ✅ **clôturée en E7-S02-reprise** (backfill 5/5 images, `missing=0`, dimension 768, index HNSW intact).
 
 **Sécurité #7 :** `HF_API_TOKEN` jamais en `NEXT_PUBLIC_`.
 
