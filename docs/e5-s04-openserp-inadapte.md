@@ -186,6 +186,55 @@ E3-S01 a retenu 3 sources (TraceParts, CADENAS, OpenSERP). Bilan réel :
 
 ---
 
+## 6. Revérification E7-S04 (2026-10-14)
+
+**Contexte :** instance locale provisionnée (`OPENSERP_BASE_URL=http://localhost:7000`) + `OPENSERP_API_KEY` présente. Le Coordinateur a ordonné une revérification (R.5.16) avant tout nouvel arbitrage. Le conteneur `openserp` était en `Exited (255)` → redémarré (restauration d'environnement) → `/health` = `200`.
+
+**Endpoint réel identifié** (doc officielle `github.com/karust/openserp`) :
+
+| Endpoint | Rôle |
+|---|---|
+| `/mega/search?engines=<e>&text=<q>` | recherche multi-moteurs (enveloppe + `clusters`) |
+| `/{engine}/search?text=<q>` | moteur dédié (`google`, `bing`, `yandex`, `baidu`, `duckduckgo`, `ecosia`) |
+| `/extract?url=...` | extraction markdown de page |
+| `/health`, `/docs`, `/openapi.yaml` | santé + Swagger + spec |
+
+**Aucune clé API requise** — la doc officielle précise « No API keys, no per-search billing » (l'ordre E7-S04 supposait à tort un appel authentifié).
+
+**Vérification R.5.16 — capture réelle :**
+
+```
+GET /mega/search?engines=bing&text=SKF+6205+bearing&limit=3
+→ HTTP 200 (took_ms 4675)
+
+{"query":{"text":"SKF 6205 bearing","engines_requested":["bing"]},
+ "results":[
+   {"rank":1,"type":"organic","title":"YouTube","url":"https://www.youtube.com/","domain":"youtube.com","engine":"bing"},
+   {"rank":2,"type":"organic","title":"YouTube - YouTube","url":"https://www.youtube.com/youtube","engine":"bing"},
+   {"rank":3,"type":"organic","title":"YouTube","url":"https://www.youtube.com/feed/homepage","engine":"bing"}]}
+```
+
+Capture antérieure (même session, requête identique) : `Google Translate`, `DeepL Translator`, `Google Traduction`.
+
+**Constat :**
+
+| Critère | Observation |
+|---|---|
+| Champs retournés | `id, rank, type, title, url, display_url, snippet, domain, favicon, position, engine, domain_info, extracted, classification` |
+| Champs pièce | **aucun** — pas de `partNumber`, `manufacturer`, `cadAvailable`, `datasheetAvailable` |
+| Pertinence métier | **nulle** — requête pièce (`SKF 6205 bearing`) → résultats web génériques (`YouTube`, traducteurs) |
+| Authentification | aucune clé requise |
+
+**Décision :** **D-E5-S04-1/-2/-3 maintenues** (arbitrage Coordinateur — Option 1, 2026-10-14). `D-openserp-inadapte` reste **clôturée par rejet**. Aucun `openserpConnector`, aucune intégration `ALL_CONNECTORS`, aucune extension de `SearchSourceSchema` / i18n.
+
+**Périmètre E7-S04 :** session de vérification documentaire — aucun code modifié (`types.ts`, `search.ts`, `aggregator.ts`, `weights.ts`, `enum-labels.ts`, `fr.ts` inchangés), aucun `e2e/openserp.spec.ts`.
+
+**Conteneur `openserp`** laissé actif pour usages futurs (D-E5-S04-4).
+
+**Leçon réaffirmée (R.5.16) :** la revérification sur réponse réelle **confirme** le rejet initial — l'hypothèse E3-S01 (OpenSERP = source de pièces) était fausse, et deux campagnes de vérification (E5-S04, E7-S04) aboutissent au même constat.
+
+---
+
 **FIN DU RAPPORT E5-S04 — OpenSERP rejeté (moteur SERP web, pas catalogue de pièces). `D-openserp-instance` requalifiée Faible.**
 
 **Note méta :** la découverte est **majoure** — elle corrige une erreur de cadrage héritée de E3-S01. Docker provisionné n'a pas débloqué OpenSERP comme source de pièces, car OpenSERP n'en est pas une. La leçon (R.5.16) : vérifier la nature d'une source **avant** de la retenir, en capturant une réponse réelle. E5 continue avec E5-S06 (nettoyage, autonome).

@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 en cours** (S01 utilisateurs réels ✅, S02-ter embeddings partiel — code commité R.5.23, backfill en attente service, S03 déploiement Vercel ✅, S05 vérification drift HNSW ✅) |
-| **Dernière session** | E7-S05 — Vérification drift HNSW (Prisma 7 diff et index HNSW/GIN confirmés le 2026-10-14) |
-| **Session en cours** | E7-S05 — Vérification drift HNSW (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 en cours** (S01 ✅, S02-ter-partiel ✅ code commité, S03 ✅, S05 ✅), baseline cible inchangée, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M (3 en attente contrat R.5.22 + D-photo-embedding-backfill en attente service) + 14 F, **0 dette Haute**, prochaine session E7-S04 (OpenSERP), puis E7-S02-reprise et E7-S06 si nécessaire |
+| **Dernière session** | E7-S04-vérification — Requalification OpenSERP (revérification R.5.16, rejet confirmé, D-E5-S04 maintenues) |
+| **Session en cours** | E7-S04-vérification — Requalification OpenSERP (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 en cours** (S01 ✅, S02-ter-partiel ✅ code commité, S03 ✅, S04 ✅ vérification, S05 ✅), baseline cible inchangée, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M (3 en attente contrat R.5.22 + D-photo-embedding-backfill en attente service) + 14 F, **0 dette Haute**, prochaine session E7-S02-reprise (backfill embeddings) ou E7-S06 (AWS S3) |
 
 ---
 
@@ -4665,6 +4665,17 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - Bloc G : ESLint `--max-warnings 0` réussi (0 erreur/avertissement), `tsc --noEmit` réussi (0 erreur), `prettier --check .` réussi. Le formatage de `src/lib/embeddings.ts` a été normalisé après détection par Prettier (formatage uniquement, aucun changement fonctionnel).
 - Bloc H : commit documentaire E7-S05 et push sur `master` exécutés après validation.
 
+## E7-S04-vérification — Requalification OpenSERP (2026-10-14)
+
+- Bloc 0 : conteneur `openserp` redémarré (Exited 255 → health 200). Branche `master` propre, `OPENSERP_BASE_URL` et `OPENSERP_API_KEY` présentes.
+- Bloc A : capture R.5.16 — endpoint réel `/mega/search?engines=bing&text=SKF+6205+bearing&limit=3` → résultats web (YouTube×3, puis Google Translate/DeepL). Champs retournés : `id, rank, type, title, url, snippet, domain, favicon, position, engine, domain_info, extracted, classification` — aucun champ `partNumber`/`manufacturer`/`cadAvailable`/`datasheetAvailable`.
+- Contexte : l'ordre initial demandait l'intégration d'un `openserpConnector` (Blocs C→L de E7-S04) — **STOP exécuté** (Règle #1 : décision métier) car cette intégration inversait D-E5-S04-1/-2/-3 (décisions validées E5-S04, réaffirmées E8-S02).
+- Arbitrage Coordinateur : **Option 1 — maintenir le rejet**. E7-S04 devient session de vérification documentaire.
+- Livrables : `DEBT.md` (`D-openserp-inadapte` clôturée par rejet, revérifiée E7-S04), `docs/e5-s04-openserp-inadapte.md` (§6 revérification), `ROADMAP.md` (E7-S04 clôturée), `SESSION.md` (cette entrée).
+- Périmètre : aucun code modifié (`types.ts`, `search.ts`, `aggregator.ts`, `weights.ts`, `enum-labels.ts`, `fr.ts` inchangés), aucun `e2e/openserp.spec.ts`, aucune extension `SearchSourceSchema`.
+- Conteneur `openserp` laissé actif pour usages futurs (D-E5-S04-4).
+- Baseline inchangée (session documentaire).
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E7-S04 (OpenSERP)
+Fin SESSION.md — **Prochaine MAJ :** fin de session E7-S02-reprise (backfill embeddings, self-host Lightweight Docker) ou E7-S06 (AWS S3)
 ═══════════════════════════════════════════════════════════════
