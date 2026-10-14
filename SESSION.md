@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 en cours** (S01 utilisateurs réels ✅, S02 embeddings ✅ clôturée via S02-reprise, S03 déploiement Vercel ✅, S04 vérification OpenSERP ✅, S05 vérification drift HNSW ✅) |
-| **Dernière session** | E7-S06 — Décision AWS S3 (non applicable — Cloudinary pour les images, `D-aws-s3-non-applicable` documentée) |
-| **Session en cours** | E7-S06 (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7** — toutes sessions planifiées clôturées (S01 ✅, S02 ✅ via S02-reprise, S03 ✅, S04 ✅ vérification, S05 ✅, S06 ✅ non applicable), baseline cible inchangée, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 4 M (TraceParts, Vercel, TecDoc ×2 — en attente contrat/comptes R.5.22) + 14 F, **0 dette Haute**, prochaine session **E7-clôture** (audit de phase E7) |
+| **Dernière session** | E7-clôture — Audit de clôture phase E7 (6/6 sessions, baseline tenue, D-E7-C1 à C9, `docs/e7-close-report.md`) |
+| **Session en cours** | E7-clôture (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 CLÔTURÉE** (2026-10-14 — S01 → S06, 6/6 sessions traitées, rapport `docs/e7-close-report.md`), baseline cible inchangée, E2E 284/0/4 (288 listés), Prisma 15 migrations, dettes résiduelles 4 M (TraceParts, TecDoc ×2 — en attente contrat R.5.22 · Vercel Sentry/domaine optionnels) + 14 F, **0 dette Haute**, production live `https://part-iva.vercel.app`, prochaine phase **E8+ (Desktop Tauri) ou clôture projet** — arbitrage Coordinateur (D-E7-C9) |
 
 ---
 
@@ -4698,6 +4698,18 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - Périmètre : documentaire uniquement — aucun code modifié.
 - Baseline inchangée (ESLint 0/0, TS 0, Prettier 0, Build 59 routes, E2E 284/0/4, Prisma 15 migrations).
 
+## E7-clôture — Audit de clôture phase E7 (2026-10-14)
+
+- Bloc 0 : branche `master` propre (`ff821db`), `prisma migrate status` = 15 migrations, schéma à jour, `prisma validate` OK.
+- Bloc A : baseline finale tenue — ESLint 0/0, TS 0, Prettier 0, Build 59 routes, `playwright test --list` = 288 tests (284 passés + 4 skippés, cohérent baseline 284/0/4).
+- Bloc B : audit des sessions — commits vérifiés : E7-S01 `2c2aca3` · E7-S02-ter `1567596`/`41132f0`/`8eaaee1` · E7-S02-reprise `bb6280c` · E7-S03 `e9803c1`/`6deb2f1`/`7211f03` · E7-S04 `3d33b12` · E7-S05 `8f28b5b` · E7-S06 `ff821db` (+ `9e8f64e` chore hors session). Écart documenté : `41132f0` rattaché à E7-S02-ter (style), pas E7-S05.
+- Bloc C : décisions auditées (D-E7-S01-1, D-E7-S02-1/-2, D-E7-S03-1, D-E7-S04-1, D-E7-S05-1, D-E7-S06-1, R.5.23) — tracées dans ROADMAP/DEBT/SESSION.
+- Bloc D : dettes — clôturées en E7 : `D-photo-embedding-backfill`, `D-hnsw-drift`, `D-openserp-inadapte`, `D-deploy-comptes` (partiel) ; créée : `D-aws-s3-non-applicable`. Résiduelles : 4 M (3 en attente contrat R.5.22 + Vercel Sentry/domaine optionnels) + 14 F. **0 dette Haute** (les 3 Haute du registre sont résolues/acceptées — aucune active).
+- Blocs E-F : D-E7-C1 à D-E7-C9 cochées (Oui par défaut — R.5.21) ; `docs/e7-close-report.md` créé (7 sections — bilan, livrables, baseline, décisions, dettes, leçons, prochaines étapes).
+- Livrables : `docs/e7-close-report.md` (nouveau), `ROADMAP.md` (E7 clôturée + bilan), `SESSION.md` (cette entrée), `DEBT.md` (note de clôture phase E7).
+- Périmètre : audit + documentation — aucun code modifié, baseline inchangée.
+- Passation : **E8+ (Desktop Tauri) ou clôture projet** — arbitrage Coordinateur (D-E7-C9). Phases clôturées à date : E1 → E8 + E7.
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E7-clôture (audit de phase E7 — S01 → S06, baseline finale, `docs/e7-close-report.md`)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8+ Desktop Tauri ou clôture projet — selon arbitrage Coordinateur)
 ═══════════════════════════════════════════════════════════════

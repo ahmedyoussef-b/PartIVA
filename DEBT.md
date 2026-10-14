@@ -4,8 +4,9 @@
 > Format : ID / Description / Sévérité / Phase cible / Bloquant / Décision
 >
 > **Phase E8 CLÔTURÉE** (2026-10-13 — D-E8-C1 à C8, rapport `docs/e8-close-report.md`). R.5.22 actée (clés placeholder non bloquantes).
-> Dettes E7 : `D-photo-embedding-backfill` (M, ✅ clôturée E7-S02-reprise 2026-10-14), `D-traceparts-credentials` (M, 🟡 en attente contrat R.5.22), `D-deploy-comptes` (M, 🟠 bloquée Vercel), `D-tecdoc-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-auto-parts` (M, 🟡 en attente contrat R.5.22).
-> Prochaine phase : **E7** (déblocage 5 Moyennes — 3/5 en attente contrat, 2/5 bloquées) ou **clôture projet**.
+> **Phase E7 CLÔTURÉE** (2026-10-14 — D-E7-C1 à C9, rapport `docs/e7-close-report.md`). 6/6 sessions traitées (S01 → S06), baseline tenue (59 routes, E2E 284/0/4, 15 migrations).
+> Dettes E7 : `D-photo-embedding-backfill` (M, ✅ clôturée E7-S02-reprise), `D-hnsw-drift` (F, ✅ vérifiée E7-S05), `D-openserp-inadapte` (F, ✅ clôturée par rejet E7-S04), `D-deploy-comptes` (M, 🟡 partiel — Vercel OK, Sentry/domaine optionnels), `D-traceparts-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-auto-parts` (M, 🟡 en attente contrat R.5.22) + `D-aws-s3-non-applicable` (F, créée E7-S06).
+> Prochaine phase : **E8+ (Desktop Tauri)** ou **clôture projet** — arbitrage Coordinateur (D-E7-C9). Production live : `https://part-iva.vercel.app`.
 
 ---
 

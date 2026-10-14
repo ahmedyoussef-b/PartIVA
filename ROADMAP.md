@@ -453,9 +453,9 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🔧 E7 — DÉBLOCAGE DETTES MOYENNES (🔄 EN COURS)
+## 🔧 E7 — DÉBLOCAGE DETTES MOYENNES (✅ CLÔTURÉE)
 
-**Statut :** 🔄 **En cours** (S01 ✅ clôturée, S02 ✅ clôturée via S02-reprise, S03 ✅ clôturée, S04 ✅ clôturée, S05 ✅ clôturée, S06 ✅ clôturée — non applicable) — **toutes les sessions planifiées traitées, E7-clôture (audit de phase) reste à produire**
+**Statut :** ✅ **Clôturée 2026-10-14** (E7-clôture — D-E7-C1 à C9, rapport `docs/e7-close-report.md`) — 6/6 sessions planifiées traitées (S01 → S06)
 
 **Nature :** Déblocage des 5 dettes Moyennes reportées par E6/E8. Sessions courtes, dépendantes de credentials externes.
 
@@ -473,7 +473,19 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 **Note E7-S02-ter + E7-S02-reprise** : le code supporte 3 providers d'embeddings (Lightweight self-host, DeepInfra, HuggingFace). Le backfill a été bloqué par le service public Lightweight (`lamhieu/lightweight-embeddings.hf.space` → 503), puis **débloqué en E7-S02-reprise par le self-host Lightweight local via Docker** — conteneur `lwe` healthy sur le port `7860`, backfill 5/5 images exécuté (`docs/e7-s02-embeddings.md` §6).
 
-**Baseline (inchangée) :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+**Baseline (inchangée) :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 (288 listés) · Prisma 15 migrations.
+
+### Bilan E7
+
+**6/6 sessions traitées. Baseline tenue.**
+
+- **Dettes clôturées en E7** : `D-photo-embedding-backfill` (backfill 5/5 via Lightweight self-host, 768 dims, HNSW intact), `D-hnsw-drift` (drift structurel vérifié), `D-openserp-inadapte` (rejet confirmé R.5.16), `D-deploy-comptes` (partiel — Vercel opérationnel)
+- **Dette créée** : `D-aws-s3-non-applicable` (Faible — Cloudinary pour les images, `AWS_*` injectées par Neon)
+- **Dettes résiduelles** : 4 Moyennes (3 en attente contrat R.5.22 + Vercel Sentry/domaine optionnels) + 14 Faibles · 0 Haute
+- **Production live** : `https://part-iva.vercel.app`
+- **Fonctionnalité débloquée** : recherche visuelle `POST /api/search/photo` (embeddings 5/5 en base)
+- **Décisions** : D-E7-C1 à D-E7-C9 (`docs/e7-close-report.md`)
+- **Prochaine phase** : E8+ (Desktop Tauri) ou clôture projet — arbitrage Coordinateur (D-E7-C9)
 
 ---
 
