@@ -76,6 +76,21 @@ export default function LoginPage() {
         ) : null}
 
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
+          <input
+            type="text"
+            name="fakeusernameremembered"
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{ display: 'none' }}
+          />
+          <input
+            type="password"
+            name="fakepasswordremembered"
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{ display: 'none' }}
+          />
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

@@ -63,7 +63,22 @@ export default function RegisterPage() {
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
+          <input
+            type="text"
+            name="fakeusernameremembered"
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{ display: 'none' }}
+          />
+          <input
+            type="password"
+            name="fakepasswordremembered"
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{ display: 'none' }}
+          />
+
           <div className="space-y-2">
             <Label htmlFor="company">Nom de l’entreprise / Usine *</Label>
             <Input
@@ -91,6 +106,8 @@ export default function RegisterPage() {
             <Input
               id="email"
               type="email"
+              name="email"
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -103,6 +120,8 @@ export default function RegisterPage() {
             <Input
               id="password"
               type="password"
+              name="password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

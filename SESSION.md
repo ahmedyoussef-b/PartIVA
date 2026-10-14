@@ -4930,17 +4930,21 @@ Table `table | colonnes | types | updatedAt?` : `part` (id, part_number, ptv_ref
 
 ---
 
-## E8P-S02-bis — Correctif UX login (champs vides) (2026-10-14)
+## E8P-S02-bis — Correctif UX autofill (login + register) (2026-10-14)
 
-- Contexte : constat production `https://part-iva.vercel.app/login` — champs email/password pré-remplis (`ahmedyoussefabbes@gmail.com` + password) sur le navigateur du Coordinateur.
-- Bloc A : HEAD `905baf4` (E8P-S03 déjà exécuté entre-temps — ordre initial attendu `7600a9a`), working tree propre, branche `master`.
-- Bloc B : composant login localisé — `src/app/(auth)/login/page.tsx`. Inputs email/password **contrôlés** (`useState('')`) : aucun `defaultValue` non vide, aucune variable d'env injectée → **hypothèses B et C écartées**. Cause : **autofill navigateur** (hypothèse A), aggravé par l'absence d'attributs `name`/`autoComplete`.
-- Bloc C : `src/components/ui/input.tsx` transmet bien `{...props}` au `<input>` natif ; `docs/env-vars.md` §3.7 confirme `ADMIN_EMAIL`/`ADMIN_PASSWORD` jamais en `NEXT_PUBLIC_` (sécurité #7).
-- Bloc D : correction appliquée — `autoComplete="off"` sur le `<form>`, `name="email"` + `autoComplete="off"` sur l'input email, `name="password"` + `autoComplete="new-password"` sur l'input password (parade Chrome — `off` seul étant ignoré sur les mots de passe).
-- Bloc E : baseline tenue — lint 0/0, typecheck 0, format:check 0, build 59 routes. Vérification HTML rendu (dev server) : `autocomplete="off"` (form+email), `autocomplete="new-password"` (password), `name` présents, **aucune valeur pré-remplie dans le HTML** (confirmé : pas de cause code résiduelle).
-- Livrables : `src/app/(auth)/login/page.tsx` (correction), `SESSION.md` (cette entrée), `DEBT.md` (`D-login-autofill` Faible).
-- Périmètre : login uniquement. Remarque hors périmètre (non corrigé) : `src/app/(auth)/register/page.tsx` et `src/app/(auth)/forgot-password/page.tsx` n'ont pas non plus d'attributs `autoComplete` — même correctif à prévoir si le même constat apparaît (comportement navigateur, pas bug code).
-- Résidu : l'autofill navigateur peut persister sur les postes ayant déjà mémorisé les identifiants (Chrome peut ignorer `autoComplete="off"`) — comportement attendu du navigateur utilisateur, à distinguer d'un bug code. Test navigation privée recommandé côté Coordinateur.
+- Contexte : constat production — champs email/password pré-remplis (`ahmedyoussefabbes@gmail.com` + password) sur `https://part-iva.vercel.app/login` **et** `https://part-iva.vercel.app/register`. Champs non-identifiants (nom entreprise, responsable) vides → signature classique de l'**autofill navigateur** (Chrome/Edge), pas d'un `defaultValue` code.
+- Bloc A : HEAD initial `905baf4`, branche `master`, 15 migrations Prisma 0 drift. Note : fichiers non suivis `src/app/api/desktop/` + `src/lib/sync/` (travail E8P-S04 d'une session parallèle) — hors périmètre, non commités ici.
+- Diagnostic : champs contrôlés (`useState('')`) sur les 2 pages, aucun `defaultValue` non vide, aucune variable d'env injectée (`ADMIN_*` jamais en `NEXT_PUBLIC_` — `docs/env-vars.md` §3.7). Cause = autofill navigateur, aggravé par l'absence d'attributs `name`/`autoComplete`.
+- Correctif appliqué sur les **2 formulaires** (`src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx`) :
+  - `autoComplete="off"` sur le `<form>`
+  - `name="email"` + `autoComplete="off"` sur l'input email
+  - `name="password"` + `autoComplete="new-password"` sur l'input password (parade Chrome — `off` seul ignoré sur les mots de passe)
+  - **Champs factices cachés** en tête de formulaire (`fakeusernameremembered` / `fakepasswordremembered`, `aria-hidden` + `tabIndex={-1}` + `display:none`) — captent l'autofill Chrome à la place des vrais champs
+- Bloc F : baseline tenue — lint 0/0, typecheck 0, format:check 0. Build compilé OK : **60 routes** (59 baseline + `/api/desktop/sync/manifest` issu du fichier E8P-S04 non commité — hors périmètre de cette session ; le périmètre E8P-S02-bis reste 59 routes).
+- Vérification HTML rendu (dev server) : sur `/login` **et** `/register` — `autocomplete="off"` (form+email), `autocomplete="new-password"` (password), champs factices présents, `name` présents, **aucune valeur pré-remplie dans le HTML** (confirme l'absence de cause code résiduelle).
+- Livrables : `src/app/(auth)/login/page.tsx` (champs factices ajoutés — fix de base de la 1ʡᵉ passe), `src/app/(auth)/register/page.tsx` (fix complet), `SESSION.md` (cette entrée), `DEBT.md` (`D-login-autofill` mise à jour).
+- Résidu : Chrome/Edge peuvent ignorer `autoComplete="off"` sur les postes ayant déjà mémorisé les identifiants — comportement natif du navigateur, pas un bug code. Les champs factices + `new-password` sont la mitigation maximale côté HTML. Test navigation privée recommandé (Ctrl+Maj+N) pour confirmation côté Coordinateur.
+- Prochaine session : **E8P-S04** (endpoints API sync — ordre prêt).
 
 ---
 
