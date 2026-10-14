@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 en cours** (S01 utilisateurs réels ✅, S02 embeddings ✅ clôturée via S02-reprise, S03 déploiement Vercel ✅, S04 vérification OpenSERP ✅, S05 vérification drift HNSW ✅) |
-| **Dernière session** | E7-clôture — Audit de clôture phase E7 (6/6 sessions, baseline tenue, D-E7-C1 à C9, `docs/e7-close-report.md`) |
-| **Session en cours** | E7-clôture (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 CLÔTURÉE** (2026-10-14 — S01 → S06, 6/6 sessions traitées, rapport `docs/e7-close-report.md`), baseline cible inchangée, E2E 284/0/4 (288 listés), Prisma 15 migrations, dettes résiduelles 4 M (TraceParts, TecDoc ×2 — en attente contrat R.5.22 · Vercel Sentry/domaine optionnels) + 14 F, **0 dette Haute**, production live `https://part-iva.vercel.app`, prochaine phase **E8+ (Desktop Tauri) ou clôture projet** — arbitrage Coordinateur (D-E7-C9) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 CLÔTURÉE** → **E8P (Desktop Tauri) en cours** (S01 cadrage ✅, S02 squelette Tauri ✅, S03 schéma BDD locale ✅, S02-bis correctif UX login ✅) |
+| **Dernière session** | E8P-S02-bis — Correctif UX login (champs vides : `autoComplete="off"` form/email + `autoComplete="new-password"` password, `name` ajoutés) |
+| **Session en cours** | E8P-S02-bis (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 CLÔTURÉE** (2026-10-14), **E8P en cours** (S01 ✅ cadrage, S02 ✅ squelette Tauri + sqlx + SQLite, S03 ✅ schéma BDD locale 3 migrations SQLx, S02-bis ✅ correctif login autoComplete), baseline cible inchangée (E2E 284/0/4, Prisma 15 migrations, 0 drift), dettes résiduelles 4 M (TraceParts, TecDoc ×2 — en attente contrat R.5.22 · Vercel Sentry/domaine optionnels) + 15 F (dont `D-login-autofill` créée E8P-S02-bis), **0 dette Haute**, production live `https://part-iva.vercel.app`, prochaine session **E8P-S04** (endpoints API sync) |
 
 ---
 
@@ -4927,6 +4927,20 @@ Table `table | colonnes | types | updatedAt?` : `part` (id, part_number, ptv_ref
 ### Prochaine session
 
 **E8P-S04 — Endpoints API sync (Next.js)** : `GET /api/desktop/sync/manifest` + `GET /api/desktop/sync/pull?since=<ts>&table=<name>` (namespace D-E8P-S01-12 = B) — première route web ajoutée par la phase E8P (impact baseline : 59 → 60 routes attendu).
+
+---
+
+## E8P-S02-bis — Correctif UX login (champs vides) (2026-10-14)
+
+- Contexte : constat production `https://part-iva.vercel.app/login` — champs email/password pré-remplis (`ahmedyoussefabbes@gmail.com` + password) sur le navigateur du Coordinateur.
+- Bloc A : HEAD `905baf4` (E8P-S03 déjà exécuté entre-temps — ordre initial attendu `7600a9a`), working tree propre, branche `master`.
+- Bloc B : composant login localisé — `src/app/(auth)/login/page.tsx`. Inputs email/password **contrôlés** (`useState('')`) : aucun `defaultValue` non vide, aucune variable d'env injectée → **hypothèses B et C écartées**. Cause : **autofill navigateur** (hypothèse A), aggravé par l'absence d'attributs `name`/`autoComplete`.
+- Bloc C : `src/components/ui/input.tsx` transmet bien `{...props}` au `<input>` natif ; `docs/env-vars.md` §3.7 confirme `ADMIN_EMAIL`/`ADMIN_PASSWORD` jamais en `NEXT_PUBLIC_` (sécurité #7).
+- Bloc D : correction appliquée — `autoComplete="off"` sur le `<form>`, `name="email"` + `autoComplete="off"` sur l'input email, `name="password"` + `autoComplete="new-password"` sur l'input password (parade Chrome — `off` seul étant ignoré sur les mots de passe).
+- Bloc E : baseline tenue — lint 0/0, typecheck 0, format:check 0, build 59 routes. Vérification HTML rendu (dev server) : `autocomplete="off"` (form+email), `autocomplete="new-password"` (password), `name` présents, **aucune valeur pré-remplie dans le HTML** (confirmé : pas de cause code résiduelle).
+- Livrables : `src/app/(auth)/login/page.tsx` (correction), `SESSION.md` (cette entrée), `DEBT.md` (`D-login-autofill` Faible).
+- Périmètre : login uniquement. Remarque hors périmètre (non corrigé) : `src/app/(auth)/register/page.tsx` et `src/app/(auth)/forgot-password/page.tsx` n'ont pas non plus d'attributs `autoComplete` — même correctif à prévoir si le même constat apparaît (comportement navigateur, pas bug code).
+- Résidu : l'autofill navigateur peut persister sur les postes ayant déjà mémorisé les identifiants (Chrome peut ignorer `autoComplete="off"`) — comportement attendu du navigateur utilisateur, à distinguer d'un bug code. Test navigation privée recommandé côté Coordinateur.
 
 ---
 
