@@ -4710,6 +4710,76 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - Périmètre : audit + documentation — aucun code modifié, baseline inchangée.
 - Passation : **E8+ (Desktop Tauri) ou clôture projet** — arbitrage Coordinateur (D-E7-C9). Phases clôturées à date : E1 → E8 + E7.
 
+## E8P-S01 — Cadrage Desktop Tauri (2026-10-14)
+
+**Statut :** ✅ Clôturée (documentaire — livrable unique)
+**Phase :** E8P — Desktop Tauri (préfixe `E8P`, D-E8P-S01-NUM = A)
+**HEAD :** `9f088f8` (E7-clôture) · branche `master` · working tree propre
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `9f088f8` ✅ · branche `master` ✅ · `npx prisma migrate status` = 15 migrations, schéma à jour, 0 drift ✅
+- **STOP initial conforme (§0.1)** : working tree sale (`M next-env.d.ts`) → arrêt mécanique + rapport au Coordinateur.
+- Décision Coordinateur `D-E8P-S01-0 = 1b` : restauration autorisée puis exécutée (`git checkout -- next-env.d.ts`) — working tree propre vérifié avant reprise.
+- Toolchain : Node v22.23.2 · npm 10.9.8 · **rustc 1.94.0 / cargo 1.94.0 déjà présents** (E8P-S02 non bloqué par une installation Rust).
+- Contrôle d'intégrité post-reprise : HEAD confirmé `9f088f8` (commit E7-clôture de 14:38, session parallèle) — arbre propre, aucun écart.
+
+### Bloc B — Lecture préalable (R.4.2)
+
+| Fichier | mtime | Remarque |
+|---|---|---|
+| `SESSION.md` | 2026-10-14 14:35 | 4715 lignes ; format d'entrée des sessions récentes (E7-clôture 4701-4715) |
+| `DEBT.md` | 2026-10-14 14:35 | Prochaine phase = E8+ inscrite ; volumétries réelles seed : 500 véhicules / 1 521 pièces / 1 505 fitments |
+| `ROADMAP.md` | 2026-10-14 14:34 | Section « MODE HYBRIDE — Web + Desktop Tauri » + 3 décisions critiques + principes N°9/N°10 |
+| `docs/e7-close-report.md` | 2026-10-14 14:34 | Baseline référence : 59 routes / 288 listés (284 passés) / 15 migrations / embeddings 5/5 768d |
+| `docs/e8-close-report.md` | 2026-10-13 20:02 | Phase E8 stabilisation clôturée — collision de numérotation documentée (motif du préfixe E8P) |
+| `docs/architecture.md` | 2026-10-13 18:41 | 23 modèles Prisma ; `/api/sync` listé (en réalité un stub — cf. §6.3 du cadrage) |
+| `prisma/schema.prisma` | 2026-10-13 16:44 | 498 lignes ; **`Fitment`/`PartImage`/`PartVersion` sans `updatedAt`** (impact sync incrémentale) |
+| `package.json` | 2026-10-13 23:18 | Next 16.4 / React 19.3 / Prisma 7.10 / BetterAuth 1.7.7 / Zod 4.6.5 ; aucune dépendance Tauri |
+| `docs/production-checklist.md` | 2026-10-13 20:21 | Dettes bloquantes production (R.5.22) |
+| `docs/env-vars.md` | 2026-10-14 14:11 | Variables ; HF provider actif = Lightweight self-host local (port 7860, 768 dims) |
+
+Découverte majeure intégrée au cadrage : **`POST /api/sync` est un stub** (`src/app/api/sync/route.ts`, E0-S07b-3-D / D48 — payload simulé, consommé par `sync-store.ts` + page admin `sync-client.tsx`).
+
+### Bloc C — Livrable créé
+
+- `docs/e8-desktop-tauri-scope.md` (création, `git status` : `?? docs/e8-desktop-tauri-scope.md`) — 12 sections, conforme Prettier au premier passage.
+
+### Blocs D→K — Rédaction
+
+- §1 Objet/périmètre (répond aux 3 décisions critiques ROADMAP « MODE HYBRIDE ») · §2 exigence BDD locale + sync unidirectionnelle (D-E8P-S01-2 acquise) · §3 architecture (schéma ASCII, flèche ↓ uniquement) · §4 stack (choix verrouillés + toolchain constatée) · §5 MoSCoW V1 · §6 sync (tables réelles du schéma, volumétries mesurées vs À MESURER, contrainte `updatedAt`, arbitrage stub D48) · §7 installation/initialisation · §8 sécurité (keyring, Sécurité #7, contraintes légales TecDoc/TraceParts) · §9 plan E8P-S02 → E8P-S09 · §10 risques + dettes anticipées · §11 décisions (9 verrouillées / 4 à trancher) · §12 hors périmètre V1.
+
+### Baseline (vérifiée en fin de session)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 erreur (exit 0) ✅ |
+| Prettier | 0 (exit 0, nouveau fichier inclus) ✅ |
+| Build | succès — **59 routes** ✅ (41 static + 19 dynamic, hors `/_global-error` — méthodologie `docs/e7-close-report.md` reprise) |
+| E2E | 284/0/4 (inchangé — aucun code modifié cette session) |
+| Prisma | 15 migrations (0 drift) |
+
+Note E2E : la suite n'a pas été réexécutée — session documentaire, aucun fichier de code modifié (même méthodologie que les sessions documentaires E8-S06).
+
+### Décisions — état final
+
+- **Verrouillées (Coordinateur 2026-10-14)** : `D-E8P-S01-0` (1b, exécutée) · `D-E8P-S01-NUM` (A — préfixe E8P) · `D-E8P-S01-1`/`-10` (implicites — lecture seule) · `D-E8P-S01-2` (unidirectionnelle web → local) · `D-E8P-S01-4` (SQLite) · `D-E8P-S01-5` (Next.js export statique) · `D-E8P-S01-6` (Tauri 2) · `D-E8P-S01-8` (REST pull-only) · `D-E8P-S01-11` (embeddings différés → E8P-S03) · `OS-V1` (Windows uniquement).
+- **Reste à trancher** : `D-E8P-S01-3` (fréquence sync) · `D-E8P-S01-7` (ORM local — proposition sqlx) · `D-E8P-S01-9` (auth desktop — proposition token + keyring) · `D-E8P-S01-12` (endpoints sync — arbitrage avec le stub `POST /api/sync`).
+- **Collision de numérotation signalée** : `D-E8P-S01-11` désignait la stratégie de sync dans le catalogue initial, réaffecté aux embeddings par les décisions Coordinateur — stratégie rattachée à `D-E8P-S01-3` (§11.3 du cadrage).
+
+### Livrables et périmètre
+
+- `docs/e8-desktop-tauri-scope.md` (nouveau — livrable unique).
+- `SESSION.md` (cette entrée).
+- Aucun code applicatif modifié ; `ROADMAP.md`/`DEBT.md` non modifiés (dettes anticipées listées dans le cadrage §10, à inscrire en fin de phase).
+
+### Prochaine session
+
+**E8P-S02 — Setup toolchain Rust + projet Tauri squelette** (dépend de la validation Coordinateur de ce cadrage E8P-S01).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8+ Desktop Tauri ou clôture projet — selon arbitrage Coordinateur)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S02 — setup toolchain Rust + squelette Tauri, après validation Coordinateur du cadrage E8P-S01)
 ═══════════════════════════════════════════════════════════════
