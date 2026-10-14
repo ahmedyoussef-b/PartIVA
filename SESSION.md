@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE (S01-S06 + clôture, S07 reportée E6) → **E6 CLÔTURÉE** (S01 cadrage, S04 complétude, S05 catalogue industriel, S06 spec auto-parts, S07 modèle Prisma, S07-A amendements, S08 connecteur TecDoc mock, S10 nettoyage, clôture — S09 TecDoc réel reportée E7) → **E8 CLÔTURÉE** (S01 cadrage, S02 audit qualité, S03 documentation projet, S04 guide de déploiement, S05 checklist production, S06 préparation E7, clôture — D-E8-C1 à C8, R.5.22 actée) → **E7 en cours** (déblocage 5 Moyennes — S01 utilisateurs réels ✅ clôturée, S02-ter embeddings 3 providers partiel — code commité R.5.23, backfill en attente service) |
-| **Dernière session** | E7-S03-quinquies — Déploiement Vercel production (build corrigé postinstall, env NEXT_PUBLIC_APP_URL/BETTER_AUTH_URL = part-iva.vercel.app, healthcheck 200, login sans localhost:3000) |
-| **Session en cours** | E7-S03-quinquies — Déploiement Vercel production (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE** (D-E4-C1 à D-E4-C8), **E5 CLÔTURÉE** (D-E5-C1 à D-E5-C8), **E6 CLÔTURÉE** (D-E6-C1 à D-E6-C8), **E8 CLÔTURÉE** (D-E8-C1 à D-E8-C8 — 7/7 sessions, R.5.21 + R.5.22), **E7 en cours** (S01 ✅, S02-ter-partiel ✅ code commité, S03 ✅ déploiement Vercel production), baseline tenue, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M (3 en attente contrat R.5.22 + D-photo-embedding-backfill en attente service) + 14 F, **0 dette Haute**, **E7 prochaine** (S04 OpenSERP, S05 drift HNSW, S06 AWS S3) |
+| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 en cours** (S01 utilisateurs réels ✅, S02-ter embeddings partiel — code commité R.5.23, backfill en attente service, S03 déploiement Vercel ✅, S05 vérification drift HNSW ✅) |
+| **Dernière session** | E7-S05 — Vérification drift HNSW (Prisma 7 diff et index HNSW/GIN confirmés le 2026-10-14) |
+| **Session en cours** | E7-S05 — Vérification drift HNSW (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 en cours** (S01 ✅, S02-ter-partiel ✅ code commité, S03 ✅, S05 ✅), baseline cible inchangée, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 5 M (3 en attente contrat R.5.22 + D-photo-embedding-backfill en attente service) + 14 F, **0 dette Haute**, prochaine session E7-S04 (OpenSERP), puis E7-S02-reprise et E7-S06 si nécessaire |
 
 ---
 
@@ -4656,6 +4656,15 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 
 - Ordre sessions : E4-S07 ✅ → E4-S08 (OpenSERP, bloquée Docker). E4-clôture après E4-S08.
 
+## E7-S05 — Vérification drift HNSW (2026-10-14)
+
+- Bloc 0 : branche `master` propre et synchronisée avec `origin/master`; `SHADOW_DATABASE_URL` présente (valeur masquée); `prisma migrate status` confirme 15 migrations et un schéma à jour.
+- Bloc A : `prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --exit-code` retourne le code 2 et indique uniquement la suppression de l'index HNSW sur `part_images.embedding`.
+- Blocs B-C : lecture de `pg_indexes` confirme `part_images_embedding_hnsw USING hnsw (embedding vector_cosine_ops)` et `parts_search_vector_idx USING gin (search_vector)`.
+- Verdict : drift HNSW structurel attendu, documenté dans `docs/migration-drift.md`; baseline métier inchangée.
+- Bloc G : ESLint `--max-warnings 0` réussi (0 erreur/avertissement), `tsc --noEmit` réussi (0 erreur), `prettier --check .` réussi. Le formatage de `src/lib/embeddings.ts` a été normalisé après détection par Prettier (formatage uniquement, aucun changement fonctionnel).
+- Bloc H : commit documentaire E7-S05 et push sur `master` exécutés après validation.
+
 ═══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E4-S08 (bloquée Docker)
+Fin SESSION.md — **Prochaine MAJ :** fin de session E7-S04 (OpenSERP)
 ═══════════════════════════════════════════════════════════════
