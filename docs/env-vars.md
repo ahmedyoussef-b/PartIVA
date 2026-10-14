@@ -1,6 +1,6 @@
 # Référence des variables d'environnement — PartIVA
 
-**Date :** 2026-10-13 (MAJ 2026-10-14 — E7-S02-reprise, §3.2 Embeddings)
+**Date :** 2026-10-13 (MAJ 2026-10-14 — E7-S02-reprise §3.2 Embeddings · E7-S06 §3.8 AWS S3)
 **Auteur :** Superviseur IA
 **Statut :** Validé (E8-S05)
 
@@ -103,6 +103,23 @@ Le code (`src/lib/embeddings.ts`) supporte **3 providers** d'embeddings, détect
 **R.5.10 :** variable vide = absente.
 **E2E :** `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` prévalent, puis `ADMIN_EMAIL`/`ADMIN_PASSWORD`, puis mock.
 
+### 3.8 AWS S3 (non utilisé actuellement — E7-S06)
+
+| Variable | Objet | Statut |
+|---|---|---|
+| `AWS_ACCESS_KEY_ID` | Clé AWS | Fournie (non utilisée) |
+| `AWS_SECRET_ACCESS_KEY` | Secret AWS | Fourni (non utilisé) |
+| `AWS_REGION` | Région AWS | Fournie (non utilisée) |
+| `AWS_ENDPOINT_URL_S3` | Endpoint S3 | Fourni (non utilisé) |
+
+**Note :** PartIVA utilise **Cloudinary** pour le stockage d'images. AWS S3 n'est **pas utilisé** par le code applicatif (vérifié E7-S06, 2026-10-14 — aucune occurrence `AWS_`/`S3Client`/`@aws-sdk` dans `src/`, `scripts/`, `prisma/`, `e2e/` ; aucune dépendance `@aws-sdk` dans `package.json`).
+
+**Origine des variables :** les variables `AWS_*` sont **injectées par Neon** (endpoint S3 de la branche Neon, compatible S3 — ex. `https://br-<branch>.storage.c-<region>.aws.neon.tech`). Elles sont fournies automatiquement par la plateforme et ne sont **pas exploitées** par PartIVA.
+
+**Usage futur :** S3 (via Neon Object Storage ou un provider S3) reste une option pour backup/archivage — à cadrer le jour d'un besoin réel. Voir les skills Neon (`neon-object-storage`) si cette voie est retenue.
+
+**Sécurité #7 :** `AWS_SECRET_ACCESS_KEY` et `AWS_ACCESS_KEY_ID` jamais en `NEXT_PUBLIC_`.
+
 ---
 
 ## 4. Variables par environnement
@@ -122,6 +139,7 @@ Le code (`src/lib/embeddings.ts`) supporte **3 providers** d'embeddings, détect
 | `ADMIN_EMAIL` | ⚠️ | ✅ | ✅ |
 | `ADMIN_PASSWORD` | ⚠️ | ✅ | ✅ |
 | `ADMIN_NAME` | ⚠️ | ✅ | ✅ |
+| `AWS_*` (non utilisées) | ⚠️ | ⚠️ | ⚠️ |
 
 **Légende :** ✅ requis · ⚠️ optionnel · ❌ interdit
 

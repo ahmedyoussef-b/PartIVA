@@ -18,9 +18,9 @@
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
 | **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 en cours** (S01 utilisateurs réels ✅, S02 embeddings ✅ clôturée via S02-reprise, S03 déploiement Vercel ✅, S04 vérification OpenSERP ✅, S05 vérification drift HNSW ✅) |
-| **Dernière session** | E7-S02-reprise — Backfill embeddings via Lightweight self-host (5/5 images, `missing=0`, dimension 768, index HNSW intact, `D-photo-embedding-backfill` clôturée) |
-| **Session en cours** | E7-S02-reprise (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 en cours** (S01 ✅, S02 ✅ via S02-reprise, S03 ✅, S04 ✅ vérification, S05 ✅), baseline cible inchangée, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 4 M (TraceParts, Vercel, TecDoc ×2 — en attente contrat/comptes R.5.22) + 14 F, **0 dette Haute**, prochaine session E7-S06 (AWS S3 — à trancher) puis E7-clôture |
+| **Dernière session** | E7-S06 — Décision AWS S3 (non applicable — Cloudinary pour les images, `D-aws-s3-non-applicable` documentée) |
+| **Session en cours** | E7-S06 (terminée) |
+| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7** — toutes sessions planifiées clôturées (S01 ✅, S02 ✅ via S02-reprise, S03 ✅, S04 ✅ vérification, S05 ✅, S06 ✅ non applicable), baseline cible inchangée, E2E 284/0/4, Prisma 15 migrations, dettes résiduelles 4 M (TraceParts, Vercel, TecDoc ×2 — en attente contrat/comptes R.5.22) + 14 F, **0 dette Haute**, prochaine session **E7-clôture** (audit de phase E7) |
 
 ---
 
@@ -4689,6 +4689,15 @@ Dette tracée (Moyenne), session sécurité dédiée **avant E2-S08**.
 - Baseline inchangée (ESLint 0/0, TS 0, Prettier 0, Build 59 routes, E2E 284/0/4, Prisma 15 migrations).
 - Note : script temporaire `node_modules/.cache/dbq.mjs` utilisé pour les requêtes SQL de vérification (gitignored, hors périmètre de commit).
 
+## E7-S06 — Décision AWS S3 (2026-10-14)
+
+- Bloc 0 : branche `master` propre (`bb6280c` — artefact de build `next-env.d.ts` restauré). Recherche `AWS_`/`S3Client`/`@aws-sdk` : **aucune occurrence** dans `src/`, `scripts/`, `prisma/`, `e2e/` ; aucune dépendance `@aws-sdk` dans `package.json` ; `AWS_*` absent de `.env.example` et de `docs/`.
+- Constat : les variables `AWS_*` présentes dans `.env` (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT_URL_S3`, `AWS_REGION` — valeurs non affichées) sont **injectées par Neon** (endpoint S3 de la branche Neon `br-tiny-moon-b2k4ehxo.storage.c-6.eu-central-1.aws.neon.tech`, compatible S3). Non exploitées par l'application.
+- Bloc A : **Cas A3 — AWS S3 non utilisé** par PartIVA. Cloudinary reste le stockage d'images (`CLOUDINARY_*`). E7-S06 = **non applicable** (session documentaire).
+- Livrables : `DEBT.md` (`D-aws-s3-non-applicable` Faible ajoutée), `docs/env-vars.md` (§3.8 AWS S3 non utilisé + origine Neon + tableau §4), `ROADMAP.md` (E7-S06 clôturée non applicable, phase E7 = toutes sessions traitées), `SESSION.md` (cette entrée).
+- Périmètre : documentaire uniquement — aucun code modifié.
+- Baseline inchangée (ESLint 0/0, TS 0, Prettier 0, Build 59 routes, E2E 284/0/4, Prisma 15 migrations).
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session E7-S06 (AWS S3 — à trancher : vérifier l'usage S3 dans `src/`, sinon non applicable) puis E7-clôture (audit phase E7)
+Fin SESSION.md — **Prochaine MAJ :** fin de session E7-clôture (audit de phase E7 — S01 → S06, baseline finale, `docs/e7-close-report.md`)
 ═══════════════════════════════════════════════════════════════

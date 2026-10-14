@@ -455,7 +455,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ## 🔧 E7 — DÉBLOCAGE DETTES MOYENNES (🔄 EN COURS)
 
-**Statut :** 🔄 **En cours** (S01 ✅ clôturée, S02 ✅ clôturée via S02-reprise, S03 ✅ clôturée, S04 ✅ clôturée, S05 ✅ clôturée, S06 à trancher)
+**Statut :** 🔄 **En cours** (S01 ✅ clôturée, S02 ✅ clôturée via S02-reprise, S03 ✅ clôturée, S04 ✅ clôturée, S05 ✅ clôturée, S06 ✅ clôturée — non applicable) — **toutes les sessions planifiées traitées, E7-clôture (audit de phase) reste à produire**
 
 **Nature :** Déblocage des 5 dettes Moyennes reportées par E6/E8. Sessions courtes, dépendantes de credentials externes.
 
@@ -469,7 +469,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 | **E7-S03** | Déploiement Vercel (staging) | Code + config | ✅ **Clôturée 2026-10-13** (build corrigé `postinstall` commit `e9803c1`, déploiement production READY `part-iva.vercel.app`, env `NEXT_PUBLIC_APP_URL`/`BETTER_AUTH_URL` corrigées — E7-S03-quater + quinquies) |
 | **E7-S04** | Requalification OpenSERP (local) | Vérification | ✅ **Clôturée 2026-10-14** — revérification R.5.16 : rejet confirmé (SERP web, non catalogue pièces), D-E5-S04 maintenues |
 | **E7-S05** | Vérification drift HNSW (`SHADOW_DATABASE_URL`) | Vérification | ✅ **Clôturée 2026-10-14** — diff Prisma 7 code 2, index HNSW et GIN confirmés en base ; drift HNSW structurel attendu documenté dans `docs/migration-drift.md` |
-| **E7-S06** | AWS S3 (si nécessaire) | Code + docs | 🟢 À trancher (vérifier l'usage S3 dans `src/` — sinon non applicable) |
+| **E7-S06** | AWS S3 (si nécessaire) | Vérification + docs | ✅ **Clôturée 2026-10-14** — **non applicable** : S3 non utilisé (aucune occurrence `AWS_`/`S3Client`/`@aws-sdk` dans `src/`/`scripts/`/`prisma/`/`e2e/`, aucune dépendance `@aws-sdk` dans `package.json`). Cloudinary reste le stockage d'images ; variables `AWS_*` injectées par Neon (usage futur). `D-aws-s3-non-applicable` (Faible) documentée — réf. `docs/env-vars.md` §3.8 |
 
 **Note E7-S02-ter + E7-S02-reprise** : le code supporte 3 providers d'embeddings (Lightweight self-host, DeepInfra, HuggingFace). Le backfill a été bloqué par le service public Lightweight (`lamhieu/lightweight-embeddings.hf.space` → 503), puis **débloqué en E7-S02-reprise par le self-host Lightweight local via Docker** — conteneur `lwe` healthy sur le port `7860`, backfill 5/5 images exécuté (`docs/e7-s02-embeddings.md` §6).
 
