@@ -35,6 +35,8 @@ const config = [
       'dist/**',
       'build/**',
       'src-tauri/target/**',
+      'desktop/src-tauri/target/**',
+      'desktop/src-tauri/gen/**',
       '**/*.config.js',
       '**/*.config.ts',
       'coverage/**',

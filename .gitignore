@@ -56,3 +56,14 @@ src/generated/
 
 # HuggingFace cache
 .hf-cache/
+
+# E8P — Desktop Tauri
+desktop/target/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+desktop/node_modules/
+desktop/dist/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

@@ -1,0 +1,18 @@
+{
+  "name": "partiva-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PartIVA Desktop — application Tauri 2 (E8P)",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  },
+  "dependencies": {
+    "atelier-pieces-industrielles": "file:.."
+  }
+}

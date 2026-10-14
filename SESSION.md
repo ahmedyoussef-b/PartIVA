@@ -4780,6 +4780,86 @@ Note E2E : la suite n'a pas été réexécutée — session documentaire, aucun 
 
 ---
 
+## E8P-S02 — Setup toolchain Rust + squelette Tauri (2026-10-14)
+
+**Statut :** ✅ Clôturée (exécution — première session technique E8P)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `e5f5e80` (E8P-S01) · branche `master` · working tree propre
+**Toolchain :** Tauri CLI 2.12.2 · tauri 2.12.3 · rustc/cargo 1.94.0 · Node v22.23.2
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `e5f5e80` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+- **MSVC ✅** : `vswhere` → Visual Studio 2022 BuildTools (`C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools`, workload VC.Tools.x86.x64) — non bloquant.
+- **WebView2 ✅** : registre `HKLM\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-...}` → pv `155.0.4283.45`.
+- Rust 1.94.0 / Cargo 1.94.0 ✅ (déjà confirmés E8P-S01).
+- `desktop/`, `src-tauri/`, `Cargo.toml` (racine) absents — aucune collision (Bloc C).
+
+### Bloc B — Lecture préalable (R.4.2)
+
+| Fichier | mtime | Remarque |
+|---|---|---|
+| `docs/e8-desktop-tauri-scope.md` | 2026-10-14 (E8P-S01) | 12 sections ; §4.2 prérequis toolchain, §7 installation, §11 décisions |
+| `SESSION.md` (section E8P-S01) | 2026-10-14 | Format d'entrée et conclusions du cadrage (stub `/api/sync`, tables sans `updatedAt`) |
+| `package.json` (racine) | 2026-10-13 23:18 | Non modifié (règle explicite E8P-S02 — le web reste intact) |
+| `.gitignore` | en séance | Section Tauri racine existante (`src-tauri/target/`) — ajout du scope desktop (Bloc D) |
+
+### Blocs C→J — Création du squelette
+
+- **Bloc D** — `.gitignore` : +8 lignes (`desktop/target/`, `desktop/src-tauri/target/`, `desktop/src-tauri/gen/`, `desktop/node_modules/`, `desktop/dist/`, `*.db`, `*.db-journal`, `*.db-wal`, `*.db-shm`).
+- **Bloc E** — `desktop/package.json` créé (exact selon ordre) ; `npm install` → `@tauri-apps/cli@2.12.2`, 0 vulnérabilité.
+- **Bloc F** — `npx tauri init --ci` (CLI 2.12.2) : **adaptation documentée** — les flags `--before-dev-command`/`--before-build-command` vides sont rejetés par PowerShell (arg vide avalé) ; positions à `""` directement dans `tauri.conf.json` (Bloc I). Structure générée : `Cargo.toml`, `tauri.conf.json`, `build.rs`, `capabilities/default.json`, `src/{main,lib}.rs`, `icons/` (20 icônes).
+- **Bloc G** — `Cargo.toml` : ajout `sqlx 0.8` (runtime-tokio, sqlite, macros, migrate) + `tokio 1` (full). Note : `serde`/`serde_json` déjà présents dans le template — pas de duplication (adaptation conforme à la règle « ne pas dupliquer »).
+- **Bloc H** — `src/db.rs` (nouveau) : `init_local_db()` → `%APPDATA%\PartIVA\partiva.db`, `create_dir_all`, URL `sqlite://...?mode=rwc` (création si absente), pool max 5 connexions, log « BDD locale prête ». `src/lib.rs` : init au démarrage dans `setup()` via `tauri::async_runtime::block_on`, pool exposé en state Tauri (`app.manage(pool)`). **Adaptation API Tauri 2** : `use tauri::Manager;` requis pour `.manage()` (erreur E0599 au premier `cargo check`, corrigée). `main.rs` conservé (template `app_lib::run()`).
+- **Bloc I** — `tauri.conf.json` : identifier `com.partiva.desktop`, fenêtre 1280×800, `beforeDevCommand`/`beforeBuildCommand` = `""`, bundle `nsis`+`msi`, `frontendDist: ../web-out`, `devUrl: http://localhost:3000`. Icônes générées conservées (existantes). `icons/icon.ico` présent → bundle actif.
+- **Bloc J** — `cargo check` : **succès** (`Finished dev profile`, exit 0) après correction `Manager` ; `npx tauri info` : OS Windows 10 x64, WebView2 155.0.4283.45 ✔, MSVC VS BuildTools 2022 ✔, rustc/cargo 1.94.0 ✔, tauri 2.12.3 / wry 0.57.0 / tao 0.37.1. Pas de `tauri build` (packaging reporté E8P-S07).
+
+### Incidents traités
+
+| Incident | Traitement |
+|---|---|
+| ESLint 1 erreur (`@typescript-eslint/no-unused-expressions`) sur `desktop/src-tauri/target/debug/build/.../out/__global-api-script.js` | Ajout `desktop/src-tauri/target/**` + `desktop/src-tauri/gen/**` dans les ignores de `eslint.config.mjs` (même convention que `src-tauri/target/**` existant) → lint 0/0 |
+| Prettier warn sur `desktop/src-tauri/capabilities/default.json` (généré Tauri) | `prettier --write` ciblé sur ce fichier → format:check 0 |
+| PowerShell avale l'argument `""` des flags `--before-dev-command` | Flag omis à l'init ; valeurs positionnées dans `tauri.conf.json` (équivalence fonctionnelle) |
+| `app.manage()` E0599 | `use tauri::Manager;` (API Tauri 2) |
+| `npm install --prefix desktop` crée une **junction** `desktop/node_modules/atelier-pieces-industrielles → F:\PartIVA` (auto-lien du package racine, comportement npm) → boucle infinie du build web (`globals.css` / track_glob) | Junction supprimée (`[System.IO.Directory]::Delete(path, $false)` — lien seul) ; build web rétabli. `desktop/node_modules/` couvert par la nouvelle entrée `.gitignore` Bloc D |
+
+### Décisions verrouillées en E8P-S02 (délégation Coordinateur → Superviseur, 2026-10-14)
+
+- `D-E8P-C1` = Oui (clôture E8P-S01 validée)
+- `D-E8P-S01-3` = A — sync : install (full) + démarrage (incrémental) + manuel
+- `D-E8P-S01-7` = A — ORM local sqlx
+- `D-E8P-S01-9` = A — token BetterAuth + keyring OS
+- `D-E8P-S01-12` = B — endpoints sous `/api/desktop/sync/*` (isole le stub `POST /api/sync` D48)
+
+Ces 5 décisions sont figées dans `docs/e8-desktop-tauri-scope.md` §11 (§6.3 mis à jour avec le namespace `/api/desktop/sync/*`).
+
+### Baseline (vérifiée)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 erreur ✅ |
+| Prettier | 0 ✅ (capabilities/default.json formaté) |
+| Build Next.js | succès — **59 routes** ✅ (exit 0, « Compiled successfully » — desktop/ hors build web) |
+| E2E | 284/0/4 (non relancé — aucun changement web) |
+| Prisma | 15 migrations (0 drift) |
+| cargo check | exit 0 ✅ |
+
+### Livrables
+
+- `desktop/package.json`, `desktop/package-lock.json` (workspace isolé)
+- `desktop/src-tauri/` : `Cargo.toml`, `tauri.conf.json`, `build.rs`, `capabilities/default.json`, `src/{main,lib,db}.rs`, `icons/` (20 fichiers)
+- `.gitignore` (+8 lignes), `eslint.config.mjs` (+2 patterns ignore desktop)
+- `docs/e8-desktop-tauri-scope.md` (§11 décisions complètes, §6.3 namespace)
+- Aucune modification du projet Next.js web ; `next-env.d.ts` restauré avant commit (règle #32).
+
+### Prochaine session
+
+**E8P-S03 — Schéma BDD locale + migrations** (migrations SQLx locales, résolution des tables sans `updatedAt` : `Fitment`/`PartImage`/`PartVersion`, mesure des volumétries réelles, tranchement des questions héritées du cadrage).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S02 — setup toolchain Rust + squelette Tauri, après validation Coordinateur du cadrage E8P-S01)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S03 — schéma BDD locale + migrations)
 ═══════════════════════════════════════════════════════════════

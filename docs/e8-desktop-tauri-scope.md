@@ -256,12 +256,12 @@ Stratégie de reprise : checkpoint local du dernier curseur appliqué, applicati
 
 ### 6.3 Endpoints API à créer (Next.js)
 
-Proposition (cadrage) :
+Proposition (cadrage) — namespace `/api/desktop/sync/*` (**D-E8P-S01-12 = B**, verrouillée) :
 
-- `GET /api/sync/manifest` — version du manifest de sync + version de schéma par table ;
-- `GET /api/sync/pull?since=<timestamp>&table=<name>` — delta par table (pull uniquement).
+- `GET /api/desktop/sync/manifest` — version du manifest de sync + version de schéma par table ;
+- `GET /api/desktop/sync/pull?since=<timestamp>&table=<name>` — delta par table (pull uniquement).
 
-`⚠️ À TRANCHER D-E8P-S01-12` — un point d'attention à intégrer : **la route `POST /api/sync` existe déjà mais est un stub** (`src/app/api/sync/route.ts`, E0-S07b-3-D, dette D48 — payload simulé `{ status: 'success', received: 2, ids: [...] }`, consommé par `src/lib/stores/sync-store.ts` et la page admin `sync-client.tsx` avec bouton manuel + daemon 45 s). À arbitrer en E8P-S04 : namespace distinct (`/api/sync/desktop/*`), remplacement du stub, ou coexistence. Aucune modification de code dans cette session.
+Le namespace `/api/desktop/sync/*` **isole le stub existant** : `POST /api/sync` (`src/app/api/sync/route.ts`, E0-S07b-3-D, dette D48 — payload simulé, consommé par `src/lib/stores/sync-store.ts` et la page admin `sync-client.tsx`) reste intact et sans collision ; son remplacement éventuel reste une décision ultérieure (hors périmètre E8P).
 
 ### 6.4 Gestion des conflits
 
@@ -358,26 +358,26 @@ Points ouverts (à trancher en E8P-S02/S03 — non bloquants pour ce cadrage, ma
 
 | Décision | Valeur | Statut |
 |---|---|---|
+| `D-E8P-C1` | Clôture E8P-S01 validée | ✅ verrouillée (délégation Coordinateur 2026-10-14) |
 | `D-E8P-S01-0` | `1b` — restauration `next-env.d.ts` autorisée puis exécutée par l'Exécutant | ✅ verrouillée + appliquée |
 | `D-E8P-S01-NUM` | `A` — préfixe de phase `E8P` | ✅ verrouillée |
 | `D-E8P-S01-1` | Périmètre V1 lecture seule | ✅ implicite via D-E8P-S01-2 |
 | `D-E8P-S01-2` | Sync **unidirectionnelle** web → local | ✅ verrouillée |
+| `D-E8P-S01-3` | `A` — sync : install (full) + démarrage (incrémental) + manuel (bouton UI) | ✅ verrouillée (délégation 2026-10-14) |
 | `D-E8P-S01-4` | Moteur BDD locale = **SQLite** | ✅ verrouillée |
 | `D-E8P-S01-5` | Frontend = **Next.js réutilisé** (export statique) | ✅ verrouillée |
 | `D-E8P-S01-6` | Framework desktop = **Tauri 2** | ✅ verrouillée |
+| `D-E8P-S01-7` | `A` — ORM local = **sqlx** (async, SQLite natif) | ✅ verrouillée (délégation 2026-10-14) |
 | `D-E8P-S01-8` | Transport sync = **HTTP REST pull-only** | ✅ verrouillée |
+| `D-E8P-S01-9` | `A` — auth = **token BetterAuth + keyring OS** | ✅ verrouillée (délégation 2026-10-14) |
 | `D-E8P-S01-10` | Périmètre Must | ✅ implicite (lecture seule + sync pull) |
 | `D-E8P-S01-11` | Embeddings locaux = **Différé** (→ E8P-S03) | ✅ verrouillée (différé acté) |
+| `D-E8P-S01-12` | `B` — endpoints sync sous namespace **`/api/desktop/sync/*`** (isole le stub `POST /api/sync`, D48) | ✅ verrouillée (délégation 2026-10-14) |
 | `OS-V1` | Cible V1 = **Windows uniquement** | ✅ verrouillée |
 
 ### 11.2 Décisions restant À TRANCHER
 
-| Décision | Question | Recommandation Superviseur |
-|---|---|---|
-| `⚠️ À TRANCHER D-E8P-S01-3` | Fréquence de sync (install + démarrage + périodique + manuel ?) | full à l'install + incrémental au démarrage + manuel ; périodicité optionnelle |
-| `⚠️ À TRANCHER D-E8P-S01-7` | ORM local Rust | sqlx (async, SQLite natif, léger) |
-| `⚠️ À TRANCHER D-E8P-S01-9` | Auth desktop | Token BetterAuth + keyring OS (Windows Credential Manager) |
-| `⚠️ À TRANCHER D-E8P-S01-12` | Endpoints API sync (arbitrage avec le stub `POST /api/sync` existant) | `GET /api/sync/manifest` + `GET /api/sync/pull?since=<ts>` ; namespace à arbitrer E8P-S04 |
+**Aucune à ce jour** — les 4 décisions mineures restantes au cadrage (`D-E8P-S01-3` fréquence, `-7` ORM, `-9` auth, `-12` endpoints) ont été tranchées par délégation du Coordinateur (Superviseur IA, 2026-10-14) et figurent verrouillées en §11.1. Points ouverts reportés aux sessions d'exécution : emplacement exact de la BDD locale, comportement si sync initiale échoue, chiffrement BDD (SQLCipher), taille installeur (cf. §7 — à trancher en E8P-S02/S03, non bloquants pour le cadrage).
 
 ### 11.3 Note de traçabilité — collision de numérotation
 
