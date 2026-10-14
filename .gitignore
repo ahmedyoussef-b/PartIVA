@@ -53,3 +53,6 @@ src/generated/
 
 # Playwright auth storage
 .auth/
+
+# HuggingFace cache
+.hf-cache/
