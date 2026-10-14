@@ -39,7 +39,11 @@ function detectProvider(): Provider {
 }
 
 function isLightweight(): boolean {
-  return HF_API_URL.includes('hf.space') || HF_API_URL.includes('localhost') || HF_API_URL.includes('127.0.0.1');
+  return (
+    HF_API_URL.includes('hf.space') ||
+    HF_API_URL.includes('localhost') ||
+    HF_API_URL.includes('127.0.0.1')
+  );
 }
 
 export async function computeImageEmbedding(image: string | Buffer): Promise<number[]> {
