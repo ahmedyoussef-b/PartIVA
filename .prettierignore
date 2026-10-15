@@ -12,6 +12,10 @@ package-lock.json
 .claude/
 .windsurf/
 
+# E8P — Desktop UI (build artifacts)
+desktop/ui/.next
+desktop/ui/out
+
 # Config infra (formatage manuel, hors baseline applicative)
 next.config.mjs
 next.config.js

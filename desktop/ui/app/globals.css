@@ -1,0 +1,170 @@
+/* E8P-S06 — feuille de style minimale desktop (langage visuel sobre, hors-ligne first).
+   Aucune dépendance CSS externe (export statique — pas de CDN). */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f6f7f9;
+  color: #1a2230;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 20px;
+  background: #0f2a43;
+  color: #fff;
+}
+
+.app-title {
+  font-weight: 700;
+}
+
+.app-header nav {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.app-header a {
+  color: #cfe3f5;
+  text-decoration: none;
+}
+
+.app-header a:hover {
+  color: #fff;
+}
+
+main {
+  padding: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.sync-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.sync-idle {
+  background: #4b5b6d;
+  color: #fff;
+}
+.sync-syncing {
+  background: #b98a1d;
+  color: #fff;
+}
+.sync-ok {
+  background: #1f7a4d;
+  color: #fff;
+}
+.sync-error {
+  background: #a3312a;
+  color: #fff;
+}
+.sync-not-authenticated {
+  background: #4b5b6d;
+  color: #cfe3f5;
+}
+
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  padding: 28px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgb(15 42 67 / 12%);
+  width: 320px;
+}
+
+.login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+input,
+select,
+button {
+  padding: 8px 10px;
+  border: 1px solid #c9d2dc;
+  border-radius: 6px;
+  font: inherit;
+}
+
+button {
+  background: #0f2a43;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.search-bar input {
+  flex: 1;
+}
+
+.parts-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.parts-table th,
+.parts-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e3e8ee;
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.images {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.images img {
+  max-width: 180px;
+  border-radius: 6px;
+}
+
+.error {
+  color: #a3312a;
+}
+
+.meta {
+  color: #5a6a7d;
+  font-size: 13px;
+}

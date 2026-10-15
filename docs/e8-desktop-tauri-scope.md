@@ -213,6 +213,8 @@ Token de session BetterAuth présenté par le desktop aux endpoints de sync, sto
 - Multi-comptes local ;
 - Recherche embeddings locale (liée à D-E8P-S01-11).
 
+**Réalisé en E8P-S06 (UI V1) :** login interactif + keyring OS (D-E8P-S06-2 = A) · catalogue local paginé · recherche 6 modes locaux (référence, nom, catégorie, matière, véhicule, specs) · fiche pièce via query param `/part?id=` (routes dynamiques `[id]` incompatibles avec l'export statique) · indicateur de sync au démarrage (non bloquant). UI dédiée dans `desktop/ui/` (Next.js export statique, D-E8P-S06-1 = A2) — commandes Tauri : `sync_now`, `login`, `save_token`, `load_token`, `logout`, `list_parts`, `search_parts`, `get_part`.
+
 **Won't (hors V1) :**
 
 - **Écriture métier locale** (création/modification de pièces) — interdit par D-E8P-S01-2 ;

@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.partiva.desktop",
   "build": {
-    "frontendDist": "../web-out",
-    "devUrl": "http://localhost:3000",
+    "frontendDist": "../ui/out",
+    "devUrl": "http://localhost:3100",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""
   },

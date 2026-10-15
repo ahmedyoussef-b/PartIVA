@@ -5093,6 +5093,85 @@ Aucun `PARTIVA_SYNC_TOKEN` valide disponible dans ce bac à sable (pas d'`ADMIN_
 
 ---
 
+## E8P-S06 — UI desktop V1 (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — session UI + auth)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `68b6d48` (E8P-S05) · branche `master` · working tree propre
+**Décisions appliquées (R.5.21 — avance par défaut) :** `D-E8P-S06-1 = A2` (UI dédiée `desktop/ui/`) · `D-E8P-S06-2 = A` (login interactif + keyring).
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `68b6d48` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅ · `cargo test` 5 passed avant modifications ✅
+
+### Bloc B — Lecture préalable (R.4.2)
+
+- `tauri.conf.json` (frontendDist `../web-out` → à remplacer), `lib.rs` (entry point + `AppState`), `sync.rs` (contrat interne), migrations 0001-0004.
+- Endpoint auth web identifié par lecture du code : **`POST /api/auth/sign-in/email`** (BetterAuth standard, `src/lib/auth.ts`) — cookie de session `better-auth.session_token=<token>.<signature>` → token brut = partie avant le premier point (accepté en `Authorization: Bearer` par `auth.api.getSession`).
+
+### Blocs C/D — UI desktop (`desktop/ui/`, Next.js 16.4.1)
+
+- `package.json` (adaptations : `next export` supprimé en Next 16 — l'export passe par `next build` + `output: 'export'` ; script `lint` retiré) + `tsconfig.json` + `.gitignore`.
+- `next.config.mjs` : `output: 'export'`, `distDir: 'out'`, `trailingSlash: true`, `images.unoptimized`, **`turbopack.root: __dirname`** (voir incident #2).
+- Pages : `/` (redirection token → catalogue/login), `/login/`, `/catalogue/`, `/recherche/`, `/part?id=` · `components/SyncStatus.tsx` (sync non bloquante au montage) · `globals.css` (style minimal, aucune dépendance externe).
+- **Build export statique validé tôt** (recommandation de l'ordre) : 5 routes statiques générées, exit 0.
+- `tauri.conf.json` : `frontendDist = ../ui/out`, `devUrl = http://localhost:3100`.
+
+### Bloc E — Auth (`src/auth.rs`)
+
+- Commandes : `login` (POST BetterAuth → extraction token Set-Cookie → **stockage keyring immédiat**), `save_token`, `load_token`, `logout` · helpers `resolve_token()` (keyring → repli `PARTIVA_SYNC_TOKEN` dev) · `extract_session_token()` (parsing cookie, tolère le repli par virgule) + **3 tests unitaires**.
+- `keyring 3` (windows-native en V1 ; features macOS/libsecret incluses pour V1.x).
+
+### Blocs F/G/H — Lectures locales (`src/parts.rs`)
+
+- `list_parts` (pagination limit≤200/offset), `search_parts` **6 modes par match statique** (reference, name, category, material, vehicle via JOIN fitment/vehicle, specs via JOIN part_specification — aucun SQL composé, Sécurité #7), `get_part` (détail + specs + images + fitments) + **3 tests** sur BDD seedée temporaire.
+
+### Bloc I — Sync au démarrage
+
+- `SyncStatus.tsx` : `load_token` → si présent, `sync_now` en arrière-plan (non bloquant), états idle/syncing/ok/error/not-authenticated.
+
+### Incidents traités
+
+| Incident | Traitement |
+|---|---|
+| Junction npm (`atelier-pieces-industrielles → F:\PartIVA`) recréée par `npm install` dans `desktop/ui/` → le build UI compile le `src/proxy.ts` du web racine (collision d'import map) | Junction supprimée après install ; dette `D-junction-npm-prefix` mise à jour (**3e occurrence** — récurrent même sans `--prefix`, mitigation précisée) |
+| Next.js infère la racine workspace depuis le lockfile racine (« multiple lockfiles ») → scanne `./src/proxy.ts` hors périmètre | `turbopack.root: __dirname` dans `next.config.mjs` |
+| `tsc --noEmit` racine (include `**/*.tsx`) ramasse les sources `desktop/ui` → erreur `@/lib/auth` | `desktop/ui` ajouté au `exclude` du `tsconfig.json` racine (projet TS séparé) |
+| ESLint racine : artefacts `desktop/ui/.next` + `out` (4863 problèmes) | Ignores ajoutés dans `eslint.config.mjs` + `.prettierignore` (convention S02) ; 1 warning `<img>` traité par `eslint-disable-next-line` justifié (offline-first, URLs Cloudinary externes) |
+| Tests parallèles : fichiers SQLite partagés (`parts-{pid}.db`, parsing cookie) | Fichier unique par test ; `extract_session_token` gère le repli par virgule (test réaliste) |
+
+### Baseline (vérifiée)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 ✅ |
+| Prettier | 0 ✅ |
+| Build web | 61 routes ✅ |
+| E2E web | 284/0/4 (non relancé — web inchangé) |
+| Prisma web | 15 migrations ✅ |
+| `cargo check` | exit 0 ✅ |
+| `cargo test` | **11 passed / 0 failed** ✅ (migrations 1 + sync 4 + auth 3 + parts 3) |
+| Build UI desktop | 5 routes statiques ✅ (`desktop/ui/out/`) |
+
+### Livrables
+
+- `desktop/ui/` : Next.js export statique (5 pages + SyncStatus + CSS), `frontendDist = ../ui/out`
+- `desktop/src-tauri/src/auth.rs` (keyring + login + 3 tests), `src/parts.rs` (3 commandes + 3 tests), `src/lib.rs` (8 commandes enregistrées)
+- `eslint.config.mjs`, `.prettierignore`, `tsconfig.json` (isolation desktop/ui)
+- `DEBT.md` (+`D-sync-e2e-not-verified`, `D-junction-npm-prefix` mise à jour — 22 dettes), `docs/e8-desktop-tauri-scope.md` (§5 périmètre réalisé), `SESSION.md` (cette entrée)
+- Web inchangé (61 routes) · `next-env.d.ts` restauré avant commit (règle #32).
+
+### Réserve
+
+- Run `tauri dev`/`tauri build` non vérifié (pas de display + pas de token — cf. `D-sync-e2e-not-verified`). La compilation (`cargo test`) et le build UI statique sont verts ; le run GUI avec login réel reste à faire en environnement provisionné (E8P-S08).
+
+### Prochaine session
+
+**E8P-S07 — Packaging NSIS/MSI** (installeur `setup.exe`/`.msi`, mesure taille, WebView2).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S06 — UI desktop V1)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S07 — packaging NSIS/MSI)
 ═══════════════════════════════════════════════════════════════

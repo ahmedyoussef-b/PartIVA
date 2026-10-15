@@ -1,0 +1,6 @@
+# E8P — Desktop UI (Tauri)
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts

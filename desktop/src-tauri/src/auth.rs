@@ -1,0 +1,116 @@
+// E8P-S06 — Auth desktop : login BetterAuth + stockage du token de session au keyring OS
+// (D-E8P-S06-2 = A, D-E8P-S01-9). Windows Credential Manager en V1 (OS-V1 = Windows).
+// Le token n'est JAMAIS logué (Sécurité #7) ni exposé au state JS : il transite par
+// le keyring et n'est utilisé que côté Rust pour les appels sync.
+use crate::sync::SyncError;
+
+const SERVICE: &str = "com.partiva.desktop";
+const ACCOUNT: &str = "session-token";
+const SIGN_IN_URL: &str = "https://part-iva.vercel.app/api/auth/sign-in/email";
+
+fn entry() -> Result<keyring::Entry, String> {
+    keyring::Entry::new(SERVICE, ACCOUNT).map_err(|e| e.to_string())
+}
+
+pub fn save_token(token: &str) -> Result<(), String> {
+    entry()?
+        .set_password(token)
+        .map_err(|e| format!("keyring set: {e}"))
+}
+
+pub fn load_token() -> Result<Option<String>, String> {
+    match entry()?.get_password() {
+        Ok(token) => Ok(Some(token)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(format!("keyring get: {e}")),
+    }
+}
+
+pub fn logout() -> Result<(), String> {
+    match entry()?.delete_credential() {
+        Ok(()) => Ok(()),
+        Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(format!("keyring delete: {e}")),
+    }
+}
+
+/// Jeton de sync : keyring en priorité (login interactif), repli sur
+/// PARTIVA_SYNC_TOKEN pour le dev (D-E8P-S05-1 = A).
+pub fn resolve_token() -> Result<String, SyncError> {
+    if let Some(token) = load_token().map_err(SyncError::Payload)? {
+        return Ok(token);
+    }
+    std::env::var("PARTIVA_SYNC_TOKEN").map_err(|_| SyncError::MissingToken)
+}
+
+/// Extrait le token de session BetterAuth d'un en-tête Set-Cookie.
+/// Format attendu : `better-auth.session_token=<token>.<signature>; Path=/; …`
+/// BetterAuth signe le cookie `<token>.<signature>` — la partie avant le premier
+/// point est le token brut accepté en `Authorization: Bearer`.
+/// Tolère les valeurs repliées par virgule (plusieurs cookies dans un même en-tête).
+pub fn extract_session_token(set_cookie: &str) -> Option<String> {
+    set_cookie
+        .split([';', ','])
+        .map(str::trim)
+        .find_map(|part| part.strip_prefix("better-auth.session_token="))
+        .map(|value| value.split('.').next().unwrap_or(value).to_owned())
+        .filter(|token| !token.is_empty())
+}
+
+/// Login interactif : POST email/password vers BetterAuth, extraction du token
+/// depuis le Set-Cookie, stockage immédiat au keyring. Le token n'est pas renvoyé.
+pub async fn login(http: &reqwest::Client, email: &str, password: &str) -> Result<(), String> {
+    let response = http
+        .post(SIGN_IN_URL)
+        .json(&serde_json::json!({ "email": email, "password": password }))
+        .send()
+        .await
+        .map_err(|e| format!("réseau : {e}"))?;
+
+    if response.status() == reqwest::StatusCode::UNAUTHORIZED {
+        return Err("Identifiants invalides".to_string());
+    }
+    if !response.status().is_success() {
+        return Err(format!("auth HTTP {}", response.status().as_u16()));
+    }
+
+    let set_cookie = response
+        .headers()
+        .get_all(reqwest::header::SET_COOKIE)
+        .iter()
+        .filter_map(|value| value.to_str().ok())
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    let token = set_cookie
+        .iter()
+        .find_map(|header| extract_session_token(header))
+        .ok_or("cookie de session illisible (better-auth.session_token absent)")?;
+    save_token(&token)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extracts_token_from_signed_session_cookie() {
+        let cookie = "better-auth.session_token=abc123.sigsuffix; Path=/; HttpOnly; SameSite=Lax";
+        assert_eq!(
+            extract_session_token(cookie).as_deref(),
+            Some("abc123"),
+            "la signature après le premier point doit être retirée"
+        );
+    }
+
+    #[test]
+    fn extracts_token_when_multiple_cookies_present() {
+        let cookie = "other=1; Path=/, better-auth.session_token=tok42.sig; Path=/; HttpOnly";
+        assert_eq!(extract_session_token(cookie).as_deref(), Some("tok42"));
+    }
+
+    #[test]
+    fn returns_none_without_session_cookie() {
+        assert!(extract_session_token("other=1; Path=/").is_none());
+        assert!(extract_session_token("").is_none());
+    }
+}
