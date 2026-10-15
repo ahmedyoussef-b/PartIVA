@@ -61,24 +61,35 @@ pub fn extract_session_token(set_cookie: &str) -> Option<String> {
 /// Login interactif : POST email/password vers BetterAuth, extraction du token
 /// depuis le Set-Cookie, stockage immédiat au keyring. Le token n'est pas renvoyé.
 /// `base` : URL de base de l'API auth (production en prod, mock wiremock en test).
+///
+/// E8P-S09-bis — messages d'erreur détaillés (incident prod : message générique
+/// « Identifiants invalides ou service injoignable » masquait la cause réelle —
+/// mot de passe vide à cause de l'autofill sur champ contrôlé).
 pub async fn login(
     http: &reqwest::Client,
     email: &str,
     password: &str,
     base: &str,
 ) -> Result<(), String> {
+    if email.trim().is_empty() || password.is_empty() {
+        return Err("Email ou mot de passe vide".to_string());
+    }
+
     let response = http
         .post(format!("{base}/sign-in/email"))
         .json(&serde_json::json!({ "email": email, "password": password }))
         .send()
         .await
-        .map_err(|e| format!("réseau : {e}"))?;
+        .map_err(|e| format!("Service injoignable : {e}"))?;
 
-    if response.status() == reqwest::StatusCode::UNAUTHORIZED {
+    let status = response.status();
+    if status == reqwest::StatusCode::UNAUTHORIZED {
         return Err("Identifiants invalides".to_string());
     }
-    if !response.status().is_success() {
-        return Err(format!("auth HTTP {}", response.status().as_u16()));
+    if !status.is_success() {
+        let body = response.text().await.unwrap_or_default();
+        let snippet: String = body.chars().take(200).collect();
+        return Err(format!("Service auth HTTP {} : {snippet}", status.as_u16()));
     }
 
     let set_cookie = response
@@ -91,7 +102,7 @@ pub async fn login(
     let token = set_cookie
         .iter()
         .find_map(|header| extract_session_token(header))
-        .ok_or("cookie de session illisible (better-auth.session_token absent)")?;
+        .ok_or("Session non renvoyée par le service (cookie de session absent)")?;
     save_token(&token)
 }
 

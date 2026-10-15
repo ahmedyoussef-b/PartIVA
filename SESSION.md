@@ -5376,6 +5376,56 @@ Pas de session GUI interactive dans le bac à sable — l'exécution de l'instal
 
 ---
 
+## E8P-S09-bis — Correctif login desktop + autofill UI (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — diagnostic + correctif incident production)
+**Phase :** E8P — session correctif (décision `D-E8P-S09-bis-1 = Oui`)
+**HEAD départ :** `c00644e` (E8P-S02-bis) · branche `master` · working tree propre
+
+### Contexte
+
+Incident remonté par le Coordinateur : sur l'app desktop installée (`setup.exe` E8P-S07), `/login` affiche les champs **pré-remplis** et la connexion échoue avec « Identifiants invalides ou service injoignable. » malgré des credentials valides en web. Badge : « Non connecté ».
+
+### Blocs A/B — Diagnostic
+
+- Web auth : `src/app/api/auth/[...all]/route.ts` → BetterAuth monté sur `/api/auth` (basePath par défaut) → endpoint **`/api/auth/sign-in/email` correct** dans `auth.rs` (H2 écartée — le même chemin est utilisé par les tests E2E web).
+- Test curl production **sans en-tête Origin** (mauvais mot de passe) → **401 propre** `{"message":"Invalid email or password"}` : endpoint joignable, pas de rejet CORS/CSRF pour les clients non-navigateur (H1/CORS écartée ; `reqwest` n'est de toute façon pas soumis à CORS).
+- **Cause racine (B) — chaîne with (A)** : les champs de `desktop/ui/app/login/page.tsx` sont **contrôlés** (`value` + `onChange`) ; l'**autofill du WebView ne déclenche pas `onChange`** → le state React reste `''` → `invoke('login')` envoyait un mot de passe **vide** → 401 → message générique. L'autofill (problème A) **causait** l'échec du login (problème B).
+
+### Bloc F — Correctif `auth.rs`
+
+- Messages d'erreur **détaillés** : « Email ou mot de passe vide » (garde préalable), « Service injoignable : {e} », « Identifiants invalides » (401), « Service auth HTTP {status} : {extrait} », « Session non renvoyée par le service (cookie de session absent) ».
+- Tests `auth_integration` : inchangés (401 → « Identifiants invalides » conservé) — 16 tests Rust toujours verts.
+
+### Bloc G — Correctif autofill UI desktop
+
+- `desktop/ui/app/login/page.tsx` : pattern **`readOnly` retiré au focus** sur email + password (identique au web E8P-S02-bis) + `autoComplete="off"`/`"new-password"` sur les inputs et le form.
+- L'UI affiche désormais l'**erreur réelle** renvoyée par Rust (`String(err)`) au lieu du message générique.
+
+### Bloc I — Non-régression
+
+- `cargo test` : **16 passed / 0 failed** ✅ · UI build statique ✅ · E2E UI desktop : **8 passed** ✅
+- Web : ESLint 0/0 · TS 0 · Prettier 0 · Build **61 routes** ✅ (aucun fichier web modifié) · Prisma 15 migrations.
+
+### Bloc H — Vérification manuelle : ⚠️ DÉLÉGUÉE AU COORDINATEUR
+
+Pas de GUI en bac à sable. **L'installateur a été régénéré avec le correctif** (`desktop/src-tauri/target/release/bundle/nsis/PartIVA Desktop_0.1.0_x64-setup.exe`, 3,90 Mo) — le Coordinateur doit :
+
+1. Désinstaller l'ancienne version
+2. Installer le nouveau `setup.exe`
+3. Vérifier `/login` → champs **vides** (plus d'autofill)
+4. Saisir email + mot de passe **à la main** → connexion réussie → redirection catalogue + badge « Sync à jour »/connecté
+5. En cas d'échec : le message affiché est désormais précis (service injoignable / identifiants invalides / session non renvoyée) — le rapporter tel quel
+
+### Livrables
+
+- `desktop/src-tauri/src/auth.rs` (erreurs détaillées + garde champs vides)
+- `desktop/ui/app/login/page.tsx` (anti-autofill readOnly + affichage erreur réelle)
+- Installateur régénéré (artefact non commité)
+- `SESSION.md` (cette entrée) — pas de dette ajoutée (bug réel corrigé, pas un report)
+
+---
+
 ══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S09 — clôture de phase E8P)
 ═══════════════════════════════════════════════════════════════
