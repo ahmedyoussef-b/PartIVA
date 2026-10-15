@@ -1,7 +1,7 @@
-mod auth;
-mod db;
-mod parts;
-mod sync;
+pub mod auth;
+pub mod db;
+pub mod parts;
+pub mod sync;
 
 use sqlx::SqlitePool;
 use tauri::Manager;
@@ -52,7 +52,7 @@ pub struct AppState {
 #[tauri::command]
 async fn sync_now(state: tauri::State<'_, AppState>) -> Result<sync::SyncSummary, String> {
   let token = auth::resolve_token().map_err(|e| e.to_string())?;
-  sync::sync_all(&state.pool, &state.http, &token)
+  sync::sync_all(&state.pool, &state.http, &token, sync::SYNC_BASE_URL)
     .await
     .map_err(|e| e.to_string())
 }
@@ -64,7 +64,7 @@ async fn login(
   email: String,
   password: String,
 ) -> Result<(), String> {
-  auth::login(&state.http, &email, &password).await
+  auth::login(&state.http, &email, &password, auth::AUTH_BASE_URL).await
 }
 
 #[tauri::command]

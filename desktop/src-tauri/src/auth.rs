@@ -6,7 +6,8 @@ use crate::sync::SyncError;
 
 const SERVICE: &str = "com.partiva.desktop";
 const ACCOUNT: &str = "session-token";
-const SIGN_IN_URL: &str = "https://part-iva.vercel.app/api/auth/sign-in/email";
+/// Base d'auth web — publique pour les tests d'intégration (wiremock).
+pub const AUTH_BASE_URL: &str = "https://part-iva.vercel.app/api/auth";
 
 fn entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new(SERVICE, ACCOUNT).map_err(|e| e.to_string())
@@ -59,9 +60,15 @@ pub fn extract_session_token(set_cookie: &str) -> Option<String> {
 
 /// Login interactif : POST email/password vers BetterAuth, extraction du token
 /// depuis le Set-Cookie, stockage immédiat au keyring. Le token n'est pas renvoyé.
-pub async fn login(http: &reqwest::Client, email: &str, password: &str) -> Result<(), String> {
+/// `base` : URL de base de l'API auth (production en prod, mock wiremock en test).
+pub async fn login(
+    http: &reqwest::Client,
+    email: &str,
+    password: &str,
+    base: &str,
+) -> Result<(), String> {
     let response = http
-        .post(SIGN_IN_URL)
+        .post(format!("{base}/sign-in/email"))
         .json(&serde_json::json!({ "email": email, "password": password }))
         .send()
         .await

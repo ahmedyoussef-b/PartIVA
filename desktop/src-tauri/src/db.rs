@@ -17,7 +17,7 @@ pub async fn init_local_db() -> Result<SqlitePool, Box<dyn std::error::Error>> {
   Ok(pool)
 }
 
-pub(crate) async fn connect(db_path: &std::path::Path) -> Result<SqlitePool, sqlx::Error> {
+pub async fn connect(db_path: &std::path::Path) -> Result<SqlitePool, sqlx::Error> {
   // mode=rwc : read-write-create — crée le fichier SQLite s'il n'existe pas
   let url = format!(
     "sqlite://{}?mode=rwc",

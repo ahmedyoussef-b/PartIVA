@@ -15,9 +15,11 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "serve": "^14.2.4",
     "typescript": "^5.9.3"
   }
 }

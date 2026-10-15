@@ -4,3 +4,7 @@ node_modules/
 out/
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright (E8P-S08)
+test-results/
+playwright-report/

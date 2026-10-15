@@ -9,13 +9,16 @@ use thiserror::Error;
 
 const SYNC_BASE: &str = "https://part-iva.vercel.app/api/desktop/sync";
 
+/// URL de base du sync — publique pour les tests d'intégration (wiremock).
+pub const SYNC_BASE_URL: &str = SYNC_BASE;
+
 #[derive(Debug, Error)]
 pub enum SyncError {
     #[error("HTTP: {0}")]
     Http(#[from] reqwest::Error),
     #[error("DB: {0}")]
     Db(#[from] sqlx::Error),
-    #[error("Auth: PARTIVA_SYNC_TOKEN manquant")]
+    #[error("Auth: token manquant")]
     MissingToken,
     #[error("Payload: {0}")]
     Payload(String),
@@ -60,9 +63,10 @@ pub async fn sync_all(
     pool: &SqlitePool,
     http: &reqwest::Client,
     token: &str,
+    base: &str,
 ) -> Result<SyncSummary, SyncError> {
     let started = std::time::Instant::now();
-    let manifest = fetch_manifest(http, token).await?;
+    let manifest = fetch_manifest(http, token, base).await?;
 
     if manifest.sync_direction != "web_to_local" {
         return Err(SyncError::Payload(format!(
@@ -84,7 +88,7 @@ pub async fn sync_all(
         let mut max_updated_at: Option<String> = None;
         let mut skip = 0u64;
         loop {
-            let page = fetch_pull(http, token, &table.name, since.as_deref(), skip).await?;
+            let page = fetch_pull(http, token, base, &table.name, since.as_deref(), skip).await?;
             if page.count == 0 && skip == 0 && !table.incremental {
                 // Full-refresh sur table distante vide : on nettoie quand même le miroir local.
                 sqlx::query(&format!("DELETE FROM {}", table.name))
@@ -145,9 +149,10 @@ pub async fn sync_all(
 pub async fn fetch_manifest(
     http: &reqwest::Client,
     token: &str,
+    base: &str,
 ) -> Result<ManifestResponse, SyncError> {
     let resp = http
-        .get(format!("{SYNC_BASE}/manifest"))
+        .get(format!("{base}/manifest"))
         .bearer_auth(token)
         .send()
         .await?
@@ -160,11 +165,12 @@ pub async fn fetch_manifest(
 pub async fn fetch_pull(
     http: &reqwest::Client,
     token: &str,
+    base: &str,
     table: &str,
     since: Option<&str>,
     skip: u64,
 ) -> Result<PullResponse, SyncError> {
-    let mut url = format!("{SYNC_BASE}/pull?table={table}&skip={skip}");
+    let mut url = format!("{base}/pull?table={table}&skip={skip}");
     if let Some(s) = since {
         url.push_str(&format!("&since={s}"));
     }

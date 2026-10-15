@@ -5250,6 +5250,89 @@ Pas de session GUI interactive dans le bac à sable — l'exécution de l'instal
 
 ---
 
+## E8P-S08 — Tests E2E desktop (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — tests + checklist)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `7b969b6` (E8P-S07) · branche `master` · working tree propre
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `7b969b6` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+- Playwright racine 1.64 / navigateurs en cache partagé → `@playwright/test` **pinné `^1.64.0`** dans `desktop/ui` (pas de nouveau téléchargement de Chromium).
+
+### Blocs B/C — Testabilité + dev-deps
+
+- `Cargo.toml` : `[dev-dependencies]` = `wiremock 0.6`, `tempfile 3`.
+- **Refactor injectabilité** (prérequis aux tests d'intégration) : `sync::sync_all/fetch_manifest/fetch_pull` et `auth::login` prennent l'URL de base en paramètre ; constantes `SYNC_BASE_URL` / `AUTH_BASE_URL` exposées ; `db::connect` rendu `pub` ; modules `pub` (`pub mod auth/db/parts/sync`) pour les tests d'intégration.
+
+### Bloc D — `tests/auth_integration.rs` (2 tests)
+
+- `login_extracts_token_and_stores_in_keyring` (Windows uniquement — keyring OS réel) : wiremock renvoie 200 + `Set-Cookie: better-auth.session_token=tok-integration-42.sig` → token extrait → keyring → relecture → logout cleanup.
+- `login_rejects_invalid_credentials` : 401 mocké → erreur « Identifiants invalides » sans écriture keyring.
+
+### Bloc E — `tests/sync_integration.rs` (1 test)
+
+- wiremock sert manifest (3 tables) + pull (2 parts, 1 vehicle, 1 fitment) → `sync_all` sur SQLite temporaire : upserts vérifiés, `sync_metadata` (`last_sync_since` = MAX(updatedAt) pour incrémental, NULL pour full-refresh), second passage = idempotence + transmission du curseur `since` au mock.
+
+### Bloc F — `tests/parts_integration.rs` (2 tests)
+
+- 6 modes de recherche vérifiés sur BDD seedée (référence, nom, catégorie, matière, véhicule JOIN, specs JOIN) + pagination `list_parts` + `get_part` (détail + relations).
+
+### Blocs G/H — E2E UI headless (8 tests)
+
+- `desktop/ui/playwright.config.ts` (webServer `npx serve out -l 3100`) + `serve` en devDep.
+- `desktop/ui/e2e/ui.spec.ts` : mock `window.__TAURI_INTERNALS__.invoke` via `addInitScript` (API IPC Tauri 2) → H.1 redirection token, H.1 login (form), H.2 catalogue, H.3 6 modes, H.3 recherche nom, H.4 fiche pièce, H.5 `/part` sans id, H.6 indicateur sync. **8/8 passés.**
+
+### Bloc I — Checklist validation manuelle
+
+- `docs/e8-desktop-manual-validation.md` : 7 sections (installation, premier lancement, login/keyring, sync, recherche/fiches, hors-ligne, désinstallation) — **à exécuter par le Coordinateur** (pas de GUI en bac à sable).
+
+### Incidents traités
+
+| Incident | Traitement |
+|---|---|
+| `query_param_is` inexistant dans wiremock 0.6.5 | `query_param(key, value)` (API réelle du crate vérifiée) |
+| `db::connect` `pub(crate)` inaccessible aux tests d'intégration | `pub` (modules rendus `pub` également) |
+| Référence résiduelle `sync::sync::migrate_reference` (inexistante) | Supprimée — `seed_pool` applique déjà les migrations |
+| `Request.url` est une `Url` (pas `String`) | `.as_str().contains(...)` |
+| Attente incorrecte dans `list_and_get_part` (tri DESC : p3 dernier) | Correction du test — le code était juste |
+| Playwright : `test-results/.last-run.json` non conformé + non ignoré | `prettier --write` du spec + ignores `test-results/`/`playwright-report/` dans `desktop/ui/.gitignore` et `.prettierignore` racine |
+| `npm run build` web en échec transitoire | Conflit `.next` avec le serveur dev résiduel d'E8P-S04 (port 3000) — serveur arrêté → rebuild vert (61 routes) |
+
+### Baseline (vérifiée)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 ✅ |
+| Prettier | 0 ✅ |
+| Build web | 61 routes ✅ |
+| E2E web | 284/0/4 (non relancé — web inchangé) · tests `desktop/sync` 401 re-vérifiés : 2 passed |
+| Prisma web | 15 migrations ✅ |
+| `cargo check`/`cargo test` | **16 passed / 0 failed** ✅ (11 unit + 2 auth + 2 parts + 1 sync) |
+| E2E UI desktop | **8 passed / 0 failed** ✅ |
+
+### Livrables
+
+- `desktop/src-tauri/tests/{auth_integration,sync_integration,parts_integration}.rs`
+- `desktop/src-tauri/Cargo.toml` (dev-deps + refactor injectabilité), `src/{sync,auth,db,lib}.rs` (URL base paramétrable, modules pub)
+- `desktop/ui/playwright.config.ts`, `desktop/ui/e2e/ui.spec.ts`, `desktop/ui/package.json` (+serve, @playwright/test)
+- `docs/e8-desktop-manual-validation.md` (checklist Coordinateur)
+- `DEBT.md` (+`D-desktop-icons-default`, `D-desktop-code-signing`, `D-desktop-manual-validation` — 25 dettes), `SESSION.md` (cette entrée)
+- Web inchangé (61 routes) · `next-env.d.ts` restauré avant commit (règle #32).
+
+### Réserve
+
+- **Validation manuelle GUI déléguée au Coordinateur** (checklist fournie) — installation `setup.exe`, login/keyring, sync réelle, offline.
+- Sync réseau réelle toujours couverte par `D-sync-e2e-not-verified` (tests wiremock verts).
+
+### Prochaine session
+
+**E8P-S09 — Clôture de phase E8P** (documentation + bilan + baseline figée) + E8P-S02-bis (autofill login/register) à planifier avant clôture.
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S08 — tests E2E desktop)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S09 — clôture de phase E8P)
 ═══════════════════════════════════════════════════════════════
