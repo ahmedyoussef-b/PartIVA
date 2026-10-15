@@ -47,17 +47,34 @@ pub fn resolve_token() -> Result<String, SyncError> {
     std::env::var("PARTIVA_SYNC_TOKEN").map_err(|_| SyncError::MissingToken)
 }
 
+/// Noms possibles du cookie de session BetterAuth (E8P-S09-quater-bis).
+/// En HTTPS, BetterAuth préfixe `__Secure-` (dist/cookies/index.mjs :
+/// `secureCookiePrefix` selon le protocole de baseURL) — la production Vercel
+/// renvoie donc `__Secure-better-auth.session_token`.
+const SESSION_COOKIE_NAMES: [&str; 2] = [
+  "better-auth.session_token=",
+  "__Secure-better-auth.session_token=",
+];
+
 /// Extrait le token de session BetterAuth d'un en-tête Set-Cookie.
-/// Format attendu : `better-auth.session_token=<token>.<signature>; Path=/; …`
+/// Format attendu : `<nom-cookie>=<token>.<signature>; Path=/; …`
 /// BetterAuth signe le cookie `<token>.<signature>` — la partie avant le premier
 /// point est le token brut accepté en `Authorization: Bearer`.
-/// Tolère les valeurs repliées par virgule (plusieurs cookies dans un même en-tête).
+/// Tolère les valeurs repliées par virgule (plusieurs cookies dans un même en-tête)
+/// et les valeurs quotées.
 pub fn extract_session_token(set_cookie: &str) -> Option<String> {
-    set_cookie
+  set_cookie
         .split([';', ','])
         .map(str::trim)
-        .find_map(|part| part.strip_prefix("better-auth.session_token="))
-        .map(|value| value.split('.').next().unwrap_or(value).to_owned())
+        .find_map(|part| {
+            SESSION_COOKIE_NAMES
+                .iter()
+                .find_map(|name| part.strip_prefix(name))
+        })
+        .map(|value| {
+            let value = value.trim_matches('"');
+            value.split('.').next().unwrap_or(value).to_owned()
+        })
         .filter(|token| !token.is_empty())
 }
 
@@ -129,6 +146,20 @@ mod tests {
             Some("abc123"),
             "la signature après le premier point doit être retirée"
         );
+    }
+
+    #[test]
+    fn extracts_token_from_secure_prefixed_cookie_https() {
+        // E8P-S09-quater-bis — production HTTPS : BetterAuth préfixe __Secure-
+        let cookie =
+            "__Secure-better-auth.session_token=secure-tok-7.sigsuffix; Path=/; Secure; HttpOnly";
+        assert_eq!(extract_session_token(cookie).as_deref(), Some("secure-tok-7"));
+    }
+
+    #[test]
+    fn extracts_quoted_token() {
+        let cookie = "better-auth.session_token=\"quoted-1.sig\"; Path=/";
+        assert_eq!(extract_session_token(cookie).as_deref(), Some("quoted-1"));
     }
 
     #[test]

@@ -21,7 +21,8 @@ async fn login_extracts_token_and_stores_in_keyring() {
             ResponseTemplate::new(200)
                 .insert_header(
                     "Set-Cookie",
-                    "better-auth.session_token=tok-integration-42.sigvalue; Path=/; HttpOnly",
+                    // E8P-S09-quater-bis — nom réel en production HTTPS
+                    "__Secure-better-auth.session_token=tok-integration-42.sigvalue; Path=/; Secure; HttpOnly",
                 )
                 .set_body_json(serde_json::json!({ "user": { "id": "u1" } })),
         )

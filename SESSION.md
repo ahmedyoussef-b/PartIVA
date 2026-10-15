@@ -5476,6 +5476,45 @@ Désinstaller → réinstaller le nouveau `setup.exe` → saisir les identifiant
 
 ---
 
+## E8P-S09-quater-bis — Parsing cookie de session BetterAuth (2026-10-15)
+
+**Statut :** ✅ Clôturée (correctif ciblé — cause racine confirmée dans le source BetterAuth)
+**Phase :** E8P — session correctif niveau 3
+**HEAD départ :** `180dbb8` (E8P-S09-ter) · branche `master` · working tree propre
+
+### Diagnostic
+
+Après E8P-S09-ter (headers navigateur + credentials valides confirmés par le Test A), l'app affiche « Session non renvoyée par le service (cookie de session absent) » → BetterAuth **accepte** les credentials et renvoie le cookie, mais le parser Rust ne le trouve pas.
+
+**Cause racine — vérifiée dans `node_modules/better-auth/dist/cookies/index.mjs` (L23)** :
+
+```js
+const secureCookiePrefix = (... baseURLString.startsWith("https://") ...) ? "__Secure-" : "";
+```
+
+En HTTPS (production Vercel), BetterAuth préfixe le cookie : le nom réel est **`__Secure-better-auth.session_token`** — le parser ne cherchait que `better-auth.session_token`.
+
+### Correctif (`auth.rs`)
+
+- `extract_session_token` accepte les **deux noms** (`better-auth.session_token=` et `__Secure-better-auth.session_token=`), gère les valeurs **quotées**, et conserve l'extraction du token brut (signature `<token>.<sig>` retirée — le Bearer attendu par `getSession` est le token brut).
+- Tests unitaires +2 : **cookie `__Secure-`** (HTTPS prod) + **valeur quotée**.
+- Test d'intégration `auth_integration` : le mock wiremock renvoie désormais le nom **réel** de production (`__Secure-…`) — valide le parser dans les conditions prod.
+- `cargo test` : **18 passed / 0 failed** ✅ (13 unit + 2 auth + 2 parts + 1 sync).
+- Installateur régénéré : `PartIVA Desktop_0.1.0_x64-setup.exe` (3,90 Mo).
+
+### Bloc G — Vérification manuelle : ⚠️ DÉLÉGUÉE AU COORDINATEUR
+
+Désinstaller → réinstaller → saisir les identifiants. Attendu : login réussi → redirection catalogue → la sync initiale démarre (badge « Sync en cours » puis « Sync à jour »). Si échec : le message reste désormais précis et diagnostiquable.
+
+### Livrables
+
+- `desktop/src-tauri/src/auth.rs` (parsing dual-name + unquote + 2 tests)
+- `desktop/src-tauri/tests/auth_integration.rs` (mock cookie prod réel)
+- Installateur régénéré (artefact non commité)
+- `SESSION.md` (cette entrée) — pas de dette (bug corrigé)
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (selon résultat du test Coordinateur : correctif ciblé ou Test A)
+Fin SESSION.md — **Prochaine MAJ :** selon résultat du test Coordinateur (clôture incident → E8P-S09 clôture de phase, ou diagnostic complémentaire)
 ═══════════════════════════════════════════════════════════════
