@@ -313,6 +313,32 @@ Points ouverts (à trancher en E8P-S02/S03 — non bloquants pour ce cadrage, ma
 - **Chiffrement de la BDD locale** (SQLCipher) : optionnel, reporté V1.x (cf. §8) ;
 - **Taille de l'installeur** : dépend du bundler et de l'embarquement WebView2 — à mesurer en E8P-S07.
 
+### 7.1 Procédure d'installation utilisateur (V1 — Windows NSIS) — E8P-S07
+
+1. Télécharger `PartIVA Desktop_0.1.0_x64-setup.exe` (bundle NSIS, `D-E8P-S07-1 = A` — NSIS seul en V1, MSI en V1.x) ;
+2. Double-cliquer → assistant d'installation NSIS (langue français par défaut, sélecteur masqué) ;
+3. Installation **per-user** (`installMode: currentUser`) — aucun droit administrateur requis ;
+4. Chemin d'installation : `%LOCALAPPDATA%\PartIVA\` (personnalisable) ;
+5. Raccourcis créés : menu Démarrer + bureau ;
+6. Désinstalleur enregistré (Panneau de configuration → Applications).
+
+**WebView2** : mode `downloadBootstrapper` — si le runtime WebView2 est absent (Windows 10 pré-21H2), l'installeur le télécharge (seul cas nécessitant le réseau à l'installation) ; Windows 11 et Windows 10 récents l'embarquent nativement. Alternative `offlineInstaller` (embed complet, ~150 Mo supplémentaires) écartée en V1.
+
+### 7.2 Premier lancement
+
+1. Ouverture de la fenêtre PartIVA Desktop (binaire `partiva-desktop.exe`) ;
+2. Création BDD locale : `%APPDATA%\PartIVA\partiva.db` + migrations SQLx automatiques (`0001` → `0004`) ;
+3. Écran de login → saisie email + password (POST BetterAuth côté Rust) ;
+4. Token stocké au keyring OS (Windows Credential Manager) — jamais exposé au JS ;
+5. Sync initial (pull complet) en arrière-plan, indicateur d'état visible ;
+6. Passage en mode prêt (offline-ready).
+
+### 7.3 Lancements suivants
+
+1. Auto-connexion implicite via le token keyring (pas de re-saisie) ;
+2. Sync incrémentale au démarrage (`D-E8P-S01-3 = A` : install full + démarrage incrémental + manuel) ;
+3. BDD locale disponible hors ligne.
+
 ---
 
 ## 8. Sécurité et intégrité des données

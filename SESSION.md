@@ -5172,6 +5172,84 @@ Aucun `PARTIVA_SYNC_TOKEN` valide disponible dans ce bac à sable (pas d'`ADMIN_
 
 ---
 
+## E8P-S07 — Packaging NSIS (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — packaging)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `62c1577` (E8P-S06) · branche `master` · working tree propre
+**Décision appliquée (R.5.21) :** `D-E8P-S07-1 = A` — **NSIS seul** en V1 (MSI reporté V1.x).
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `62c1577` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+- `desktop/ui/out/index.html` présent ✅ · 15 icônes dans `desktop/src-tauri/icons/` (dont `icon.ico` 37 Ko, `icon.png` 50 Ko) ✅
+
+### Bloc B/C — Icônes
+
+- Aucun logo officiel PartIVA dans `public/` (seul `hero-cnc-workshop.jpg`, image hero non logo) → **icônes Tauri par défaut conservées** (marquage `⚠️ À REMPLACER` — cf. dette potentielle, à traiter avec un logo officiel lorsque disponible).
+
+### Blocs D/E — Configuration bundle
+
+- `tauri.conf.json` : `targets: ["nsis"]` (retrait MSI), `publisher: "PartIVA"`, `copyright`, `category: "Business"`, descriptions FR, `windows.nsis` : `installMode: "currentUser"` (per-user, pas d'admin), `languages: ["French","English"]`, `displayLanguageSelector: false` (français par défaut), `bundle.windows.webviewInstallMode: "downloadBootstrapper"` (WebView2 embarqué nativement sur Windows récents ; téléchargeable sinon — seul cas réseau à l'install).
+- `Cargo.toml` : renommage package `app` → **`partiva-desktop`** (binaire `partiva-desktop.exe` au lieu de `app.exe`) + métadonnées (description, authors, license). `[lib] name = "app_lib"` inchangé.
+
+### Bloc F/G — Build + packaging
+
+- `desktop/ui` rebuild : 5 routes statiques ✅
+- `npx tauri build --bundles nsis` : **succès** (exit 0, ~10 min — profil release complet sur FS lent).
+
+**Artefacts produits (non commités — `desktop/src-tauri/.gitignore` `/target/`) :**
+| Fichier | Taille |
+|---|---|
+| `target/release/partiva-desktop.exe` | 14,3 Mo |
+| `target/release/bundle/nsis/PartIVA Desktop_0.1.0_x64-setup.exe` | **3,9 Mo** (seuil 100 Mo : ✅ largement respecté) |
+
+### Bloc H — Vérification installation : ⚠️ NON VÉRIFIÉE
+
+Pas de session GUI interactive dans le bac à sable — l'exécution de l'installeur (install, raccourcis, désinstalleur, premier lancement) n'a pas été testée. Fichiers d'installateur valides (générés par le bundler Tauri sans erreur). Vérification réelle reportée en E8P-S08 (environnement avec display) ou par le Coordinateur (double-clic sur le setup.exe).
+
+### Bloc I — Artefacts
+
+- `git check-ignore desktop/src-tauri/target/release/bundle/` → ignoré ✅ (via `desktop/src-tauri/.gitignore` — `/target/`).
+
+### Bloc J — Documentation
+
+- `docs/e8-desktop-tauri-scope.md` §7.1/7.2/7.3 : procédure d'installation NSIS, per-user, WebView2, premier lancement (BDD + migrations + login + sync initial), lancements suivants (auto-connexion keyring + sync incrémentale).
+
+### Bloc K — Baseline (vérifiée)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 ✅ |
+| Prettier | 0 ✅ |
+| Build web | 61 routes ✅ |
+| E2E web | 284/0/4 (non relancé — web inchangé) |
+| Prisma web | 15 migrations ✅ |
+| `cargo check` | exit 0 ✅ (3m56s — invalidé par le renommage package) |
+| `cargo test` | 11 passed / 0 failed ✅ |
+| Build UI desktop | 5 routes statiques ✅ |
+
+### Livrables
+
+- `desktop/src-tauri/tauri.conf.json` (bundle NSIS per-user + métadonnées), `desktop/src-tauri/Cargo.toml` (package `partiva-desktop` + métadonnées)
+- Installateurs générés (artefacts non commités) : `partiva-desktop.exe` 14,3 Mo · `PartIVA Desktop_0.1.0_x64-setup.exe` 3,9 Mo
+- `DEBT.md` : **`D-junction-npm-prefix` reclassée Faible → Moyenne** (3 occurrences)
+- `docs/e8-desktop-tauri-scope.md` (§7.1-7.3 procédure installation), `SESSION.md` (cette entrée)
+- Web inchangé (61 routes) · `next-env.d.ts` restauré avant commit (règle #32).
+
+### Points ouverts (à trancher Coordinateur)
+
+- **⚠️ Icônes** : logo PartIVA officiel à produire/fournir puis `npx tauri icon <logo.png>` — sinon icônes génériques conservées.
+- **⚠️ Signature de code** : installateur non signé (SmartScreen affichera un avertissement) — certificat à prévoir en V1.x.
+- **⚠️ Installation réelle** non testée (pas de GUI) — cf. Bloc H.
+
+### Prochaine session
+
+**E8P-S08 — Tests E2E desktop** (run installateur + GUI en environnement provisionné, validation offline).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S07 — packaging NSIS/MSI)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S08 — tests E2E desktop)
 ═══════════════════════════════════════════════════════════════
