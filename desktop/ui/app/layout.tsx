@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import SyncStatus from '@/components/SyncStatus';
+import AppNav from '@/components/AppNav';
 
 export const metadata: Metadata = {
   title: 'PartIVA Desktop',
@@ -11,14 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr">
       <body>
-        <header className="app-header">
-          <span className="app-title">PartIVA Desktop</span>
-          <nav>
-            <a href="/catalogue/">Catalogue</a>
-            <a href="/recherche/">Recherche</a>
-          </nav>
-          <SyncStatus />
-        </header>
+        <AppNav />
         {children}
       </body>
     </html>

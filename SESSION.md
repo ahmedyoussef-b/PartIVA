@@ -5515,6 +5515,58 @@ Désinstaller → réinstaller → saisir les identifiants. Attendu : login réu
 
 ---
 
+## E8P-S09-quater-ter — Sync desktop + navbar conditionnelle (2026-10-15)
+
+**Statut :** ✅ Clôturée (correctif — cause racine dans le source BetterAuth)
+**Phase :** E8P — session correctif niveau 4
+**HEAD départ :** `1b741dc` (E8P-S09-quater-bis) · branche `master` · working tree propre
+**Contexte :** login desktop réussi ✅ (incident cookie clos). Restaient : badge « Sync en erreur » + navbar visible avant login.
+
+### Bloc B — Diagnostic sync (depuis le code, logs F12 non fournis)
+
+Chaîne complète tracée : `SyncStatus` → `sync_now` → `resolve_token` (keyring) → `sync_all` → `bearer_auth` → endpoints web → `auth.api.getSession({ headers })`.
+
+**Cause racine — vérifiée dans `node_modules/better-auth/dist/plugins/bearer/index.mjs`** : le support `Authorization: Bearer` est un **plugin optionnel** (`bearer()`). Sans lui, `getSession` ne lit **que le cookie de session** → le Bearer du client Rust était ignoré → **401** → « Sync en erreur ». Notre `src/lib/auth.ts` ne chargeait pas le plugin.
+
+(Comportement du plugin, source L34-40 : token signé `token.sig` vérifié par HMAC, ou token brut re-signé côté serveur avec le secret — les deux formes acceptées ; notre token brut stocké au keyring est donc compatible.)
+
+### Bloc D — Correctif sync (`src/lib/auth.ts` — web)
+
+- Ajout du plugin **`bearer()`** à la config BetterAuth (import `better-auth/plugins`).
+- Les endpoints `/api/desktop/sync/*` existants sont inchangés : `getSession` lira désormais la session depuis l'en-tête Bearer.
+- **Déploiement** : effectif après push sur `master` (Vercel auto-deploy) — le test desktop doit avoir lieu **après** le déploiement.
+
+### Bloc E — Correctif navbar conditionnelle (desktop UI)
+
+- Nouveau `components/AppNav.tsx` (client) : vérifie `load_token` au montage ; **navbar + badge sync masqués avant login** (plus de « Sync en erreur » sans session, plus d'onglets Catalogue/Recherche sur l'écran de connexion).
+- `SyncStatus` : le **détail de l'erreur est affiché** en clair (plus seulement en `title`) — diagnostic possible sans F12.
+- CSS `.sync-status-wrap` / `.sync-detail`.
+
+### Bloc F — Tests + Bloc G — Installateur
+
+- `cargo test` : **18 passed / 0 failed** ✅ (Rust inchangé — le fix est côté web)
+- UI build ✅ · **Playwright 8 passed** ✅ (mock `load_token` → nav visible, cohérent)
+- Web : ESLint 0/0 · TS 0 · Prettier 0 (1 fichier reformaté) · **Build 61 routes** ✅ (l'ajout du plugin ne change pas les routes)
+- Installateur régénéré : `PartIVA Desktop_0.1.0_x64-setup.exe` (3,90 Mo).
+
+### Bloc H — Vérification manuelle : ⚠️ DÉLÉGUÉE AU COORDINATEUR
+
+**Séquence impérative** (le fix web doit être déployé AVANT le test desktop) :
+1. Vérifier que Vercel a déployé le dernier commit (`part-iva.vercel.app` → déploiement vert)
+2. Désinstaller → réinstaller le nouveau `setup.exe`
+3. **Avant login** : aucune navbar (écran épuré) ✅ attendu
+4. Login → **badge « Sync en cours… » puis « Sync à jour »** ; catalogue rempli avec les pièces synchronisées
+5. Si échec : le détail de l'erreur s'affiche désormais sous le badge (ex. « HTTP : HTTP status 401… ») — à rapporter tel quel
+
+### Livrables
+
+- `src/lib/auth.ts` (plugin bearer — correctif sync)
+- `desktop/ui/components/AppNav.tsx` (nouveau), `desktop/ui/app/layout.tsx`, `desktop/ui/components/SyncStatus.tsx`, `desktop/ui/app/globals.css`
+- Installateur régénéré (artefact non commité)
+- `SESSION.md` (cette entrée) — pas de dette (bug corrigé)
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** selon résultat du test Coordinateur (clôture incident → E8P-S09 clôture de phase, ou diagnostic complémentaire)
+Fin SESSION.md — **Prochaine MAJ :** selon résultat du test Coordinateur (clôture phase E8P-S09 si sync OK)
 ═══════════════════════════════════════════════════════════════

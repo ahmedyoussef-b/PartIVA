@@ -55,8 +55,11 @@ export default function SyncStatus() {
   };
 
   return (
-    <span className={`sync-status sync-${state}`} title={detail}>
-      {label[state]}
+    <span className="sync-status-wrap">
+      <span className={`sync-status sync-${state}`}>{label[state]}</span>
+      {/* E8P-S09-quater-ter — le détail de l'erreur est affiché (diagnostic F12
+          impossible sur toutes les machines) au lieu d'un simple title. */}
+      {state === 'error' && detail ? <span className="sync-detail">{detail}</span> : null}
     </span>
   );
 }
