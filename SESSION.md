@@ -5013,6 +5013,86 @@ Table `table | colonnes | types | updatedAt?` : `part` (id, part_number, ptv_ref
 
 ---
 
+## E8P-S05 — Client sync Rust (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — session technique lourde)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `f274aea` (E8P-S04) · branche `master` · working tree propre
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `f274aea` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+- `cargo check`/`cargo test` verts avant modifications ✅
+
+### Bloc B — Lecture préalable (R.4.2)
+
+- Contrat API web relu : `manifest` → `{ version, sync_direction, tables: [{ name, model, incremental, pageSize }] }` ; `pull` → `{ table, count, since, skip, data }` (⚠️ le champ s'appelle `model`, pas `table` — types Rust alignés sur le contrat RÉEL, pas sur l'ébauche de l'ordre).
+- **Auth — déterminant (R.4.2)** : `src/lib/auth.ts` = BetterAuth standard (`prismaAdapter`, `emailAndPassword`) ; `auth.api.getSession({ headers })` accepte la session via cookie **ou header `Authorization: Bearer <token>`** → client Rust en `bearer_auth` (token = `Session.token`).
+- `migrations/0001→0004` + `sync/tables.ts` (whitelist, 7 tables) relus — noms et colonnes alignés Rust ↔ SQLite ↔ web.
+
+### Bloc C — Dépendances
+
+- `Cargo.toml` : `reqwest 0.12` (json + rustls-tls, default-features=false), `chrono 0.4` (serde), `thiserror 2`. `serde`/`serde_json` déjà présents (E8P-S02).
+
+### Blocs D→G — `src/sync.rs` (création)
+
+- Types Serde alignés contrat réel : `ManifestResponse`, `TableSpec` (name, model, incremental, page_size), `PullResponse` (table, count, since, skip, data), `SyncSummary`, `SyncError`.
+- `fetch_manifest` / `fetch_pull` : GET HTTPS `https://part-iva.vercel.app/api/desktop/sync/*`, `bearer_auth`, `error_for_status`.
+- **Upserts par match statique** (7 tables — aucune construction SQL dynamique de données, Sécurité #7) : `part`, `vehicle`, `fitment`, `part_image`, `part_version`, `part_specification`, `part_category` ; mapping web camelCase → colonnes snake_case explicite ; champs absents → NULL (jamais inventés — Règle #1) ; `snapshot` Json → TEXT ; `isPrimary` → 0/1.
+- **Orchestrateur `sync_all`** : fetch manifest (vérif `sync_direction == "web_to_local"`) → par table : `ensure_metadata_row` (INSERT OR IGNORE — les 2 tables de 0004 n'étaient pas amorcées dans 0003) → tables incrémentales : boucle `since`/`skip` jusqu'à `count < page_size`, upsert, curseur = MAX(updatedAt) du lot ; tables full-refresh : `DELETE` + réinsertion paginée → `update_metadata` (last_sync_at, `last_sync_since` en `COALESCE` — jamais écrasé par NULL, row_count).
+- Commande Tauri `sync_now` + `AppState { pool, http }` (enregistrés via `app.manage`) — déclenchement manuel (`D-E8P-S01-3 = A`) ; token via `PARTIVA_SYNC_TOKEN` (décision `D-E8P-S05-1 = A` — login interactif + keyring reporté en E8P-S06, `D-E8P-S01-9`). Token jamais logué (Sécurité #7).
+
+### Bloc I — Tests Rust (4 tests ajoutés)
+
+- `upsert_parts_maps_web_fields_to_local_columns` — mapping champs/valeurs
+- `upsert_fitments_full_refresh_then_delete` — FK + purge full-refresh
+- `metadata_row_created_for_new_table_and_updated` — INSERT OR IGNORE + COALESCE curseur
+- `manifest_json_parses_to_contract` — désérialisation contrat réel
+
+### Incidents traités
+
+| Incident | Traitement |
+|---|---|
+| E0599 `manage` — `use tauri::Manager;` perdu à la réécriture de `lib.rs` | Réimport ajouté (déjà présent en E8P-S02) |
+| Contrat : JSON web `pageSize` (camelCase) vs struct `page_size` (snake_case) — test `manifest_json_parses_to_contract` en échec | `#[serde(rename_all = "camelCase")]` sur `TableSpec` — **bug de contrat réel détecté par le test** (le fetch aurait renvoyé une erreur de désérialisation en production) |
+| `_sqlx_migrations.version` UNIQUE conflict — 4 tests partageaient le même fichier `sync-{pid}.db` en parallèle (migrations rejouées) | Fichier de test unique par test (`temp_pool("parts")`, …) |
+
+### Bloc J — Vérification manuelle : ⚠️ NON VÉRIFIÉE
+
+Aucun `PARTIVA_SYNC_TOKEN` valide disponible dans ce bac à sable (pas d'`ADMIN_EMAIL` — cf. dette `D-e2e-env-admin-missing`). Le run bout-en-bout (`cargo run` + sync réelle) est reporté à un environnement provisionné ou E8P-S06 (login interactif). **Bloc documenté, non bloquant.**
+
+### Baseline (vérifiée)
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ (web inchangé) |
+| TypeScript | 0 ✅ |
+| Prettier | 0 ✅ |
+| Build web | 61 routes ✅ (session 100% desktop) |
+| Prisma web | 15 migrations ✅ |
+| `cargo check` | exit 0 ✅ |
+| `cargo test` | 5 passed / 0 failed ✅ (1 migration + 4 sync) |
+
+### Décisions appliquées (R.5.21 — avance par défaut)
+
+- **`D-E8P-S05-1 = A`** : token dev `PARTIVA_SYNC_TOKEN` pour E8P-S05 ; login interactif (UI + keyring, `D-E8P-S01-9`) en E8P-S06.
+- Auth Bearer : retenu après lecture de `src/lib/auth.ts` (BetterAuth accepte Bearer session token) — alternative cookie documentée en commentaire de code si une version BetterAuth l'exige.
+
+### Livrables
+
+- `desktop/src-tauri/src/sync.rs` (client + upserts + orchestrateur + 4 tests)
+- `desktop/src-tauri/src/lib.rs` (AppState + commande `sync_now`)
+- `desktop/src-tauri/src/db.rs` (`connect` → `pub(crate)` pour les tests sync)
+- `desktop/src-tauri/Cargo.toml` (+3 dépendances)
+- `DEBT.md` (+`D-e2e-env-admin-missing` — 21 dettes), `docs/e8-desktop-tauri-scope.md` (§6.5 reprise sur erreur détaillée), `SESSION.md` (cette entrée)
+- Aucune modification web · `next-env.d.ts` restauré avant commit (règle #32).
+
+### Prochaine session
+
+**E8P-S06 — UI desktop V1** (catalogue + recherche + login interactif + keyring — `D-E8P-S01-5` Next.js export statique, `D-E8P-S01-9`).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S05 — client sync Rust)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S06 — UI desktop V1)
 ═══════════════════════════════════════════════════════════════

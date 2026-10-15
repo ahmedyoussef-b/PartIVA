@@ -75,6 +75,7 @@
 | `D-audit-mysql2` | `npm audit` — 4 high prod / 9 high total via `mysql2` transitif de `prisma`. | Haute | Attente Prisma 8 | Non | Accepté et tracé. `mysql2` non utilisé (PostgreSQL). Fix = downgrade Prisma 6.19.3 (breaking) → refusé |
 | `D-junction-npm-prefix` | `npm install --prefix` mal ciblé crée une junction `atelier-pieces-industrielles → F:\PartIVA` (auto-lien du package racine) → boucle infinie du build web (`globals.css` / track_glob). | Faible | Mitigé | Non | `.gitignore` desktop/ ajouté (E8P-S02). Vérifier le cwd avant tout `npm --prefix`. Découverte : E8P-S02 — dette validée E8P-S04 |
 | `D-sync-stub-d48` | `POST /api/sync` (stub E0-S07b-3-D, D48) coexiste avec le namespace `/api/desktop/sync/*` (E8P-S04, D-E8P-S01-12 = B) sans collision. | Faible | V1.x | Non | Stub conservé en V1 — ne pas modifier/supprimer tant que son usage réel (consommateur `sync-store.ts` + page admin) n'est pas identifié. Découverte : E8P-S01 — arbitrage E8P-S04 |
+| `D-e2e-env-admin-missing` | Tests E2E authentifiés (`api.spec.ts`) échouent au sign-in dans le bac à sable local — `.env` sans `ADMIN_EMAIL`, utilisateur mock absent de la DB connectée. 11 préexistants + 4 nouveaux E8P-S04. | Faible | CI / env provisionné | Non | Environnemental, non bloquant. Endpoints vérifiés par curl (401 conformes). Mitigation : provisionner `ADMIN_EMAIL`/`E2E_ADMIN_*` en local ou rejouer en CI avec secrets. Découverte : E8P-S04 |
 
 ---
 

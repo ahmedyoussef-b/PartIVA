@@ -1,6 +1,7 @@
 // E8P-S02 — initialisation BDD locale SQLite (fichier vide, sans schéma applicatif)
 // E8P-S03 — migrations SQLx appliquées au démarrage (migrations/0001 → 0003)
-// Schéma local + migrations en E8P-S03 ; sync web → local en E8P-S04/S05.
+// E8P-S04 — migration 0004 (part_specification, part_category)
+// E8P-S05 — connect() pub(crate) : réutilisé par les tests du client sync.
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::SqlitePool;
 use std::path::PathBuf;
@@ -16,7 +17,7 @@ pub async fn init_local_db() -> Result<SqlitePool, Box<dyn std::error::Error>> {
   Ok(pool)
 }
 
-async fn connect(db_path: &std::path::Path) -> Result<SqlitePool, sqlx::Error> {
+pub(crate) async fn connect(db_path: &std::path::Path) -> Result<SqlitePool, sqlx::Error> {
   // mode=rwc : read-write-create — crée le fichier SQLite s'il n'existe pas
   let url = format!(
     "sqlite://{}?mode=rwc",
@@ -36,7 +37,7 @@ mod tests {
   use super::*;
 
   // E8P-S03 — Bloc H (alternative au lancement GUI) : les migrations s'appliquent
-  // sur une base vide et créent les 6 tables métier + _sqlx_migrations.
+  // sur une base vide et créent les tables métier + _sqlx_migrations (0001 → 0004).
   #[tokio::test]
   async fn migrations_apply_on_empty_db() {
     let dir = std::env::temp_dir().join("partiva-desktop-test");

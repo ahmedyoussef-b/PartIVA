@@ -273,11 +273,13 @@ Le namespace `/api/desktop/sync/*` **isole le stub existant** : `POST /api/sync`
 
 **Supprimée** : sync unidirectionnelle web → local, local en lecture seule (D-E8P-S01-2). Si une écriture locale est un jour autorisée (V1.x), une stratégie dédiée sera cadrée avant toute implémentation.
 
-### 6.5 Reprise sur erreur
+### 6.5 Reprise sur erreur — implémentée E8P-S05
 
-- Checkpoint local : dernier curseur (`since`) appliqué avec succès ;
-- Application idempotente (upsert par identifiant) ;
-- Échec de sync non bloquant : l'app reste utilisable sur les dernières données locales (état « stale » affiché en UI).
+- **Checkpoint local** : table `sync_metadata` (`last_sync_since` par table) — curseur `since` rejoué à chaque sync incrémentale ; `COALESCE` côté update pour ne jamais écraser un curseur valide par un NULL ;
+- **Application idempotente** : upsert par `id` (`INSERT OR REPLACE`) — rejeu d'un même lot sans duplication ;
+- **Échec de sync non bloquant** : l'app reste utilisable sur les dernières données locales (état « stale » affiché en UI) ; `sync_all` renvoie une erreur, les tables déjà synchronisées le restent ;
+- **Full-refresh** (`fitment`, `part_image`, `part_version` — Option B) : purge `DELETE` + réinsertion paginée (`skip` par pas de `pageSize`) — le web reste source de vérité ;
+- **Pagination** : boucle `fetch_pull` jusqu'à `count < page_size` (tables > 500 lignes, ex. `fitment` ~1 505).
 
 ---
 
