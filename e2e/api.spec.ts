@@ -160,3 +160,86 @@ test('api: /api/sync POST returns simulated sync payload', async ({ request }) =
   expect(typeof body.timestamp).toBe('string');
   expect(Number.isNaN(Date.parse(body.timestamp))).toBe(false);
 });
+
+// E8P-S04 — namespace dédié /api/desktop/sync/* (D-E8P-S01-12 = B).
+// Sync unidirectionnelle web → local (D-E8P-S01-2), auth obligatoire (D-E8P-S01-9).
+// test.slow() : première compilation de route sur FS lent (D-e2e-load-timeouts).
+
+test('api: /api/desktop/sync/manifest GET without auth returns 401', async ({ request }) => {
+  test.slow();
+  const response = await request.get('/api/desktop/sync/manifest');
+  expect(response.status()).toBe(401);
+});
+
+test('api: /api/desktop/sync/pull GET without auth returns 401', async ({ request }) => {
+  test.slow();
+  const response = await request.get('/api/desktop/sync/pull?table=part');
+  expect(response.status()).toBe(401);
+});
+
+test('api: /api/desktop/sync/manifest GET with ADMIN returns tables and direction', async ({
+  request,
+}) => {
+  test.slow();
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/desktop/sync/manifest', { headers });
+
+  expect(response.status()).toBe(200);
+
+  const body = await response.json();
+  expect(body.version).toBe(1);
+  expect(body.sync_direction).toBe('web_to_local');
+
+  const names = body.tables.map((table: { name: string }) => table.name);
+  expect(names).toEqual([
+    'part',
+    'vehicle',
+    'fitment',
+    'part_image',
+    'part_version',
+    'part_specification',
+    'part_category',
+  ]);
+
+  const part = body.tables.find((table: { name: string }) => table.name === 'part');
+  expect(part.incremental).toBe(true);
+  const fitment = body.tables.find((table: { name: string }) => table.name === 'fitment');
+  expect(fitment.incremental).toBe(false);
+});
+
+test('api: /api/desktop/sync/pull GET with unknown table returns 400', async ({ request }) => {
+  test.slow();
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/desktop/sync/pull?table=users', { headers });
+  expect(response.status()).toBe(400);
+});
+
+test('api: /api/desktop/sync/pull GET without table param returns 400', async ({ request }) => {
+  test.slow();
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/desktop/sync/pull', { headers });
+  expect(response.status()).toBe(400);
+});
+
+test('api: /api/desktop/sync/pull GET with valid table returns data', async ({ request }) => {
+  test.slow();
+  const { headers } = await authRequest(request, 'ADMIN');
+  const response = await request.get('/api/desktop/sync/pull?table=vehicle', { headers });
+
+  expect(response.status()).toBe(200);
+
+  const body = await response.json();
+  expect(body.table).toBe('vehicle');
+  expect(Array.isArray(body.data)).toBe(true);
+  expect(body.count).toBe(body.data.length);
+
+  for (const vehicle of body.data) {
+    // Miroir fidèle de la migration locale — pas de champ embedding/search_vector
+    expect(vehicle).toHaveProperty('id');
+    expect(vehicle).toHaveProperty('make');
+    expect(vehicle).toHaveProperty('model');
+    expect(vehicle).toHaveProperty('year');
+    expect(vehicle).not.toHaveProperty('embedding');
+    expect(vehicle).not.toHaveProperty('searchVector');
+  }
+});

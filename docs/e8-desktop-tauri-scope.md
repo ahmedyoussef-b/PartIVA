@@ -258,14 +258,16 @@ Note modes de recherche : la recherche **photo** web (E2-S09, dépendante des em
 
 **Implémentation E8P-S03** : migrations SQLx `desktop/src-tauri/migrations/0001_init.sql` (part, vehicle, fitment) · `0002_add_partimage_partversion.sql` (part_image, part_version) · `0003_sync_metadata.sql` (sync_metadata) — miroir fidèle, `enums` → `TEXT` + `CHECK`, `DateTime` → `TEXT` ISO 8601, `Json` → `TEXT`, `search_vector`/`embedding` exclus. Détails : `desktop/src-tauri/migrations/README.md`. ⚠️ `PartSpecification`/`PartCategory` (Must du cadrage) hors périmètre de l'ordre E8P-S03 → à ajouter en migration `0004` avec le client sync (E8P-S04/S05).
 
-### 6.3 Endpoints API à créer (Next.js)
+### 6.3 Endpoints API (Next.js) — implémentés E8P-S04
 
-Proposition (cadrage) — namespace `/api/desktop/sync/*` (**D-E8P-S01-12 = B**, verrouillée) :
+Namespace `/api/desktop/sync/*` (**D-E8P-S01-12 = B**, verrouillée) :
 
-- `GET /api/desktop/sync/manifest` — version du manifest de sync + version de schéma par table ;
-- `GET /api/desktop/sync/pull?since=<timestamp>&table=<name>` — delta par table (pull uniquement).
+- `GET /api/desktop/sync/manifest` — manifest de sync : version, direction (`web_to_local`), liste des 7 tables synchronisables avec leur stratégie (incrémentale vs full-refresh) ;
+- `GET /api/desktop/sync/pull?table=<name>&since=<ISO>&skip=<n>` — delta par table (pull uniquement) : filtre `updatedAt` pour les tables incrémentales, full-refresh paginé pour `fitment`/`part_image`/`part_version` (Option B, `D-E8P-S03-1`), pagination `take=500` + `skip`.
 
-Le namespace `/api/desktop/sync/*` **isole le stub existant** : `POST /api/sync` (`src/app/api/sync/route.ts`, E0-S07b-3-D, dette D48 — payload simulé, consommé par `src/lib/stores/sync-store.ts` et la page admin `sync-client.tsx`) reste intact et sans collision ; son remplacement éventuel reste une décision ultérieure (hors périmètre E8P).
+Contrat de sécurité : auth BetterAuth obligatoire (401 sans session), whitelist des tables via `src/lib/sync/tables.ts` (délégués Prisma — aucune interpolation de nom), champs exposés = miroir des migrations locales (`search_vector` tsvector et embeddings exclus). Registre partagé : `src/lib/sync/tables.ts`.
+
+Le namespace `/api/desktop/sync/*` **isole le stub existant** : `POST /api/sync` (`src/app/api/sync/route.ts`, E0-S07b-3-D, dette `D-sync-stub-d48`) reste intact et sans collision ; son remplacement éventuel reste une décision ultérieure (hors périmètre E8P).
 
 ### 6.4 Gestion des conflits
 

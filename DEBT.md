@@ -6,7 +6,7 @@
 > **Phase E8 CLÔTURÉE** (2026-10-13 — D-E8-C1 à C8, rapport `docs/e8-close-report.md`). R.5.22 actée (clés placeholder non bloquantes).
 > **Phase E7 CLÔTURÉE** (2026-10-14 — D-E7-C1 à C9, rapport `docs/e7-close-report.md`). 6/6 sessions traitées (S01 → S06), baseline tenue (59 routes, E2E 284/0/4, 15 migrations).
 > Dettes E7 : `D-photo-embedding-backfill` (M, ✅ clôturée E7-S02-reprise), `D-hnsw-drift` (F, ✅ vérifiée E7-S05), `D-openserp-inadapte` (F, ✅ clôturée par rejet E7-S04), `D-deploy-comptes` (M, 🟡 partiel — Vercel OK, Sentry/domaine optionnels), `D-traceparts-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-auto-parts` (M, 🟡 en attente contrat R.5.22) + `D-aws-s3-non-applicable` (F, créée E7-S06).
-> Prochaine phase : **E8+ (Desktop Tauri)** ou **clôture projet** — arbitrage Coordinateur (D-E7-C9). Production live : `https://part-iva.vercel.app`.
+> Prochaine phase : **E8+ (Desktop Tauri)** — phase **E8P en cours** (cadrage E8P-S01 · toolchain/squelette E8P-S02 · schéma local E8P-S03 · endpoints sync E8P-S04). Production live : `https://part-iva.vercel.app`.
 
 ---
 
@@ -73,6 +73,8 @@
 | `D-44` | Coquille Markdown `ROADMAP.md` l.139 (4 cellules / 3 colonnes). | Faible | Session doc dédiée | Non | Reporté session doc dédiée |
 | `D116` | Prisma 8 — attente GA. | Faible | Session dédiée | Non | Condition : GA Prisma 8 + adapter-pg 8.x stable + validation auth adapter |
 | `D-audit-mysql2` | `npm audit` — 4 high prod / 9 high total via `mysql2` transitif de `prisma`. | Haute | Attente Prisma 8 | Non | Accepté et tracé. `mysql2` non utilisé (PostgreSQL). Fix = downgrade Prisma 6.19.3 (breaking) → refusé |
+| `D-junction-npm-prefix` | `npm install --prefix` mal ciblé crée une junction `atelier-pieces-industrielles → F:\PartIVA` (auto-lien du package racine) → boucle infinie du build web (`globals.css` / track_glob). | Faible | Mitigé | Non | `.gitignore` desktop/ ajouté (E8P-S02). Vérifier le cwd avant tout `npm --prefix`. Découverte : E8P-S02 — dette validée E8P-S04 |
+| `D-sync-stub-d48` | `POST /api/sync` (stub E0-S07b-3-D, D48) coexiste avec le namespace `/api/desktop/sync/*` (E8P-S04, D-E8P-S01-12 = B) sans collision. | Faible | V1.x | Non | Stub conservé en V1 — ne pas modifier/supprimer tant que son usage réel (consommateur `sync-store.ts` + page admin) n'est pas identifié. Découverte : E8P-S01 — arbitrage E8P-S04 |
 
 ---
 

@@ -17,6 +17,8 @@ Migrations exécutées au démarrage de l'application par `sqlx::migrate!("./mig
 | `fitment` | `Fitment` | **Full-refresh** | ❌ absente côté web | 0001 |
 | `part_image` | `PartImage` | **Full-refresh** | ❌ absente côté web | 0002 |
 | `part_version` | `PartVersion` | **Full-refresh** | ❌ absente côté web | 0002 |
+| `part_specification` | `PartSpecification` | Incrémentale (`updated_at`) | ✅ | 0004 |
+| `part_category` | `PartCategory` | Incrémentale (`updated_at`) | ✅ | 0004 |
 
 **Option B (D-E8P-S03-1)** : les 3 tables sans `updated_at` sont synchronisées en
 full-refresh — pas de migration Prisma côté web (baseline web = 15 migrations). À réévaluer
@@ -52,13 +54,12 @@ si la volumétrie croît fortement.
 
 ## Tables web hors périmètre V1 (non miroitées)
 
-`PartSpecification`, `PartCategory`, `Supplier`/`PartSupplier`, `Attachment`, `User`,
+`Supplier`/`PartSupplier`, `Attachment`, `User`,
 `Session`/`Account`/`Verification`, `AuditLog`, `SearchCandidate`, `ScoringWeights`,
 `Request`, `ReverseEngineering*`, `CadFile`, `Machine`, `Material`.
 
-⚠️ `PartSpecification` et `PartCategory` sont classées **Must** dans le cadrage
-(`docs/e8-desktop-tauri-scope.md` §6.2) mais hors du périmètre de l'ordre E8P-S03 :
-à ajouter en migration `0004` avec le client sync (E8P-S04/S05) ou session dédiée.
+(Note historique : `PartSpecification`/`PartCategory` étaient absentes en E8P-S03 —
+ajoutées en migration `0004` en E8P-S04, décision `D-E8P-S03-2 = B`.)
 
 ## Migrations
 
@@ -67,6 +68,7 @@ si la volumétrie croît fortement.
 | `0001_init.sql` | `part`, `vehicle`, `fitment` + index |
 | `0002_add_partimage_partversion.sql` | `part_image`, `part_version` + index |
 | `0003_sync_metadata.sql` | `sync_metadata` + amorçage des lignes de suivi |
+| `0004_add_partspec_partcategory.sql` | `part_specification`, `part_category` + index (E8P-S04 — Must §6.2) |
 
 Vérification : `cargo test` (test `db::tests::migrations_apply_on_empty_db` — crée les
-6 tables + `_sqlx_migrations` sur une base vide).
+8 tables + `_sqlx_migrations` sur une base vide).

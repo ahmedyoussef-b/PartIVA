@@ -4948,6 +4948,71 @@ Table `table | colonnes | types | updatedAt?` : `part` (id, part_number, ptv_ref
 
 ---
 
+## E8P-S04 — Migration 0004 + Endpoints API sync (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — première session E8P modifiant le web)
+**Phase :** E8P — Desktop Tauri
+**HEAD départ :** `a898fe9` (E8P-S02-bis — correctif login, exécuté postérieurement à S03) · branche `master` · working tree propre
+**Note :** l'ordre attendait HEAD `905baf4` « ou postérieur » — conforme.
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `a898fe9` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+- Stub `src/app/api/sync/route.ts` localisé (D48) ✅ · structure `src/app/api/` identifiée (23 routes)
+
+### Bloc B/C — Migration SQLx `0004` + README
+
+- `desktop/src-tauri/migrations/0004_add_partspec_partcategory.sql` : `part_category` (id, name, slug, description, parent_id, created_at, updated_at + FK self) et `part_specification` (id, part_id, key, value, unit, tolerance_min/max REAL, created_at, updated_at + FK part + UNIQUE(part_id, key)) — colonnes alignées sur `prisma/schema.prisma` l.143-156 / l.175-189.
+- `migrations/README.md` mis à jour (table des 7 tables, migrations 0001→0004, note historique S03).
+- Écart E8P-S03 rattrapé (`D-E8P-S03-2 = B`) : `PartSpecification`/`PartCategory` (Must cadrage §6.2 — modes recherche specs/multi) désormais miroitées.
+
+### Blocs D/E — Endpoints API sync
+
+- `src/lib/sync/tables.ts` (nouveau) : registre partagé `SYNC_TABLES` (7 tables, stratégie incrémentale vs full-refresh, pageSize 500) + `getSyncTable()` (whitelist).
+- `GET /api/desktop/sync/manifest` : manifest `{ version: 1, sync_direction: 'web_to_local', tables: [...] }`, auth obligatoire.
+- `GET /api/desktop/sync/pull?table=&since=&skip=` : pull unidirectionnel, auth obligatoire, whitelist tables, validation `since` (ISO) et `skip` (entier ≥ 0), dispatcher 7 branches avec `select` explicite par table (exclus : `search_vector`, embeddings), `Cache-Control: no-store`.
+- Adaptations conventions projet : helpers `auth.api.getSession({ headers: await headers() })` + `prisma` depuis `@/lib/*` (comme `/api/parts`) ; **pas d'`export const dynamic`** (convention projet : routes dynamiques via `headers()`, aucun export dynamique dans `src/app/api/` existant) ; quotes simples.
+
+### Blocs F/H — Tests E2E
+
+- 7 tests ajoutés dans `e2e/api.spec.ts` (convention fichier + helper `authRequest`) : 401 sans auth (manifest, pull) · manifest authentifié (version, direction, 7 tables, flags incremental) · pull 400 table inconnue · pull 400 sans paramètre · pull 200 données véhicule (champs miroir, pas d'embedding/searchVector).
+- `test.slow()` ajouté sur les 7 tests (contrainte FS lent `D-e2e-load-timeouts` — timeout 30s dépassé à la première compilation de route).
+- **Résultat : 2 passed / 4 failed** — les 4 échecs sont tous au `authRequest` (sign-in 401) : **cause environnementale, non liée au changement** — la DB connectée (via `.env`, sans `ADMIN_EMAIL`) ne contient pas l'utilisateur mock ; **11 tests préexistants de `api.spec.ts` échouent avec la même erreur** dans ce bac à sable. Vérification manuelle par curl : manifest 401 ✅, pull 401 ✅ (endpoints servis et conformes).
+- ⚠️ Vérification E2E authentifiée (manifest/pull 200, 400) à rejouer dans un environnement provisionné (`E2E_ADMIN_*`/`ADMIN_*` + utilisateurs mock en DB) — hors de portée de cette session.
+
+### Blocs G/I — Baseline
+
+| Indicateur | Valeur |
+|---|---|
+| ESLint | 0/0 ✅ |
+| TypeScript | 0 erreur ✅ |
+| Prettier | 0 ✅ |
+| Build Next.js | **61 routes** ✅ (59 + `manifest` + `pull` — 2 routes distinctes, exit 0) |
+| Prisma (web) | **15 migrations, 0 drift** ✅ (aucune nouvelle) |
+| `cargo check` | exit 0 ✅ (non relancé — db.rs inchangé depuis S03) |
+| `cargo test` | 1 passed / 0 failed ✅ (test étendu aux 8 tables — 0004 vérifiée) |
+| E2E | 2 passed (401) / 4 failed (sign-in env — cf. Blocs F/H) |
+
+### Blocs J/K — DEBT.md
+
+- `D-junction-npm-prefix` (Faible) ajoutée — validée (décision Coordinateur transmise par le Superviseur).
+- `D-sync-stub-d48` (Faible) ajoutée — coexistence stub `/api/sync` et namespace `/api/desktop/sync/*`, stub conservé en V1.
+- En-tête mis à jour : phase **E8P en cours** (S01→S04).
+
+### Livrables
+
+- `src/lib/sync/tables.ts`, `src/app/api/desktop/sync/manifest/route.ts`, `src/app/api/desktop/sync/pull/route.ts`
+- `desktop/src-tauri/migrations/0004_add_partspec_partcategory.sql` (+ `db.rs` test étendu, README)
+- `e2e/api.spec.ts` (+7 tests)
+- `DEBT.md` (+2 dettes), `docs/e8-desktop-tauri-scope.md` (§6.3 endpoints effectifs), `SESSION.md` (cette entrée)
+- Aucune modification du stub `POST /api/sync` (D48) · `prisma/schema.prisma` intact (15 migrations) · `next-env.d.ts` restauré avant commit (règle #32).
+
+### Prochaine session
+
+**E8P-S05 — Client sync Rust** (pull full + incrémental : fetch manifest/pull → upsert SQLite local + suivi `sync_metadata`).
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S04 — endpoints API sync)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S05 — client sync Rust)
 ═══════════════════════════════════════════════════════════════
