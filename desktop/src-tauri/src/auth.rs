@@ -8,6 +8,9 @@ const SERVICE: &str = "com.partiva.desktop";
 const ACCOUNT: &str = "session-token";
 /// Base d'auth web — publique pour les tests d'intégration (wiremock).
 pub const AUTH_BASE_URL: &str = "https://part-iva.vercel.app/api/auth";
+/// Origine web — headers posés pour aligner la requête Rust sur celle du
+/// navigateur (E8P-S09-ter : élimine l'hypothèse « format de requête divergent »).
+const WEB_ORIGIN: &str = "https://part-iva.vercel.app";
 
 fn entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new(SERVICE, ACCOUNT).map_err(|e| e.to_string())
@@ -77,6 +80,10 @@ pub async fn login(
 
     let response = http
         .post(format!("{base}/sign-in/email"))
+        .header("Origin", WEB_ORIGIN)
+        .header("Referer", format!("{WEB_ORIGIN}/login"))
+        .header("User-Agent", "PartIVA-Desktop/0.1.0")
+        .header("Accept", "application/json")
         .json(&serde_json::json!({ "email": email, "password": password }))
         .send()
         .await
@@ -84,7 +91,11 @@ pub async fn login(
 
     let status = response.status();
     if status == reqwest::StatusCode::UNAUTHORIZED {
-        return Err("Identifiants invalides".to_string());
+        // E8P-S09-ter — le corps BetterAuth est inclus : distingue credentials
+        // invalides d'une politique serveur (origine, CSRF, rate limit…).
+        let body = response.text().await.unwrap_or_default();
+        let snippet: String = body.chars().take(200).collect();
+        return Err(format!("Identifiants invalides (réponse service : {snippet})"));
     }
     if !status.is_success() {
         let body = response.text().await.unwrap_or_default();

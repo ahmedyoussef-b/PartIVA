@@ -5426,6 +5426,56 @@ Pas de GUI en bac à sable. **L'installateur a été régénéré avec le correc
 
 ---
 
+## E8P-S09-ter — Diagnostic login desktop niveau 2 (2026-10-15)
+
+**Statut :** ✅ Clôturée (diagnostic + durcissement ciblé)
+**Phase :** E8P — session correctif niveau 2
+**HEAD départ :** `d0e6e26` (E8P-S09-bis) · branche `master` · working tree propre
+
+### Contexte
+
+Après E8P-S09-bis : l'app atteint bien le serveur et BetterAuth répond **401 « Identifiants invalides »** (message précis — le correctif précédent est actif). Les Tests A/B/C du Superviseur n'ont pas encore été fournis ; diagnostic mené **depuis le code** (alternative prévue §4.5 de l'ordre).
+
+### Bloc B/C — Comparaison requête web ↔ requête Rust
+
+| Élément | Requête web (navigateur) | Requête Rust (avant S09-ter) | Écart |
+|---|---|---|---|
+| URL | `/api/auth/sign-in/email` (basePath BetterAuth, handler `src/app/api/auth/[...all]/route.ts`) | idem | aucun |
+| Méthode | POST | POST | aucun |
+| `Content-Type` | `application/json` (via `.json()`) | idem | aucun |
+| Body | `{ email, password }` (`signIn.email`) | idem | aucun |
+| `Origin` / `Referer` / `User-Agent` / `Accept` | **présents** (navigateur) | **absents** | **écart H2** |
+
+- Config web vérifiée : `auth-client.ts` → `baseURL = NEXT_PUBLIC_APP_URL = https://part-iva.vercel.app` ✓ ; endpoint confirme (curl prod → 401 JSON structuré avec et sans `Origin` → la décision d'auth est identique : **H2 seul ne explique pas le 401**).
+- Client BetterAuth 1.7.7 (package.json), monté sans `trustedOrigins` custom.
+
+### Bloc D — Correctifs appliqués (`auth.rs`)
+
+1. **Headers alignés sur le navigateur** : `Origin`, `Referer`, `User-Agent`, `Accept` — élimine l'hypothèse « requête Rust divergente du web » (H2 clos quelle que soit la suite).
+2. **Message 401 enrichi du corps BetterAuth** : « Identifiants invalides (réponse service : `{...}`) » — au prochain essai, le message distinguera **credentials/compte invalides** (`INVALID_EMAIL_OR_PASSWORD`) d'une **politique serveur** (origine, CSRF, rate limit). C'est le test décisif qui remplace les Tests B/C non fournis.
+
+### Bloc I — Non-régression
+
+- `cargo test` : **16 passed / 0 failed** ✅ (le test 401 vérifie toujours `contains("Identifiants invalides")`).
+- Aucun fichier web modifié → baseline web inchangée (61 routes) · installateur régénéré : `PartIVA Desktop_0.1.0_x64-setup.exe` (3,91 Mo).
+
+### Bloc F/H — Vérification manuelle : ⚠️ DÉLÉGUÉE AU COORDINATEUR
+
+Désinstaller → réinstaller le nouveau `setup.exe` → saisir les identifiants **à la main**. Deux cas :
+
+- **Si le login réussit** → H2 était la cause (headers) → clôture de l'incident.
+- **S'il échoue encore**, le message affiche désormais le **corps exact** de BetterAuth :
+  - `code: INVALID_EMAIL_OR_PASSWORD` → credentials ou compte : exécuter le **Test A** (login web `https://part-iva.vercel.app/login` en navigation privée avec les MÊMES identifiants). Si le web échoue aussi → compte/mot de passe côté base, pas code.
+  - tout autre `code` → politique serveur ; rapporter le message tel quel.
+
+### Livrables
+
+- `desktop/src-tauri/src/auth.rs` (headers navigateur + message 401 enrichi)
+- Installateur régénéré (artefact non commité)
+- `SESSION.md` (cette entrée) — pas de dette (diagnostic en cours, pas un report)
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S09 — clôture de phase E8P)
+Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (selon résultat du test Coordinateur : correctif ciblé ou Test A)
 ═══════════════════════════════════════════════════════════════
