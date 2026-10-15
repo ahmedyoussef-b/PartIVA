@@ -64,6 +64,8 @@ export default function RegisterPage() {
         ) : null}
 
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
+          {/* E8P-S02-bis — anti-autofill : 3 couches (autoComplete off + leurres
+              cachés + readOnly retiré au focus) — cf. login/page.tsx. */}
           <input
             type="text"
             name="fakeusernameremembered"
@@ -87,6 +89,8 @@ export default function RegisterPage() {
               onChange={(e) => setCompany(e.target.value)}
               required
               placeholder="Ex: Délice Danone, Poulina, Sancella..."
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
             />
           </div>
 
@@ -98,6 +102,8 @@ export default function RegisterPage() {
               onChange={(e) => setContactName(e.target.value)}
               required
               placeholder="Ex: Tarek Mejri"
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
             />
           </div>
 
@@ -112,6 +118,8 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="contact@entreprise.tn"
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
             />
           </div>
 
@@ -126,6 +134,8 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
             />
           </div>
 

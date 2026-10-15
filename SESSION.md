@@ -5333,6 +5333,49 @@ Pas de session GUI interactive dans le bac à sable — l'exécution de l'instal
 
 ---
 
+## E8P-S02-bis — Correctif UX autofill (login + register) (2026-10-15)
+
+**Statut :** ✅ Clôturée (exécution — correctif court)
+**Phase :** E8P — session correctif (décisions `D-E8P-S02-bis-1/2 = Oui`)
+**HEAD départ :** `bcefed8` (E8P-S08) · branche `master` · working tree propre
+
+### Bloc A — Reconnaissance (R.5.1)
+
+- HEAD = `bcefed8` ✅ · branche `master` ✅ · `prisma migrate status` = 15 migrations, 0 drift ✅
+
+### Bloc B/C — Diagnostic
+
+- Pages localisées : `src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx`.
+- **Constat** : les 2 pages portaient DÉJÀ le correctif initial (`autoComplete="off"` sur les `<form>`, leurres `fakeusernameremembered`/`fakepasswordremembered` en `display:none`, `autoComplete="off"`/`new-password` sur les inputs, props `defaultValue` absentes — inputs contrôlés). Correctifs précédents : `a898fe9` (login) et `d59209f` (register).
+- **Vérification production** : `curl https://part-iva.vercel.app/login` → HTML 17 781 octets contenant `fakeusernameremembered` ET `autocomplete="off"` → **la prod sert bien le build corrigé**. L'hypothèse « build non déployé » est écartée.
+
+### Correctif appliqué (Blocs D/E)
+
+- Cause résiduelle : Chrome/Edge **ignore `autoComplete="off"`** et détecte les leurres `display:none` (comportement documenté du gestionnaire de mots de passe Chrome).
+- **Mitigation ajoutée — pattern `readOnly` retiré au focus** (technique de référence anti-autofill Chrome) sur les 6 champs : login (email, password) · register (company, contactName, email, password). Commentaire explicatif (3 couches de mitigation) ajouté au-dessus des leurres dans les 2 formulaires.
+- Convention : `onFocus={(e) => e.currentTarget.removeAttribute('readonly')}` — pas d'état React supplémentaire, remplacement de l'attribut rendu par `readOnly`.
+
+### Bloc F — Vérification
+
+- Baseline : ESLint 0/0 ✅ · TypeScript 0 ✅ · Prettier 0 ✅ · Build **61 routes** ✅ · Prisma 15 migrations ✅.
+- Vérification navigateur (navigation privée/normale) : **non exécutable en bac à sable** (pas de GUI) — à constater après déploiement Vercel (auto sur push) par le Coordinateur : `/login` et `/register` doivent s'ouvrir champs vides.
+
+### Bloc G — Documentation
+
+- `D-login-autofill` **non créée** : l'ordre la conditionne à la persistance du comportement en navigation normale — non vérifiable ici ; le correctif est complet (3 couches). Si l'autofill persiste après déploiement, créer la dette à ce moment (comportement navigateur, pas bug code).
+
+### Livrables
+
+- `src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx` (readUntil-focus + commentaires)
+- `SESSION.md` (cette entrée)
+- Aucune autre modification · `next-env.d.ts` restauré avant commit (règle #32).
+
+### Prochaine session
+
+**E8P-S09 — Clôture de phase E8P** (ordre à produire par le Superviseur).
+
+---
+
 ══════════════════════════════════════════════════════════════
 Fin SESSION.md — **Prochaine MAJ :** fin de session suivante (E8P-S09 — clôture de phase E8P)
 ═══════════════════════════════════════════════════════════════

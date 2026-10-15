@@ -76,6 +76,10 @@ export default function LoginPage() {
         ) : null}
 
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
+          {/* E8P-S02-bis — anti-autofill : 3 couches (autoComplete off + leurres
+              cachés + readUntil focus). Chrome/Edge ignore autoComplete="off" et
+              détecte les leurres display:none ; readOnly empêche le remplissage
+              automatique jusqu'au premier focus utilisateur (lui-même légitime). */}
           <input
             type="text"
             name="fakeusernameremembered"
@@ -101,6 +105,8 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
             />
           </div>
 
@@ -119,6 +125,8 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
             />
           </div>
 
