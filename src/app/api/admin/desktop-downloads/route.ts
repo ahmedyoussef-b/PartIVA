@@ -4,7 +4,8 @@ import { resolve } from 'path';
 
 export async function GET(_req: NextRequest) {
   try {
-    const { requireAdmin } = await import('../../../lib/auth-admin');
+    const mod = await import('@vercel/blob');
+    const { requireAdmin } = await import('../../lib/auth-admin');
     await requireAdmin();
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
