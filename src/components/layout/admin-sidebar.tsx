@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Download as DownloadIcon, usePathname } from 'next/navigation';
-import { Download as DownloadIcon,
+import { DownloadIcon, usePathname } from 'next/navigation';
+import { DownloadIcon,
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -13,7 +13,7 @@ import { Download as DownloadIcon,
   SidebarMenuButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Download as DownloadIcon,
+import { DownloadIcon,
   LayoutDashboard,
   Inbox,
   Wrench,
@@ -29,7 +29,7 @@ import { Download as DownloadIcon,
   ExternalLink,
   Search,
 } from 'lucide-react';
-import { Download as DownloadIcon, Badge } from '@/components/ui/badge';
+import { DownloadIcon, Badge } from '@/components/ui/badge';
 
 const ADMIN_NAV = [
   { href: '/admin/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
@@ -43,7 +43,7 @@ const ADMIN_NAV = [
   { href: '/admin/sync', label: 'Console Sync Cloud', icon: RefreshCw },
   { href: '/admin/audit', label: 'Journal d’Audit', icon: FileSpreadsheet },
   { href: '/admin/parametres', label: 'Paramètres', icon: Settings },
-  { href: '/admin/desktop-downloads', label: 'Téléchargements Desktop', icon: Download as DownloadIcon },
+  { href: '/admin/desktop-downloads', label: 'Téléchargements Desktop', icon: DownloadIcon },
 ];
 
 export function AdminSidebar() {
