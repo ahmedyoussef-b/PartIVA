@@ -4,8 +4,10 @@ import { resolve } from 'path';
 
 export async function GET(_req: NextRequest) {
   try {
-    const mod = await import('../../lib/auth-admin');
-    if (mod?.requireAdmin) await mod.requireAdmin();
+    const auth = await import('../../lib/auth-admin');
+    if (typeof auth.requireAdmin === 'function') {
+      await auth.requireAdmin();
+    }
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
