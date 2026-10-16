@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Build script for PartIVA server sidecar
 // 1. Build the Next.js app in standalone mode
 // 2. Copy standalone output to desktop/server/

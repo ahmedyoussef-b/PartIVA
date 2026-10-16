@@ -127,4 +127,56 @@ Avec :
 
 ### Prochaine session
 
-**E9-R3.a â€” Migration lot 1** (pages `/admin/dashboard`, `/admin/audit`, `/admin/materiaux`).
+**E9-R2-ter — Déblocage build Next.js standalone + port dynamique restauré**.
+
+---
+
+## E9-R2-ter — Déblocage build Next.js standalone + port dynamique restauré (2026-10-16)
+
+**Statut :** ✅ Résolu (session technique correctrice)
+**Phase :** E9 — Refonte hybride
+**Commit de départ :** `7a83bd0` · branche `master` · working tree propre
+**Objet :** Déblocage build Next.js standalone + restauration port dynamique (D-E9-R1-6 / D-E9-R1-10)
+
+### 1. Cause racine identifiée (H4 confirmée)
+
+- Lors de l'activation de `output: 'standalone'`, le file tracer de Next.js 16 et Turbopack scannait récursivement le répertoire `desktop/` (qui contenait `desktop/node_modules`, `desktop/server/` et `desktop/src-tauri/target/` de plusieurs gigaoctets), causant un blocage infini à l'étape `Creating an optimized production build ...`.
+- L'exclusion explicite dans `next.config.mjs` (`turbopack.root` + `outputFileTracingExcludes`) a immédiatement débloqué le build, ramenant la compilation à ~17 secondes.
+
+### 2. Correctifs techniques appliqués
+
+1. **`next.config.mjs`** :
+   - Ajout de `turbopack.root: path.resolve(process.cwd())`.
+   - Ajout de `outputFileTracingExcludes: { '*': ['./desktop/**', './e2e/**', './docs/**'] }`.
+   - Production vérifiée de `.next/standalone/server.js`.
+2. **`desktop/scripts/build-server.cjs`** :
+   - Copie de `.next/standalone` vers `desktop/server/`.
+   - Copie des assets statiques (`.next/static` et `public`) vers `desktop/server/`.
+   - Injection au début de `server.js` du hook de port dynamique et de bind strict sur `127.0.0.1` (`D-E9-R1-6` et `D-E9-R1-10`) via `process.stdout.write("PARTIVA_SERVER_PORT=" + port)`.
+   - Copie de l'exécutable Node.js vers `desktop/src-tauri/binaries/node-x86_64-pc-windows-msvc.exe`.
+3. **`desktop/src-tauri/src/lib.rs`** :
+   - Injection des variables d'environnement `PORT=0` et `HOSTNAME=127.0.0.1` au spawn du sidecar Node.js.
+   - Parsing robuste multiligne et résistant aux espaces de `PARTIVA_SERVER_PORT=<port>` dans `parse_port_line`.
+   - Ajout de 4 tests unitaires pour `parse_port_line`.
+4. **Outillage qualité (`eslint.config.mjs`, `.prettierignore`)** :
+   - Ajout des exclusions `desktop/server/**` et `desktop/src-tauri/**` dans `eslint.config.mjs` et `.prettierignore`.
+   - Ajout de `/* eslint-disable @typescript-eslint/no-require-imports */` dans `build-server.cjs`.
+
+### 3. Baseline vérifiée
+
+| Indicateur | Avant E9-R2-ter | Après E9-R2-ter |
+|---|---|---|
+| Build Next.js standalone | ❌ Bloqué | ✅ 64 routes (~17s) |
+| `.next/standalone/server.js` | ❌ Absent | ✅ Présent |
+| Port dynamique (`D-E9-R1-6`) | ⚠️ Port fixe 3000 | ✅ Port 0 + stdout flush |
+| Bind strict (`D-E9-R1-10`) | ⚠️ Incomplet | ✅ Strict `127.0.0.1` |
+| ESLint web (`npm run lint`) | 3 erreurs cjs | ✅ 0/0 |
+| TypeScript (`npm run typecheck`) | 0 erreur | ✅ 0 erreur |
+| Prettier (`npm run format:check`) | 2 fichiers | ✅ 100% conforme |
+| Cargo check (`desktop/src-tauri`) | 0 erreur | ✅ 0 erreur |
+| Cargo test (`desktop/src-tauri`) | 18 passed | ✅ 22 passed (0 fail) |
+
+### 4. Prochaine session
+
+**E9-R3.a — Migration lot 1** (pages `/admin/dashboard`, `/admin/audit`, `/admin/materiaux`).
+

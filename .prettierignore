@@ -8,11 +8,14 @@ src-tauri/target
 package-lock.json
 *.md
 .kilocode/
+.kilo/
 .agents/
 .claude/
 .windsurf/
 
-# E8P — Desktop UI (build artifacts)
+# E8P/E9 — Desktop UI and server (build artifacts)
+desktop/server
+desktop/src-tauri
 desktop/ui/.next
 desktop/ui/out
 desktop/ui/test-results
