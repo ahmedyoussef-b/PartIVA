@@ -5,14 +5,13 @@
   "description": "PartIVA Desktop — application Tauri 2 (E8P)",
   "type": "module",
   "scripts": {
+    "build:server": "node scripts/build-server.cjs",
+    "build:desktop": "npm run build:server && cd src-tauri && cargo tauri build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0"
-  },
-  "dependencies": {
-    "atelier-pieces-industrielles": "file:.."
   }
 }

@@ -176,7 +176,49 @@ Avec :
 | Cargo check (`desktop/src-tauri`) | 0 erreur | ✅ 0 erreur |
 | Cargo test (`desktop/src-tauri`) | 18 passed | ✅ 22 passed (0 fail) |
 
-### 4. Prochaine session
+---
 
-**E9-R3.a — Migration lot 1** (pages `/admin/dashboard`, `/admin/audit`, `/admin/materiaux`).
+## Session E9-R2-quater — Script build:desktop + binaire Tauri régénéré
+
+**Date :** 2026-10-16  
+**Type :** Exécution  
+**Statut :** ✅ Validé
+
+### 1. Objectifs
+
+1. Ajouter le script `build:desktop` manquant dans `desktop/package.json`.
+2. Nettoyer la dépendance circulaire `file:..` créant un symlink infini sous Turbopack.
+3. Vérifier la configuration `tauri.conf.json` (`splash` 400x300, `main` 1280x800 hidden, chargement dynamique).
+4. Rebuilder l'application desktop complète (`build:server` + `cargo tauri build`).
+5. Livrer les binaires release actualisés pour le test bout-en-bout (affichage `/admin/dashboard`).
+
+### 2. Réalisations
+
+- **Script `build:desktop` ajouté** : `npm run build:server && cd src-tauri && cargo tauri build` dans `desktop/package.json`.
+- **Nettoyage symlink loop** : Suppression de `"atelier-pieces-industrielles": "file:.."` dans `desktop/package.json` qui provoquait un symlink infini sous Turbopack.
+- **Vérification `tauri.conf.json`** :
+  - Fenêtre `main` configurée en `1280x800`, masquée au démarrage (`visible: false`), URL initiale `about:blank`.
+  - Fenêtre `splash` configurée en `400x300`, centrée, sans décorations.
+  - Sécurité CSP validée (`http://127.0.0.1:*`).
+- **Vérification `lib.rs`** :
+  - Lancement du sidecar Node avec `PORT=0` et `HOSTNAME=127.0.0.1`.
+  - Extraction dynamique du port via `parse_port_line`.
+  - Healthcheck `/api/health`.
+  - Navigation vers `http://127.0.0.1:<port>/admin/dashboard`.
+  - Fermeture du splash et affichage de la fenêtre `main`.
+- **Exécution du build release** :
+  - `build:server` : Next.js 16 standalone build terminé avec succès (45/45 pages), hook port dynamique injecté dans `desktop/server/server.js`, Node.js copié.
+  - `cargo tauri build` : Compilation release optimisée terminée en 3m 43s.
+  - Packaging NSIS réussi : `PartIVA Desktop_0.1.0_x64-setup.exe` généré.
+
+### 3. Artefacts produits
+
+- `desktop/src-tauri/target/release/partiva-desktop.exe` (16,78 MB) — binaire standalone + sidecar.
+- `desktop/src-tauri/target/release/bundle/nsis/PartIVA Desktop_0.1.0_x64-setup.exe` (33,53 MB) — installateur NSIS.
+
+### 4. Prochaine étape
+
+- **Test bout-en-bout GUI** : Lancement de `partiva-desktop.exe` pour vérifier la bascule splash -> `/admin/dashboard` (1280x800).
+- **E9-R3.a — Migration lot 1** : Migration des pages `/admin/dashboard`, `/admin/audit`, `/admin/materiaux` vers `data-client.ts`.
+
 
