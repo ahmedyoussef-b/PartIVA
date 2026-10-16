@@ -1,11 +1,11 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { requireAdmin } from '../../lib/auth-admin';
 
 export async function GET(_req: NextRequest) {
   try {
-    await requireAdmin();
+    const mod = await import('../../../lib/auth-admin');
+    await mod.requireAdmin();
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
