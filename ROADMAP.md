@@ -623,15 +623,21 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E9 — REFONTE HYBRIDE (À VENIR)
-**Objectif** : Unifier l'architecture, consolider le partage de types, optimiser les payloads de sync et automatiser la CI/CD multi-plateforme.
+## 🏗️ E9 — REFONTE HYBRIDE (EN COURS)
+**Objectif** : Éliminer la dualité `desktop/ui/` vs `src/app/` en offrant une **parité web complète** au desktop Tauri via un serveur Next.js embarqué en sidecar + couche d'abstraction `dataClient` unifiée.
 
-| Session | Objectif | Livrable |
+**Document de cadrage :** `docs/e9-refonte-hybride.md` (348 lignes, 10 décisions verrouillées)
+
+| Session | Objectif | Statut |
 |---|---|---|
-| **E9-R1** | Cadrage de la refonte hybride | Document de cadrage E9 |
-| **E9-S01** | Package de types et schémas partagés | Monorepo / package partagé |
-| **E9-S02** | Optimisation flux de synchronisation | Compression & batching |
-| **E9-S03** | CI/CD build automatisé multi-plateforme | GitHub Actions release pipeline |
+| **E9-R1** | Cadrage refonte hybride (architecture, plan, décisions) | ✅ Clôturée 2026-10-16 |
+| **E9-R2** | Prototype Sidecar & communication dynamique | 🟢 À lancer |
+| **E9-R3.a** | Migration Lot 1 (Dashboard, Recherche, Catalogue) | 🟢 À cadrer |
+| **E9-R3.b** | Migration Lot 2 (Demandes, Reverse CAO, Plastiques) | 🟢 À cadrer |
+| **E9-R3.c** | Migration Lot 3 (Machines, Usinage, Sync, Audit, Paramètres) | 🟢 À cadrer |
+| **E9-R4** | Bridge SQLite complet & commandes Rust étendues | 🟢 À cadrer |
+| **E9-R5** | Tests E2E hybrides, validation offline & performance | 🟢 À cadrer |
+| **E9-R6** | Documentation finale, packaging NSIS & clôture | 🟢 À cadrer |
 
 ---
 

@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | E1 à E8 CLÔTURÉES · **Phase E8P (Desktop Tauri) CLÔTURÉE** (2026-10-16 — 15 sessions, rapport `docs/e8p-close-report.md`) → transition vers **Phase E9 (Refonte hybride)** |
-| **Dernière session** | E8P-S09 — Clôture officielle de la phase E8P (audit global, rapport final, clarification baseline 64 routes) |
-| **Session en cours** | E8P-S09 (terminée) |
-| **Statut global** | **Phase E8P CLÔTURÉE** le 2026-10-16 (15 sessions S01 → S10-bis). Baseline finale vérifiée : Build web **64 routes** (45 statiques + 19 dynamiques), TypeScript 0 erreur, ESLint 0/0, Prettier 100%, Tests Rust 18 passed, Tests UI desktop 8 passed, E2E web 284 passed / 4 skipped (288 listés), Prisma 15 migrations (0 drift). Dettes actives : 0 Haute · 5 Moyennes (TraceParts, TecDoc ×2, Vercel options, `D-junction-npm-prefix`) · ~21 Faibles. Production live `https://part-iva.vercel.app`. Prochaine étape : **E9-R1 (Cadrage refonte hybride)**. |
+| **Phase actuelle** | E1 à E8 CLÔTURÉES · **Phase E8P (Desktop Tauri) CLÔTURÉE** (2026-10-16) · **Phase E9 (Refonte hybride) EN COURS** — E9-R1 cadrage validé |
+| **Dernière session** | E9-R1 — Cadrage refonte hybride (document `docs/e9-refonte-hybride.md`, 10 décisions verrouillées) |
+| **Session en cours** | E9-R1 (terminée) |
+| **Statut global** | **Phase E9 (Refonte hybride) EN COURS.** E9-R1 (cadrage) validé le 2026-10-16. Baseline inchangée : Build web **64 routes** (45 statiques + 19 dynamiques), TypeScript 0 erreur, ESLint 0/0, Prettier 100%, Tests Rust 18 passed, Tests UI desktop 8 passed, E2E web 284 passed / 4 skipped (288 listés), Prisma 15 migrations (0 drift). Dettes actives : 0 Haute · 5 Moyennes (TraceParts, TecDoc ×2, Vercel options, `D-junction-npm-prefix`) · ~21 Faibles. Production live `https://part-iva.vercel.app`. Prochaine étape : **E9-R2 (Prototype Sidecar)**. |
 
 ---
 
@@ -5634,7 +5634,75 @@ Chaîne complète tracée : `SyncStatus` → `sync_now` → `resolve_token` (key
 
 ---
 
+## E9-R1 — Cadrage refonte hybride (CLÔTURÉE)
+
+**Statut :** ✅ CLÔTURÉE
+**Date :** 2026-10-16
+**Type :** Cadrage (aucun code)
+**HEAD :** `6fbc00b` (inchangé — session documentaire)
+
+### Objet
+
+Produire le document de cadrage de la phase E9 (Refonte hybride) : architecture cible, plan de migration progressive, décisions verrouillées, analyse des risques. Ce document sert de référence contractuelle pour toutes les sessions E9-R2 → E9-R6.
+
+### Livrables
+
+- `docs/e9-refonte-hybride.md` — Document de cadrage complet (348 lignes) :
+  - §1 Objet et périmètre (parité web complète desktop, 11 modules métier)
+  - §2 Architecture cible (Next.js Sidecar + Webview Tauri)
+  - §3 Couche d'abstraction `dataClient` (`src/lib/data-client.ts`)
+  - §4 Audit préalable (36 pages web / 64 routes, 5 pages desktop actuelles)
+  - §5 Gestion sidecar (standalone, port dynamique, healthcheck, arrêt sécurisé)
+  - §6 Sécurité (isolement 127.0.0.1, CSP restrictive, keyring, zéro télémétrie)
+  - §7 Plan de migration progressive (E9-R2 → E9-R6)
+  - §8 Impact sur l'existant
+  - §9 Analyse des risques (5 risques identifiés + mitigations)
+  - §10 Décisions verrouillées (10 décisions)
+  - §11 Critères de validation et de sortie
+
+### Décisions verrouillées
+
+| Réf. | Intitulé | Choix |
+|---|---|---|
+| `D-REFONTE-1` | Architecture frontend | Serveur Next.js embarqué en standalone sidecar |
+| `D-REFONTE-2` | Communication données | IPC Tauri `window.__TAURI__.core.invoke` + SQLite |
+| `D-REFONTE-3` | Périmètre fonctionnel | Parité web complète (11 modules métier) |
+| `D-REFONTE-4` | Stratégie d'exécution | Progressive par lots de pages (R2 → R6) |
+| `D-REFONTE-5` | Cadre projet | Phase E9 dédiée |
+| `D-E9-R1-6` | Stratégie de port | Allocation dynamique port 0 + stdout |
+| `D-E9-R1-7` | Abstraction de données | Module unifié `src/lib/data-client.ts` |
+| `D-E9-R1-8` | Avenir `desktop/ui/` | Suppression complète après bascule |
+| `D-E9-R1-9` | Expérience de démarrage | Splash screen natif + healthcheck `/api/health` |
+| `D-E9-R1-10` | Sécurité réseau | Bind strict 127.0.0.1 + CSP restrictive |
+
+### Baseline E9-R1
+
+| Axe | Résultat |
+|---|---|
+| ESLint | ✅ 0/0 |
+| TypeScript | ✅ 0 err |
+| Prettier | ✅ 0 |
+| Build | ✅ 64 routes (45 stat + 19 dyn) |
+| Tests Rust | ✅ 18 passed |
+| Tests UI Desktop | ✅ 8 passed |
+| E2E Web | ✅ 284/0/4 |
+| Prisma | ✅ 15 migrations |
+
+**Baseline inchangée** — session documentaire, aucun code modifié.
+
+### Passation E9-R1 → E9-R2
+
+- **E9-R2** : Prototype Sidecar & communication dynamique — session technique à haute complexité :
+  - Setup Next.js standalone (`output: 'standalone'` dans `next.config.mjs`)
+  - Spawn sidecar Rust (`tauri::async_runtime::spawn`)
+  - Port dynamique + handshake stdout `[SERVER_READY] port=XXXXX`
+  - Healthcheck `/api/health` (polling 150ms, timeout 30s)
+  - Affichage Dashboard web dans Tauri Webview
+- **Prérequis** : aucun credential externe requis (autonome)
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **PHASE E8P CLÔTURÉE.** Prochaine phase : **E9 (Refonte hybride)** — Cadrage E9-R1.
+Fin SESSION.md — **PHASE E9 EN COURS.** Session E9-R1 (cadrage) clôturée. Prochaine session : **E9-R2 (Prototype Sidecar)**.
 ═══════════════════════════════════════════════════════════════
 
