@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Download, usePathname } from 'next/navigation';
-import { Download,
+import { usePathname } from 'next/navigation';
+import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -13,7 +13,8 @@ import { Download,
   SidebarMenuButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Download,
+import {
+  Download,
   LayoutDashboard,
   Inbox,
   Wrench,
@@ -29,7 +30,7 @@ import { Download,
   ExternalLink,
   Search,
 } from 'lucide-react';
-import { Download, Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 
 const ADMIN_NAV = [
   { href: '/admin/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },

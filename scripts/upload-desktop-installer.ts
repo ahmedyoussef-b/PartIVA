@@ -10,9 +10,17 @@ async function main() {
     console.log('Usage: tsx scripts/upload-desktop-installer.ts <path-to-setup.exe> <version> [notes]');
     return;
   }
-  const filePath = resolve(args[0]);
-  const version = args[1];
+  if (args.length < 2) {
+    throw new Error('Version argument is required');
+  }
+
+  const filePath = resolve(args[0]!);
+  const version = args[1]!;
   const notes = args[2] || '';
+
+  if (!version || version.trim() === '') {
+    throw new Error('Version cannot be empty');
+  }
 
   if (!existsSync(filePath)) {
     throw new Error(`File not found: ${filePath}`);
