@@ -17,10 +17,10 @@
 | **Stack** | Next.js 16 · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · BetterAuth |
 | **Repo** | `F:\PartIVA\` (local) |
 | **Hosting prévu** | Vercel (web) + auto-hébergé (desktop Tauri) |
-| **Phase actuelle** | MVP — Modélisation métier (E1) → E2 clôturée → E3 clôturée → E4 CLÔTURÉE → E5 CLÔTURÉE → **E6 CLÔTURÉE** → **E8 CLÔTURÉE** → **E7 CLÔTURÉE** → **E8P (Desktop Tauri) en cours** (S01 cadrage ✅, S02 squelette Tauri ✅, S03 schéma BDD locale ✅, S02-bis correctif UX login ✅) |
-| **Dernière session** | E8P-S02-bis — Correctif UX login (champs vides : `autoComplete="off"` form/email + `autoComplete="new-password"` password, `name` ajoutés) |
-| **Session en cours** | E8P-S02-bis (terminée) |
-| **Statut global** | E1 clôturée, **E2 clôturée**, **E3 CLÔTURÉE**, **E4 CLÔTURÉE**, **E5 CLÔTURÉE**, **E6 CLÔTURÉE**, **E8 CLÔTURÉE**, **E7 CLÔTURÉE** (2026-10-14), **E8P en cours** (S01 ✅ cadrage, S02 ✅ squelette Tauri + sqlx + SQLite, S03 ✅ schéma BDD locale 3 migrations SQLx, S02-bis ✅ correctif login autoComplete), baseline cible inchangée (E2E 284/0/4, Prisma 15 migrations, 0 drift), dettes résiduelles 4 M (TraceParts, TecDoc ×2 — en attente contrat R.5.22 · Vercel Sentry/domaine optionnels) + 15 F (dont `D-login-autofill` créée E8P-S02-bis), **0 dette Haute**, production live `https://part-iva.vercel.app`, prochaine session **E8P-S04** (endpoints API sync) |
+| **Phase actuelle** | E1 à E8 CLÔTURÉES · **Phase E8P (Desktop Tauri) CLÔTURÉE** (2026-10-16 — 15 sessions, rapport `docs/e8p-close-report.md`) → transition vers **Phase E9 (Refonte hybride)** |
+| **Dernière session** | E8P-S09 — Clôture officielle de la phase E8P (audit global, rapport final, clarification baseline 64 routes) |
+| **Session en cours** | E8P-S09 (terminée) |
+| **Statut global** | **Phase E8P CLÔTURÉE** le 2026-10-16 (15 sessions S01 → S10-bis). Baseline finale vérifiée : Build web **64 routes** (45 statiques + 19 dynamiques), TypeScript 0 erreur, ESLint 0/0, Prettier 100%, Tests Rust 18 passed, Tests UI desktop 8 passed, E2E web 284 passed / 4 skipped (288 listés), Prisma 15 migrations (0 drift). Dettes actives : 0 Haute · 5 Moyennes (TraceParts, TecDoc ×2, Vercel options, `D-junction-npm-prefix`) · ~21 Faibles. Production live `https://part-iva.vercel.app`. Prochaine étape : **E9-R1 (Cadrage refonte hybride)**. |
 
 ---
 
@@ -5567,6 +5567,74 @@ Chaîne complète tracée : `SyncStatus` → `sync_now` → `resolve_token` (key
 
 ---
 
+## E8P-S10 — Page admin téléchargement desktop + DevTools (2026-10-16)
+
+**Statut :** ✅ Clôturée  
+**Phase :** E8P — session distribution  
+**Commit :** `71176d4` (base `756f0f0`)  
+
+### Contexte & Réalisations
+- Création de la page d'administration `/admin/desktop-downloads` pour la distribution des installeurs Windows.
+- Implémentation des endpoints API `/api/admin/desktop-downloads` et `/api/admin/desktop-downloads/[version]/download`.
+- Script d'enregistrement d'installeur : `scripts/upload-desktop-installer.ts`.
+- Registre des releases : `docs/desktop-releases.json`.
+- Activation du raccourci DevTools F12 dans l'application Tauri pour faciliter le diagnostic en environnement de test.
+
+---
+
+## E8P-S10-bis — Résolution @vercel/blob + helpers auth-admin (2026-10-16)
+
+**Statut :** ✅ Clôturée  
+**Phase :** E8P — correctif compilation distribution  
+**Commit :** `107d9db`  
+
+### Contexte & Réalisations
+- Résolution des imports `@vercel/blob` inexistants : passage à une gestion de fichiers locale sécurisée.
+- Création du helper réutilisable `src/lib/auth-admin.ts` (`requireAdmin()`).
+- Correction de l'import dupliqué de `Download` dans `src/components/layout/admin-sidebar.tsx`.
+- Nettoyage du BOM UTF-8 sur `docs/desktop-releases.json`.
+- Correction de la signature des paramètres de routes API Next.js 16 (`params: Promise<{ version: string }>`).
+- Build web vert, TypeScript 0 erreur.
+
+---
+
+## E8P-S09 — Clôture officielle de la phase E8P (2026-10-16)
+
+**Statut :** ✅ Clôturée (CLÔTURE OFFICIELLE DE PHASE)  
+**Phase :** E8P — Clôture & audit  
+**Commit de clôture :** `master`  
+
+### Bloc A — Clarification critique de l'écart baseline (61 → 64 routes)
+- Constat de départ : alerte sur le décompte rapporté en E8P-S10-bis (« 45/45 routes » vs baseline 61).
+- Analyse et résolution :
+  - L'affichage Next.js 16 `✓ Generating static pages using 7 workers (45/45)` correspond **uniquement** aux 45 routes statiques (`○`).
+  - Le build complet Next.js compile en réalité **64 routes** : **45 routes statiques (`○`)** + **19 routes dynamiques (`ƒ`)**.
+  - L'historique montre : baseline E8P-S08 = 61 routes (44 statiques + 17 dynamiques). Les 3 routes ajoutées en E8P-S10 (+1 statique `/admin/desktop-downloads`, +2 dynamiques API) portent le total exactement à **64 routes**.
+  - **Aucune régression, zéro route disparue.** L'hypothèse H1 (comptage partiel des seules pages statiques) est formellement confirmée.
+
+### Blocs B, C, D — Audit global et inventaire dettes
+- Audit complet des 15 sessions de la phase E8P (S01 à S10-bis).
+- Bilan des dettes : 0 Haute · 5 Moyennes (4 E7 + `D-junction-npm-prefix`) · ~21 Faibles.
+- `D-vercel-blob-resolution` non créée car résolue directement en E8P-S10-bis.
+
+### Blocs E, F, G — Livrables documentaires
+- Création de `docs/e8p-close-report.md` (rapport complet de clôture de phase).
+- Mise à jour de `docs/e8-desktop-tauri-scope.md` (statut marqué ✅ CLÔTURÉE, plan de sessions actualisé).
+- Mise à jour de `ROADMAP.md` (section E8P clôturée, baseline 64 routes, ouverture E9).
+- Mise à jour de `DEBT.md` (en-tête E8P clôturée).
+
+### Bloc J — Baseline finale vérifiée
+- ESLint : `0 problem` (0/0)
+- TypeScript : `0 error`
+- Prettier : `All matched files use Prettier code style!`
+- Build web : `64 routes` (45 statiques + 19 dynamiques)
+- Cargo check & test : `18 passed / 0 failed` (Rust)
+- Playwright UI desktop : `8 passed / 0 failed` (Chromium)
+- Prisma : `15 migrations`, schéma à jour, 0 drift.
+
+---
+
 ══════════════════════════════════════════════════════════════
-Fin SESSION.md — **Prochaine MAJ :** selon résultat du test Coordinateur (clôture phase E8P-S09 si sync OK)
+Fin SESSION.md — **PHASE E8P CLÔTURÉE.** Prochaine phase : **E9 (Refonte hybride)** — Cadrage E9-R1.
 ═══════════════════════════════════════════════════════════════
+

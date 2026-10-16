@@ -2,7 +2,7 @@
 
 **Version :** 0.1 (brouillon E8P-S01)
 **Date :** 2026-10-14
-**Statut :** En cours de cadrage — validation Coordinateur requise
+**Statut :** ✅ CLÔTURÉE le 2026-10-16 (rapport `docs/e8p-close-report.md`)
 **Préfixe phase :** E8P (extension desktop de la phase E8 « stabilisation » clôturée le 2026-10-13 — préfixe distinct pour éviter la collision `E8-S01` → `E8-S09` occupée par la phase clôturée, cf. `docs/e8-close-report.md`)
 
 ---
@@ -351,18 +351,26 @@ Points ouverts (à trancher en E8P-S02/S03 — non bloquants pour ce cadrage, ma
 
 ---
 
-## 9. Plan de sessions E8P-S02 → E8P-S09
+## 9. Plan de sessions E8P (Bilan complet des 15 sessions)
 
-| Session | Objet | Type | Dépendance |
+| Session | Objet | Type | Statut |
 |---|---|---|---|
-| E8P-S02 | Setup toolchain Rust + projet Tauri squelette (vérifier MSVC/WebView2, squelette buildable) | Exécution | E8P-S01 |
-| E8P-S03 | Schéma BDD locale + migrations locales (résoudre `updatedAt` manquants — §6.1, mesurer volumétries réelles — §6.2, trancher D-E8P-S01-7 ORM) | Exécution | E8P-S02 |
-| E8P-S04 | Endpoints API sync Next.js (manifest + pull ; arbitrage stub `/api/sync` D48 ; auth token desktop — trancher D-E8P-S01-9/-12) | Exécution | E8P-S02 |
-| E8P-S05 | Client sync Rust (pull full + incremental + checkpoint) | Exécution | E8P-S03, E8P-S04 |
-| E8P-S06 | UI desktop V1 (catalogue + recherche + fiches ; export statique Next — cf. §3.1) | Exécution | E8P-S05 |
-| E8P-S07 | Packaging NSIS/MSI + installeur (mesure taille, WebView2) | Exécution | E8P-S06 |
-| E8P-S08 | Tests E2E desktop + validation offline | Exécution | E8P-S07 |
-| E8P-S09 | Documentation utilisateur + clôture phase (écriture du rapport de clôture E8P) | Documentation | E8P-S08 |
+| **E8P-S01** | Cadrage Desktop Tauri + sync BDD locale unidirectionnelle | Cadrage | ✅ Clôturée (`e5f5e80`) |
+| **E8P-S02** | Setup toolchain Rust + projet Tauri squelette + SQLite local | Exécution | ✅ Clôturée (`7600a9a`) |
+| **E8P-S03** | Schéma BDD locale + migrations SQLx | Exécution | ✅ Clôturée (`905baf4`) |
+| **E8P-S04** | Endpoints API sync Next.js (manifest + pull `/api/desktop/sync/*`) | Exécution | ✅ Clôturée (`f274aea`) |
+| **E8P-S05** | Client sync Rust (pull full + incremental + checkpoint) | Exécution | ✅ Clôturée (`68b6d48`) |
+| **E8P-S06** | UI desktop V1 (catalogue + recherche 6 modes + fiches) | Exécution | ✅ Clôturée (`62c1577`) |
+| **E8P-S07** | Packaging NSIS (`setup.exe`) + documentation installation | Exécution | ✅ Clôturée (`7b969b6`) |
+| **E8P-S08** | Tests E2E desktop headless (16 Rust + 8 Playwright UI) | Exécution | ✅ Clôturée (`bcefed8`) |
+| **E8P-S02-bis** | Correctif UX autofill web (`autoComplete="off"` / `"new-password"`) | Correctif | ✅ Clôturée (`c00644e`) |
+| **E8P-S09-bis** | Correctif login desktop + autofill UI (`readOnly` au focus) | Correctif | ✅ Clôturée (`d0e6e26`) |
+| **E8P-S09-ter** | Login desktop — alignement headers requête Rust sur navigateur | Correctif | ✅ Clôturée (`180dbb8`) |
+| **E8P-S09-quater-bis** | Parsing cookie de session BetterAuth dual-name (`__Secure-`) | Correctif | ✅ Clôturée (`1b741dc`) |
+| **E8P-S09-quater-ter** | Sync desktop (plugin `bearer()`) + navbar conditionnelle | Correctif | ✅ Clôturée (`e9d91b3`) |
+| **E8P-S10** | Page admin téléchargement desktop (`/admin/desktop-downloads`) | Exécution | ✅ Clôturée (`71176d4`) |
+| **E8P-S10-bis** | Résolution `@vercel/blob`, helper `auth-admin`, proxy download | Correctif | ✅ Clôturée (`107d9db`) |
+| **E8P-S09** | Clôture officielle de phase E8P + rapport final | Documentation | ✅ Clôturée (ce jour) |
 
 ---
 

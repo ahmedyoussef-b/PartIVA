@@ -7,7 +7,9 @@ import { resolve } from 'path';
 async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0 || args.includes('--help')) {
-    console.log('Usage: tsx scripts/upload-desktop-installer.ts <path-to-setup.exe> <version> [notes]');
+    console.log(
+      'Usage: tsx scripts/upload-desktop-installer.ts <path-to-setup.exe> <version> [notes]',
+    );
     return;
   }
   if (args.length < 2) {
@@ -54,4 +56,7 @@ async function main() {
   writeFileSync(releasesPath, JSON.stringify(json, null, 2), 'utf8');
   console.log('Uploaded:', blob_url);
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

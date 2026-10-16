@@ -3,10 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ version: string }> }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ version: string }> }) {
   try {
     const mod = await import('../../../../../../lib/auth-admin');
     if (typeof mod.requireAdmin === 'function') {

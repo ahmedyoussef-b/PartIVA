@@ -1,4 +1,4 @@
-﻿# 🗺️ Feuille de Route Stratégique PartIVA — Vision Superviseur
+# 🗺️ Feuille de Route Stratégique PartIVA — Vision Superviseur
 
 Document de référence **officiel**. À conserver dans `F:\PartIVA\ROADMAP.md` et à charger par Kilo Code à chaque session.
 
@@ -453,7 +453,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🔧 E9-R1 — Cadrage de la refonte hybride
+## 🔧 E7 — DÉBLOCAGE DETTES MOYENNES (✅ CLÔTURÉE)
 
 **Statut :** ✅ **Clôturée 2026-10-14** (E7-clôture — D-E7-C1 à C9, rapport `docs/e7-close-report.md`) — 6/6 sessions planifiées traitées (S01 → S06)
 
@@ -594,32 +594,44 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E7 — DESKTOP TAURI
-**Objectif** : livrer PartIVA en application desktop Windows packagée, synchronisée avec le backend web, distribuable via le dashboard admin.
+## 🏗️ E8P — DESKTOP TAURI (✅ CLÔTURÉE)
+
+**Statut :** ✅ **Clôturée le 2026-10-16** (rapport `docs/e8p-close-report.md`) — 15 sessions traitées (S01 → S10-bis).
+
+**Objectif atteint :** Application desktop Windows packagée (Tauri 2, NSIS `setup.exe` 3.9 Mo), base de données locale SQLite (`sqlx`, 4 migrations), synchronisation unidirectionnelle web → local (`/api/desktop/sync/*`), authentification native BetterAuth + keyring Windows, consultation et recherche hors-ligne (6 modes), et page d'administration web de téléchargement (`/admin/desktop-downloads`).
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E8P-S01** | Cadrage Desktop Tauri + sync BDD locale | `e5f5e80` | ✅ |
+| **E8P-S02** | Setup toolchain Rust + squelette Tauri 2 + SQLite local | `7600a9a` | ✅ |
+| **E8P-S03** | Schéma BDD locale SQLite + migrations SQLx | `905baf4` | ✅ |
+| **E8P-S04** | Migration 0004 SQLx + endpoints API sync (`/api/desktop/sync/*`) | `f274aea` | ✅ |
+| **E8P-S05** | Client sync Rust (manifest/pull + upsert SQLite) | `68b6d48` | ✅ |
+| **E8P-S06** | UI desktop V1 (catalogue + recherche 6 modes + fiches) | `62c1577` | ✅ |
+| **E8P-S07** | Packaging NSIS (`setup.exe`) + documentation installation | `7b969b6` | ✅ |
+| **E8P-S08** | Tests E2E desktop headless (16 Rust + 8 Playwright UI) | `bcefed8` | ✅ |
+| **E8P-S02-bis** | Correctif UX autofill web (`autoComplete="off"` / `"new-password"`) | `c00644e` | ✅ |
+| **E8P-S09-bis** | Correctif login desktop + autofill UI (`readOnly` au focus) | `d0e6e26` | ✅ |
+| **E8P-S09-ter** | Login desktop — alignement headers requête Rust sur navigateur | `180dbb8` | ✅ |
+| **E8P-S09-quater-bis** | Parsing cookie de session BetterAuth dual-name (`__Secure-`) | `1b741dc` | ✅ |
+| **E8P-S09-quater-ter** | Sync desktop (plugin `bearer()`) + navbar conditionnelle | `e9d91b3` | ✅ |
+| **E8P-S10** | Page admin téléchargement desktop (`/admin/desktop-downloads`) | `71176d4` | ✅ |
+| **E8P-S10-bis** | Résolution `@vercel/blob`, helper `auth-admin`, proxy download | `107d9db` | ✅ |
+| **E8P-S09** | Clôture officielle de phase E8P + rapport final | (ce commit) | ✅ |
+
+**Baseline finale E8P :** ESLint 0/0 · TS 0 err · Prettier 0 · Build **64 routes** (45 statiques + 19 dynamiques) · Tests Rust 18 passed · E2E UI 8 passed · E2E Web 284 passed / 4 skipped · Prisma 15 migrations · 0 dette Haute.
+
+---
+
+## 🏗️ E9 — REFONTE HYBRIDE (À VENIR)
+**Objectif** : Unifier l'architecture, consolider le partage de types, optimiser les payloads de sync et automatiser la CI/CD multi-plateforme.
 
 | Session | Objectif | Livrable |
 |---|---|---|
-| **E7-S01** | Setup Tauri dans le repo | Structure `/src-tauri` + build local |
-| **E7-S02** | Stratégie données desktop | Choix SQLite local / API-only / hybride |
-| **E7-S03** | Auth desktop | Login sans navigateur (device flow ou clé API) |
-| **E7-S04** | Adaptation UI desktop | Layout, raccourcis, menus natifs |
-| **E7-S05** | Build & bundling | `.msi` + `.exe` produits en local |
-| **E7-S06** | Versioning & release | Système de version + changelog |
-| **E7-S07** | Page admin téléchargement | Dashboard `/admin/telechargements` |
-| **E7-S08** | CDN / hébergement binaires | Stockage sécurisé + URLs stables |
-| **E7-S09** | Auto-update | Mise à jour in-app (Tauri updater) |
-| **E7-S10** | Codes signature Windows | Certificat code signing (optionnel mais recommandé) |
-
-**Définition de "E7 terminée"** : un utilisateur peut télécharger `.msi` ou `.exe` depuis le dashboard admin, installer, se connecter, utiliser PartIVA en desktop, et recevoir les mises à jour.
-
-**Durée estimée** : 3-5 semaines.
-
-**⚠️ Note Superviseur** : 3 décisions critiques à trancher avant E7-S01 :
-1. **Mode données desktop** : offline-first (SQLite) ou online-only (API) ?
-2. **Auth desktop** : device flow OAuth, token long-lived, ou licence locale ?
-3. **Sync** : desktop ↔ cloud — comment gérer les conflits ?
-
-Ces décisions seront prises **en E7-S02**, pas maintenant.
+| **E9-R1** | Cadrage de la refonte hybride | Document de cadrage E9 |
+| **E9-S01** | Package de types et schémas partagés | Monorepo / package partagé |
+| **E9-S02** | Optimisation flux de synchronisation | Compression & batching |
+| **E9-S03** | CI/CD build automatisé multi-plateforme | GitHub Actions release pipeline |
 
 ---
 

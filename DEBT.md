@@ -5,8 +5,9 @@
 >
 > **Phase E8 CLÔTURÉE** (2026-10-13 — D-E8-C1 à C8, rapport `docs/e8-close-report.md`). R.5.22 actée (clés placeholder non bloquantes).
 > **Phase E7 CLÔTURÉE** (2026-10-14 — D-E7-C1 à C9, rapport `docs/e7-close-report.md`). 6/6 sessions traitées (S01 → S06), baseline tenue (59 routes, E2E 284/0/4, 15 migrations).
-> Dettes E7 : `D-photo-embedding-backfill` (M, ✅ clôturée E7-S02-reprise), `D-hnsw-drift` (F, ✅ vérifiée E7-S05), `D-openserp-inadapte` (F, ✅ clôturée par rejet E7-S04), `D-deploy-comptes` (M, 🟡 partiel — Vercel OK, Sentry/domaine optionnels), `D-traceparts-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-credentials` (M, 🟡 en attente contrat R.5.22), `D-tecdoc-auto-parts` (M, 🟡 en attente contrat R.5.22) + `D-aws-s3-non-applicable` (F, créée E7-S06).
-> Prochaine phase : **E8+ (Desktop Tauri)** — phase **E8P en cours** (cadrage E8P-S01 · toolchain/squelette E8P-S02 · schéma local E8P-S03 · endpoints sync E8P-S04). Production live : `https://part-iva.vercel.app`.
+> **Phase E8P (Desktop Tauri) CLÔTURÉE** (2026-10-16 — rapport `docs/e8p-close-report.md`). 15 sessions traitées (S01 → S10-bis), baseline tenue (64 routes, Rust 18 passed, UI 8 passed, E2E web 284/0/4, 15 migrations, installeur NSIS 3.9 Mo).
+> Dettes actives E8P : 0 Haute · 5 Moyennes (4 E7 + `D-junction-npm-prefix`) · ~21 Faibles (dont dettes desktop `D-sync-stub-d48`, `D-desktop-icons-default`, `D-desktop-code-signing`, `D-desktop-manual-validation`).
+> Prochaine phase : **E9 (Refonte hybride)**. Production live : `https://part-iva.vercel.app`.
 
 ---
 
