@@ -3,8 +3,7 @@
   "productName": "PartIVA Desktop",
   "version": "0.1.0",
   "identifier": "com.partiva.desktop",
-  "build": {
-    "frontendDist": "../ui/out",
+"build": {
     "devUrl": "http://localhost:3100",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""

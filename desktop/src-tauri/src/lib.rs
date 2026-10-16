@@ -89,21 +89,41 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
 
   let port = port.ok_or_else(|| "Port not communicated".to_string())?;
 
+  eprintln!("[PartIVA] Port extrait: {}", port);
+
   // Wait for healthcheck
+  eprintln!("[PartIVA] Démarrage healthcheck sur http://127.0.0.1:{}/api/health", port);
   if let Err(e) = wait_for_health(port, 30).await {
+    eprintln!("[PartIVA] Erreur healthcheck: {}", e);
     return Err(format!("Healthcheck failed: {}", e));
   }
+  eprintln!("[PartIVA] Healthcheck OK");
 
-  // Get the main window and show it
+  // Get the main window and navigate to dashboard
   let main_window = app.get_webview_window("main").ok_or("Main window not found")?;
-  let url = format!("http://127.0.0.1:{}/admin/dashboard", port)
-    .parse::<tauri::Url>().map_err(|e| e.to_string())?;
-  main_window.navigate(url).map_err(|e| e.to_string())?;
-  main_window.show().map_err(|e| e.to_string())?;
+  let url_str = format!("http://127.0.0.1:{}/admin/dashboard", port);
+  eprintln!("[PartIVA] Navigation vers: {}", url_str);
+  let url = url_str.parse::<tauri::Url>().map_err(|e| {
+    eprintln!("[PartIVA] Erreur parse URL: {}", e);
+    e.to_string()
+  })?;
+  main_window.navigate(url).map_err(|e| {
+    eprintln!("[PartIVA] Erreur navigation: {}", e);
+    e.to_string()
+  })?;
+  eprintln!("[PartIVA] Navigation OK");
+  main_window.show().map_err(|e| {
+    eprintln!("[PartIVA] Erreur show: {}", e);
+    e.to_string()
+  })?;
+  eprintln!("[PartIVA] Fenêtre principale affichée");
 
   // Close the splash screen
   let splash = app.get_webview_window("splash").ok_or("Splash window not found")?;
-  splash.close().map_err(|e| e.to_string())?;
+  splash.close().map_err(|e| {
+    eprintln!("[PartIVA] Erreur close splash: {}", e);
+    e.to_string()
+  })?;
 
   Ok(())
 }
