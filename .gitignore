@@ -67,3 +67,7 @@ desktop/dist/
 *.db-journal
 *.db-wal
 *.db-shm
+
+desktop/server/
+desktop/src-tauri/node-*.exe
+desktop/src-tauri/binaries/
