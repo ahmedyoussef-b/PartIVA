@@ -1,7 +1,17 @@
-use sqlx::SqlitePool;
+﻿use sqlx::SqlitePool;
 use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::CommandEvent;
+
+pub mod auth;
+pub mod db;
+pub mod parts;
+pub mod sync;
+
+pub struct AppState {
+  pool: SqlitePool,
+  http: reqwest::Client,
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -16,7 +26,7 @@ pub fn run() {
             .build(),
         )?;
       }
-      // E8P-S02 – BDD locale SQLite initialisée au démarrage (pool exposée en state Tauri)
+      // E8P-S02 — BDD locale SQLite initialisée au démarrage (pool exposée en state Tauri)
       let pool = tauri::async_runtime::block_on(db::init_local_db())
         .expect("[PartIVA Desktop] Échec init BDD locale");
       app.manage(AppState {
@@ -26,8 +36,9 @@ pub fn run() {
       app.manage(pool);
 
       // Start the Next.js sidecar and wait for it to be ready
+      let app_handle = app.handle().clone();
       let _ = tauri::async_runtime::spawn(async move {
-        if let Err(e) = start_server(app.handle()).await {
+        if let Err(e) = start_server(&app_handle).await {
           eprintln!("Failed to start server: {}", e);
         }
       });
@@ -56,10 +67,10 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
 
   let sidecar = app.shell()
     .sidecar("node")
-    .args([server_js_path_str.as_ref()])
     .map_err(|e| format!("sidecar error: {e}"))?;
+  let sidecar = sidecar.args([server_js_path_str.as_ref()]);
 
-  let (mut rx, mut child) = sidecar.spawn()
+  let (mut rx, _child) = sidecar.spawn()
     .map_err(|e| format!("spawn error: {e}"))?;
 
   // Read stdout to extract the port
@@ -82,13 +93,15 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
   }
 
   // Get the main window and show it
-  let main_window = app.get_webview_window("main").unwrap();
-  main_window.navigate(format!("http://127.0.0.1:{}/admin/dashboard", port).parse().unwrap())?;
-  main_window.show()?;
+  let main_window = app.get_webview_window("main").ok_or("Main window not found")?;
+  let url = format!("http://127.0.0.1:{}/admin/dashboard", port)
+    .parse::<tauri::Url>().map_err(|e| e.to_string())?;
+  main_window.navigate(url).map_err(|e| e.to_string())?;
+  main_window.show().map_err(|e| e.to_string())?;
 
   // Close the splash screen
-  let splash = app.get_webview_window("splash").unwrap();
-  splash.close()?;
+  let splash = app.get_webview_window("splash").ok_or("Splash window not found")?;
+  splash.close().map_err(|e| e.to_string())?;
 
   Ok(())
 }
@@ -117,20 +130,7 @@ async fn wait_for_health(port: u16, timeout_secs: u64) -> Result<(), String> {
   Err("Healthcheck timeout".to_string())
 }
 
-pub mod auth;
-pub mod db;
-pub mod parts;
-pub mod sync;
-
-use sqlx::SqlitePool;
-use tauri::Manager;
-
-pub struct AppState {
-  pool: SqlitePool,
-  http: reqwest::Client,
-}
-
-/// E8P-S05/S06 – synchronisation manuelle et au démarrage (D-E8P-S01-3 = A).
+/// E8P-S05/S06 — synchronisation manuelle et au démarrage (D-E8P-S01-3 = A).
 /// Token : keyring (login interactif, D-E8P-S06-2) puis repli PARTIVA_SYNC_TOKEN (dev).
 /// Jamais logué (Sécurité #7).
 #[tauri::command]
@@ -141,7 +141,7 @@ async fn sync_now(state: tauri::State<'_, AppState>) -> Result<sync::SyncSummary
     .map_err(|e| e.to_string())
 }
 
-/// E8P-S06 – login interactif : appel BetterAuth + stockage keyring (token non renvoyé).
+/// E8P-S06 — login interactif : appel BetterAuth + stockage keyring (token non renvoyé).
 #[tauri::command]
 async fn login(
   state: tauri::State<'_, AppState>,
@@ -166,7 +166,7 @@ fn logout() -> Result<(), String> {
   auth::logout()
 }
 
-/// E8P-S06 – catalogue local (lecture seule).
+/// E8P-S06 — catalogue local (lecture seule).
 #[tauri::command]
 async fn list_parts(
   state: tauri::State<'_, AppState>,
@@ -178,7 +178,7 @@ async fn list_parts(
     .map_err(|e| e.to_string())
 }
 
-/// E8P-S06 – recherche locale, 6 modes (match statique côté Rust).
+/// E8P-S06 — recherche locale, 6 modes (match statique côté Rust).
 #[tauri::command]
 async fn search_parts(
   state: tauri::State<'_, AppState>,
@@ -190,7 +190,7 @@ async fn search_parts(
     .map_err(|e| e.to_string())
 }
 
-/// E8P-S06 – fiche pièce (détails + specs + images + fitments).
+/// E8P-S06 — fiche pièce (détails + specs + images + fitments).
 #[tauri::command]
 async fn get_part(
   state: tauri::State<'_, AppState>,
@@ -200,3 +200,4 @@ async fn get_part(
     .await
     .map_err(|e| e.to_string())
 }
+

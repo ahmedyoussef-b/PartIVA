@@ -4,7 +4,7 @@
 **Statut :** âœ… ClÃ´turÃ©e (exÃ©cution â€” session technique haute complexitÃ©)
 **Phase :** E9 â€” Refonte hybride
 **Commit de dÃ©part :** `dbb8bd1` (E9-R1) Â· branche `master` Â· working tree propre
-**Commit final :** `TODO` (to be filled after commit)
+**Commit final :** `bb8fc03` (feat(e9-r2): prototype sidecar Next.js standalone + spawn Tauri + splash)
 
 ### Objectif
 
