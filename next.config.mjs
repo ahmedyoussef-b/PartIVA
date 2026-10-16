@@ -11,6 +11,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.traceparts.com' },
     ],
   },
+  // Fix E9-R2-ter (H4): forcer la racine Turbopack et exclure les répertoires volumineux
+  // (desktop/ avec node_modules, src-tauri/target et server/) pour éviter une boucle
+  // ou un blocage infini lors du file-tracing en mode standalone.
   turbopack: {
     root: path.resolve(process.cwd()),
   },
