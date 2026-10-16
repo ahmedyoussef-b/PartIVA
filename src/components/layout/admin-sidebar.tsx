@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Download as DownloadIcon, usePathname } from 'next/navigation';
+import { Download, usePathname } from 'next/navigation';
 import { Download,
   Sidebar,
   SidebarHeader,
@@ -29,7 +29,7 @@ import { Download,
   ExternalLink,
   Search,
 } from 'lucide-react';
-import { Download as DownloadIcon, Badge } from '@/components/ui/badge';
+import { Download, Badge } from '@/components/ui/badge';
 
 const ADMIN_NAV = [
   { href: '/admin/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
