@@ -1,3 +1,5 @@
+import path from 'path';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -9,6 +11,16 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.traceparts.com' },
     ],
   },
-}
+  turbopack: {
+    root: path.resolve(process.cwd()),
+  },
+  outputFileTracingExcludes: {
+    '*': [
+      './desktop/**',
+      './e2e/**',
+      './docs/**',
+    ],
+  },
+};
 
-export default nextConfig
+export default nextConfig;

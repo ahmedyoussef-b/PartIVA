@@ -67,8 +67,10 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
 
   let sidecar = app.shell()
     .sidecar("node")
-    .map_err(|e| format!("sidecar error: {e}"))?;
-  let sidecar = sidecar.args([server_js_path_str.as_ref()]);
+    .map_err(|e| format!("sidecar error: {e}"))?
+    .env("PORT", "0")
+    .env("HOSTNAME", "127.0.0.1")
+    .args([server_js_path_str.as_ref()]);
 
   let (mut rx, _child) = sidecar.spawn()
     .map_err(|e| format!("spawn error: {e}"))?;
@@ -107,12 +109,16 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 fn parse_port_line(line: &str) -> Option<u16> {
-  // Expected format: PARTIVA_SERVER_PORT=<port>
-  if let Some(stripped) = line.strip_prefix("PARTIVA_SERVER_PORT=") {
-    stripped.trim().parse::<u16>().ok()
-  } else {
-    None
+  // Expected format: PARTIVA_SERVER_PORT=<port> (supports multiline and surrounding whitespace)
+  for l in line.lines() {
+    let trimmed = l.trim();
+    if let Some(stripped) = trimmed.strip_prefix("PARTIVA_SERVER_PORT=") {
+      if let Ok(p) = stripped.trim().parse::<u16>() {
+        return Some(p);
+      }
+    }
   }
+  None
 }
 
 async fn wait_for_health(port: u16, timeout_secs: u64) -> Result<(), String> {
@@ -201,3 +207,30 @@ async fn get_part(
     .map_err(|e| e.to_string())
 }
 
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_parse_port_line_exact() {
+    assert_eq!(parse_port_line("PARTIVA_SERVER_PORT=4567"), Some(4567));
+  }
+
+  #[test]
+  fn test_parse_port_line_multiline() {
+    let output = "▲ Next.js 16.4.0\nPARTIVA_SERVER_PORT=51234\n✓ Ready";
+    assert_eq!(parse_port_line(output), Some(51234));
+  }
+
+  #[test]
+  fn test_parse_port_line_whitespace() {
+    assert_eq!(parse_port_line("  PARTIVA_SERVER_PORT=3000\r\n"), Some(3000));
+  }
+
+  #[test]
+  fn test_parse_port_line_invalid() {
+    assert_eq!(parse_port_line("SOME_OTHER_LINE"), None);
+    assert_eq!(parse_port_line("PARTIVA_SERVER_PORT=invalid"), None);
+  }
+}
