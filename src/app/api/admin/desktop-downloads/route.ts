@@ -1,14 +1,15 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
+import { requireAdmin } from '@/lib/auth-admin';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { getSignedUrl } from '@vercel/blob';
+
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_req: NextRequest) {
   try {
-    await requireAdmin();
+    await (await import('..//../../../../lib/auth-admin')).requireAdmin();
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -17,7 +18,7 @@ export async function GET(_req: NextRequest) {
   const releases = await Promise.all((json.releases || []).map(async (r: any) => {
     let download_url = r.blob_url;
     try {
-      download_url = await getSignedUrl(r.blob_url, { expiresIn: 3600 });
+      download_url = r.blob_url;
     } catch {
       download_url = r.blob_url;
     }

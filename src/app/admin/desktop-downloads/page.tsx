@@ -1,4 +1,4 @@
-﻿import { getSignedUrl } from '@vercel/blob';
+﻿
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -8,7 +8,7 @@ async function getReleases() {
   const releases = await Promise.all((json.releases || []).map(async (r: any) => {
     let download_url = r.blob_url;
     try {
-      download_url = await getSignedUrl(r.blob_url, { expiresIn: 3600 });
+      download_url = r.blob_url;
     } catch {
       download_url = r.blob_url;
     }
