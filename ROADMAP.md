@@ -1,4 +1,4 @@
-# 🗺️ Feuille de Route Stratégique PartIVA — Vision Superviseur
+﻿# 🗺️ Feuille de Route Stratégique PartIVA — Vision Superviseur
 
 Document de référence **officiel**. À conserver dans `F:\PartIVA\ROADMAP.md` et à charger par Kilo Code à chaque session.
 
@@ -453,7 +453,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🔧 E7 — DÉBLOCAGE DETTES MOYENNES (✅ CLÔTURÉE)
+## 🔧 E9-R1 — Cadrage de la refonte hybride
 
 **Statut :** ✅ **Clôturée 2026-10-14** (E7-clôture — D-E7-C1 à C9, rapport `docs/e7-close-report.md`) — 6/6 sessions planifiées traitées (S01 → S06)
 
