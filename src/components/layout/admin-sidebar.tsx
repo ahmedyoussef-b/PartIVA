@@ -43,7 +43,7 @@ const ADMIN_NAV = [
   { href: '/admin/sync', label: 'Console Sync Cloud', icon: RefreshCw },
   { href: '/admin/audit', label: 'Journal d’Audit', icon: FileSpreadsheet },
   { href: '/admin/parametres', label: 'Paramètres', icon: Settings },
-  { href: '/admin/desktop-downloads', label: 'Téléchargements Desktop', icon: DownloadIcon },
+  { href: '/admin/desktop-downloads', label: 'Téléchargements Desktop', icon: Download as DownloadIcon },
 ];
 
 export function AdminSidebar() {
