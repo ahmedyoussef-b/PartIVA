@@ -214,6 +214,27 @@ async function fetchTable(
           updatedAt: true,
         },
       });
+    case 'request':
+      return prisma.request.findMany({
+        where: updatedFilter,
+        orderBy: { updatedAt: 'asc' },
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          clientId: true,
+          machineRef: true,
+          partDescription: true,
+          partFunction: true,
+          suspectedMaterial: true,
+          quantity: true,
+          urgency: true,
+          status: true,
+          photos: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
     default:
       return [];
   }

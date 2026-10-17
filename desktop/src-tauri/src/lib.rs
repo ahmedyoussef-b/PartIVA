@@ -7,6 +7,7 @@ pub mod auth;
 pub mod db;
 pub mod materials;
 pub mod parts;
+pub mod requests;
 pub mod sync;
 
 pub struct AppState {
@@ -325,9 +326,12 @@ async fn get_material_by_slug(
 }
 
 #[tauri::command]
-async fn get_demandes_file() -> Result<serde_json::Value, String> {
-  // Mock E9-R3.b — bridge SQLite réel en E9-R4
-  Ok(serde_json::json!([]))
+async fn get_demandes_file(
+    state: tauri::State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    requests::get_demandes_file(&state.pool)
+        .await
+        .map_err(|e| format!("DB error: {}", e))
 }
 
 #[tauri::command]

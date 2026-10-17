@@ -137,6 +137,8 @@
 | `D-completeness-material` | `material` exclu de `REQUIRED_SPEC_KEYS` (textuel, pas dimensionnel) | E6-S04 (clôturée par décision — `material` reste exclu des clés requises dimensionnelles, dimensionnel ≠ textuel. Ajouter `material` changerait le dénominateur 8→9 pour toutes les pièces, régression tests E2E `total=8`. `material` reste consultable via `PartSpecification`. Si signal nécessaire, liste distincte `REQUIRED_TEXT_KEYS` — arbitrage E7. Document de référence : `docs/debts-documentation.md` §8)
 | `D-E9-R3b-1` | Route API `/api/reverse-cao` créée en E9-R3.b-bis (Sous-étape 2 — route créée, build 66 routes, GET 200 validé) | E9-R3.b-bis
 | `D-E9-R3b-2` | Route API `/api/plastiques` créée en E9-R3.b-bis (Sous-étape 3 — route créée, build 66 routes, GET 200 validé) | E9-R3.b-bis
+| `D-E9-R4b1-1` | Table `client` (User) non miroitée en SQLite local — `Request.clientId` stocké sans `REFERENCES` (décision Option A), `get_demandes_file` retourne `client: null`. Page `/admin/demandes` = Server Component via sidecar (pas de régression immédiate), mais affichage dégradé « Client inconnu » si migration future vers `dataClient` | Moyenne | E9-R5 | Non | Décider en E9-R5 : Option 1 miroiter `User` (migration + upsert + case web), Option 2 dénormaliser `client_name`/`client_company`, Option 3 accepter le fallback.
+| `D-E9-R4b1-2` | `photos: Json?` sérialisé en TEXT JSON dans SQLite, retourné comme string par `get_demandes_file` — divergence avec `RequestWithRelations` (web attend `Prisma.JsonValue`/array natif) | Faible | E9-R5 | Non | Ajouter désérialisation JSON dans `requests.rs` pour aligner le format desktop sur le web.
 
 
 ---

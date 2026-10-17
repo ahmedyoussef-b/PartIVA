@@ -1,5 +1,7 @@
 'use client';
 
+import type { RequestWithRelations } from '@/lib/utils/request-mappers';
+
 export const isTauri = () => {
   if (typeof window === 'undefined') return false;
   return '__TAURI_INTERNALS__' in window;
@@ -25,9 +27,10 @@ export async function getMaterialBySlug(slug: string) {
   return fetch(`/api/materials/${slug}`).then((r) => r.json());
 }
 
-export async function getDemandesFile() {
-  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke('get_demandes_file');
-  return fetch('/api/requests').then((r) => r.json());
+export async function getDemandesFile(): Promise<RequestWithRelations[]> {
+  if (isTauri())
+    return window.__TAURI_INTERNALS__!.invoke<RequestWithRelations[]>('get_demandes_file');
+  return fetch('/api/requests').then((r) => r.json() as Promise<RequestWithRelations[]>);
 }
 
 // TODO(E9-R4): route API web absente — getter prêt pour usage futur

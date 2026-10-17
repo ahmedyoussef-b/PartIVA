@@ -241,6 +241,7 @@ async fn upsert_table(
         "part_specification" => upsert_part_specifications(pool, rows).await,
         "part_category" => upsert_part_categories(pool, rows).await,
         "material" => upsert_materials(pool, rows).await,
+        "request" => upsert_requests(pool, rows).await,
         other => Err(SyncError::Payload(format!("table inconnue : {other}"))),
     }
 }
@@ -459,6 +460,44 @@ async fn upsert_materials(
         .bind(s(r, "description"))
         .bind(advantages)
         .bind(common_applications)
+        .bind(s(r, "createdAt"))
+        .bind(s(r, "updatedAt"))
+        .execute(pool)
+        .await?;
+        count += 1;
+    }
+    Ok(count)
+}
+
+async fn upsert_requests(
+    pool: &SqlitePool,
+    rows: &[serde_json::Value],
+) -> Result<usize, SyncError> {
+    let mut count = 0;
+    for r in rows {
+        let photos = if r["photos"].is_null() {
+            None
+        } else {
+            Some(serde_json::to_string(&r["photos"]).unwrap_or_else(|_| "null".to_string()))
+        };
+
+        sqlx::query(
+            "INSERT OR REPLACE INTO request (
+                id, client_id, machine_ref, part_description, part_function,
+                suspected_material, quantity, urgency, status, photos,
+                created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(s(r, "id"))
+        .bind(s(r, "clientId"))
+        .bind(s(r, "machineRef"))
+        .bind(s(r, "partDescription"))
+        .bind(s(r, "partFunction"))
+        .bind(s(r, "suspectedMaterial"))
+        .bind(i(r, "quantity").unwrap_or(1) as i32)
+        .bind(s(r, "urgency").unwrap_or("MEDIUM".to_string()))
+        .bind(s(r, "status").unwrap_or("PENDING".to_string()))
+        .bind(photos)
         .bind(s(r, "createdAt"))
         .bind(s(r, "updatedAt"))
         .execute(pool)
