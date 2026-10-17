@@ -125,7 +125,9 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
     eprintln!("[PartIVA] Erreur show: {}", e);
     e.to_string()
   })?;
-  eprintln!("[PartIVA] Fenêtre principale affichée");
+  let _ = main_window.maximize();
+  let _ = main_window.set_focus();
+  eprintln!("[PartIVA] Fenêtre principale maximisée et affichée");
 
   // Close the splash screen
   let splash = app.get_webview_window("splash").ok_or("Splash window not found")?;

@@ -244,6 +244,10 @@ Suite à la suppression de `frontendDist` dans `tauri.conf.json` en E9-R2-quinqu
 3. **Logs Rust enrichis dans `lib.rs`** :
    - Ajout de préfixes et de logs détaillés `[PartIVA]` pour la configuration sidecar, le spawn, la réception du port et la capture des erreurs critiques.
 
+4. **Fenêtre principale maximisée (Plein écran standard à l'ouverture)** :
+   - `desktop/src-tauri/tauri.conf.json` : `maximized: true`, `center: true`, `width: 1440`, `height: 900`, `minWidth: 1024`, `minHeight: 700`, `title: "PartIVA Desktop"`.
+   - `desktop/src-tauri/src/lib.rs` : Appel explicite de `main_window.maximize()` et `main_window.set_focus()` après le `show()` pour garantir l'affichage maximisé sans état réduit.
+
 ### 3. Validation qualité
 
 - **Rust tests** : 22 tests passés avec succès (0 échec).
@@ -252,16 +256,16 @@ Suite à la suppression de `frontendDist` dans `tauri.conf.json` en E9-R2-quinqu
 - **Prettier** : 100% conforme (`prettier --check .`).
 - **Build desktop complet** :
   - `build:server` : Next.js 16.4.0 standalone build réussi (45 pages), hook port dynamique injecté.
-  - `cargo tauri build` : Compilation release en 3m 17s + installateur NSIS généré.
+  - `cargo tauri build` : Compilation release en 2m 27s + installateur NSIS généré avec configuration maximisée.
 
 ### 4. Artefacts produits
 
-- `desktop/src-tauri/target/release/partiva-desktop.exe` (16,58 MB) — binaire autonome avec splash inline et sidecar.
+- `desktop/src-tauri/target/release/partiva-desktop.exe` (16,59 MB) — binaire autonome avec splash inline, sidecar et fenêtre maximisée.
 - `desktop/src-tauri/target/release/bundle/nsis/PartIVA Desktop_0.1.0_x64-setup.exe` (33,34 MB).
 
 ### 5. Prochaine étape
 
-- **Test bout-en-bout GUI (Coordinateur)** : Lancement de `partiva-desktop.exe` depuis PowerShell pour observer les logs `[PartIVA]` et l'affichage du dashboard admin `/admin/dashboard`.
+- **Test bout-en-bout GUI (Coordinateur)** : Lancement de `partiva-desktop.exe` depuis PowerShell pour observer les logs `[PartIVA]` et l'affichage plein écran maximisé du dashboard admin `/admin/dashboard`.
 - **E9-R3.a — Migration lot 1** : Migration des 3 premières pages vers `dataClient`.
 
 

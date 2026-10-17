@@ -21,9 +21,15 @@
       },
       {
         "label": "main",
+        "title": "PartIVA Desktop",
         "url": "about:blank",
-        "width": 1280,
-        "height": 800,
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "center": true,
+        "maximized": true,
         "visible": false
       }
     ],
