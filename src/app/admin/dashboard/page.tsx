@@ -1,12 +1,43 @@
-import { getRequests } from '@/lib/data/requests';
-import { getMachines as getMachinesData } from '@/lib/data/machines';
+'use client';
+
+import * as React from 'react';
+import { getDashboard } from '@/lib/data-client';
 import { mapRequestToUi } from '@/lib/utils/request-mappers';
 import AdminDashboardClient from './dashboard-client';
+import type { MappedRequest } from '@/lib/utils/request-mappers';
+import type { MachineWithRelations } from '@/lib/data/machines';
 
-export default async function AdminDashboardPage() {
-  const [requests, machines] = await Promise.all([getRequests(), getMachinesData()]);
+export default function AdminDashboardPage() {
+  const [requests, setRequests] = React.useState<MappedRequest[]>([]);
+  const [machines, setMachines] = React.useState<MachineWithRelations[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const mappedRequests = requests.map(mapRequestToUi);
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        const dashboardData = await getDashboard();
+        const { requests: reqs, machines: machs } = dashboardData;
+        const mappedRequests = reqs?.map(mapRequestToUi) || [];
+        setRequests(mappedRequests);
+        setMachines(machs || []);
+      } catch (error) {
+        console.error('Failed to fetch dashboard:', error);
+        setRequests([]);
+        setMachines([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
-  return <AdminDashboardClient requests={mappedRequests} machines={machines} />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground text-sm">Chargement...</div>
+      </div>
+    );
+  }
+
+  return <AdminDashboardClient requests={requests} machines={machines} />;
 }

@@ -45,16 +45,20 @@ pub fn run() {
 
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![
-      sync_now,
-      login,
-      save_token,
-      load_token,
-      logout,
-      list_parts,
-      search_parts,
-      get_part
-    ])
+  .invoke_handler(tauri::generate_handler![
+    sync_now,
+    login,
+    save_token,
+    load_token,
+    logout,
+    list_parts,
+    search_parts,
+    get_part,
+    get_dashboard,
+    get_audit_logs,
+    get_materials,
+    get_material_by_slug
+  ])
     .run(tauri::generate_context!())
     .expect("error while building tauri application");
 }
@@ -277,7 +281,6 @@ async fn search_parts(
     .map_err(|e| e.to_string())
 }
 
-/// E8P-S06 — fiche pièce (détails + specs + images + fitments).
 #[tauri::command]
 async fn get_part(
   state: tauri::State<'_, AppState>,
@@ -288,6 +291,25 @@ async fn get_part(
     .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn get_dashboard() -> Result<serde_json::Value, String> {
+  Ok(serde_json::json!({ "requests": [], "machines": [] }))
+}
+
+#[tauri::command]
+async fn get_audit_logs() -> Result<Vec<serde_json::Value>, String> {
+  Ok(vec![])
+}
+
+#[tauri::command]
+async fn get_materials() -> Result<Vec<serde_json::Value>, String> {
+  Ok(vec![])
+}
+
+#[tauri::command]
+async fn get_material_by_slug(slug: String) -> Result<Option<serde_json::Value>, String> {
+  Ok(None)
+}
 
 #[cfg(test)]
 mod tests {

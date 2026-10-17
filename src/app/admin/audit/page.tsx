@@ -15,6 +15,7 @@ import {
   Wrench,
   Hammer,
 } from 'lucide-react';
+import { getAuditLogs } from '@/lib/data-client';
 
 type AuditAction =
   | 'sync_pull'
@@ -36,79 +37,6 @@ interface AuditEntry {
   severity: 'info' | 'success' | 'warning';
 }
 
-const AUDIT_LOG: AuditEntry[] = [
-  {
-    id: 'aud-1',
-    ts: '2026-10-04T16:35:00Z',
-    action: 'sync_pull',
-    actor: 'Daemon Sync',
-    entityId: 'sync',
-    entityType: 'sync',
-    description: '2 nouvelles demandes tirées depuis Neon Postgres (REQ-1041, REQ-1042)',
-    severity: 'success',
-  },
-  {
-    id: 'aud-2',
-    ts: '2026-10-04T16:33:00Z',
-    action: 'request_received',
-    actor: 'Mohamed Ben Salem',
-    entityId: 'a1111111-2222-3333-4444-555555555551',
-    entityType: 'request',
-    description: 'Demande REQ-1042 soumise : Étoile de transfert bouteilles — URGENCE CRITIQUE',
-    severity: 'warning',
-  },
-  {
-    id: 'aud-3',
-    ts: '2026-10-04T14:20:00Z',
-    action: 'candidate_selected',
-    actor: 'Ingénieur Méthodes',
-    entityId: 'a1111111-2222-3333-4444-555555555552',
-    entityType: 'request',
-    description: 'Candidat PL-004812 (88%) validé pour REQ-1041 — TraceParts source',
-    severity: 'success',
-  },
-  {
-    id: 'aud-4',
-    ts: '2026-10-04T13:55:00Z',
-    action: 'search_launched',
-    actor: 'Ingénieur Méthodes',
-    entityId: 'a1111111-2222-3333-4444-555555555552',
-    entityType: 'request',
-    description: 'Recherche multi-sources lancée pour REQ-1041 (SITEX Denim)',
-    severity: 'info',
-  },
-  {
-    id: 'aud-5',
-    ts: '2026-10-04T09:40:00Z',
-    action: 'reverse_started',
-    actor: 'Ingénieur CAO',
-    entityId: 'a1111111-2222-3333-4444-555555555553',
-    entityType: 'request',
-    description: 'Reverse Engineering démarré pour REQ-1039 — Bague PTFE CHO Sfax',
-    severity: 'info',
-  },
-  {
-    id: 'aud-6',
-    ts: '2026-10-04T08:00:00Z',
-    action: 'machining_started',
-    actor: 'Opérateur CNC',
-    entityId: 'a1111111-2222-3333-4444-555555555554',
-    entityType: 'request',
-    description: 'Usinage démarré sur Haas ST-20 — Patin PA66 STIP Pneus (×6)',
-    severity: 'success',
-  },
-  {
-    id: 'aud-7',
-    ts: '2026-10-03T18:00:00Z',
-    action: 'request_received',
-    actor: 'Sami Triki',
-    entityId: 'a1111111-2222-3333-4444-555555555553',
-    entityType: 'request',
-    description: "Demande REQ-1039 reçue : Bague PTFE décanteur CHO Huile d'Olive",
-    severity: 'info',
-  },
-];
-
 const ACTION_CONFIG: Record<
   AuditAction,
   { label: string; icon: React.ElementType; color: string }
@@ -124,8 +52,25 @@ const ACTION_CONFIG: Record<
 
 export default function AdminAuditPage() {
   const [query, setQuery] = React.useState('');
+  const [auditLogs, setAuditLogs] = React.useState<AuditEntry[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const filtered = AUDIT_LOG.filter((entry) => {
+  React.useEffect(() => {
+    async function fetchAuditLogs() {
+      try {
+        const logs = await getAuditLogs();
+        setAuditLogs(logs || []);
+      } catch (error) {
+        console.error('Failed to fetch audit logs:', error);
+        setAuditLogs([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAuditLogs();
+  }, []);
+
+  const filtered = auditLogs.filter((entry) => {
     const q = query.toLowerCase();
     return (
       entry.description.toLowerCase().includes(q) ||
@@ -175,48 +120,54 @@ export default function AdminAuditPage() {
             <div className="bg-border absolute top-0 bottom-0 left-[18px] w-px" />
 
             <div className="space-y-0">
-              {filtered.map((entry, i) => {
-                const cfg = ACTION_CONFIG[entry.action];
-                const Icon = cfg.icon;
-                return (
-                  <div key={entry.id} className="group relative flex gap-4">
-                    {/* Dot */}
-                    <div
-                      className={`border-background z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${
-                        entry.severity === 'success'
-                          ? 'bg-emerald-500/15'
-                          : entry.severity === 'warning'
-                            ? 'bg-amber-500/15'
-                            : 'bg-muted'
-                      }`}
-                    >
-                      <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
-                    </div>
-
-                    {/* Content */}
-                    <div className={`flex-1 pb-6 ${i === filtered.length - 1 ? 'pb-0' : ''}`}>
-                      <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className="font-mono text-[9px]">
-                          {cfg.label}
-                        </Badge>
-                        <span className="text-muted-foreground text-[10px]">
-                          {new Date(entry.ts).toLocaleString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        <span className="text-muted-foreground flex items-center gap-1 text-[10px]">
-                          <User className="h-2.5 w-2.5" />
-                          {entry.actor}
-                        </span>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-muted-foreground text-sm">Chargement...</div>
+                </div>
+              ) : (
+                filtered.map((entry, i) => {
+                  const cfg = ACTION_CONFIG[entry.action];
+                  const Icon = cfg.icon;
+                  return (
+                    <div key={entry.id} className="group relative flex gap-4">
+                      {/* Dot */}
+                      <div
+                        className={`border-background z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${
+                          entry.severity === 'success'
+                            ? 'bg-emerald-500/15'
+                            : entry.severity === 'warning'
+                              ? 'bg-amber-500/15'
+                              : 'bg-muted'
+                        }`}
+                      >
+                        <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
                       </div>
-                      <p className="text-foreground text-xs leading-snug">{entry.description}</p>
+
+                      {/* Content */}
+                      <div className={`flex-1 pb-6 ${i === filtered.length - 1 ? 'pb-0' : ''}`}>
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="font-mono text-[9px]">
+                            {cfg.label}
+                          </Badge>
+                          <span className="text-muted-foreground text-[10px]">
+                            {new Date(entry.ts).toLocaleString('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          <span className="text-muted-foreground flex items-center gap-1 text-[10px]">
+                            <User className="h-2.5 w-2.5" />
+                            {entry.actor}
+                          </span>
+                        </div>
+                        <p className="text-foreground text-xs leading-snug">{entry.description}</p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </CardContent>

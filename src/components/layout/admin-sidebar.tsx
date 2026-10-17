@@ -50,6 +50,7 @@ const ADMIN_NAV = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { open } = useSidebar();
+  const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
   return (
     <Sidebar>
@@ -81,6 +82,10 @@ export function AdminSidebar() {
         </div>
         <SidebarMenu>
           {ADMIN_NAV.map((item) => {
+            // Skip desktop downloads in Tauri (desktop) mode
+            if (item.href === '/admin/desktop-downloads' && isTauri) {
+              return null;
+            }
             const active =
               pathname === item.href ||
               (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
