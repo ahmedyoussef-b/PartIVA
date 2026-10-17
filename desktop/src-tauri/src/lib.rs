@@ -1,4 +1,4 @@
-﻿use sqlx::SqlitePool;
+use sqlx::SqlitePool;
 use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::CommandEvent;
@@ -39,7 +39,7 @@ pub fn run() {
       let app_handle = app.handle().clone();
       let _ = tauri::async_runtime::spawn(async move {
         if let Err(e) = start_server(&app_handle).await {
-          eprintln!("Failed to start server: {}", e);
+          eprintln!("[PartIVA] ÉCHEC CRITIQUE démarrage serveur: {}", e);
         }
       });
 
@@ -67,13 +67,19 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
 
   let sidecar = app.shell()
     .sidecar("node")
-    .map_err(|e| format!("sidecar error: {e}"))?
+    .map_err(|e| {
+      eprintln!("[PartIVA] Erreur configuration sidecar node: {e}");
+      format!("sidecar error: {e}")
+    })?
     .env("PORT", "0")
     .env("HOSTNAME", "127.0.0.1")
     .args([server_js_path_str.as_ref()]);
 
   let (mut rx, _child) = sidecar.spawn()
-    .map_err(|e| format!("spawn error: {e}"))?;
+    .map_err(|e| {
+      eprintln!("[PartIVA] Erreur spawn sidecar node: {e}");
+      format!("spawn error: {e}")
+    })?;
 
   // Read stdout to extract the port
   let mut port: Option<u16> = None;
@@ -87,7 +93,10 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
     }
   }
 
-  let port = port.ok_or_else(|| "Port not communicated".to_string())?;
+  let port = port.ok_or_else(|| {
+    eprintln!("[PartIVA] Erreur: Port non communiqué par le sidecar Node");
+    "Port not communicated".to_string()
+  })?;
 
   eprintln!("[PartIVA] Port extrait: {}", port);
 

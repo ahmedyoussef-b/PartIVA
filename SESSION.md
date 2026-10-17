@@ -221,4 +221,48 @@ Avec :
 - **Test bout-en-bout GUI** : Lancement de `partiva-desktop.exe` pour vérifier la bascule splash -> `/admin/dashboard` (1280x800).
 - **E9-R3.a — Migration lot 1** : Migration des pages `/admin/dashboard`, `/admin/audit`, `/admin/materiaux` vers `data-client.ts`.
 
+---
+
+## Session E9-R2-quinquies-quater — Résolution splash.html inline + validation binaire
+
+**Date :** 2026-10-17  
+**Type :** Exécution (correctif ciblé)  
+**Statut :** ✅ Validé
+
+### 1. Cause racine identifiée
+
+Suite à la suppression de `frontendDist` dans `tauri.conf.json` en E9-R2-quinquies-ter, Tauri cherchait le fichier relatif `splash.html` dans les assets packagés et échouait avec une boîte de dialogue d'erreur : `asset not found: splash.html`.
+
+### 2. Correctifs appliqués
+
+1. **Splash window en URL inline data:text/html (Option A Superviseur)** :
+   - Remplacement de `"url": "splash.html"` par une URL inline HTML/CSS dans `desktop/src-tauri/tauri.conf.json`.
+   - Ajout de `data:` dans la directive `default-src` de la politique CSP (`desktop/src-tauri/tauri.conf.json`).
+   - Supprime toute dépendance à un fichier externe ou à `frontendDist`.
+2. **Vérification script `build:desktop`** :
+   - Confirmé présent dans `desktop/package.json` (`node scripts/build-server.cjs && cd src-tauri && cargo tauri build`).
+3. **Logs Rust enrichis dans `lib.rs`** :
+   - Ajout de préfixes et de logs détaillés `[PartIVA]` pour la configuration sidecar, le spawn, la réception du port et la capture des erreurs critiques.
+
+### 3. Validation qualité
+
+- **Rust tests** : 22 tests passés avec succès (0 échec).
+- **ESLint** : 0 erreur, 0 warning (`eslint .`).
+- **TypeScript** : 0 erreur (`node scripts/typecheck.mjs`).
+- **Prettier** : 100% conforme (`prettier --check .`).
+- **Build desktop complet** :
+  - `build:server` : Next.js 16.4.0 standalone build réussi (45 pages), hook port dynamique injecté.
+  - `cargo tauri build` : Compilation release en 3m 17s + installateur NSIS généré.
+
+### 4. Artefacts produits
+
+- `desktop/src-tauri/target/release/partiva-desktop.exe` (16,58 MB) — binaire autonome avec splash inline et sidecar.
+- `desktop/src-tauri/target/release/bundle/nsis/PartIVA Desktop_0.1.0_x64-setup.exe` (33,34 MB).
+
+### 5. Prochaine étape
+
+- **Test bout-en-bout GUI (Coordinateur)** : Lancement de `partiva-desktop.exe` depuis PowerShell pour observer les logs `[PartIVA]` et l'affichage du dashboard admin `/admin/dashboard`.
+- **E9-R3.a — Migration lot 1** : Migration des 3 premières pages vers `dataClient`.
+
+
 
