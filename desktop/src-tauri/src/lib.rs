@@ -57,7 +57,10 @@ pub fn run() {
     get_dashboard,
     get_audit_logs,
     get_materials,
-    get_material_by_slug
+    get_material_by_slug,
+    get_demandes_file,
+    get_reverse_cao,
+    get_plastiques
   ])
     .run(tauri::generate_context!())
     .expect("error while building tauri application");
@@ -309,6 +312,24 @@ async fn get_materials() -> Result<Vec<serde_json::Value>, String> {
 #[tauri::command]
 async fn get_material_by_slug(slug: String) -> Result<Option<serde_json::Value>, String> {
   Ok(None)
+}
+
+#[tauri::command]
+async fn get_demandes_file() -> Result<serde_json::Value, String> {
+  // Mock E9-R3.b — bridge SQLite réel en E9-R4
+  Ok(serde_json::json!([]))
+}
+
+#[tauri::command]
+async fn get_reverse_cao() -> Result<serde_json::Value, String> {
+  // Mock E9-R3.b — bridge SQLite réel en E9-R4
+  Ok(serde_json::json!([]))
+}
+
+#[tauri::command]
+async fn get_plastiques() -> Result<serde_json::Value, String> {
+  // Mock E9-R3.b — bridge SQLite réel en E9-R4
+  Ok(serde_json::json!([]))
 }
 
 #[cfg(test)]
