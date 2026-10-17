@@ -24,27 +24,32 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    const { data, error: signInError } = await signIn.email({
-      email,
-      password,
-    });
-
-    if (signInError) {
-      setError(signInError.message ?? 'Identifiants invalides');
-      setLoading(false);
-      return;
-    }
-
-    const role = (data?.user as { role?: string } | undefined)?.role;
-    toast.success('Connexion réussie');
-    
-    // E9-R2-septies — navigation robuste compatible WebView Tauri
-    const targetPage = role === 'ADMIN' ? '/admin/dashboard' : '/client/dashboard/creer-piece';
     try {
-      window.location.href = targetPage;
-    } catch (navError) {
-      // Fallback router.push pour web
-      router.push(targetPage);
+      const { data, error: signInError } = await signIn.email({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message ?? 'Identifiants invalides');
+        setLoading(false);
+        return;
+      }
+
+      const role = (data?.user as { role?: string } | undefined)?.role;
+      toast.success('Connexion réussie');
+
+      // E9-R2-septies — navigation robuste compatible WebView Tauri
+      const targetPage = role === 'USER' ? '/client/dashboard/creer-piece' : '/admin/dashboard';
+      try {
+        window.location.href = targetPage;
+      } catch {
+        router.push(targetPage);
+      }
+    } catch (err) {
+      console.error('[Login] Erreur lors de la connexion:', err);
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+      setLoading(false);
     }
   };
 

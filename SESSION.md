@@ -315,7 +315,62 @@ Après installation via l'installateur NSIS, deux problèmes bloquaient le déma
 
 ### 4. Prochaine étape
 
+- **E9-R2-septies** : Redirection post-login + UI/UX desktop + CSP.
+
+---
+
+## Session E9-R2-septies — Redirection post-login + UI/UX desktop + CSP (2026-10-17)
+
+**Date :** 2026-10-17  
+**Type :** Exécution (correctifs post-login + thème UI/UX)  
+**Statut :** ✅ Validé
+
+### 1. Diagnostics et causes racines
+
+1. **Bouton bloqué sur « Connexion en cours... »** :
+   - Côté client, `authClient` dans `src/lib/auth-client.ts` utilisait `baseURL: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'`. Dans la WebView desktop (exécutée sur `http://127.0.0.1:<port>`), la requête d'authentification ciblait `http://localhost:3000` (inaccessible), provoquant un rejet de promesse.
+   - L'absence de bloc `try / catch` dans `LoginPage.handleSubmit` laissait `loading: true` indéfiniment lors d'un échec réseau.
+   - Côté serveur, `.env` dans `desktop/server/` contenait `BETTER_AUTH_URL=https://part-iva.vercel.app`, forçant BetterAuth à traiter `127.0.0.1:<port>` comme origine non autorisée et à émettre des cookies avec le préfixe `__Secure-` et l'attribut `Secure: true`. Le navigateur/WebView en HTTP rejetait ces cookies, empêchant l'établissement de la session.
+
+2. **Thème noir (UI/UX sombre par défaut)** :
+   - `src/app/providers.tsx` configurait `defaultTheme="dark"` sur `ThemeProvider`. Dans un profil WebView2 vierge (sans clé `localStorage` pré-existante), l'application appliquait immédiatement `class="dark"` sur `<html>`.
+   - L'absence de composant `ThemeToggle` dans le layout d'authentification (`src/app/(auth)/layout.tsx`) empêchait tout basculement rapide par l'utilisateur.
+
+3. **Accès DevTools (F12)** :
+   - `desktop/src-tauri/Cargo.toml` ne déclarait pas la feature `devtools` sur le crate `tauri`, ce qui désactivait les outils de développement dans les builds de production.
+
+### 2. Correctifs appliqués
+
+1. **BetterAuth Client (`src/lib/auth-client.ts`)** :
+   - Résolution dynamique de `baseURL` : `typeof window !== 'undefined' ? window.location.origin : ...`. Permet d'adresser automatiquement l'origine courante (serveur local sur port dynamique ou production web).
+2. **BetterAuth Serveur (`src/lib/auth.ts`)** :
+   - Déclaration de `trustedOrigins` : support de `http://127.0.0.1:*`, `http://localhost:*`, `tauri://localhost`, et `https://part-iva.vercel.app`.
+   - Configuration de `advanced.useSecureCookies` : désactivé sur HTTP local pour permettre le stockage pérenne du cookie de session sans préfixe `__Secure-`.
+3. **Formulaires d'authentification (`src/app/(auth)/login/page.tsx` et `register/page.tsx`)** :
+   - Encadrement systématique des appels d'authentification dans un bloc `try / catch / finally` garantissant la réinitialisation de l'état `loading`.
+   - Redirection robuste compatible WebView (`window.location.href = targetPage` avec repli `router.push`).
+4. **Thème et UI/UX (`src/app/providers.tsx` et `src/app/(auth)/layout.tsx`)** :
+   - `defaultTheme` passé à `"light"` dans `src/app/providers.tsx`.
+   - Ajout du composant `ThemeToggle` en en-tête d'authentification pour permettre l'alternance Clair / Sombre / Système.
+5. **Script de build serveur (`desktop/scripts/build-server.cjs`)** :
+   - Neutralisation automatique de `BETTER_AUTH_URL` lors de la copie du fichier `.env` vers `desktop/server/.env`.
+   - Hook de démarrage de `server.js` configurant dynamiquement `process.env.BETTER_AUTH_URL` et `process.env.NEXT_PUBLIC_APP_URL` sur `http://127.0.0.1:<port>`.
+   - Journalisation explicite des copies d'assets statiques (`.next/static` et `public/`).
+6. **Configuration Tauri (`desktop/src-tauri/Cargo.toml`)** :
+   - Ajout de la feature `devtools` sur le package `tauri` pour activer les DevTools F12 en release.
+
+### 3. Validations et baseline
+
+- **Prettier** : `npm run format:check` → All matched files use Prettier code style!
+- **ESLint** : `npm run lint` → 0 erreur, 0 warning.
+- **Typecheck** : `npm run typecheck` → 0 erreur.
+- **Tests Rust** : `cargo test` → 22 tests passés avec succès (17 unitaires + 5 intégration), 0 échec.
+- **Build Desktop complet** : `npm run build:desktop` → `PartIVA Desktop_0.1.0_x64-setup.exe` généré avec succès (35 141 157 octets).
+
+### 4. Prochaine étape
+
 - **E9-R3.a — Migration lot 1** : Migration des 3 premières pages (`/admin/dashboard`, `/admin/audit`, `/admin/materiaux`) vers `dataClient`.
+
 
 
 

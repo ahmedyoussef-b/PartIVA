@@ -51,19 +51,28 @@ console.log('Copying static assets...');
 const staticSrc = path.join(root, '.next', 'static');
 const staticDest = path.join(serverDir, '.next', 'static');
 copyDir(staticSrc, staticDest);
+console.log('Copié .next/static →', staticDest);
 
 const publicSrc = path.join(root, 'public');
 const publicDest = path.join(serverDir, 'public');
 if (fs.existsSync(publicSrc)) {
   copyDir(publicSrc, publicDest);
+  console.log('Copié public/ →', publicDest);
 }
 
-// Step 3b: Copy .env if available
+// Step 3b: Copy and tailor .env for local sidecar
 const envSrc = path.join(root, '.env');
 const envDest = path.join(serverDir, '.env');
-if (fs.existsSync(envSrc) && !fs.existsSync(envDest)) {
-  console.log('Copying .env to server directory...');
-  fs.copyFileSync(envSrc, envDest);
+if (fs.existsSync(envSrc)) {
+  console.log('Copying and tailoring .env for server directory...');
+  let envContent = fs.readFileSync(envSrc, 'utf8');
+  // Neutralize static BETTER_AUTH_URL so sidecar uses dynamic loopback origin and port
+  envContent = envContent.replace(
+    /^BETTER_AUTH_URL=.*$/gm,
+    '# BETTER_AUTH_URL (set dynamically by PartIVA hook)',
+  );
+  fs.writeFileSync(envDest, envContent, 'utf8');
+  console.log('Tailored .env written to', envDest);
 }
 
 // Step 4: Patch server.js for dynamic port allocation (D-E9-R1-6) and 127.0.0.1 bind (D-E9-R1-10)
@@ -84,6 +93,9 @@ http.Server.prototype.listen = function(...args) {
   this.once('listening', () => {
     const addr = this.address();
     const port = typeof addr === 'object' && addr ? addr.port : addr;
+    process.env.PORT = String(port);
+    process.env.BETTER_AUTH_URL = \`http://127.0.0.1:\${port}\`;
+    process.env.NEXT_PUBLIC_APP_URL = \`http://127.0.0.1:\${port}\`;
     process.stdout.write(\`PARTIVA_SERVER_PORT=\${port}\\n\`);
   });
   return origListen.apply(this, args);

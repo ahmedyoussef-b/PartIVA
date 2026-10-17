@@ -26,20 +26,32 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
 
-    const { error: signUpError } = await signUp.email({
-      email,
-      password,
-      name: `${company} - ${contactName}`,
-    });
+    try {
+      const { error: signUpError } = await signUp.email({
+        email,
+        password,
+        name: `${company} - ${contactName}`,
+      });
 
-    if (signUpError) {
-      setError(signUpError.message ?? 'Inscription impossible');
+      if (signUpError) {
+        setError(signUpError.message ?? 'Inscription impossible');
+        setLoading(false);
+        return;
+      }
+
+      toast.success('Bienvenue ! Votre compte client a été créé.');
+      const targetUrl = '/client/dashboard/creer-piece';
+      try {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = targetUrl;
+      } catch {
+        router.push(targetUrl);
+      }
+    } catch (err) {
+      console.error('[Register] Erreur lors de l’inscription:', err);
+      setError(err instanceof Error ? err.message : 'Erreur lors de l’inscription');
       setLoading(false);
-      return;
     }
-
-    toast.success('Bienvenue ! Votre compte client a été créé.');
-    router.push('/client/dashboard/creer-piece');
   };
 
   return (
