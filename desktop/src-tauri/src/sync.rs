@@ -240,6 +240,7 @@ async fn upsert_table(
         "part_version" => upsert_part_versions(pool, rows).await,
         "part_specification" => upsert_part_specifications(pool, rows).await,
         "part_category" => upsert_part_categories(pool, rows).await,
+        "material" => upsert_materials(pool, rows).await,
         other => Err(SyncError::Payload(format!("table inconnue : {other}"))),
     }
 }
@@ -418,6 +419,46 @@ async fn upsert_part_categories(pool: &SqlitePool, rows: &[serde_json::Value]) -
         .bind(s(r, "slug"))
         .bind(s(r, "description"))
         .bind(s(r, "parentId"))
+        .bind(s(r, "createdAt"))
+        .bind(s(r, "updatedAt"))
+        .execute(pool)
+        .await?;
+        count += 1;
+    }
+    Ok(count)
+}
+
+async fn upsert_materials(
+    pool: &SqlitePool,
+    rows: &[serde_json::Value],
+) -> Result<usize, SyncError> {
+    let mut count = 0;
+    for r in rows {
+        let advantages = serde_json::to_string(&r["advantages"]).unwrap_or_else(|_| "[]".to_string());
+        let common_applications =
+            serde_json::to_string(&r["commonApplications"]).unwrap_or_else(|_| "[]".to_string());
+        sqlx::query(
+            "INSERT OR REPLACE INTO material (
+                id, slug, code, name, category, density, max_temp, tensile_strength,
+                hardness, friction_coefficient, resistance_chemical, food_grade,
+                description, advantages, common_applications, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(s(r, "id"))
+        .bind(s(r, "slug"))
+        .bind(s(r, "code"))
+        .bind(s(r, "name"))
+        .bind(s(r, "category"))
+        .bind(f(r, "density"))
+        .bind(i(r, "maxTemp"))
+        .bind(i(r, "tensileStrength"))
+        .bind(s(r, "hardness"))
+        .bind(f(r, "frictionCoefficient"))
+        .bind(s(r, "resistanceChemical"))
+        .bind(b(r, "foodGrade"))
+        .bind(s(r, "description"))
+        .bind(advantages)
+        .bind(common_applications)
         .bind(s(r, "createdAt"))
         .bind(s(r, "updatedAt"))
         .execute(pool)

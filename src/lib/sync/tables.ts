@@ -22,6 +22,7 @@ export const SYNC_TABLES: readonly SyncTableDef[] = [
   { name: 'part_version', model: 'PartVersion', incremental: false, pageSize: 500 },
   { name: 'part_specification', model: 'PartSpecification', incremental: true, pageSize: 500 },
   { name: 'part_category', model: 'PartCategory', incremental: true, pageSize: 500 },
+  { name: 'material', model: 'Material', incremental: true, pageSize: 500 },
 ];
 
 export function getSyncTable(name: string): SyncTableDef | undefined {

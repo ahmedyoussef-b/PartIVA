@@ -5,6 +5,7 @@ use tauri_plugin_shell::process::CommandEvent;
 
 pub mod auth;
 pub mod db;
+pub mod materials;
 pub mod parts;
 pub mod sync;
 
@@ -305,13 +306,22 @@ async fn get_audit_logs() -> Result<Vec<serde_json::Value>, String> {
 }
 
 #[tauri::command]
-async fn get_materials() -> Result<Vec<serde_json::Value>, String> {
-  Ok(vec![])
+async fn get_materials(
+  state: tauri::State<'_, AppState>,
+) -> Result<Vec<materials::MaterialRow>, String> {
+  materials::get_materials(&state.pool)
+    .await
+    .map_err(|e| format!("DB error: {}", e))
 }
 
 #[tauri::command]
-async fn get_material_by_slug(slug: String) -> Result<Option<serde_json::Value>, String> {
-  Ok(None)
+async fn get_material_by_slug(
+  state: tauri::State<'_, AppState>,
+  slug: String,
+) -> Result<Option<materials::MaterialRow>, String> {
+  materials::get_material_by_slug(&state.pool, &slug)
+    .await
+    .map_err(|e| format!("DB error: {}", e))
 }
 
 #[tauri::command]
@@ -327,9 +337,12 @@ async fn get_reverse_cao() -> Result<serde_json::Value, String> {
 }
 
 #[tauri::command]
-async fn get_plastiques() -> Result<serde_json::Value, String> {
-  // Mock E9-R3.b — bridge SQLite réel en E9-R4
-  Ok(serde_json::json!([]))
+async fn get_plastiques(
+  state: tauri::State<'_, AppState>,
+) -> Result<Vec<materials::MaterialRow>, String> {
+  materials::get_plastiques(&state.pool)
+    .await
+    .map_err(|e| format!("DB error: {}", e))
 }
 
 #[cfg(test)]

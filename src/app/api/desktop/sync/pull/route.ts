@@ -188,6 +188,32 @@ async function fetchTable(
           updatedAt: true,
         },
       });
+    case 'material':
+      return prisma.material.findMany({
+        where: updatedFilter,
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          slug: true,
+          code: true,
+          name: true,
+          category: true,
+          density: true,
+          maxTemp: true,
+          tensileStrength: true,
+          hardness: true,
+          frictionCoefficient: true,
+          resistanceChemical: true,
+          foodGrade: true,
+          description: true,
+          advantages: true,
+          commonApplications: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
     default:
       return [];
   }
