@@ -84,6 +84,16 @@
 
 ---
 
+## Dettes résiduelles E9 (Refonte hybride — post E9-R3.a)
+
+| ID | Description | Sévérité | Phase cible | Bloquant | Décision |
+|---|---|---|---|---|---|
+| `D-E9-R3a-1` | **Flash de navigation en mode hybride** — Un flash visuel (page blanche/composant fantôme) apparaît lors des transitions entre pages en mode desktop Tauri. Cause non identifiée dans `admin/layout.tsx` (absence de `loading.tsx` ou de `<Suspense>` avec fallback blanc). | Faible | Session diagnostic dédiée | Non | Piste : investiguer via DevTools F12 (à réactiver en build dev Tauri) ou ajouter un `<Suspense fallback={null}>` explicite dans le layout. Session diagnostic dédiée recommandée. |
+| `D-E9-R3a-2` | **ESLint non exécuté en clôture de session** — Le rapport E9-R3.a n'a pas exécuté `npm run lint` explicitement (le build Next.js a validé partiellement). À réintégrer systématiquement dans les critères de succès des prochains ordres. | Très faible | E9-R3.b | Non | Action : ajouter `npm run lint` à la liste des commandes obligatoires dans l'ordre E9-R3.b. |
+| `D-E9-R3a-3` | **Bridge SQLite mocké** — Les commandes Tauri `get_dashboard`, `get_audit_logs`, `get_materials`, `get_material_by_slug` retournent des données vides/mockées. Non bloquant pour E9-R3.a, mais bloquant pour la validation fonctionnelle complète. | Faible (prévu) | E9-R4 | Non | Action : implémentation complète prévue en E9-R4. |
+
+---
+
 ## Dettes résolues (historique)
 
 | ID | Description | Résolu en |
