@@ -268,5 +268,55 @@ Suite à la suppression de `frontendDist` dans `tauri.conf.json` en E9-R2-quinqu
 - **Test bout-en-bout GUI (Coordinateur)** : Lancement de `partiva-desktop.exe` depuis PowerShell pour observer les logs `[PartIVA]` et l'affichage plein écran maximisé du dashboard admin `/admin/dashboard`.
 - **E9-R3.a — Migration lot 1** : Migration des 3 premières pages vers `dataClient`.
 
+---
+
+## Session E9-R2-sexies — Démarrage application installée (NSIS) + correctifs runtime Node/Tauri
+
+**Date :** 2026-10-17  
+**Type :** Exécution (déblocage démarrage après installation)  
+**Statut :** ✅ Validé en conditions réelles d'installation
+
+### 1. Causes racines identifiées
+
+Après installation via l'installateur NSIS, deux problèmes bloquaient le démarrage de l'application :
+
+1. **Panic Tauri au démarrage (`webview-data-url`)** : L'URL inline `data:text/html,...` du splash requiert impérativement la feature Tauri `webview-data-url` dans `desktop/src-tauri/Cargo.toml`. Sans cette feature, l'application paniquait immédiatement : `invalid window url: data URLs are not supported without the webview-data-url feature`.
+2. **Chemin ressource bundle NSIS (`_up_\server`)** : L'installateur NSIS Tauri range les ressources déclarées avec `../server/**/*` sous `_up_\server\` (préservation du chemin relatif). `lib.rs` cherchait uniquement dans `server\server.js`, qui n'existait pas dans le répertoire installé.
+3. **Erreur Node.js `EISDIR: illegal operation on a directory, lstat 'C:'`** : Tauri/Rust résout les chemins Windows sous format UNC verbatim `\\?\C:\...`. Node.js 22 sous Windows échoue avec `EISDIR` lorsqu'un script lui est passé avec le préfixe `\\?\`.
+
+### 2. Correctifs appliqués
+
+1. **Activation de `webview-data-url`** (`desktop/src-tauri/Cargo.toml`) :
+   - `tauri = { version = "2.12.3", features = ["webview-data-url"] }`.
+2. **Résolution candidate des chemins serveur** (`desktop/src-tauri/src/lib.rs`) :
+   - Recherche prioritaire dans `_up_/server/server.js` puis `server/server.js`.
+3. **Suppression du préfixe UNC Windows (`strip_unc_prefix`)** :
+   - Fonction utilitaire `strip_unc_prefix` dans `lib.rs` supprimant `\\?\`.
+   - Exécution du sidecar avec `current_dir = clean_server_dir` et argument `"server.js"`.
+4. **Enrichissement diagnostics sidecar** :
+   - Capture et journalisation détaillée des événements `Stdout`, `Stderr`, `Error` et `Terminated`.
+5. **Inclusion des fichiers d'environnement** :
+   - `"resources": ["../server/**/*", "../server/.env*"]` dans `tauri.conf.json`.
+   - Copie automatique de `.env` dans `desktop/scripts/build-server.cjs`.
+
+### 3. Validation en conditions réelles
+
+- **Tests Rust** : 22 tests passés avec succès (17 unitaires + 5 intégration), 0 échec.
+- **Compilation release & bundle NSIS** : `cargo tauri build` terminé avec code 0.
+- **Installation réelle** : Exécution de `PartIVA Desktop_0.1.0_x64-setup.exe /S` mettant à jour `C:\Users\pc\AppData\Local\PartIVA Desktop\`.
+- **Exécution réelle de `partiva-desktop.exe` validée** :
+  - `server.js` trouvé sous `_up_\server\server.js`
+  - Sidecar Node lancé avec succès
+  - Port dynamique alloué (`PARTIVA_SERVER_PORT=53325`)
+  - Healthcheck OK sur `/api/health`
+  - Navigation OK vers `/admin/dashboard`
+  - Fenêtre principale maximisée et affichée sans état réduit
+  - Splash fermé
+
+### 4. Prochaine étape
+
+- **E9-R3.a — Migration lot 1** : Migration des 3 premières pages (`/admin/dashboard`, `/admin/audit`, `/admin/materiaux`) vers `dataClient`.
+
+
 
 

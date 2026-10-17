@@ -62,8 +62,33 @@ pub fn run() {
 async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
   let resource_dir = app.path().resource_dir()
     .map_err(|e| format!("Failed to get resource dir: {e}"))?;
-  let server_js_path = resource_dir.join("server").join("server.js");
-  let server_js_path_str = server_js_path.to_string_lossy();
+
+  // En bundle NSIS Windows, les ressources '.../server' sont sous '_up_/server'
+  // En mode développement ou autre packaging, elles peuvent être sous 'server'.
+  let candidate_paths = [
+    resource_dir.join("_up_").join("server").join("server.js"),
+    resource_dir.join("server").join("server.js"),
+  ];
+
+  let server_js_path = candidate_paths
+    .iter()
+    .find(|p| p.exists())
+    .cloned()
+    .ok_or_else(|| {
+      let msg = format!(
+        "[PartIVA] server.js introuvable dans {:?}",
+        candidate_paths
+      );
+      eprintln!("{msg}");
+      msg
+    })?;
+
+  let clean_server_js_path = strip_unc_prefix(&server_js_path);
+  let server_dir = clean_server_js_path.parent().unwrap_or(&resource_dir);
+  let clean_server_dir = strip_unc_prefix(server_dir);
+
+  eprintln!("[PartIVA] server.js trouvé à : {:?}", clean_server_js_path);
+  eprintln!("[PartIVA] Répertoire sidecar : {:?}", clean_server_dir);
 
   let sidecar = app.shell()
     .sidecar("node")
@@ -71,9 +96,10 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
       eprintln!("[PartIVA] Erreur configuration sidecar node: {e}");
       format!("sidecar error: {e}")
     })?
+    .current_dir(&clean_server_dir)
     .env("PORT", "0")
     .env("HOSTNAME", "127.0.0.1")
-    .args([server_js_path_str.as_ref()]);
+    .args(["server.js"]);
 
   let (mut rx, _child) = sidecar.spawn()
     .map_err(|e| {
@@ -84,12 +110,27 @@ async fn start_server(app: &tauri::AppHandle) -> Result<(), String> {
   // Read stdout to extract the port
   let mut port: Option<u16> = None;
   while let Some(event) = rx.recv().await {
-    if let CommandEvent::Stdout(line) = event {
-      let line = String::from_utf8_lossy(&line);
-      if let Some(p) = parse_port_line(&line) {
-        port = Some(p);
+    match event {
+      CommandEvent::Stdout(line) => {
+        let text = String::from_utf8_lossy(&line);
+        eprintln!("[PartIVA][Sidecar-out] {}", text.trim());
+        if let Some(p) = parse_port_line(&text) {
+          port = Some(p);
+          break;
+        }
+      }
+      CommandEvent::Stderr(line) => {
+        let text = String::from_utf8_lossy(&line);
+        eprintln!("[PartIVA][Sidecar-err] {}", text.trim());
+      }
+      CommandEvent::Error(err) => {
+        eprintln!("[PartIVA][Sidecar-error] {}", err);
+      }
+      CommandEvent::Terminated(status) => {
+        eprintln!("[PartIVA][Sidecar-terminated] code={:?}", status.code);
         break;
       }
+      _ => {}
     }
   }
 
@@ -150,6 +191,15 @@ fn parse_port_line(line: &str) -> Option<u16> {
     }
   }
   None
+}
+
+fn strip_unc_prefix(path: &std::path::Path) -> std::path::PathBuf {
+  let s = path.to_string_lossy();
+  if let Some(stripped) = s.strip_prefix(r"\\?\") {
+    std::path::PathBuf::from(stripped)
+  } else {
+    path.to_path_buf()
+  }
 }
 
 async fn wait_for_health(port: u16, timeout_secs: u64) -> Result<(), String> {

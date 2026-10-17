@@ -58,6 +58,14 @@ if (fs.existsSync(publicSrc)) {
   copyDir(publicSrc, publicDest);
 }
 
+// Step 3b: Copy .env if available
+const envSrc = path.join(root, '.env');
+const envDest = path.join(serverDir, '.env');
+if (fs.existsSync(envSrc) && !fs.existsSync(envDest)) {
+  console.log('Copying .env to server directory...');
+  fs.copyFileSync(envSrc, envDest);
+}
+
 // Step 4: Patch server.js for dynamic port allocation (D-E9-R1-6) and 127.0.0.1 bind (D-E9-R1-10)
 console.log('Patching server.js for dynamic port allocation...');
 const serverJsPath = path.join(serverDir, 'server.js');
