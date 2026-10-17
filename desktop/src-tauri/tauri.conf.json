@@ -33,8 +33,8 @@
         "visible": false
       }
     ],
-    "security": {
-      "csp": "default-src 'self' data: http://127.0.0.1:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://127.0.0.1:*; style-src 'self' 'unsafe-inline' http://127.0.0.1:*; img-src 'self' data: blob: http://127.0.0.1:* https://res.cloudinary.com;"
+"security": {
+      "csp": "default-src 'self' data: http://127.0.0.1:* https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://127.0.0.1:* https:; style-src 'self' 'unsafe-inline' http://127.0.0.1:* https:; img-src 'self' data: blob: http://127.0.0.1:* https:; font-src 'self' data: http://127.0.0.1:* https:; connect-src 'self' http://127.0.0.1:* https: wss:;"
     }
   },
     "bundle": {

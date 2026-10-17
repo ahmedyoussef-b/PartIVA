@@ -35,13 +35,16 @@ export default function LoginPage() {
       return;
     }
 
-    toast.success('Connexion réussie');
-
     const role = (data?.user as { role?: string } | undefined)?.role;
-    if (role === 'ADMIN') {
-      router.push('/admin/dashboard');
-    } else {
-      router.push('/client/dashboard/creer-piece');
+    toast.success('Connexion réussie');
+    
+    // E9-R2-septies — navigation robuste compatible WebView Tauri
+    const targetPage = role === 'ADMIN' ? '/admin/dashboard' : '/client/dashboard/creer-piece';
+    try {
+      window.location.href = targetPage;
+    } catch (navError) {
+      // Fallback router.push pour web
+      router.push(targetPage);
     }
   };
 
