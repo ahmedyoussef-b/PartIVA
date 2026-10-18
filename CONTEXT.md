@@ -32,3 +32,4 @@
 - **E9-R10** : Validation technique complète
 - **E10-R4a** : Requalification `R7-1`/`R7-1b` — 9/9 pages fonctionnelles (leçon : « petit fichier » ≠ « stub »)
 - **E11-R1** : Validation fonctionnelle Vercel 8/8 — `D-E9-R5-1` clôturée
+- **E12-R0** : Cadrage E12 — feature recherche avancée + `ROADMAP.md` E10/E11 à jour

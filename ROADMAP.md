@@ -640,6 +640,48 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 | **E9-R6** | Documentation finale, packaging NSIS & clôture | 🟢 À cadrer |
 
 ---
+## 🏗️ E10 — STABILISATION (✅ CLÔTURÉE)
+
+**Statut :** ✅ **Clôturée 2026-10-18** (commit `7b2869a`, tag `v0.4.0-e10`)
+
+**Objet :** purge des dettes E9 (9 dettes clôturées), stabilisation documentaire, alignement `CONTEXT.md`/`JOURNAL.md`/`DEBT.md`.
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E10-R0** | Cadrage E10 + restructuration `DEBT.md` | `23f9ffb` | ✅ |
+| **E10-R1** | Purge `D-E9-R3a-2` (ESLint) + `D-E9-R3a-3` (bridge mocké) | `3f17d98` + `b519b13` | ✅ |
+| **E10-R2a** | Refactorisation `DEBT.md` v2 | `841ada0` | ✅ |
+| **E10-R2b** | Purge `D-E9-R3a-1` (flash navigation) | `f69d84d` + `a705efd` | ✅ |
+| **E10-R3** | Clôture `D-E9-R4b1-1` (obsolète) + `D-E9-R4b1-2` (requalifiée) | `9a9a43c` | ✅ |
+| **E10-R4a** | Clôture `D-E9-R7-1`/`R7-1b` (obsolètes) | `c7e4fac` | ✅ |
+| **E10-R5** | Clôture E10 — `CONTEXT.md` réécrit + `JOURNAL.md` complété | `7b2869a` | ✅ |
+
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+**Dettes E10 :** 9 clôturées, 1 créée (`D-E10-R2b-1`), 1 reportée (`D-E9-R5-1`).
+
+---
+
+## 🏗️ E11 — VALIDATION FONCTIONNELLE VERCEL (✅ CLÔTURÉE)
+
+**Statut :** ✅ **Clôturée 2026-10-18** (commit `4c7350e`, tag `v0.5.0-e11`)
+
+**Objet :** validation fonctionnelle des 6 pages déployées sur Vercel (4 desktop + 2 auth), via Playwright (8/8 passed).
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E11-R0** | Cadrage E11 (décisions D-E11-0 à D-E11-3) | — | ✅ |
+| **E11-R1** | Validation Vercel 8/8 + clôture E11 | `c8e40da` + `4c7350e` | ✅ |
+
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes · E2E 284/0/4 + **8/8 Vercel** · Prisma 15 migrations.
+
+**Dettes E11 :** 1 clôturée (`D-E9-R5-1`), 1 active (`D-E10-R2b-1`, post-E11).
+
+**Production live :** `https://part-iva.vercel.app`
+
+---
+
+## 🏗️ E8 — FINALISATION, QA & DÉPLOIEMENT
 
 ## 🏗️ E8 — FINALISATION, QA & DÉPLOIEMENT
 **Objectif** : rendre PartIVA production-ready.

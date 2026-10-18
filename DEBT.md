@@ -15,7 +15,7 @@ Aucune.
 
 Aucune.
 
-### Faible (1)
+### Faible (2)
 
 #### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
 
@@ -28,7 +28,18 @@ Aucune.
 - **Trade-off :** Flash navigation (R3a-1) vs perte d'état (R2b-1) — choix assumé
 - **Effort estimé :** Faible (état via `sessionStorage` ou query params)
 - **Bloquant :** Non
-- **Prochaine session :** À planifier (E10-R4 ou post-E10)
+- **Prochaine session :** À planifier (post-E12)
+
+#### `D-E12-NEWLINE` — `CONTEXT.md` sans newline finale
+
+- **Statut :** Active
+- **Priorité :** Très faible
+- **Session origine :** E12-R0
+- **Cause :** Fichier sans newline finale (POSIX recommande)
+- **Périmètre :** `CONTEXT.md`
+- **Effort estimé :** Très faible (1 édition)
+- **Bloquant :** Non
+- **Prochaine session :** E13
 
 ### Reportée (0)
 

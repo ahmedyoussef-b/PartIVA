@@ -21,3 +21,4 @@
 | 2026-10-18 | E10-R4a | Clôturer R7-1/R7-1b (obsolètes) + aligner CONTEXT.md | `c7e4fac` | ✅ |
 | 2026-10-18 | E10-R5 | Clôture E10 — CONTEXT.md réécrit + JOURNAL.md complété + tag `v0.4.0-e10` | `[à venir]` | ✅ |
 | 2026-10-18 | E11-R1 | Validation fonctionnelle Vercel — 8/8 tests Playwright passés | `c8e40da` | ✅ |
+| 2026-10-18 | E12-R0 | Cadrage E12 — feature recherche avancée + `ROADMAP.md` E10/E11 à jour | `[à venir]` | ✅ |
