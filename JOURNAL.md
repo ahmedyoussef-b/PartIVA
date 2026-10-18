@@ -12,3 +12,6 @@
 | 2026-10-18 | E9-R10 | Validation technique finale | `7560548` | ✅ |
 | 2026-10-18 | E9-R10b | Chore : ignorer artefacts build desktop | `b28e288` | ✅ |
 | 2026-10-18 | E9-R11 | Clôture E9 (README + DEBT) | `9fa2f08` | ✅ |
+| 2026-10-18 | E9-R11-ter | Correction CONTEXT.md (11 invoke, D-E9-R7-1b) | `080ecbf` | ✅ |
+| 2026-10-18 | E10-R0 | Cadrage E10 + restructurer DEBT.md | `23f9ffb` | ✅ |
+| 2026-10-18 | E10-R1 | Purge D-E9-R3a-2 (ESLint) + D-E9-R3a-3 (bridge mocké) | `3f17d98` | ✅ |

@@ -12,8 +12,6 @@
 
 ### Faible
 - `D-E9-R3a-1` (flash navigation) — Amélioration UX
-- `D-E9-R3a-2` (ESLint non exécuté) — Maintenance
-- `D-E9-R3a-3` (bridge SQLite mocké) — Technique
 - `D-E9-R3b-3` (non-migration pages) — Refactorisation
 - `D-E9-R3b-bis-1` (validation GUI reportée) — Fonctionnalité
 - `D-E9-R4b1-1` (client non miroité) — Requalifiée, non bloquante
@@ -23,6 +21,8 @@
   - ⤷ Sous-dette : `D-E9-R7-1b` (implémentation des 9 stubs)
 
 ## Clôturées
+- `D-E9-R3a-2` (ESLint non exécuté) — ✅ Clôturée E10-R1 (setState-in-effect, apostrophes, window.location corrigés)
+- `D-E9-R3a-3` (bridge SQLite mocké) — ✅ Clôturée E10-R1 (aucun mock dans le code, bridge utilise invoke réel + fetch)
 - `D-E9-R6-2` (sidecar non supporté) — ✅ Clôturée E9-R7 (abandon sidecar)
 - `D-E9-R7-2` (4 pages desktop non converties) — ✅ Résolue E9-R8
 

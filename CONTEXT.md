@@ -1,12 +1,12 @@
 # CONTEXT — PartIVA
 
 **Dernière mise à jour :** 2026-10-18
-**Commit HEAD :** `7560548` (clôture E9-R10)
-**Phase en cours :** E9 — **TERMINÉE**
+**Commit HEAD :** `3f17d98` (E10-R1)
+**Phase en cours :** E10 — **En cours**
 **Tag :** `v0.3.0-e9`
 
 ## État
-- Le repo est sain (HEAD = `7560548`).
+- Le repo est sain (HEAD = `3f17d98`).
 - `next.config.mjs` : `output: 'export'` ✅
 - `tauri.conf.json` : sidecar retiré, `frontendDist: "../../out"`, `url: "index.html"` ✅
 - Sidecar supprimé (`desktop/server/`, `build-server.cjs`, `node.exe`) ✅
@@ -20,8 +20,6 @@
 
 ## Dettes actives
 - `D-E9-R3a-1` (flash navigation) — Faible
-- `D-E9-R3a-2` (ESLint non exécuté) — Très faible
-- `D-E9-R3a-3` (bridge SQLite mocké) — Faible
 - `D-E9-R3b-3` (non-migration pages) — Faible
 - `D-E9-R3b-bis-1` (validation GUI reportée) — Faible
 - `D-E9-R4b1-1` (client non miroité) — **Requalifiée** (non bloquante)
@@ -30,7 +28,7 @@
 - `D-E9-R7-1` (11 pages web-only existantes) — **Requalifiée** : 2 fonctionnelles (desktop-downloads, parametres) + 9 stubs (<1000 o)
 - `D-E9-R7-1b` (9 pages web-only stubs) — **Moyenne** : machines, reverse-engineering, sync, usinage, demandes/[id], pieces, reverse-engineering/[id], demandes/[id]/recherche, recherche — 251–973 o, à implémenter fonctionnellement
 
-**Dettes clôturées :** voir `DEBT.md` section « Clôturées » (`D-E9-R6-2`, `D-E9-R7-2`).
+**Dettes clôturées :** voir `DEBT.md` section « Clôturées » (`D-E9-R3a-2`, `D-E9-R3a-3`, `D-E9-R6-2`, `D-E9-R7-2`).
 
 ## Décisions récentes
 - `D-E9-R7-1` : Refonte vers `output: 'export'` (abandon sidecar)
