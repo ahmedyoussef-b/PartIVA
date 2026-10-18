@@ -13,7 +13,7 @@
 - `src/app/api/` déplacé en `api.disabled/` ✅
 - Build export web : ✅ **passe** (22 pages statiques)
 - Build desktop Tauri : ✅ **passe** (installeur NSIS 4.99 MiB)
-- `data-client.ts` : ✅ existe, 7 fonctions `invoke` + fallback `fetch`
+- `data-client.ts` : ✅ existe, 11 fonctions `invoke` + fallback `fetch`
 - 4 pages desktop : ✅ **toutes conformes** (dashboard, materiaux, audit, demandes)
 - `mapRequestToUi` : ✅ corrigé (tolérant Date/string)
 - **E9-R10 : Pont Tauri ↔ Rust ↔ SQLite validé** — `invoke` retournent `[]` (base vide), pas d'erreur CSP, dashboard affiché ✅
@@ -27,8 +27,9 @@
 - `D-E9-R4b1-1` (client non miroité) — **Requalifiée** (non bloquante)
 - `D-E9-R4b1-2` (photos TEXT JSON) — **Requalifiée** (non bloquante)
 - `D-E9-R5-1` (validation fonctionnelle reportée) — **Reportée** (dépend Vercel + token)
-- `D-E9-R6-2` (sidecar non supporté) — Haute (résolue : abandon sidecar)
-- `D-E9-R7-1` (8 pages web-only) — Faible (à créer)
+- `D-E9-R6-2` (sidecar non supporté) — **Clôturée** (abandon sidecar, E9-R7)
+- `D-E9-R7-1` (15 pages web-only existantes) — **Requalifiée** : 9 stubs (<1000 o) + 6 fonctionnelles (≥1000 o)
+- `D-E9-R7-1b` (9 pages web-only stubs) — **Moyenne** : machines, reverse-engineering, sync, usinage, demandes/[id], pieces, reverse-engineering/[id], demandes/[id]/recherche, recherche — 251–973 o, à implémenter fonctionnellement
 - `D-E9-R7-2` (4 pages desktop non converties) — **Résolue**
 
 ## Décisions récentes
