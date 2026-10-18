@@ -24,20 +24,7 @@ Aucune.
 - **Bloquant :** Non
 - **Prochaine session :** E10-R4
 
-### Faible (5)
-
-#### `D-E9-R3a-1` — Flash navigation (`router.push` → flash blanc)
-
-- **Statut :** Clôturée E10-R2b
-- **Priorité :** Faible
-- **Session origine :** E9-R3a
-- **Cause racine :** `next.config.mjs:7` → `output: isExport ? 'export' : undefined`. En mode export, `router.push` vers une Server Component pure génère un état transitoire vide provoquant un flash blanc au chargement.
-- **Résolution :** 5 `router.push` remplacés par `window.location.href` (E10-R2b, commit `f69d84d`)
-- **Périmètre :** 5 transitions — `login:26`, `register:44`, `demande:112`, `creer-piece:120`, `search-bar:474`
-- **Hors périmètre :** `auth-guard.tsx:32,37` (cible `/login`, Client Component), `admin/layout.tsx:162` (cible `/login`, Client Component)
-- **Effort estimé :** Faible (5 edits)
-- **Bloquant :** Non
-- **Prochaine session :** N/A — clôturée
+### Faible (4)
 
 #### `D-E9-R4b1-1` — Client non miroité
 
