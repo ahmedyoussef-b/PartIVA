@@ -71,3 +71,8 @@ desktop/dist/
 desktop/server/
 desktop/src-tauri/node-*.exe
 desktop/src-tauri/binaries/
+
+# Artefacts de build desktop (générés par build-desktop.ps1)
+api.disabled/
+disabled-pages/
+src/lib/actions/lib-actions/
