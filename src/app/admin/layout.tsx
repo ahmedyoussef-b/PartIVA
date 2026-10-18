@@ -23,12 +23,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { isTauri } = useAppMode();
   const { data: session, isPending } = useSession();
 
-  const [tauriAuthed, setTauriAuthed] = React.useState(false);
-  const [tauriChecking, setTauriChecking] = React.useState(true);
+  const [tauriAuthed, setTauriAuthed] = React.useState(!isTauri);
+  const [tauriChecking, setTauriChecking] = React.useState(isTauri);
 
   React.useEffect(() => {
     if (!isTauri) {
-      setTauriChecking(false);
       return;
     }
     let mounted = true;
@@ -83,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="bg-card text-muted-foreground space-y-3 rounded-xl border p-4 text-xs">
               <div className="text-foreground flex items-center gap-2 font-semibold">
                 <Lock className="text-primary h-4 w-4" />
-                Règles d'accès :
+                Règles d&rsquo;accès :
               </div>
               <ul className="list-inside list-disc space-y-2">
                 <li>
@@ -105,7 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link href="/">
                 <Button variant="outline" className="w-full gap-2 sm:w-auto">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour à l'Accueil Public
+                  Retour à l&rsquo;Accueil Public
                 </Button>
               </Link>
               <Link href="/login">

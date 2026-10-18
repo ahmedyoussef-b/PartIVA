@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { isTauri, loadToken } from '@/lib/data-client';
 
 interface AuthGuardProps {
@@ -8,14 +9,14 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children }: AuthGuardProps) {
-  const [authorized, setAuthorized] = React.useState(false);
-  const [checking, setChecking] = React.useState(true);
+  const router = useRouter();
+  const isTauriEnv = isTauri();
+  const [authorized, setAuthorized] = React.useState(!isTauriEnv);
+  const [checking, setChecking] = React.useState(isTauriEnv);
 
   React.useEffect(() => {
-    // En web, le guard ne s'applique pas (BetterAuth gère via cookies)
-    if (!isTauri()) {
-      setAuthorized(true);
-      setChecking(false);
+    // En web, le guard ne s&rsquo;applique pas (BetterAuth gère via cookies)
+    if (!isTauriEnv) {
       return;
     }
 
@@ -28,12 +29,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
           if (token) {
             setAuthorized(true);
           } else {
-            window.location.href = '/login';
+            router.push('/login');
           }
         }
       } catch {
         if (mounted) {
-          window.location.href = '/login';
+          router.push('/login');
         }
       } finally {
         if (mounted) setChecking(false);
@@ -41,12 +42,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
     checkAuth();
     return () => { mounted = false; };
-  }, []);
+  }, [isTauriEnv, router]);
 
   if (checking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-muted-foreground">Vérification de l'accès...</div>
+        <div className="text-muted-foreground">Vérification de l&rsquo;accès...</div>
       </div>
     );
   }

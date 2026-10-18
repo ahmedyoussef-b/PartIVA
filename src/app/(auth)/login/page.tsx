@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { login } from '@/lib/data-client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -21,7 +23,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       // Navigation native (compatible Tauri + export)
-      window.location.href = '/admin/dashboard';
+      router.push('/admin/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Échec de la connexion');
       setLoading(false);
