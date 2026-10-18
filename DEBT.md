@@ -11,32 +11,11 @@
 
 Aucune.
 
-### Moyenne (1)
+### Moyenne (0)
 
-#### `D-E9-R7-1b` — 9 stubs web-only à implémenter
+Aucune.
 
-- **Statut :** Active
-- **Priorité :** Moyenne
-- **Session origine :** E9-R7
-- **Cause :** Pages admin créées en placeholder (251–973 o) sans implémentation fonctionnelle
-- **Périmètre :** machines, reverse-engineering, sync, usinage, demandes/[id], pieces, reverse-engineering/[id], demandes/[id]/recherche, recherche
-- **Effort estimé :** Moyen (9 pages × ~30 lignes)
-- **Bloquant :** Non
-- **Prochaine session :** E10-R4
-
-### Faible (2)
-
-#### `D-E9-R7-1` — 11 pages web-only (2 fonctionnelles + 9 stubs)
-
-- **Statut :** Requalifiée
-- **Priorité :** Faible
-- **Session origine :** E9-R7
-- **Cause :** 11 pages web-only créées lors de la refonte export
-- **Périmètre :** 2 fonctionnelles (`desktop-downloads`, `parametres` via `readFileSync` Server Component) + 9 stubs (<1000 o)
-- **Sous-dette :** `D-E9-R7-1b` (implémentation des 9 stubs) — voir bloc ci-dessus
-- **Effort estimé :** N/A
-- **Bloquant :** Non
-- **Prochaine session :** E10-R4
+### Faible (1)
 
 #### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
 
@@ -71,7 +50,7 @@ Aucune.
 - **`D-E9-R6-2`** (sidecar non supporté) — ✅ Clôturée E9-R7 (abandon sidecar)
 - **`D-E9-R7-2`** (4 pages desktop non converties) — ✅ Résolue E9-R8
 
-### E10 (7)
+### E10 (9)
 
 - **`D-E9-R3a-2`** (ESLint non exécuté) — ✅ Clôturée E10-R1 (setState-in-effect, apostrophes, window.location corrigés)
 - **`D-E9-R3a-3`** (bridge SQLite mocké) — ✅ Clôturée E10-R1 (aucun mock dans le code, bridge utilise invoke réel + fetch)
@@ -80,6 +59,8 @@ Aucune.
 - **`D-E9-R3a-1`** (flash navigation) — ✅ Clôturée E10-R2b (5 transitions `router.push` → `window.location.href`, commit `f69d84d`)
 - **`D-E9-R4b1-1`** (client non miroité) — ✅ Clôturée E10-R3 (obsolète — cause introuvable après 3 sessions, aucune trace code/JOURNAL/docs)
 - **`D-E9-R4b1-2`** (photos TEXT JSON) — ✅ Clôturée E10-R3 (requalifiée — choix de conception assumé, `Json?` suffisant pour 10 photos <1 Mo, refactor coûteux non justifié)
+- **`D-E9-R7-1`** (11 pages web-only) — ✅ Clôturée E10-R4a (obsolète — 11/11 fonctionnelles : 9 Server Components courts + 2 via `readFileSync`)
+- **`D-E9-R7-1b`** (9 stubs web-only) — ✅ Clôturée E10-R4a (obsolète — 9/9 fonctionnelles : Server Components courts + Client Components lourds, pattern Next.js standard)
 
 ## Notes
 
@@ -89,3 +70,4 @@ Aucune.
 - **Redondance :** `D-E9-R3b-3` fusionnée dans `D-E9-R7-1b` (même périmètre : 9 stubs)
 - **Prochaine session :** E10-R2b (`D-E9-R3a-1` : 5 edits)
 - **Requalification E10-R3 :** `D-E9-R4b1-2` (photos TEXT JSON) n'est pas une dette technique mais un choix de conception. Refactor `Json?` → `Bytes?` = migration + 8 fichiers + rupture compat. Non justifié pour 10 photos <1 Mo.
+- **Requalification E10-R4a :** `D-E9-R7-1`/`R7-1b` mal calibrées en E9-R7. Les 9 « stubs » (251–973 o) sont des Server Components courts déléguant à des Client Components lourds (11–36 Ko). Aucune page vide. Leçon : « petit fichier » ≠ « stub ».

@@ -15,6 +15,7 @@
 - Build desktop Tauri : ✅ **passe** (installeur NSIS 4.99 MiB)
 - `data-client.ts` : ✅ existe, 11 fonctions `invoke` + fallback `fetch`
 - 4 pages desktop : ✅ **toutes conformes** (dashboard, materiaux, audit, demandes)
+- 15 pages admin : ✅ **toutes fonctionnelles** (6 Server Components courts + 9 Server Components + Client Components)
 - `mapRequestToUi` : ✅ corrigé (tolérant Date/string)
 - **E9-R10 : Pont Tauri ↔ Rust ↔ SQLite validé** — `invoke` retournent `[]` (base vide), pas d'erreur CSP, dashboard affiché ✅
 
@@ -25,8 +26,7 @@
 - `D-E9-R4b1-1` (client non miroité) — **Requalifiée** (non bloquante)
 - `D-E9-R4b1-2` (photos TEXT JSON) — **Requalifiée** (non bloquante)
 - `D-E9-R5-1` (validation fonctionnelle reportée) — **Reportée** (dépend Vercel + token)
-- `D-E9-R7-1` (11 pages web-only existantes) — **Requalifiée** : 2 fonctionnelles (desktop-downloads, parametres) + 9 stubs (<1000 o)
-- `D-E9-R7-1b` (9 pages web-only stubs) — **Moyenne** : machines, reverse-engineering, sync, usinage, demandes/[id], pieces, reverse-engineering/[id], demandes/[id]/recherche, recherche — 251–973 o, à implémenter fonctionnellement
+
 
 **Dettes clôturées :** voir `DEBT.md` section « Clôturées » (`D-E9-R3a-2`, `D-E9-R3a-3`, `D-E9-R6-2`, `D-E9-R7-2`).
 
