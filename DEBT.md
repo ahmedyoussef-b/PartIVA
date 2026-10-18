@@ -24,20 +24,20 @@ Aucune.
 - **Bloquant :** Non
 - **Prochaine session :** E10-R4
 
-### Faible (4)
+### Faible (5)
 
 #### `D-E9-R3a-1` — Flash navigation (`router.push` → flash blanc)
 
-- **Statut :** Active
+- **Statut :** Clôturée E10-R2b
 - **Priorité :** Faible
 - **Session origine :** E9-R3a
 - **Cause racine :** `next.config.mjs:7` → `output: isExport ? 'export' : undefined`. En mode export, `router.push` vers une Server Component pure génère un état transitoire vide provoquant un flash blanc au chargement.
-- **Contournement existant :** `window.location.href` (register/page.tsx:46) — navigation complète, compatible export + Tauri
-- **Périmètre :** 5 transitions — `login:26`, `register:48`, `demande:112`, `creer-piece:120`, `search-bar:473`
+- **Résolution :** 5 `router.push` remplacés par `window.location.href` (E10-R2b, commit `f69d84d`)
+- **Périmètre :** 5 transitions — `login:26`, `register:44`, `demande:112`, `creer-piece:120`, `search-bar:474`
 - **Hors périmètre :** `auth-guard.tsx:32,37` (cible `/login`, Client Component), `admin/layout.tsx:162` (cible `/login`, Client Component)
 - **Effort estimé :** Faible (5 edits)
 - **Bloquant :** Non
-- **Prochaine session :** E10-R2b
+- **Prochaine session :** N/A — clôturée
 
 #### `D-E9-R4b1-1` — Client non miroité
 
@@ -73,6 +73,19 @@ Aucune.
 - **Bloquant :** Non
 - **Prochaine session :** E10-R4
 
+#### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E10-R2b
+- **Cause :** Remplacement `router.push` → `window.location.href` (E10-R2b) — rechargement complet de la page au clic sur un résultat de recherche
+- **Périmètre :** `src/components/search-bar.tsx:474`
+- **Impact UX :** Perte du texte saisi, suggestions fermées, scroll reset
+- **Trade-off :** Flash navigation (R3a-1) vs perte d'état (R2b-1) — choix assumé
+- **Effort estimé :** Faible (état via `sessionStorage` ou query params)
+- **Bloquant :** Non
+- **Prochaine session :** À planifier (E10-R4 ou post-E10)
+
 ### Reportée (1)
 
 #### `D-E9-R5-1` — Validation fonctionnelle reportée
@@ -99,6 +112,7 @@ Aucune.
 - **`D-E9-R3a-3`** (bridge SQLite mocké) — ✅ Clôturée E10-R1 (aucun mock dans le code, bridge utilise invoke réel + fetch)
 - **`D-E9-R3b-3`** (non-migration pages) — ✅ Fusionnée dans `D-E9-R7-1b` (redondance — même périmètre : 9 stubs)
 - **`D-E9-R3b-bis-1`** (validation GUI reportée) — ✅ Clôturée E10-R2 (oubli documentaire historique, aucune dette technique résiduelle)
+- **`D-E9-R3a-1`** (flash navigation) — ✅ Clôturée E10-R2b (5 `router.push` → `window.location.href`, commit `f69d84d`)
 
 ## Notes
 

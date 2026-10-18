@@ -16,3 +16,4 @@
 | 2026-10-18 | E10-R0 | Cadrage E10 + restructurer DEBT.md | `23f9ffb` | ✅ |
 | 2026-10-18 | E10-R1 | Purge D-E9-R3a-2 (ESLint) + D-E9-R3a-3 (bridge mocké) | `3f17d98` | ✅ |
 | 2026-10-18 | E10-R2a | Refactorisation DEBT.md v2 (structure formelle + régularisation R3a-1/R3b-3/R3b-bis-1) | 841ada0 | ✅ |
+| 2026-10-18 | E10-R2b | Purge D-E9-R3a-1 — remplacer router.push par window.location.href (5 transitions flash navigation) | f69d84d | ✅ |
