@@ -9,4 +9,5 @@
 | 2026-10-18 | E9-R7 | Refonte `export` + build desktop | `0544287` | ✅ |
 | 2026-10-18 | E9-R8 | Auth desktop + AuthGuard + layout Tauri | `9561738` | ✅ |
 | 2026-10-18 | E9-R9 | Build system + CSP fix | `6f29825` | ✅ |
-| 2026-10-18 | **E9-R10** | **Validation technique finale — `invoke` OK, dashboard OK** | **`6f29825`** | **✅** |
+| 2026-10-18 | **E9-R10** | **Validation technique finale** | **`7560548`** | **✅** |
+| 2026-10-18 | E9-R11 | Clôture E9 (README + DEBT) | `b28e288` | ✅ |

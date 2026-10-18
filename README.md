@@ -90,9 +90,10 @@ Voir [docs/architecture.md](docs/architecture.md).
 | E5 | TecDoc mock | ✅ |
 | E6 | Déblocage, catalogue, auto-parts | ✅ |
 | E7 | Déblocage 5 Moyennes | 🟠 Bloquée (credentials) |
-| E8 | Stabilisation, production | 🟢 En cours |
+| E8 | Stabilisation, production | ✅ |
+| E9 | Desktop Tauri (export) | ✅ |
 
-**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes · E2E 284/0/4 · Prisma 15 migrations.
 
 ---
 

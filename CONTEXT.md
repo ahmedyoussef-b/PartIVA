@@ -1,12 +1,12 @@
 # CONTEXT — PartIVA
 
 **Dernière mise à jour :** 2026-10-18
-**Commit HEAD :** `6f29825` (E9-R10)
+**Commit HEAD :** `7560548` (clôture E9-R10)
 **Phase en cours :** E9 — **TERMINÉE**
 **Tag :** `v0.3.0-e9`
 
 ## État
-- Le repo est sain (HEAD = `6f29825`).
+- Le repo est sain (HEAD = `7560548`).
 - `next.config.mjs` : `output: 'export'` ✅
 - `tauri.conf.json` : sidecar retiré, `frontendDist: "../../out"`, `url: "index.html"` ✅
 - Sidecar supprimé (`desktop/server/`, `build-server.cjs`, `node.exe`) ✅
