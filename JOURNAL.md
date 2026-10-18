@@ -17,3 +17,6 @@
 | 2026-10-18 | E10-R1 | Purge D-E9-R3a-2 (ESLint) + D-E9-R3a-3 (bridge mocké) | `3f17d98` | ✅ |
 | 2026-10-18 | E10-R2a | Refactorisation DEBT.md v2 (structure formelle + régularisation R3a-1/R3b-3/R3b-bis-1) | 841ada0 | ✅ |
 | 2026-10-18 | E10-R2b | Purge D-E9-R3a-1 — remplacer router.push par window.location.href (5 transitions flash navigation) | f69d84d | ✅ |
+| 2026-10-18 | E10-R3 | Clôturer D-E9-R4b1-1 (obsolète) + D-E9-R4b1-2 (requalifiée choix conception) | `9a9a43c` | ✅ |
+| 2026-10-18 | E10-R4a | Clôturer R7-1/R7-1b (obsolètes) + aligner CONTEXT.md | `c7e4fac` | ✅ |
+| 2026-10-18 | E10-R5 | Clôture E10 — CONTEXT.md réécrit + JOURNAL.md complété + tag `v0.4.0-e10` | `[à venir]` | ✅ |

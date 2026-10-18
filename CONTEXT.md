@@ -1,12 +1,12 @@
 # CONTEXT — PartIVA
 
 **Dernière mise à jour :** 2026-10-18
-**Commit HEAD :** `3f17d98` (E10-R1)
-**Phase en cours :** E10 — **En cours**
-**Tag :** `v0.3.0-e9`
+**Commit HEAD :** `c7e4fac` (E10-R4a)
+**Phase en cours :** E10 — **TERMINÉE**
+**Tag :** `v0.3.0-e9` (E9) · `v0.4.0-e10` (à créer)
 
 ## État
-- Le repo est sain (HEAD = `3f17d98`).
+- Le repo est sain (HEAD = `c7e4fac`).
 - `next.config.mjs` : `output: 'export'` ✅
 - `tauri.conf.json` : sidecar retiré, `frontendDist: "../../out"`, `url: "index.html"` ✅
 - Sidecar supprimé (`desktop/server/`, `build-server.cjs`, `node.exe`) ✅
@@ -20,17 +20,14 @@
 - **E9-R10 : Pont Tauri ↔ Rust ↔ SQLite validé** — `invoke` retournent `[]` (base vide), pas d'erreur CSP, dashboard affiché ✅
 
 ## Dettes actives
-- `D-E9-R3a-1` (flash navigation) — Faible
-- `D-E9-R3b-3` (non-migration pages) — Faible
-- `D-E9-R3b-bis-1` (validation GUI reportée) — Faible
-- `D-E9-R4b1-1` (client non miroité) — **Requalifiée** (non bloquante)
-- `D-E9-R4b1-2` (photos TEXT JSON) — **Requalifiée** (non bloquante)
-- `D-E9-R5-1` (validation fonctionnelle reportée) — **Reportée** (dépend Vercel + token)
+- `D-E10-R2b-1` (search-bar : perte d'état au rechargement) — Faible
+- `D-E9-R5-1` (validation fonctionnelle Vercel) — **Reportée E11**
 
 
-**Dettes clôturées :** voir `DEBT.md` section « Clôturées » (`D-E9-R3a-2`, `D-E9-R3a-3`, `D-E9-R6-2`, `D-E9-R7-2`).
+**Dettes clôturées :** voir `DEBT.md` section « Clôturées » (9 E10 + 2 E9).
 
 ## Décisions récentes
 - `D-E9-R7-1` : Refonte vers `output: 'export'` (abandon sidecar)
-- `D-E9-R7-2` : Périmètre desktop = 4 pages (dashboard, demandes, matériaux, audit) — **Fait**
-- **E9-R10** : Validation technique complète — desktop Tauri opérationnel sans sidecar, auth, 4 pages, `invoke` fonctionnel
+- `D-E9-R7-2` : Périmètre desktop = 4 pages — **Fait**
+- **E9-R10** : Validation technique complète
+- **E10-R4a** : Requalification `R7-1`/`R7-1b` — 9/9 pages fonctionnelles (leçon : « petit fichier » ≠ « stub »)
