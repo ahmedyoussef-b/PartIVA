@@ -3,10 +3,11 @@
   "productName": "PartIVA Desktop",
   "version": "0.1.0",
   "identifier": "com.partiva.desktop",
-"build": {
+  "build": {
     "devUrl": "http://localhost:3100",
     "beforeDevCommand": "",
-    "beforeBuildCommand": ""
+    "beforeBuildCommand": "",
+    "frontendDist": "../../out"
   },
   "app": {
     "windows": [
@@ -22,7 +23,7 @@
       {
         "label": "main",
         "title": "PartIVA Desktop",
-        "url": "about:blank",
+        "url": "index.html",
         "width": 1440,
         "height": 900,
         "minWidth": 1024,
@@ -33,37 +34,34 @@
         "visible": false
       }
     ],
-"security": {
+    "security": {
       "csp": "default-src 'self' data: http://127.0.0.1:* https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://127.0.0.1:* https:; style-src 'self' 'unsafe-inline' http://127.0.0.1:* https:; img-src 'self' data: blob: http://127.0.0.1:* https:; font-src 'self' data: http://127.0.0.1:* https:; connect-src 'self' http://127.0.0.1:* https: wss:;"
     }
   },
-    "bundle": {
-      "active": true,
-      "targets": ["nsis"],
-      "externalBin": ["node"],
-      "resources": ["../server/**/*", "../server/.env*"],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "publisher": "PartIVA",
-      "copyright": "© 2026 PartIVA",
-      "category": "Business",
-      "shortDescription": "PartIVA Desktop — catalogue pièces industrielles",
-      "longDescription": "Application desktop PartIVA avec BDD locale synchronisée depuis le cloud. Fonctionne hors ligne après le premier sync.",
-      "windows": {
-        "webviewInstallMode": {
-          "type": "downloadBootstrapper"
-        },
-        "nsis": {
-          "installMode": "currentUser",
-          "languages": ["French", "English"],
-          "displayLanguageSelector": false
-        }
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "PartIVA",
+    "copyright": "© 2026 PartIVA",
+    "category": "Business",
+    "shortDescription": "PartIVA Desktop — catalogue pièces industrielles",
+    "longDescription": "Application desktop PartIVA avec BDD locale synchronisée depuis le cloud. Fonctionne hors ligne après le premier sync.",
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["French", "English"],
+        "displayLanguageSelector": false
       }
     }
+  }
 }
-

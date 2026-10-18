@@ -25,6 +25,12 @@ export type MappedRequest = {
   projects: RequestWithRelations['projects'];
 };
 
+function toIsoString(value: Date | string | null | undefined): string {
+  if (!value) return '';
+  if (value instanceof Date) return value.toISOString();
+  return String(value);
+}
+
 const UI_STATUS_MAP: Record<string, RequestStatus> = {
   PENDING: 'new',
   REVIEW: 'searching',
@@ -60,8 +66,8 @@ export function mapRequestToUi(request: RequestWithRelations): MappedRequest {
     status,
     urgency,
     photos,
-    createdAt: request.createdAt.toISOString(),
-    updatedAt: request.updatedAt.toISOString(),
+    createdAt: toIsoString(request.createdAt),
+    updatedAt: toIsoString(request.updatedAt),
     client: {
       name: request.client?.name ?? 'Client inconnu',
       email: request.client?.email ?? '',
