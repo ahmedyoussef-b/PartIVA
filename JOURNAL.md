@@ -15,3 +15,4 @@
 | 2026-10-18 | E9-R11-ter | Correction CONTEXT.md (11 invoke, D-E9-R7-1b) | `080ecbf` | ✅ |
 | 2026-10-18 | E10-R0 | Cadrage E10 + restructurer DEBT.md | `23f9ffb` | ✅ |
 | 2026-10-18 | E10-R1 | Purge D-E9-R3a-2 (ESLint) + D-E9-R3a-3 (bridge mocké) | `3f17d98` | ✅ |
+| 2026-10-18 | E10-R2a | Refactorisation DEBT.md v2 (structure formelle + régularisation R3a-1/R3b-3/R3b-bis-1) | 841ada0 | ✅ |
