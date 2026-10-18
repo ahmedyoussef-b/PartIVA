@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,6 @@ const MATERIAL_OPTIONS = [
 ];
 
 export default function CreerPiecePage() {
-  const router = useRouter();
   const [photos, setPhotos] = React.useState<UploadedPhoto[]>([
     {
       id: 'photo-1',
@@ -117,7 +116,8 @@ export default function CreerPiecePage() {
     setTimeout(() => {
       setIsSubmitting(false);
       toast.success('Votre demande avec photos a été transmise à notre atelier CNC !');
-      router.push('/client/dashboard');
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = '/client/dashboard';
     }, 1200);
   };
 

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,6 @@ import { signUp } from '@/lib/auth-client';
 import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [company, setCompany] = React.useState('');
@@ -41,12 +40,8 @@ export default function RegisterPage() {
 
       toast.success('Bienvenue ! Votre compte client a été créé.');
       const targetUrl = '/client/dashboard/creer-piece';
-      try {
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = targetUrl;
-      } catch {
-        router.push(targetUrl);
-      }
     } catch (err) {
       console.error('[Register] Erreur lors de l’inscription:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de l’inscription');

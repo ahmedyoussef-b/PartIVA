@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDropzone } from 'react-dropzone';
@@ -36,7 +36,6 @@ const URGENCY_OPTIONS = [
 ];
 
 export default function DemandePage() {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = React.useState(1);
   const [photoPreviews, setPhotoPreviews] = React.useState<string[]>([]);
 
@@ -109,9 +108,8 @@ export default function DemandePage() {
       const result = await createRequest(payload);
       if (result.success) {
         toast.success('Demande enregistrée avec succès !');
-        router.push(
-          `/demande/confirmation?id=${(result.data as unknown as { id?: string }).id || 'req-new'}`,
-        );
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = `/demande/confirmation?id=${(result.data as unknown as { id?: string }).id || 'req-new'}`;
       } else {
         toast.error(result.error || 'Échec de la soumission');
       }

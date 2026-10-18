@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -60,7 +60,6 @@ export function SearchBar() {
   const [results, setResults] = React.useState<SearchResultItem[]>([]);
   const [searched, setSearched] = React.useState(false);
   const [pending, setPending] = React.useState(false);
-  const router = useRouter();
 
   const isDimensions = mode === 'dimensions';
   const isMulti = mode === 'multi';
@@ -470,7 +469,10 @@ export function SearchBar() {
                   key={result.id}
                   type="button"
                   className="hover:bg-muted/30 flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-                  onClick={() => router.push(`/admin/pieces?part=${result.id}`)}
+                  onClick={() => {
+                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                    window.location.href = `/admin/pieces?part=${result.id}`;
+                  }}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
