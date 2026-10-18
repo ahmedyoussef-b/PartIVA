@@ -4,8 +4,9 @@ import * as React from 'react';
 import { getMaterials } from '@/lib/data-client';
 import AdminMateriauxPageClient from './materiaux-client';
 import type { Material } from '@/generated/prisma/client';
+import AuthGuard from '@/lib/auth-guard';
 
-export default function AdminMateriauxPage() {
+function AdminMateriauxPageContent() {
   const [materials, setMaterials] = React.useState<Material[]>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -33,4 +34,12 @@ export default function AdminMateriauxPage() {
   }
 
   return <AdminMateriauxPageClient initialMaterials={materials} />;
+}
+
+export default function AdminMateriauxPage() {
+  return (
+    <AuthGuard>
+      <AdminMateriauxPageContent />
+    </AuthGuard>
+  );
 }

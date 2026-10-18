@@ -37,8 +37,10 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
+"exclude": [
     "node_modules",
-    "desktop/ui"
+    "desktop/ui",
+    "api.disabled",
+    "disabled-pages"
   ]
 }

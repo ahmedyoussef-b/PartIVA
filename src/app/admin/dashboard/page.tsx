@@ -6,8 +6,9 @@ import { mapRequestToUi } from '@/lib/utils/request-mappers';
 import AdminDashboardClient from './dashboard-client';
 import type { MappedRequest } from '@/lib/utils/request-mappers';
 import type { MachineWithRelations } from '@/lib/data/machines';
+import AuthGuard from '@/lib/auth-guard';
 
-export default function AdminDashboardPage() {
+function AdminDashboardPageContent() {
   const [requests, setRequests] = React.useState<MappedRequest[]>([]);
   const [machines, setMachines] = React.useState<MachineWithRelations[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -40,4 +41,12 @@ export default function AdminDashboardPage() {
   }
 
   return <AdminDashboardClient requests={requests} machines={machines} />;
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <AuthGuard>
+      <AdminDashboardPageContent />
+    </AuthGuard>
+  );
 }

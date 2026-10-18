@@ -14,15 +14,37 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useSyncStore } from '@/lib/stores/sync-store';
 import { useAppMode } from '@/lib/app-mode';
 import { useSession, signOut } from '@/lib/auth-client';
-import { ShieldAlert, ArrowLeft, Monitor, Lock, LogOut } from 'lucide-react';
+import { loadToken, logout } from '@/lib/data-client';
+import { ShieldAlert, ArrowLeft, Lock, LogOut } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { triggerSync } = useSyncStore();
-  const { isTauri, setManualMode } = useAppMode();
+  const { isTauri } = useAppMode();
   const { data: session, isPending } = useSession();
 
-  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
+  const [tauriAuthed, setTauriAuthed] = React.useState(false);
+  const [tauriChecking, setTauriChecking] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!isTauri) {
+      setTauriChecking(false);
+      return;
+    }
+    let mounted = true;
+    async function checkAuth() {
+      try {
+        const token = await loadToken();
+        if (mounted) setTauriAuthed(!!token);
+      } catch {
+        if (mounted) setTauriAuthed(false);
+      } finally {
+        if (mounted) setTauriChecking(false);
+      }
+    }
+    checkAuth();
+    return () => { mounted = false; };
+  }, [isTauri]);
 
   React.useEffect(() => {
     if (!isTauri) return;
@@ -32,7 +54,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => clearInterval(timer);
   }, [triggerSync, isTauri]);
 
-  if (isPending || !isAdmin) {
+  // Web : session.role === 'ADMIN' — Tauri : token exists
+  const isAdmin = isTauri ? tauriAuthed : (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
+  const isLoading = isTauri ? tauriChecking : isPending;
+
+  if (isLoading || !isAdmin) {
     return (
       <div className="bg-muted/20 flex min-h-screen items-center justify-center p-4">
         <Card className="border-border/80 w-full max-w-2xl shadow-2xl">
@@ -57,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="bg-card text-muted-foreground space-y-3 rounded-xl border p-4 text-xs">
               <div className="text-foreground flex items-center gap-2 font-semibold">
                 <Lock className="text-primary h-4 w-4" />
-                Règles d’accès :
+                Règles d'accès :
               </div>
               <ul className="list-inside list-disc space-y-2">
                 <li>
@@ -79,7 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link href="/">
                 <Button variant="outline" className="w-full gap-2 sm:w-auto">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour à l’Accueil Public
+                  Retour à l'Accueil Public
                 </Button>
               </Link>
               <Link href="/login">
@@ -87,21 +113,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   Se connecter
                 </Button>
               </Link>
-            </div>
-
-            <div className="border-t pt-4 text-center">
-              <p className="text-muted-foreground mb-2 text-[11px]">
-                Environnement de développement & démonstration :
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setManualMode('tauri')}
-                className="text-primary gap-1.5 text-xs"
-              >
-                <Monitor className="h-3.5 w-3.5" />
-                Simuler le mode Hybride Tauri
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -137,14 +148,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 ADM
               </div>
               <span className="hidden text-xs font-medium sm:inline">
-                {session?.user?.name || 'Admin'}
+                {isTauri ? 'Admin (Tauri)' : (session?.user?.name || 'Admin')}
               </span>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={async () => {
-                await signOut();
+                if (isTauri) {
+                  await logout();
+                } else {
+                  await signOut();
+                }
                 router.push('/login');
               }}
               className="text-muted-foreground h-7 px-2 text-[10px]"

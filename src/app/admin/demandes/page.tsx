@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, FileText, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import AuthGuard from '@/lib/auth-guard';
 
-export default function AdminDemandesPage() {
+function AdminDemandesPageContent() {
   const [demandes, setDemandes] = React.useState<ReturnType<typeof mapRequestToUi>[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState('');
@@ -154,5 +155,13 @@ export default function AdminDemandesPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AdminDemandesPage() {
+  return (
+    <AuthGuard>
+      <AdminDemandesPageContent />
+    </AuthGuard>
   );
 }

@@ -44,3 +44,45 @@ export async function getPlastiques() {
   if (isTauri()) return window.__TAURI_INTERNALS__!.invoke('get_plastiques');
   return fetch('/api/plastiques').then((r) => r.json());
 }
+
+// ─── Authentification ─────────────────────────────────────────
+// Commandes Rust : login, save_token, load_token, logout (lib.rs)
+// Le token est stocké dans le keyring Windows (géré par auth.rs)
+
+export async function login(email: string, password: string): Promise<void> {
+  if (isTauri()) {
+    return window.__TAURI_INTERNALS__!.invoke('login', { email, password });
+  }
+  // Web : BetterAuth gère le login via /api/auth/sign-in
+  const res = await fetch('/api/auth/sign-in/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw new Error('Login failed');
+}
+
+export async function saveToken(token: string): Promise<void> {
+  if (isTauri()) {
+    return window.__TAURI_INTERNALS__!.invoke('save_token', { token });
+  }
+  // Web : le token est géré par les cookies BetterAuth
+  localStorage.setItem('partiva_token', token);
+}
+
+export async function loadToken(): Promise<string | null> {
+  if (isTauri()) {
+    return window.__TAURI_INTERNALS__!.invoke<string | null>('load_token');
+  }
+  // Web : le token est géré par les cookies BetterAuth
+  return localStorage.getItem('partiva_token');
+}
+
+export async function logout(): Promise<void> {
+  if (isTauri()) {
+    return window.__TAURI_INTERNALS__!.invoke('logout');
+  }
+  // Web : BetterAuth gère le logout via /api/auth/sign-out
+  await fetch('/api/auth/sign-out', { method: 'POST' });
+  localStorage.removeItem('partiva_token');
+}

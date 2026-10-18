@@ -22,6 +22,7 @@ const nextConfig = {
       './desktop/**',
       './e2e/**',
       './docs/**',
+      './api.disabled/**',
     ],
   },
 };

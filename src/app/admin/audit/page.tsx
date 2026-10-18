@@ -16,6 +16,7 @@ import {
   Hammer,
 } from 'lucide-react';
 import { getAuditLogs } from '@/lib/data-client';
+import AuthGuard from '@/lib/auth-guard';
 
 type AuditAction =
   | 'sync_pull'
@@ -50,7 +51,7 @@ const ACTION_CONFIG: Record<
   completed: { label: 'Dossier clôturé', icon: CheckCircle2, color: 'text-emerald-600' },
 };
 
-export default function AdminAuditPage() {
+function AdminAuditPageContent() {
   const [query, setQuery] = React.useState('');
   const [auditLogs, setAuditLogs] = React.useState<AuditEntry[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -173,5 +174,13 @@ export default function AdminAuditPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AdminAuditPage() {
+  return (
+    <AuthGuard>
+      <AdminAuditPageContent />
+    </AuthGuard>
   );
 }
