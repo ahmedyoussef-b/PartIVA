@@ -30,18 +30,9 @@ Aucune.
 - **Bloquant :** Non
 - **Prochaine session :** À planifier (E10-R4 ou post-E10)
 
-### Reportée (1)
+### Reportée (0)
 
-#### `D-E9-R5-1` — Validation fonctionnelle reportée
-
-- **Statut :** Reportée E11
-- **Priorité :** Faible
-- **Session origine :** E9-R5
-- **Cause :** Dépend Vercel + token (environnement externe)
-- **Périmètre :** N/A
-- **Effort estimé :** N/A
-- **Bloquant :** Non
-- **Prochaine session :** E11
+Aucune.
 
 ## Dettes clôturées
 
@@ -62,6 +53,10 @@ Aucune.
 - **`D-E9-R7-1`** (11 pages web-only) — ✅ Clôturée E10-R4a (obsolète — 11/11 fonctionnelles : 9 Server Components courts + 2 via `readFileSync`)
 - **`D-E9-R7-1b`** (9 stubs web-only) — ✅ Clôturée E10-R4a (obsolète — 9/9 fonctionnelles : Server Components courts + Client Components lourds, pattern Next.js standard)
 
+### E11 (1)
+
+- **`D-E9-R5-1`** (validation fonctionnelle Vercel) — ✅ Clôturée E11-R1 (8/8 tests Playwright passés, commit `c8e40da`)
+
 ## Notes
 
 - **Structure :** une dette = un bloc (ID, statut, priorité, cause, périmètre, effort, prochaine session)
@@ -71,3 +66,4 @@ Aucune.
 - **Prochaine session :** E10-R2b (`D-E9-R3a-1` : 5 edits)
 - **Requalification E10-R3 :** `D-E9-R4b1-2` (photos TEXT JSON) n'est pas une dette technique mais un choix de conception. Refactor `Json?` → `Bytes?` = migration + 8 fichiers + rupture compat. Non justifié pour 10 photos <1 Mo.
 - **Requalification E10-R4a :** `D-E9-R7-1`/`R7-1b` mal calibrées en E9-R7. Les 9 « stubs » (251–973 o) sont des Server Components courts déléguant à des Client Components lourds (11–36 Ko). Aucune page vide. Leçon : « petit fichier » ≠ « stub ».
+- **Clôture E11 :** `D-E9-R5-1` validée (8/8 tests Playwright — 6 pages admin + login/register + healthcheck API). `D-E10-R2b-1` reste active (post-E11).
