@@ -17,3 +17,7 @@ export default async function RechercheMultiSourcePage({
 
   return <RechercheClient initialRequest={request} initialCandidates={initialCandidates} />;
 }
+
+export async function generateStaticParams() {
+  return [{ id: 'placeholder' }];
+}

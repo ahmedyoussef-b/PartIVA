@@ -15,3 +15,7 @@ export default async function ReverseEngineeringProjectPage({
 
   return <ReverseEngineeringContent project={project} />;
 }
+
+export async function generateStaticParams() {
+  return [{ id: 'placeholder' }];
+}

@@ -15,3 +15,7 @@ export default async function AdminDemandeDetailPage({
 
   return <DemandeDetailClient initialRequest={request} />;
 }
+
+export async function generateStaticParams() {
+  return [{ id: 'placeholder' }];
+}
