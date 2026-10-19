@@ -53,8 +53,31 @@ const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const DEBOUNCE_MS = 300;
 
 export function SearchBar() {
-  const [query, setQuery] = React.useState('');
-  const [mode, setMode] = React.useState<SearchMode>('text');
+  // E13-R1 — Restauration de l'état de recherche depuis sessionStorage (lazy init, évite setState-in-effect)
+  const [query, setQuery] = React.useState(() => {
+    try {
+      const saved = sessionStorage.getItem('search-bar-state');
+      if (saved) {
+        const { query: savedQuery } = JSON.parse(saved);
+        if (typeof savedQuery === 'string') return savedQuery;
+      }
+    } catch {
+      // silently ignore
+    }
+    return '';
+  });
+  const [mode, setMode] = React.useState<SearchMode>(() => {
+    try {
+      const saved = sessionStorage.getItem('search-bar-state');
+      if (saved) {
+        const { mode: savedMode } = JSON.parse(saved);
+        if (typeof savedMode === 'string') return savedMode as SearchMode;
+      }
+    } catch {
+      // silently ignore
+    }
+    return 'text';
+  });
   const [min, setMin] = React.useState('');
   const [max, setMax] = React.useState('');
   const [specKey, setSpecKey] = React.useState('');
@@ -76,6 +99,15 @@ export function SearchBar() {
   const [facetsLoading, setFacetsLoading] = React.useState(false);
   const [total, setTotal] = React.useState(0);
   const limit = 20;
+
+  // E13-R1 — Sauvegarde de l'état de recherche (sessionStorage)
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem('search-bar-state', JSON.stringify({ query, mode }));
+    } catch {
+      // silently ignore
+    }
+  }, [query, mode]);
 
   const isDimensions = mode === 'dimensions';
   const isMulti = mode === 'multi';

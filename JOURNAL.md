@@ -27,4 +27,6 @@
 | 2026-10-18 | E12-R1c | Facettes API `/api/search/facets` (material, status, cache 30s) | `c39c0d5` | ✅ |
 | 2026-10-18 | E12-R1d | UI filtres + tri + facettes + pagination | `788ca26` | ✅ |
 | 2026-10-19 | E12-R1e | Validation finale — .env, next-env.d.ts, clôture D-E12-SEED-E2E | `99a3ddc` | ✅ |
-| 2026-10-19 | E12-R2 | Clôture E12-R2 — purge 4 dettes P0+P1 (machine filter, limit 100, minScore mono, filters mono) | `649c2b6` | ✅ |
+| 2026-10-19 | E12-R2 | Clôture E12-R2 — purge 4 dettes P0+P1 + docs DEBT/CONTEXT/JOURNAL/ROADMAP | `463f471` | ✅ |
+| 2026-10-19 | E13-R0 | Cadrage E13 (hygiène) + E14 (enrichissement 3D) + dette D-E13-3D-FEATURES | `d3f59fc` | ✅ |
+| 2026-10-19 | E13-R1 | Hygiène — newline finale `CONTEXT.md` + `sessionStorage` search-bar (D-E12-NEWLINE + D-E10-R2b-1) | `e2a1b7f` | ✅ |

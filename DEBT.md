@@ -15,31 +15,7 @@ Aucune.
 
 Aucune.
 
-### Faible (4)
-
-#### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
-
-- **Statut :** Active
-- **Priorité :** Faible
-- **Session origine :** E10-R2b
-- **Cause :** Remplacement `router.push` → `window.location.href` (E10-R2b) — rechargement complet de la page au clic sur un résultat de recherche
-- **Périmètre :** `src/components/search-bar.tsx:474`
-- **Impact UX :** Perte du texte saisi, suggestions fermées, scroll reset
-- **Trade-off :** Flash navigation (R3a-1) vs perte d'état (R2b-1) — choix assumé
-- **Effort estimé :** Faible (état via `sessionStorage` ou query params)
-- **Bloquant :** Non
-- **Prochaine session :** À planifier (post-E12)
-
-#### `D-E12-NEWLINE` — `CONTEXT.md` sans newline finale
-
-- **Statut :** Active
-- **Priorité :** Très faible
-- **Session origine :** E12-R0
-- **Cause :** Fichier sans newline finale (POSIX recommande)
-- **Périmètre :** `CONTEXT.md`
-- **Effort estimé :** Très faible (1 édition)
-- **Bloquant :** Non
-- **Prochaine session :** E13-R1
+### Faible (1)
 
 #### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts)
 
@@ -87,6 +63,11 @@ Aucune.
 - **`D-E12-LIMIT-100`** (`limit` max 50, spec 100) — ✅ Clôturée E12-R2 (`max(50)` → `max(100)` dans `MultiSearchQuerySchema` + `PartSearchQuerySchema` — commit `649c2b6`)
 - **`D-E12-MINSCORE-MONO`** (`minScore` non applicable en mono-mode) — ✅ Clôturée E12-R2 (`minScore` appliqué en mode `multi` uniquement ; branches mono-mode `reference`/`specs`/`dimensions`/`text` l'ignorent — commit `649c2b6`)
 - **`D-E12-FILTERS-MONO`** (Filtres non supportés en mono-mode) — ✅ Clôturée E12-R2 (Stratégie B confirmée : filtres `material`/`status`/dates appliqués en mode `multi` uniquement, documentés dans `docs/e12-advanced-search-spec.md` §6.1 — commit `649c2b6`)
+
+### E13 (2)
+
+- **`D-E12-NEWLINE`** — ✅ Clôturée E13-R1 (newline finale ajoutée à `CONTEXT.md`)
+- **`D-E10-R2b-1`** — ✅ Clôturée E13-R1 (`sessionStorage` restauré dans `search-bar.tsx` : sauvegarde `{ query, mode }` au blur, restauration au montage)
 
 ## Notes
 

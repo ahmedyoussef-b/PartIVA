@@ -706,16 +706,20 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E13 — HYGIÈNE & DETTES RÉSIDUELLES (🟢 EN COURS)
+## 🏗️ E13 — HYGIÈNE & DETTES RÉSIDUELLES (✅ CLÔTURÉE)
 
-**Statut :** 🟢 **En cours** (E13-R0)
+**Statut :** ✅ **Clôturée 2026-10-19** (E13-R0 + E13-R1, commit `e2a1b7f`)
 
 **Objet :** clôturer les 2 dettes résiduelles de E12 (hygiène, effort faible).
 
-| Session | Objet | Statut |
-|---|---|---|
-| **E13-R0** | Cadrage E13 + E14 (6 fonctionnalités 3D manquantes, analyse 3DCarParts) | ✅ |
-| **E13-R1** | `D-E12-NEWLINE` (newline `CONTEXT.md`) + `D-E10-R2b-1` (`sessionStorage` search-bar) | 🟢 À cadrer |
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E13-R0** | Cadrage E13 + E14 (6 fonctionnalités 3D manquantes, analyse 3DCarParts) | `d3f59fc` | ✅ |
+| **E13-R1** | Hygiène — newline finale `CONTEXT.md` + `sessionStorage` search-bar (D-E12-NEWLINE + D-E10-R2b-1, `useState` lazy init) | `e2a1b7f` | ✅ |
+
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+**Dettes E13 :** 2 clôturées (`D-E12-NEWLINE`, `D-E10-R2b-1`), 1 active (`D-E13-3D-FEATURES`, post-E13).
 
 ---
 
@@ -773,7 +777,7 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 | **E10** Migration/qualité | ✅ Clôturée | 5 | E9 |
 | **E11** Validation Vercel | ✅ Clôturée | 2 | E10 |
 | **E12** Recherche avancée | ✅ Clôturée | 8 | E11 |
-| **E13** Hygiène & dettes | 🟢 En cours | 2 | E12 |
+| **E13** Hygiène & dettes | ✅ Clôturée | 2 | E12 |
 | **E14** Enrichissement 3D | 🟢 À cadrer | 3 | E13 |
 | **TOTAL** | — | **~87 sessions** | — |
 
