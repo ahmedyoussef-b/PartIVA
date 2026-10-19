@@ -11,18 +11,7 @@
 
 Aucune.
 
-### Moyenne (2)
-
-#### `D-E14-3DCARPARTS-CONNECTOR` — Connecteur 3DCarParts
-
-- **Statut :** Active
-- **Priorité :** Moyenne
-- **Session origine :** E14-R3
-- **Cause :** 3DCarParts est une source externe de modèles 3D. Le connecteur réel (scraping ou API) n'est pas implémenté.
-- **Périmètre :** `src/lib/connectors/3dcarparts.ts` (nouveau), `SearchSourceSchema`, agrégateur.
-- **Effort estimé :** Moyen (connecteur + tests E2E).
-- **Bloquant :** Non.
-- **Prochaine session :** Post-E14.
+### Moyenne (1)
 
 #### `D-E14-STEP-VIEWER` — Viewer STEP/IGES
 
@@ -105,6 +94,10 @@ Aucune.
 ### E14 (1)
 
 - **`D-E13-3D-FEATURES`** — ✅ Clôturée E14-R3 (6 fonctionnalités : 3 traitées en E14-R1/R2/R4/R5, 3 reportées en `D-E14-3DCARPARTS-CONNECTOR`, `D-E14-STEP-VIEWER`, `D-E14-PRINT-ON-DEMAND`)
+
+### E15 (1)
+
+- **`D-E14-3DCARPARTS-CONNECTOR`** — ✅ Clôturée E15-R1 (connecteur mock + fixtures + tests E2E, commit `308cec8`)
 
 ## Notes
 
