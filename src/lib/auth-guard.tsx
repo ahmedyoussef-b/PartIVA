@@ -41,12 +41,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       }
     }
     checkAuth();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [isTauriEnv, router]);
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-muted-foreground">Vérification de l&rsquo;accès...</div>
       </div>
     );

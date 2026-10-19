@@ -1,10 +1,7 @@
 import { SourceConnector } from './types';
 import type { SearchCandidate } from '@/schemas/search';
 import { SOURCE_WEIGHTS } from '@/lib/scoring/weights';
-import {
-  search3DCarParts,
-  map3DCarPartsToCandidate,
-} from '@/lib/data/3dcarparts';
+import { search3DCarParts, map3DCarPartsToCandidate } from '@/lib/data/3dcarparts';
 
 /**
  * Connecteur 3DCarParts (E15-R1).

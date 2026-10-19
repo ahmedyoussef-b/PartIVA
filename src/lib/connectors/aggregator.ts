@@ -238,7 +238,14 @@ export async function searchWithFallback(
   const fallbackChain: string[] = [];
 
   // Ordre de priorité (D-E3-22 / D6)
-  const priority = ['wikidata', 'traceparts', 'industrial_catalog', 'tecdoc', 'local_db', '3dcarparts'];
+  const priority = [
+    'wikidata',
+    'traceparts',
+    'industrial_catalog',
+    'tecdoc',
+    'local_db',
+    '3dcarparts',
+  ];
   const ordered = priority
     .map((s) => connectors.find((c) => c.source === s))
     .filter((c): c is SourceConnector => c !== undefined && c.isAvailable());

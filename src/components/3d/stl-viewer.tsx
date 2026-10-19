@@ -33,19 +33,24 @@ function StlScene({ src }: { src: string }) {
 
   React.useEffect(() => {
     let cancelled = false;
-    new STLLoader().loadAsync(src).then((geometry) => {
-      if (!cancelled) setScene(new Mesh(geometry, new MeshStandardMaterial({ color: 0xffffff })));
-    }).catch((err) => {
-      if (!cancelled) setError(err as Error);
-    });
-    return () => { cancelled = true; };
+    new STLLoader()
+      .loadAsync(src)
+      .then((geometry) => {
+        if (!cancelled) setScene(new Mesh(geometry, new MeshStandardMaterial({ color: 0xffffff })));
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err as Error);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [src]);
 
   if (error) {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-slate-900/90 text-slate-300 pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 p-4 text-center text-slate-300">
         <p className="text-sm font-medium">Erreur de chargement du modèle 3D</p>
-        <p className="text-xs mt-1 truncate max-w-[80%]">{error.message}</p>
+        <p className="mt-1 max-w-[80%] truncate text-xs">{error.message}</p>
       </div>
     );
   }
@@ -55,9 +60,7 @@ function StlScene({ src }: { src: string }) {
 
 function StlViewerCanvas({ src }: { src: string }) {
   return (
-    <div
-      className="relative w-full aspect-video bg-slate-900 rounded-lg overflow-hidden border border-slate-700"
-    >
+    <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
       <Canvas
         shadows
         camera={{ position: [5, 5, 5], fov: 45 }}
@@ -65,14 +68,19 @@ function StlViewerCanvas({ src }: { src: string }) {
         style={{ width: '100%', height: '100%', backgroundColor: MODEL_BG_COLOR }}
       >
         <primitive object={new AmbientLight(0xffffff, 0.6)} />
-        <primitive object={new SpotLight(0xffffff, 1.2, 50, Math.PI / 4, 0.5, 1)} position={[10, 10, 10]} />
+        <primitive
+          object={new SpotLight(0xffffff, 1.2, 50, Math.PI / 4, 0.5, 1)}
+          position={[10, 10, 10]}
+        />
         <primitive object={new AxesHelper(1)} />
         <Grid />
         <StlScene src={src} />
         <OrbitControls enableZoom enablePan enableRotate makeDefault />
       </Canvas>
       <div className="absolute top-2 right-2 z-10 flex gap-2">
-        <Button size="sm" variant="outline">Reset vue</Button>
+        <Button size="sm" variant="outline">
+          Reset vue
+        </Button>
       </div>
     </div>
   );
@@ -85,7 +93,7 @@ export function StlViewer({ src, alt, height }: StlViewerProps) {
         <CardHeader>
           <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <CardContent className="text-muted-foreground flex flex-col items-center justify-center py-12">
           {alt ?? 'Aucun modèle 3D disponible'}
         </CardContent>
       </Card>

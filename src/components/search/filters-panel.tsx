@@ -66,38 +66,38 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
         <Card>
           <CardContent className="space-y-3 p-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-muted-foreground mb-1 block text-[11px]">Matériau</label>
-                    <select
-                      value={filters.material}
-                      onChange={(e) => update('material', e.target.value)}
-                      className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
-                    >
-                      <option value="">Tous les matériaux</option>
-                      {availableMaterials.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-muted-foreground mb-1 block text-[11px]">Machine</label>
-                    <select
-                      value={filters.machineId}
-                      onChange={(e) => update('machineId', e.target.value)}
-                      className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
-                    >
-                      <option value="">Toutes les machines</option>
-                      {availableMaterials.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-[11px]">Matériau</label>
+                  <select
+                    value={filters.material}
+                    onChange={(e) => update('material', e.target.value)}
+                    className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
+                  >
+                    <option value="">Tous les matériaux</option>
+                    {availableMaterials.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-[11px]">Machine</label>
+                  <select
+                    value={filters.machineId}
+                    onChange={(e) => update('machineId', e.target.value)}
+                    className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
+                  >
+                    <option value="">Toutes les machines</option>
+                    {availableMaterials.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div>
                 <label className="text-muted-foreground mb-1 block text-[11px]">Statut</label>
                 <select

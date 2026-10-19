@@ -8,11 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Search, MapPin, ImagePlus } from 'lucide-react';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import type { PartStatus } from '@/generated/prisma/browser';
-import {
-  FiltersPanel,
-  EMPTY_FILTERS,
-  type SearchFilters,
-} from '@/components/search/filters-panel';
+import { FiltersPanel, EMPTY_FILTERS, type SearchFilters } from '@/components/search/filters-panel';
 import { FacetsPanel, type FacetsResult } from '@/components/search/facets-panel';
 import { Pagination } from '@/components/search/pagination';
 
@@ -163,7 +159,8 @@ export function SearchBar() {
       if (filters.material) params.set('material', filters.material);
       if (filters.status) params.set('status', filters.status);
       if (filters.createdAfter) params.set('createdAfter', `${filters.createdAfter}T00:00:00.000Z`);
-      if (filters.createdBefore) params.set('createdBefore', `${filters.createdBefore}T23:59:59.999Z`);
+      if (filters.createdBefore)
+        params.set('createdBefore', `${filters.createdBefore}T23:59:59.999Z`);
       if (filters.minScore) params.set('minScore', filters.minScore);
       if (sort !== 'relevance') params.set('sort', sort);
       if (offset > 0) params.set('offset', String(offset));

@@ -42,7 +42,10 @@ function AdminDemandesPageContent() {
     );
   });
 
-  const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  const STATUS_CONFIG: Record<
+    string,
+    { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  > = {
     new: { label: 'Nouvelle', variant: 'outline' },
     searching: { label: 'Recherche', variant: 'default' },
     candidate_found: { label: 'Candidat trouvé', variant: 'secondary' },
@@ -88,7 +91,7 @@ function AdminDemandesPageContent() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <FileText className="h-4 w-4" />
             {filtered.length} demande(s)
           </CardTitle>
@@ -99,20 +102,24 @@ function AdminDemandesPageContent() {
               <div className="text-muted-foreground text-sm">Chargement...</div>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-muted-foreground py-8 text-center text-sm">
-              Aucune demande
-            </div>
+            <div className="text-muted-foreground py-8 text-center text-sm">Aucune demande</div>
           ) : (
             <div className="space-y-3">
               {filtered.map((d) => {
-                const statusCfg = STATUS_CONFIG[d.status] || { label: d.status, variant: 'outline' };
-                const urgencyCfg = URGENCY_CONFIG[d.urgency] || { label: d.urgency, color: 'text-muted-foreground' };
+                const statusCfg = STATUS_CONFIG[d.status] || {
+                  label: d.status,
+                  variant: 'outline',
+                };
+                const urgencyCfg = URGENCY_CONFIG[d.urgency] || {
+                  label: d.urgency,
+                  color: 'text-muted-foreground',
+                };
                 return (
                   <div
                     key={d.id}
-                    className="border-border flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/30 transition-colors"
+                    className="border-border hover:bg-muted/30 flex items-start gap-3 rounded-lg border p-3 transition-colors"
                   >
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="font-mono text-[9px]">
                           {d.id.slice(0, 8)}
@@ -124,13 +131,13 @@ function AdminDemandesPageContent() {
                           {urgencyCfg.label}
                         </Badge>
                       </div>
-                      <p className="text-xs font-medium truncate">{d.partDescription}</p>
+                      <p className="truncate text-xs font-medium">{d.partDescription}</p>
                       {d.partFunction && (
-                        <p className="text-muted-foreground mt-0.5 text-[10px] truncate">
+                        <p className="text-muted-foreground mt-0.5 truncate text-[10px]">
                           Fonction : {d.partFunction}
                         </p>
                       )}
-                      <p className="text-muted-foreground mt-1 text-[10px] flex items-center gap-1">
+                      <p className="text-muted-foreground mt-1 flex items-center gap-1 text-[10px]">
                         {d.machineRef && (
                           <>
                             <span>Machine :</span>

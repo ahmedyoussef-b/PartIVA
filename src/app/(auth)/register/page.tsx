@@ -40,8 +40,8 @@ export default function RegisterPage() {
 
       toast.success('Bienvenue ! Votre compte client a été créé.');
       const targetUrl = '/client/dashboard/creer-piece';
-        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-        window.location.href = targetUrl;
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = targetUrl;
     } catch (err) {
       console.error('[Register] Erreur lors de l’inscription:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de l’inscription');

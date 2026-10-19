@@ -12,13 +12,13 @@ test.describe('E14-R4 — StlViewer (Three.js)', () => {
     const partsResp = await page.request.get('/api/parts');
     expect(partsResp.status()).toBe(200);
     const parts = await partsResp.json();
-    const partWithoutModel = parts.find((p: { printableModelUrl: string | null }) => !p.printableModelUrl);
+    const partWithoutModel = parts.find(
+      (p: { printableModelUrl: string | null }) => !p.printableModelUrl,
+    );
     expect(partWithoutModel).toBeTruthy();
 
     await page.goto(`/admin/pieces/${partWithoutModel.id}`, { waitUntil: 'networkidle' });
-    await expect(
-      page.getByText('Aucun modèle 3D disponible')
-    ).toBeVisible();
+    await expect(page.getByText('Aucun modèle 3D disponible')).toBeVisible();
   });
 
   test('StlViewer respecte la prop height', async ({ page }) => {
@@ -40,7 +40,9 @@ test.describe('E14-R5 — Intégration /admin/pieces/[id]', () => {
     const partsResp = await page.request.get('/api/parts');
     expect(partsResp.status()).toBe(200);
     const parts = await partsResp.json();
-    const partWithoutModel = parts.find((p: { printableModelUrl: string | null }) => !p.printableModelUrl);
+    const partWithoutModel = parts.find(
+      (p: { printableModelUrl: string | null }) => !p.printableModelUrl,
+    );
 
     await page.goto(`/admin/pieces/${partWithoutModel.id}`, { waitUntil: 'networkidle' });
     await expect(page.getByText('Aucun modèle 3D disponible')).toBeVisible();

@@ -235,7 +235,9 @@ export async function GET(req: Request) {
     if (validated.createdAfter)
       filtered = filtered.filter((r) => new Date(r.createdAt) >= new Date(validated.createdAfter!));
     if (validated.createdBefore)
-      filtered = filtered.filter((r) => new Date(r.createdAt) <= new Date(validated.createdBefore!));
+      filtered = filtered.filter(
+        (r) => new Date(r.createdAt) <= new Date(validated.createdBefore!),
+      );
     if (validated.machineId) filtered = filtered.filter((r) => r.machineId === validated.machineId);
     // minScore ignoré en mono-mode (D-E12-MINSCORE-MONO)
 

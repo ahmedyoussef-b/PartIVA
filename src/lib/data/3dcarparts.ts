@@ -35,9 +35,7 @@ export const ThreeDCarPartSearchResponseSchema = z.object({
   pageSize: z.number().int().positive().default(20),
 });
 
-export type ThreeDCarPartSearchResponse = z.infer<
-  typeof ThreeDCarPartSearchResponseSchema
->;
+export type ThreeDCarPartSearchResponse = z.infer<typeof ThreeDCarPartSearchResponseSchema>;
 
 export async function search3DCarParts(
   query: string,

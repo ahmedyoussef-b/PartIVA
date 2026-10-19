@@ -42,7 +42,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     }
     checkAuth();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [isTauri]);
 
   React.useEffect(() => {
@@ -54,7 +56,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [triggerSync, isTauri]);
 
   // Web : session.role === 'ADMIN' — Tauri : token exists
-  const isAdmin = isTauri ? tauriAuthed : (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
+  const isAdmin = isTauri
+    ? tauriAuthed
+    : (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
   const isLoading = isTauri ? tauriChecking : isPending;
 
   if (isLoading || !isAdmin) {
@@ -147,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 ADM
               </div>
               <span className="hidden text-xs font-medium sm:inline">
-                {isTauri ? 'Admin (Tauri)' : (session?.user?.name || 'Admin')}
+                {isTauri ? 'Admin (Tauri)' : session?.user?.name || 'Admin'}
               </span>
             </div>
             <Button
