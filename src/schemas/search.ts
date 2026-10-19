@@ -10,6 +10,7 @@ export const SearchSourceSchema = z.enum([
   'manufacturer_catalog',
   'geometric_search',
   'industrial_catalog',
+  '3dcarparts',
 ]);
 export type SearchSource = z.infer<typeof SearchSourceSchema>;
 

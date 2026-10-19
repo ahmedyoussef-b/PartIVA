@@ -39,6 +39,7 @@ export const SOURCE_WEIGHTS: Record<
   traceparts: { weight: 0.6, timeoutMs: 3_000 },
   tecdoc: { weight: 0.5, timeoutMs: 3_000 },
   industrial_catalog: { weight: 0.55, timeoutMs: 5_000 },
+  '3dcarparts': { weight: 0.45, timeoutMs: 5_000 },
 } as const;
 
 export type ScoringSource = keyof typeof SOURCE_WEIGHTS;

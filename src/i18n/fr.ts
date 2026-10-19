@@ -55,6 +55,7 @@ export const FR = {
     manufacturer_catalog: 'Catalogues constructeurs indexés',
     geometric_search: 'Recherche géométrique 3D / IA',
     industrial_catalog: 'Catalogue industriel (dataset HF)',
+    '3dcarparts': '3DCarParts (modèles 3D imprimables)',
   } satisfies Record<SearchSource, string>,
   autoCategories: {
     body: 'Carrosserie',
