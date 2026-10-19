@@ -2,7 +2,7 @@
 
 **Dernière mise à jour :** 2026-10-19
 **Commit HEAD :** `8884eee` (fix 3d règles-of-hooks, post-E15-R1)
-**Phase en cours :** E16 — cadrage (E15-R1 clôturée)
+**Phase en cours :** E16 — intégration (E15-R1 clôturée, E16-R3 en cours)
 **Tag :** `v0.1.0-e8p` (E8) · `v0.3.0-e9` (E9) · `v0.4.0-e10` (E10) · `v0.5.0-e11` (E11)
 
 > ⚠️ 4 tags réels. Aucun tag pour E12, E13, E14, E15. Le tag `v0.5.1-e12` mentionné antérieurement n'existe pas.

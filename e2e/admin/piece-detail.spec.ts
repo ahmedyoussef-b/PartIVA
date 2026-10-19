@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('E14-R4 — StlViewer (Three.js)', () => {
   test('StlViewer rend un canvas quand printableModelUrl est présent', async ({ page }) => {
-    await page.goto('/admin/pieces/TD-001', { waitUntil: 'networkidle' });
+    await page.goto('/admin/pieces/TD-001', { waitUntil: 'domcontentloaded' });
     // Le visualiseur 3D doit être présent (canvas WebGL)
     await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 });
   });
@@ -17,12 +17,12 @@ test.describe('E14-R4 — StlViewer (Three.js)', () => {
     );
     expect(partWithoutModel).toBeTruthy();
 
-    await page.goto(`/admin/pieces/${partWithoutModel.id}`, { waitUntil: 'networkidle' });
+    await page.goto(`/admin/pieces/${partWithoutModel.id}`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByText('Aucun modèle 3D disponible')).toBeVisible();
   });
 
   test('StlViewer respecte la prop height', async ({ page }) => {
-    await page.goto('/admin/pieces/TD-001', { waitUntil: 'networkidle' });
+    await page.goto('/admin/pieces/TD-001', { waitUntil: 'domcontentloaded' });
     // Le conteneur du viewer doit être visible
     await expect(page.getByText('Visualiseur 3D')).toBeVisible();
     await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 });
@@ -31,7 +31,7 @@ test.describe('E14-R4 — StlViewer (Three.js)', () => {
 
 test.describe('E14-R5 — Intégration /admin/pieces/[id]', () => {
   test('Page détail affiche StlViewer quand printableModelUrl existe', async ({ page }) => {
-    await page.goto('/admin/pieces/TD-001', { waitUntil: 'networkidle' });
+    await page.goto('/admin/pieces/TD-001', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText('Visualiseur 3D')).toBeVisible();
     await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 });
   });
@@ -44,8 +44,25 @@ test.describe('E14-R5 — Intégration /admin/pieces/[id]', () => {
       (p: { printableModelUrl: string | null }) => !p.printableModelUrl,
     );
 
-    await page.goto(`/admin/pieces/${partWithoutModel.id}`, { waitUntil: 'networkidle' });
+    await page.goto(`/admin/pieces/${partWithoutModel.id}`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByText('Aucun modèle 3D disponible')).toBeVisible();
     await expect(page.locator('canvas')).not.toBeVisible();
+  });
+});
+
+test.describe('E16-R3 — Intégration ModelViewer (détection auto STEP/STL)', () => {
+  test('Pièce STL (.stl) → StlViewer rendu, pas de CadViewer', async ({ page }) => {
+    await page.goto('/admin/pieces/TD-001', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('Visualiseur 3D')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId('cad-viewer-canvas')).toHaveCount(0);
+  });
+
+  test('Pièce STEP (.step) → CadViewer rendu (canvas + cad-viewer-canvas)', async ({ page }) => {
+    await page.goto('/admin/pieces/TD-STEP-001', { waitUntil: 'domcontentloaded' });
+    // Le parsing STEP passe par un Web Worker : laisser le temps au worker WASM.
+    await expect(page.getByTestId('cad-viewer-canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId('cad-viewer-error')).toHaveCount(0);
   });
 });

@@ -1090,6 +1090,19 @@ async function main() {
     },
   });
 
+  // ── Part dédiée pour les tests E2E visualiseur CAO (E16-R3) ─────────
+  await prisma.part.upsert({
+    where: { id: 'TD-STEP-001' },
+    update: {},
+    create: {
+      id: 'TD-STEP-001',
+      partNumber: 'TD-STEP-001',
+      name: 'E2E Test Part TD-STEP-001 (STEP)',
+      status: 'READY',
+      printableModelUrl: '/models/test.step',
+    },
+  });
+
   // ── Summary ────────────────────────────────────────────────────────
   console.log('\n✅ Seed completed successfully!');
   console.log('─────────────────────────────────────────');

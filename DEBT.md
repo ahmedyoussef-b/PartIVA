@@ -11,22 +11,44 @@
 
 Aucune.
 
-### Moyenne (1)
+### Moyenne (2)
 
-#### `D-E14-STEP-VIEWER` — Viewer STEP/IGES
+#### `D-E16-DASHBOARD-FETCH` — Fetch dashboard non optimisé
 
 - **Statut :** Active
 - **Priorité :** Moyenne
+- **Session origine :** E16-R3
+- **Cause :** Le tableau de bord admin refetch les données à chaque navigation sans mise en cache client — rechargements redondants et risque de flash de contenu vide.
+- **Périmètre :** `src/app/admin/dashboard/**` (à confirmer selon implémentation réelle).
+- **Effort estimé :** Moyen (1-2 sessions).
+- **Bloquant :** Non.
+- **Prochaine session :** Post-E16.
+
+#### `D-E14-STEP-VIEWER` — Viewer STEP/IGES
+
+- **Statut :** Active → **En cours de clôture (E16-R3)**
+- **Priorité :** Moyenne
 - **Session origine :** E14-R3
 - **Cause :** `StlViewer` supporte STL/GLTF, mais pas STEP/IGES (formats CAO pro).
-- **Périmètre :** `src/components/3d/cad-viewer.tsx` (nouveau), `occt-import-js` ou `stepjs`.
+- **Périmètre :** `src/components/3d/cad-viewer.tsx` (fait E16-R1), `src/components/3d/model-viewer.tsx` (nouveau E16-R3), `occt-import-js`.
 - **Effort estimé :** Élevé (4-6 sessions).
 - **Bloquant :** Non.
-- **Prochaine session :** Post-E14.
+- **Prochaine session :** E16-R2 (robustesse IGES : timeout, mémoire, erreurs détaillées) puis E16-R4 (doc + clôture définitive).
 
 Aucune.
 
-### Faible (2)
+### Faible (3)
+
+#### `D-E16-THREE-CLOCK` — Horloge/animation Three.js non nettoyée
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E16-R3
+- **Cause :** Les canvas Three.js (`CadViewer`, `StlViewer`) n'arrêtent pas systématiquement `requestAnimationFrame` / `OrbitControls` au démontage — risque de fuite mémoire mineure sur navigation répétée.
+- **Périmètre :** `src/components/3d/cad-viewer.tsx`, `src/components/3d/stl-viewer.tsx`, `src/components/3d/model-viewer.tsx`.
+- **Effort estimé :** Faible (1 session).
+- **Bloquant :** Non.
+- **Prochaine session :** E16-R2 ou post-E16.
 
 #### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts) — ✅ Clôturée E14-R3
 

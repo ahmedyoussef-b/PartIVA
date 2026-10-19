@@ -744,6 +744,24 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
+## 🏗️ E16 — INTÉGRATION 3D (en cours)
+
+**Statut :** 🕒 **En cours** (E16-R3 intégration → E16-R2 robustesse IGES → E16-R4 doc + clôture)
+
+**Objet :** brancher `CadViewer` dans le parcours utilisateur et clôturer `D-E14-STEP-VIEWER`.
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E16-R3** | `ModelViewer` (auto-détection `.step`/`.iges` → `CadViewer`, `.stl`/`.gltf` → `StlViewer`) dans `/admin/pieces/[id]` + pièce E2E `TD-STEP-001` + 2 tests E2E | `[à venir]` | 🕒 |
+| **E16-R2** | IGES robuste : timeout, limite mémoire, erreurs détaillées (`occt-import-js`) | — | ⬭ |
+| **E16-R4** | Doc `docs/3d-format-support.md` + clôture `D-E14-STEP-VIEWER` | — | ⬭ |
+
+**Baseline attendue E16-R3 :** ESLint 0/0 · TS 0 · Prettier 0 · E2E 10/10 (piece-detail).
+
+**Dettes E16 :** `D-E16-THREE-CLOCK` (Faible), `D-E16-DASHBOARD-FETCH` (Moyenne).
+
+---
+
 ## 🏗️ E8 — FINALISATION, QA & DÉPLOIEMENT
 **Objectif** : rendre PartIVA production-ready.
 

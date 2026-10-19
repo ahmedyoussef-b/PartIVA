@@ -36,6 +36,7 @@
 | 2026-10-19 | E15-R1 | Connecteur 3DCarParts (mock) + fixtures + tests E2E | `bc1aea6` | ✅ |
 | 2026-10-19 | E15-R1 | Clôture `D-E14-3DCARPARTS-CONNECTOR` | `15cfbb0` | ✅ |
 | 2026-10-19 | E16-R0 | Rebase `origin/master` + untrack `next-env.d.ts` (R.5.32) | `4a7bf44` | ✅ |
+| 2026-10-19 | E16-R3 | Intégration ModelViewer dans `/admin/pieces/[id]` — `.step`/`.iges` → `CadViewer`, `.stl`/`.gltf` → `StlViewer` + 2 tests E2E | `[à venir]` | 🕒 |
 | 2026-10-19 | E16-R0 | Baseline : prettier --write sur 21 fichiers (dette E12→E15) | `879060c` | ✅ |
 | 2026-10-19 | E16-R0 | Fix(3d) : règles-of-hooks `stl-viewer.tsx` | `8884eee` | ✅ |
 | 2026-10-19 | E16-R0a | Resynchronisation documentaire post-E15-R1 | `[à venir]` | ✅ |

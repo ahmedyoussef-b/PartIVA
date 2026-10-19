@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getPartById } from '@/lib/data/parts';
-import { StlViewer } from '@/components/3d/stl-viewer';
+import { ModelViewer } from '@/components/3d/model-viewer';
 import type { UserRole } from '@/generated/prisma/client';
 
 export default async function AdminPieceDetailPage({
@@ -52,7 +52,7 @@ export default async function AdminPieceDetailPage({
         {/* Visualiseur 3D */}
         <div className="lg:col-span-1">
           {hasModel ? (
-            <StlViewer src={part.printableModelUrl!} alt="Modèle 3D de la pièce" height="500px" />
+            <ModelViewer src={part.printableModelUrl!} alt="Modèle 3D de la pièce" height="500px" />
           ) : (
             <div className="text-muted-foreground flex aspect-video flex-col items-center justify-center rounded-lg border border-slate-700 bg-slate-900 py-12">
               Aucun modèle 3D disponible
