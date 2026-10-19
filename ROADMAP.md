@@ -723,19 +723,24 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E14 — ENRICHISSEMENT 3D & COMMUNAUTÉ (🟢 À CADRER)
+## 🏗️ E14 — ENRICHISSEMENT 3D & COMMUNAUTÉ (✅ CLÔTURÉE)
 
-**Statut :** 🟢 **À cadrer** (E14-R0)
+**Statut :** ✅ **Clôturée 2026-10-19** (E14-R1 → R5, commit `4e65caf`)
 
-**Objet :** intégrer les fonctionnalités manquantes identifiées dans l'analyse 3DCarParts (modèles 3D, fit reports, avertissements sécurité).
+**Objet :** intégrer les fonctionnalités 3D manquantes (analyse 3DCarParts).
 
-| Session | Objet | Statut |
-|---|---|---|
-| **E14-R1** | Enrichissement TecDoc mock (`safetyWarning`, `printableModelUrl`, `printMaterial`) | 🟢 À cadrer |
-| **E14-R2** | Table `FitReport` + API `/api/fit-reports` | 🟢 À cadrer |
-| **E14-R3** | `docs/3d-printing-resources.md` + dette `D-E14-3DCARPARTS-CONNECTOR` | 🟢 À cadrer |
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E14-R0** | Cadrage E14 (décisions D1-D7) | — | ✅ |
+| **E14-R1** | Enrichissement TecDoc mock (`safetyWarning`, `printableModelUrl`, `printMaterial`) | existant | ✅ |
+| **E14-R2** | Table `FitReport` + API `/api/fit-reports` | `bcf8ed1` + `29f19e4` | ✅ |
+| **E14-R4** | `StlViewer` (Three.js) — visualisation STL/GLTF | `4e65caf` | ✅ |
+| **E14-R5** | Intégration `/admin/pieces/[id]` | `4e65caf` | ✅ |
+| **E14-R3** | `docs/3d-printing-resources.md` + 3 dettes + clôture `D-E13-3D-FEATURES` | `[à venir]` | ✅ |
 
-**Décisions E14 :** D1 (Oui), D2 (Oui), D3 (Non — dette), D4 (Oui), D5 (Oui), D6 (Oui — dette).
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes · E2E (10/10 piece-detail + 3/3 fit-reports) · Prisma 16 migrations.
+
+**Dettes E14 :** 3 nouvelles (`D-E14-3DCARPARTS-CONNECTOR`, `D-E14-STEP-VIEWER`, `D-E14-PRINT-ON-DEMAND`), `D-E13-3D-FEATURES` clôturée.
 
 ---
 

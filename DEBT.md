@@ -11,15 +11,37 @@
 
 Aucune.
 
-### Moyenne (0)
+### Moyenne (2)
+
+#### `D-E14-3DCARPARTS-CONNECTOR` — Connecteur 3DCarParts
+
+- **Statut :** Active
+- **Priorité :** Moyenne
+- **Session origine :** E14-R3
+- **Cause :** 3DCarParts est une source externe de modèles 3D. Le connecteur réel (scraping ou API) n'est pas implémenté.
+- **Périmètre :** `src/lib/connectors/3dcarparts.ts` (nouveau), `SearchSourceSchema`, agrégateur.
+- **Effort estimé :** Moyen (connecteur + tests E2E).
+- **Bloquant :** Non.
+- **Prochaine session :** Post-E14.
+
+#### `D-E14-STEP-VIEWER` — Viewer STEP/IGES
+
+- **Statut :** Active
+- **Priorité :** Moyenne
+- **Session origine :** E14-R3
+- **Cause :** `StlViewer` supporte STL/GLTF, mais pas STEP/IGES (formats CAO pro).
+- **Périmètre :** `src/components/3d/cad-viewer.tsx` (nouveau), `occt-import-js` ou `stepjs`.
+- **Effort estimé :** Élevé (4-6 sessions).
+- **Bloquant :** Non.
+- **Prochaine session :** Post-E14.
 
 Aucune.
 
-### Faible (1)
+### Faible (2)
 
-#### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts)
+#### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts) — ✅ Clôturée E14-R3
 
-- **Statut :** Active
+- **Statut :** Clôturée
 - **Priorité :** Multi-niveaux — Haute (modèles 3D imprimables + disclaimer sécurité), Moyenne (fit reports, outil de mesure, attribution/licence), Faible (print-on-demand)
 - **Session origine :** E13-R0
 - **Cause :** Analyse comparative 3DCarParts révèle 6 fonctionnalités manquantes : modèles 3D imprimables, fit reports, outil de mesure, avertissement sécurité, attribution/licence, print-on-demand.
@@ -27,6 +49,17 @@ Aucune.
 - **Effort estimé :** Moyen (E14-R1 + R2 + R3).
 - **Bloquant :** Non.
 - **Prochaine session :** E14-R0.
+
+#### `D-E14-PRINT-ON-DEMAND` — Print-on-demand
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E14-R3
+- **Cause :** Pas de partenariat avec un service d'impression professionnelle.
+- **Périmètre :** `src/app/api/print-order/route.ts` (nouveau), intégration Stripe + partenaire.
+- **Effort estimé :** Élevé (post-E14).
+- **Bloquant :** Non.
+- **Prochaine session :** Post-E14.
 
 ### Reportée (0)
 
@@ -68,6 +101,10 @@ Aucune.
 
 - **`D-E12-NEWLINE`** — ✅ Clôturée E13-R1 (newline finale ajoutée à `CONTEXT.md`)
 - **`D-E10-R2b-1`** — ✅ Clôturée E13-R1 (`sessionStorage` restauré dans `search-bar.tsx` : sauvegarde `{ query, mode }` au blur, restauration au montage)
+
+### E14 (1)
+
+- **`D-E13-3D-FEATURES`** — ✅ Clôturée E14-R3 (6 fonctionnalités : 3 traitées en E14-R1/R2/R4/R5, 3 reportées en `D-E14-3DCARPARTS-CONNECTOR`, `D-E14-STEP-VIEWER`, `D-E14-PRINT-ON-DEMAND`)
 
 ## Notes
 

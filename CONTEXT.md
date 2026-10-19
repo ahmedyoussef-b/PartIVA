@@ -1,8 +1,8 @@
 # CONTEXT — PartIVA
 
 **Dernière mise à jour :** 2026-10-19
-**Commit HEAD :** `e2a1b7f` (E13-R1)
-**Phase en cours :** E13 — **TERMINÉE** — E13-R0 + E13-R1 clôturées, ouverture E14 à venir
+**Commit HEAD :** `4e65caf` (E14-R4/R5)
+**Phase en cours :** E14 — **TERMINÉE** — E14-R1 à R5 clôturées
 **Tag :** `v0.3.0-e9` (E9) · `v0.4.0-e10` (E10) · `v0.5.0-e11` (E11) · `v0.5.1-e12` (E12)
 
 ## État
@@ -34,7 +34,7 @@
 - Closed : `docs(DEBT): D-E12-SEED-E2E` (commit `99a3ddc`) ✅
 
 ## Dettes actives
-- `D-E13-3D-FEATURES` (fonctionnalités 3D manquantes, 3DCarParts) — Multi-niveaux (H/M/F) — **E14**
+- `D-E13-3D-FEATURES` — ✅ Clôturée E14-R3 (voir `DEBT.md` section E14 clôturées)
 
 
 **Dettes clôturées :** voir `DEBT.md` section « Clôturées » (9 E10 + 2 E9 + 1 E11 + 6 E12 + 2 E13).
@@ -50,3 +50,4 @@
 - **Décisions E14** : D1 (Oui), D2 (Oui), D3 (Non — dette), D4 (Oui), D5 (Oui), D6 (Oui — dette)
 - **E13-R1** : Hygiène — `D-E12-NEWLINE` (newline finale `CONTEXT.md`) + `D-E10-R2b-1` (`sessionStorage` search-bar : sauvegarde/restore `{ query, mode }` via `useState` lazy init — règle `react-hooks/set-state-in-effect` respectée) ✅
 - **E13** : **CLÔTURÉE** — 2/2 sessions, 2 dettes clôturées, baseline tenue (ESLint 0/0, TS 0, Prettier 0, Build 59 routes, E2E 284/0/4, Prisma 15 migrations)
+- **E14** : **CLÔTURÉE** — E14-R1 (enrichissement mock), R2 (FitReport), R4 (StlViewer), R5 (intégration admin), R3 (doc + dettes). `D-E13-3D-FEATURES` clôturée. 3 nouvelles dettes actives post-E14.
