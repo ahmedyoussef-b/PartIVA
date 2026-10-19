@@ -111,7 +111,7 @@ async function main() {
         role: 'USER',
       },
     });
-    const e2ePasswordHash = await hashPassword('E2E-test-2026!');
+    const e2ePasswordHash = await hashPassword('PartIVA-dev-2026!');
     await prisma.account.upsert({
       where: { providerId_accountId: { providerId: 'credential', accountId: e2eUser.id } },
       update: { password: e2ePasswordHash },
@@ -1075,6 +1075,18 @@ async function main() {
         scores: { global: 0.64, geometry: 0.68, dimensions: 0.6, material: 0.5 },
       },
     ],
+  });
+
+  // ── Part dédiée pour les tests E2E FitReport (E14-R2) ──────────────
+  await prisma.part.upsert({
+    where: { id: 'TD-001' },
+    update: {},
+    create: {
+      id: 'TD-001',
+      partNumber: 'TD-001',
+      name: 'E2E Test Part TD-001',
+      status: 'READY',
+    },
   });
 
   // ── Summary ────────────────────────────────────────────────────────
