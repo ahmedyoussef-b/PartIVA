@@ -47,6 +47,9 @@ const config = [
       'e2e/**',
       'test-results/**',
       'playwright-report/**',
+      // E16-R1 — artefacts WASM vendored (occt-import-js, LGPL-2.1).
+      // Code tiers, jamais reformaté ni corrigé — voir scripts/sync-occt-assets.mjs.
+      'public/wasm/**',
     ],
   },
 

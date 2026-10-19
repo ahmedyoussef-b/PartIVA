@@ -34,3 +34,7 @@ prisma7.config.ts
 
 # Fichier généré par Next.js (restauré via git checkout, jamais commité — règle #32)
 next-env.d.ts
+
+# E16-R1 — artefacts WASM vendored (occt-import-js, LGPL-2.1).
+# Code tiers : le reformatting casserait le loader, les licences sont redistribuées telles quelles.
+public/wasm
