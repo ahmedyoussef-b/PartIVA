@@ -107,6 +107,15 @@ export const MultiSearchQuerySchema = z
       .nullish()
       .transform((v) => v ?? undefined)
       .default(20),
+    // Filtres avancés (E12-R1b)
+    material: z.string().min(1).max(100).optional(),
+    status: z.enum(['DRAFT', 'SUBMITTED', 'VALIDATED', 'ARCHIVED']).optional(),
+    createdAfter: z.string().datetime().optional(),
+    createdBefore: z.string().datetime().optional(),
+    minScore: z.coerce.number().min(0).max(1).optional(),
+    // Tri + pagination (E12-R1b)
+    sort: z.enum(['relevance', 'date', 'name', 'status']).optional().default('relevance'),
+    offset: z.coerce.number().int().min(0).optional().default(0),
   })
   .superRefine((data, ctx) => {
     const hasAny =

@@ -447,3 +447,125 @@ test.describe('Recherche par photo', () => {
     expect(Array.isArray(body.results)).toBe(true);
   });
 });
+
+// ============================================================================
+// E12-R1b — Filtres + tri + pagination (mode=multi uniquement)
+// ============================================================================
+
+test.describe('Recherche avancée — filtres', () => {
+  test('multi avec filter material → 200 et résultats filtrés', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&material=ABS', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.mode).toBe('multi');
+    body.results.forEach((r: { material: string | null }) => {
+      expect(r.material).toBe('ABS');
+    });
+  });
+
+  test('multi avec filter status → 200 et résultats filtrés', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&status=VALIDATED', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    body.results.forEach((r: { status: string }) => {
+      expect(r.status).toBe('VALIDATED');
+    });
+  });
+
+  test('multi avec filter createdAfter → 200 et résultats filtrés', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const after = new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString();
+    const response = await request.get(`/api/search?mode=multi&q=plastique&createdAfter=${after}`, { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    body.results.forEach((r: { createdAt: string }) => {
+      expect(new Date(r.createdAt).getTime()).toBeGreaterThanOrEqual(new Date(after).getTime());
+    });
+  });
+
+  test('multi avec filter createdBefore → 200 et résultats filtrés', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const before = new Date().toISOString();
+    const response = await request.get(`/api/search?mode=multi&q=plastique&createdBefore=${before}`, { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    body.results.forEach((r: { createdAt: string }) => {
+      expect(new Date(r.createdAt).getTime()).toBeLessThanOrEqual(new Date(before).getTime());
+    });
+  });
+
+  test('multi avec filter minScore → 200 et scores ≥ seuil', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&minScore=0.5', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    body.results.forEach((r: { score: number }) => {
+      expect(r.score).toBeGreaterThanOrEqual(0.5);
+    });
+  });
+});
+
+test.describe('Recherche avancée — tri', () => {
+  test('multi avec sort=date → 200 et tri décroissant', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&sort=date', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    const dates = body.results.map((r: { createdAt: string }) => new Date(r.createdAt).getTime());
+    for (let i = 1; i < dates.length; i++) {
+      expect(dates[i]).toBeLessThanOrEqual(dates[i - 1]);
+    }
+  });
+
+  test('multi avec sort=name → 200 et tri alphabétique', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&sort=name', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    const names = body.results.map((r: { name: string | null }) => r.name ?? '');
+    const sorted = [...names].sort((a, b) => a.localeCompare(b));
+    expect(names).toEqual(sorted);
+  });
+
+  test('multi avec sort=relevance (défaut) → 200 et tri score desc', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    const scores = body.results.map((r: { score: number }) => r.score);
+    for (let i = 1; i < scores.length; i++) {
+      expect(scores[i]).toBeLessThanOrEqual(scores[i - 1]);
+    }
+  });
+});
+
+test.describe('Recherche avancée — pagination', () => {
+  test('multi avec limit=5 → 200 et count ≤ 5', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&limit=5', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.count).toBeLessThanOrEqual(5);
+    expect(body.limit).toBe(5);
+  });
+
+  test('multi avec offset=5 → 200 et résultats décalés', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&offset=5', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.offset).toBe(5);
+  });
+
+  test('multi avec limit + offset → 200 et hasMore cohérent', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search?mode=multi&q=plastique&limit=5&offset=0', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(typeof body.hasMore).toBe('boolean');
+    expect(typeof body.total).toBe('number');
+    expect(body.total).toBeGreaterThanOrEqual(body.count);
+  });
+});

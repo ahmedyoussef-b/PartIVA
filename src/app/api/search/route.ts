@@ -93,9 +93,16 @@ export async function GET(req: Request) {
         dimensionKey: searchParams.get('dimensionKey') ?? undefined,
         matchMode: searchParams.get('matchMode') ?? undefined,
         limit: searchParams.get('limit') ?? undefined,
+        material: searchParams.get('material') ?? undefined,
+        status: searchParams.get('status') ?? undefined,
+        createdAfter: searchParams.get('createdAfter') ?? undefined,
+        createdBefore: searchParams.get('createdBefore') ?? undefined,
+        minScore: searchParams.get('minScore') ?? undefined,
+        sort: searchParams.get('sort') ?? undefined,
+        offset: searchParams.get('offset') ?? undefined,
       });
 
-      const results = await multiSearch({
+      let results = await multiSearch({
         q: validatedMulti.q,
         reference: validatedMulti.reference,
         specs: validatedMulti.specs,
@@ -105,13 +112,59 @@ export async function GET(req: Request) {
         dimensionKey: validatedMulti.dimensionKey,
         matchMode: validatedMulti.matchMode,
         clientId,
-        limit: validatedMulti.limit,
+        limit: (validatedMulti.limit ?? 20) + (validatedMulti.offset ?? 0), // récupérer assez pour paginer
       });
+
+      // Filtres avancés (E12-R1b)
+      if (validatedMulti.material) {
+        results = results.filter((r) => r.material === validatedMulti.material);
+      }
+      if (validatedMulti.status) {
+        results = results.filter((r) => r.status === validatedMulti.status);
+      }
+      if (validatedMulti.createdAfter) {
+        const after = new Date(validatedMulti.createdAfter);
+        results = results.filter((r) => new Date(r.createdAt) >= after);
+      }
+      if (validatedMulti.createdBefore) {
+        const before = new Date(validatedMulti.createdBefore);
+        results = results.filter((r) => new Date(r.createdAt) <= before);
+      }
+      if (validatedMulti.minScore !== undefined) {
+        results = results.filter((r) => r.score >= validatedMulti.minScore!);
+      }
+
+      // Tri (E12-R1b)
+      switch (validatedMulti.sort) {
+        case 'date':
+          results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          break;
+        case 'name':
+          results.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+          break;
+        case 'status': {
+          const statusOrder = ['DRAFT', 'SUBMITTED', 'VALIDATED', 'ARCHIVED'];
+          results.sort((a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status));
+          break;
+        }
+        default: // relevance
+          results.sort((a, b) => b.score - a.score);
+      }
+
+      // Pagination (E12-R1b)
+      const total = results.length;
+      const offset = validatedMulti.offset ?? 0;
+      const limit = validatedMulti.limit ?? 20;
+      const paginated = results.slice(offset, offset + limit);
 
       return NextResponse.json({
         mode: 'multi',
-        count: results.length,
-        results,
+        count: paginated.length,
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total,
+        results: paginated,
       });
     }
 
