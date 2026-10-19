@@ -23,6 +23,7 @@ model User {
   sessions      Session[]
   parts         Part[]                      @relation("PartClient")
   partVersions  PartVersion[]
+  fitReports    FitReport[]
 
   @@map("users")
 }
@@ -98,6 +99,7 @@ model Part {
   projects       ReverseEngineeringProject[]
   versions       PartVersion[]
   vehicleFitments Fitment[]
+  fitReports     FitReport[]
 
   @@index([partNumber])
   @@index([status])
@@ -498,4 +500,19 @@ model ScoringWeights {
   updatedAt  DateTime @updatedAt
 
   @@map("scoring_weights")
+}
+
+model FitReport {
+  id        String   @id @default(cuid())
+  partId    String
+  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([partId])
+  @@index([userId])
+  @@map("fit_reports")
 }
