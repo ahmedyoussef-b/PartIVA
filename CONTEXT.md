@@ -12,7 +12,7 @@
 - Le repo est sain (HEAD = `8884eee`, working tree propre).
 - **Baseline restaurée** (E16-R0) : ESLint 0/0 ✅, TS 0 ✅, Prettier 0 ✅ (21 fichiers reformatés, 4 erreurs règles-of-hooks corrigées).
 - `next-env.d.ts` : ✅ **untracked** (R.5.32 — fichier généré, `.gitignore` ligne 81).
-- `next.config.mjs` : `output: 'export'` ✅
+- `next.config.mjs` : `output: 'export'` **conditionnel** (`NEXT_EXPORT === 'true'`) — pas inconditionnel. Headers WASM `application/wasm` absents (à ajouter en E16-R1).
 - `tauri.conf.json` : sidecar retiré, `frontendDist: "../../out"`, `url: "index.html"` ✅
 - Sidecar supprimé (`desktop/server/`, `build-server.cjs`, `node.exe`) ✅
 - `src/app/api/` déplacé en `api.disabled/` ✅
