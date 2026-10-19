@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PART_STATUS_VALUES } from '@/lib/search-constants';
 
 export const SearchSourceSchema = z.enum([
   'local_db',
@@ -109,7 +110,7 @@ export const MultiSearchQuerySchema = z
       .default(20),
     // Filtres avancés (E12-R1b)
     material: z.string().min(1).max(100).optional(),
-    status: z.enum(['DRAFT', 'SUBMITTED', 'VALIDATED', 'ARCHIVED']).optional(),
+    status: z.enum(PART_STATUS_VALUES).optional(), // aligné PartStatus (D-E12-STATUS-ENUM → clôturée E12-R1d)
     createdAfter: z.string().datetime().optional(),
     createdBefore: z.string().datetime().optional(),
     minScore: z.coerce.number().min(0).max(1).optional(),

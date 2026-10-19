@@ -8,6 +8,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Search, MapPin, ImagePlus } from 'lucide-react';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import type { PartStatus } from '@/generated/prisma/browser';
+import {
+  FiltersPanel,
+  EMPTY_FILTERS,
+  type SearchFilters,
+} from '@/components/search/filters-panel';
+import { FacetsPanel, type FacetsResult } from '@/components/search/facets-panel';
+import { Pagination } from '@/components/search/pagination';
 
 type SearchMode = 'text' | 'reference' | 'specs' | 'dimensions' | 'multi' | 'photo';
 
@@ -61,6 +68,15 @@ export function SearchBar() {
   const [searched, setSearched] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
+  // E12-R1d — filtres, tri, facettes, pagination
+  const [filters, setFilters] = React.useState<SearchFilters>(EMPTY_FILTERS);
+  const [sort, setSort] = React.useState<'relevance' | 'date' | 'name' | 'status'>('relevance');
+  const [offset, setOffset] = React.useState(0);
+  const [facets, setFacets] = React.useState<FacetsResult | null>(null);
+  const [facetsLoading, setFacetsLoading] = React.useState(false);
+  const [total, setTotal] = React.useState(0);
+  const limit = 20;
+
   const isDimensions = mode === 'dimensions';
   const isMulti = mode === 'multi';
   const isPhoto = mode === 'photo';
@@ -111,6 +127,14 @@ export function SearchBar() {
       if (max !== '') {
         params.set('max', max);
       }
+      // E12-R1d — filtres avancés + tri + pagination
+      if (filters.material) params.set('material', filters.material);
+      if (filters.status) params.set('status', filters.status);
+      if (filters.createdAfter) params.set('createdAfter', `${filters.createdAfter}T00:00:00.000Z`);
+      if (filters.createdBefore) params.set('createdBefore', `${filters.createdBefore}T23:59:59.999Z`);
+      if (filters.minScore) params.set('minScore', filters.minScore);
+      if (sort !== 'relevance') params.set('sort', sort);
+      if (offset > 0) params.set('offset', String(offset));
     } else {
       params.set('q', query.trim());
     }
@@ -124,9 +148,11 @@ export function SearchBar() {
         }
         const data = await res.json();
         setResults(data.results ?? []);
+        setTotal(data.total ?? data.results?.length ?? 0);
         setSearched(true);
       } catch {
         setResults([]);
+        setTotal(0);
         setSearched(true);
       } finally {
         setPending(false);
@@ -144,9 +170,71 @@ export function SearchBar() {
     specKey,
     matchMode,
     multiReference,
+    filters.material,
+    filters.status,
+    filters.createdAfter,
+    filters.createdBefore,
+    filters.minScore,
+    sort,
+    offset,
     isDimensions,
     isMulti,
     hasDimensionBounds,
+  ]);
+
+  // E12-R1d — remise à zéro de la page dès que les critères changent
+  // (setOffset dans un callback — règle react-hooks/set-state-in-effect)
+  React.useEffect(() => {
+    const resetTimer = setTimeout(() => setOffset(0), 0);
+    return () => clearTimeout(resetTimer);
+  }, [query, multiReference, min, max, mode]);
+
+  // E12-R1d — facettes (mode multi uniquement) : mêmes critères que la recherche
+  // pour rester cohérent avec les résultats (spec E12 §5.2).
+  React.useEffect(() => {
+    if (!isMulti) return;
+    const hasCriteria =
+      query.trim().length >= 2 || multiReference.trim().length >= 2 || min !== '' || max !== '';
+    if (!hasCriteria) return;
+    const facetParams = new URLSearchParams();
+    if (query.trim().length >= 2) facetParams.set('q', query.trim());
+    if (multiReference.trim().length >= 2) facetParams.set('reference', multiReference.trim());
+    if (filters.material) facetParams.set('material', filters.material);
+    if (filters.status) facetParams.set('status', filters.status);
+    if (filters.createdAfter) {
+      facetParams.set('createdAfter', `${filters.createdAfter}T00:00:00.000Z`);
+    }
+    if (filters.createdBefore) {
+      facetParams.set('createdBefore', `${filters.createdBefore}T23:59:59.999Z`);
+    }
+    if (filters.minScore) facetParams.set('minScore', filters.minScore);
+
+    const timer = setTimeout(async () => {
+      setFacetsLoading(true);
+      try {
+        const res = await fetch(`/api/search/facets?${facetParams.toString()}`);
+        if (res.ok) {
+          setFacets(await res.json());
+        }
+      } catch {
+        // Les facettes sont un affordance — échec silencieux accepté.
+      } finally {
+        setFacetsLoading(false);
+      }
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [
+    isMulti,
+    query,
+    multiReference,
+    min,
+    max,
+    filters.material,
+    filters.status,
+    filters.createdAfter,
+    filters.createdBefore,
+    filters.minScore,
   ]);
 
   async function handlePhotoSearch() {
@@ -240,6 +328,12 @@ export function SearchBar() {
         : isPhoto
           ? Boolean(photoData)
           : query.trim().length >= 2);
+
+  // Les facettes ne s'affichent qu'en mode multi avec au moins un critère
+  // (dérivé au render — les dernières données restent en cache dans `facets`).
+  const facetsApplicable =
+    isMulti &&
+    (query.trim().length >= 2 || multiReference.trim().length >= 2 || min !== '' || max !== '');
 
   return (
     <div className="space-y-4">
@@ -367,37 +461,81 @@ export function SearchBar() {
           </select>
         </div>
       ) : isMulti ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Texte (nom, matière…)…"
-            className="w-48"
-            aria-label="Recherche texte"
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Texte (nom, matière…)…"
+              className="w-48"
+              aria-label="Recherche texte"
+            />
+            <Input
+              value={multiReference}
+              onChange={(e) => setMultiReference(e.target.value)}
+              placeholder="Référence (PTV-…)…"
+              className="w-48"
+              aria-label="Référence"
+            />
+            <Input
+              type="number"
+              value={min}
+              onChange={(e) => setMin(e.target.value)}
+              placeholder="Min"
+              className="w-24"
+              aria-label="Valeur minimale"
+            />
+            <span className="text-muted-foreground text-xs">à</span>
+            <Input
+              type="number"
+              value={max}
+              onChange={(e) => setMax(e.target.value)}
+              placeholder="Max"
+              className="w-24"
+              aria-label="Valeur maximale"
+            />
+          </div>
+          {/* E12-R1d — tri */}
+          <div className="flex items-center gap-2">
+            <label className="text-muted-foreground text-[11px]" htmlFor="search-sort">
+              Tri :
+            </label>
+            <select
+              id="search-sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
+              className="border-input bg-background text-foreground rounded-md border px-2 py-1.5 text-xs"
+              aria-label="Tri"
+            >
+              <option value="relevance">Pertinence</option>
+              <option value="date">Date</option>
+              <option value="name">Nom</option>
+              <option value="status">Statut</option>
+            </select>
+          </div>
+          {/* E12-R1d — filtres avancés */}
+          <FiltersPanel
+            filters={filters}
+            onChange={(f) => {
+              setFilters(f);
+              setOffset(0);
+            }}
+            availableMaterials={facets?.materials.map((m) => m.value) ?? []}
           />
-          <Input
-            value={multiReference}
-            onChange={(e) => setMultiReference(e.target.value)}
-            placeholder="Référence (PTV-…)…"
-            className="w-48"
-            aria-label="Référence"
-          />
-          <Input
-            type="number"
-            value={min}
-            onChange={(e) => setMin(e.target.value)}
-            placeholder="Min"
-            className="w-24"
-            aria-label="Valeur minimale"
-          />
-          <span className="text-muted-foreground text-xs">à</span>
-          <Input
-            type="number"
-            value={max}
-            onChange={(e) => setMax(e.target.value)}
-            placeholder="Max"
-            className="w-24"
-            aria-label="Valeur maximale"
+          {/* E12-R1d — facettes cliquables */}
+          <FacetsPanel
+            facets={facetsApplicable ? facets : null}
+            loading={facetsApplicable && facetsLoading}
+            activeMaterial={filters.material}
+            activeStatus={filters.status}
+            onSelectMaterial={(m) => {
+              setFilters({ ...filters, material: m });
+              setOffset(0);
+            }}
+            onSelectStatus={(s) => {
+              setFilters({ ...filters, status: s });
+              setOffset(0);
+            }}
           />
         </div>
       ) : isPhoto ? (
@@ -560,6 +698,11 @@ export function SearchBar() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* E12-R1d — pagination */}
+      {isMulti && total > 0 && (
+        <Pagination total={total} limit={limit} offset={offset} onOffsetChange={setOffset} />
       )}
 
       <p className="text-muted-foreground flex items-center gap-1 text-[11px]">

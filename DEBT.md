@@ -11,7 +11,7 @@
 
 Aucune.
 
-### Moyenne (2)
+### Moyenne (1)
 
 #### `D-E12-MACHINE-FILTER` — `machineId` non filtrable
 
@@ -21,17 +21,6 @@ Aucune.
 - **Cause :** `machineId` n'existe pas dans `Part` (pas de FK `Part` → `Machine`)
 - **Périmètre :** Filtre `machineId` + facette `machines` (`/api/search/facets`)
 - **Effort estimé :** Moyen (migration Prisma + UI)
-- **Bloquant :** Non
-- **Prochaine session :** E12-R2
-
-#### `D-E12-STATUS-ENUM` — Zod `status` désynchronisé de `PartStatus`
-
-- **Statut :** Active
-- **Priorité :** Moyenne
-- **Session origine :** E12-R1b
-- **Cause :** Zod `status` = `['DRAFT', 'SUBMITTED', 'VALIDATED', 'ARCHIVED']` (4 valeurs) ; `PartStatus` Prisma = 11 valeurs (`DRAFT, SUBMITTED, ON_HOLD, IDENTIFYING, IDENTIFIED, MEASURING, READY, ORDERED, DELIVERED, ARCHIVED, CANCELLED`). `VALIDATED` est un **faux statut** (jamais matché) ; 8 vrais statuts (`READY`, `DELIVERED`, etc.) ne sont **pas filtrables**
-- **Périmètre :** `src/schemas/search.ts` (enum `status`)
-- **Effort estimé :** Faible (aligner sur `PartStatus`)
 - **Bloquant :** Non
 - **Prochaine session :** E12-R2
 
@@ -120,6 +109,10 @@ Aucune.
 ### E11 (1)
 
 - **`D-E9-R5-1`** (validation fonctionnelle Vercel) — ✅ Clôturée E11-R1 (8/8 tests Playwright passés, commit `c8e40da`)
+
+### E12 (1)
+
+- **`D-E12-STATUS-ENUM`** (Zod `status` désynchronisé de `PartStatus`) — ✅ Clôturée E12-R1d (`z.enum(PART_STATUS_VALUES)` sur les 11 valeurs dans `schemas/search.ts` + `statusOrder` tri aligné dans `api/search/route.ts` + source unique `src/lib/search-constants.ts` — nécessaire au clic des facettes statut ; `VALIDATED` (faux statut) retiré)
 
 ## Notes
 

@@ -620,3 +620,44 @@ test.describe('Recherche avancée — facettes', () => {
     expect(response.status()).toBe(401);
   });
 });
+
+// ============================================================================
+// E12-R1d — UI filtres + tri + facettes + pagination
+// ============================================================================
+
+test.describe('Recherche avancée — UI', () => {
+  test('panneau de filtres visible en mode multi', async ({ page }) => {
+    await authRequest(page.request, 'ADMIN'); // page.request partage le cookie jar de la page
+    await page.goto('/admin/recherche');
+    await page.getByRole('tab', { name: 'Multi' }).click();
+    await page.getByRole('button', { name: /Filtres avancés/ }).click();
+    await expect(page.getByText('Matériau', { exact: true })).toBeVisible();
+    await expect(page.getByText('Créé après', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Tri')).toBeVisible();
+  });
+
+  test('tri change la valeur sélectionnée', async ({ page }) => {
+    await authRequest(page.request, 'ADMIN');
+    await page.goto('/admin/recherche');
+    await page.getByRole('tab', { name: 'Multi' }).click();
+    await page.getByLabel('Recherche texte').fill('roulement');
+    await page.waitForTimeout(800);
+    const sortSelect = page.getByLabel('Tri');
+    await expect(sortSelect).toBeVisible();
+    await sortSelect.selectOption('date');
+    await expect(sortSelect).toHaveValue('date');
+    await page.waitForTimeout(600); // laisser le re-fetch terminer sans réinitialiser l'affichage
+    await expect(sortSelect).toHaveValue('date');
+  });
+
+  test('facette cliquable ajoute le filtre correspondant', async ({ page }) => {
+    await authRequest(page.request, 'ADMIN');
+    await page.goto('/admin/recherche');
+    await page.getByRole('tab', { name: 'Multi' }).click();
+    await page.getByLabel('Recherche texte').fill('roulement');
+    const firstFacet = page.locator('[aria-pressed]').first();
+    await expect(firstFacet).toBeVisible({ timeout: 10_000 });
+    await firstFacet.click();
+    await expect(page.locator('[aria-pressed="true"]')).toHaveCount(1);
+  });
+});

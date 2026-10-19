@@ -9,6 +9,7 @@ import {
   searchPartsByDimensions,
 } from '@/lib/data/search';
 import { PartSearchQuerySchema, MultiSearchQuerySchema } from '@/schemas/search';
+import { PART_STATUS_VALUES } from '@/lib/search-constants';
 import { multiSearch } from '@/lib/data/multi-search';
 import { aggregateSearch } from '@/lib/connectors/aggregator';
 import { localDbConnector } from '@/lib/connectors/local-db';
@@ -143,8 +144,12 @@ export async function GET(req: Request) {
           results.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
           break;
         case 'status': {
-          const statusOrder = ['DRAFT', 'SUBMITTED', 'VALIDATED', 'ARCHIVED'];
-          results.sort((a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status));
+          const statusOrder = new Map<string, number>(
+            PART_STATUS_VALUES.map((s, i): [string, number] => [s, i]),
+          );
+          results.sort(
+            (a, b) => (statusOrder.get(a.status) ?? 999) - (statusOrder.get(b.status) ?? 999),
+          );
           break;
         }
         default: // relevance
