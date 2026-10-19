@@ -76,3 +76,6 @@ desktop/src-tauri/binaries/
 api.disabled/
 disabled-pages/
 src/lib/actions/lib-actions/
+
+# Next.js generated (R.5.32)
+next-env.d.ts
