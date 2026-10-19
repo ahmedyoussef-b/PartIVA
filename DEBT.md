@@ -24,7 +24,7 @@ Aucune.
 - **Bloquant :** Non
 - **Prochaine session :** E12-R2
 
-### Faible (6)
+### Faible (7)
 
 #### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
 
@@ -81,7 +81,18 @@ Aucune.
 - **Périmètre :** `src/app/api/search/route.ts` (branches `reference`, `specs`, `dimensions`, `text`)
 - **Effort estimé :** Moyen (4 branches × 5 filtres)
 - **Bloquant :** Non
-- **Prochaine session :** E12-R2
+- **Prochaine session :** E12-R2 (ou post-E12)
+
+#### `D-E12-SEED-E2E` — Seed E2E nécessite la branche « dev »
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E12-R1e
+- **Cause :** `prisma/seed.ts` a deux branches : « prod » (1 admin) et « dev » (4 utilisateurs). Les tests E2E (`auth.setup.ts`) cherchent `user@partiva.dev` et `viewer@partiva.dev` → nécessite `ADMIN_EMAIL`/`ADMIN_PASSWORD` **absents** du `.env` pour re-seeder en mode dev.
+- **Périmètre :** `prisma/seed.ts` (branche prod)
+- **Effort estimé :** Faible (créer les 3 utilisateurs E2E dans la branche prod)
+- **Bloquant :** Non
+- **Prochaine session :** E12-R2 (ou post-E12)
 
 ### Reportée (0)
 
