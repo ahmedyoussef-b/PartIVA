@@ -92,8 +92,16 @@ Voir [docs/architecture.md](docs/architecture.md).
 | E7 | Déblocage 5 Moyennes | 🟠 Bloquée (credentials) |
 | E8 | Stabilisation, production | ✅ |
 | E9 | Desktop Tauri (export) | ✅ |
+| E10 | Purge dettes E9 | ✅ |
+| E11 | Validation Vercel | ✅ |
+| E12 | Recherche avancée | ✅ |
+| E13 | Hygiène | ✅ |
+| E14 | Enrichissement 3D | ✅ |
+| E15 | Connecteur 3DCarParts | ✅ |
 
-**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes · E2E 284/0/4 · Prisma 15 migrations.
+**Dettes actives :** 2 (`D-E14-STEP-VIEWER` Moyenne, `D-E14-PRINT-ON-DEMAND` Faible).
+
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes (export) · E2E 284/0/4 · Prisma 15 migrations · 16 pages admin.
 
 ---
 

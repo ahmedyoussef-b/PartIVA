@@ -32,4 +32,10 @@
 | 2026-10-19 | E13-R1 | Hygiène — newline finale `CONTEXT.md` + `sessionStorage` search-bar (D-E12-NEWLINE + D-E10-R2b-1) | `e2a1b7f` | ✅ |
 | 2026-10-19 | E14-R4 | StlViewer (Three.js) — visualisation STL/GLTF + tests E2E | `4e65caf` | ✅ |
 | 2026-10-19 | E14-R5 | Intégration `/admin/pieces/[id]` — StlViewer conditionné par `printableModelUrl` | `4e65caf` | ✅ |
-| 2026-10-19 | E14-R3 | Doc `3d-printing-resources.md` + 3 dettes + clôture `D-E13-3D-FEATURES` | `[à venir]` | ✅ |
+| 2026-10-19 | E14-R3 | Doc `3d-printing-resources.md` + 3 dettes + clôture `D-E13-3D-FEATURES` | `1947724` | ✅ |
+| 2026-10-19 | E15-R1 | Connecteur 3DCarParts (mock) + fixtures + tests E2E | `bc1aea6` | ✅ |
+| 2026-10-19 | E15-R1 | Clôture `D-E14-3DCARPARTS-CONNECTOR` | `15cfbb0` | ✅ |
+| 2026-10-19 | E16-R0 | Rebase `origin/master` + untrack `next-env.d.ts` (R.5.32) | `4a7bf44` | ✅ |
+| 2026-10-19 | E16-R0 | Baseline : prettier --write sur 21 fichiers (dette E12→E15) | `879060c` | ✅ |
+| 2026-10-19 | E16-R0 | Fix(3d) : règles-of-hooks `stl-viewer.tsx` | `8884eee` | ✅ |
+| 2026-10-19 | E16-R0a | Resynchronisation documentaire post-E15-R1 | `[à venir]` | ✅ |
