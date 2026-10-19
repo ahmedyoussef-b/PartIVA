@@ -21,4 +21,9 @@
 | 2026-10-18 | E10-R4a | Clôturer R7-1/R7-1b (obsolètes) + aligner CONTEXT.md | `c7e4fac` | ✅ |
 | 2026-10-18 | E10-R5 | Clôture E10 — CONTEXT.md réécrit + JOURNAL.md complété + tag `v0.4.0-e10` | `[à venir]` | ✅ |
 | 2026-10-18 | E11-R1 | Validation fonctionnelle Vercel — 8/8 tests Playwright passés | `c8e40da` | ✅ |
-| 2026-10-18 | E12-R0 | Cadrage E12 — feature recherche avancée + `ROADMAP.md` E10/E11 à jour | `[à venir]` | ✅ |
+| 2026-10-18 | E12-R1a | Spécification recherche avancée (filtres, tri, facettes, pagination) | `1f0c930` | ✅ |
+| 2026-10-18 | E12-R1b | Filtres (material, status, dates, minScore) + tri (relevance/date/nom/status) + pagination API | `ad6e526` | ✅ |
+| 2026-10-18 | E12-R1b fix | Tests non-vacuites, skip photo, 5 dettes DEBT.md | `2a42c4e` | ✅ |
+| 2026-10-18 | E12-R1c | Facettes API `/api/search/facets` (material, status, cache 30s) | `c39c0d5` | ✅ |
+| 2026-10-18 | E12-R1d | UI filtres + tri + facettes + pagination | `788ca26` | ✅ |
+| 2026-10-19 | E12-R1e | Validation finale — .env, next-env.d.ts, clôture D-E12-SEED-E2E | `99a3ddc` | ✅ |
