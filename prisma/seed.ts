@@ -1086,6 +1086,7 @@ async function main() {
       partNumber: 'TD-001',
       name: 'E2E Test Part TD-001',
       status: 'READY',
+      printableModelUrl: '/models/test.stl',
     },
   });
 

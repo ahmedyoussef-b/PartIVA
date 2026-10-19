@@ -25,6 +25,7 @@ const routesToWarm = [
   '/client/pieces-pretes',
   '/admin/demandes',
   '/admin/reverse-engineering',
+  '/admin/pieces',
 ];
 
 warmup('warm up dev server routes', async ({ page }) => {
