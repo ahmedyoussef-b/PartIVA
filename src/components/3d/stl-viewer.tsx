@@ -20,14 +20,12 @@ interface StlViewerProps {
 
 const MODEL_BG_COLOR = '#0f172a';
 
+function GltfScene({ src }: { src: string }) {
+  const { scene } = useGLTF(src);
+  return <primitive object={scene} dispose={null} />;
+}
+
 function StlScene({ src }: { src: string }) {
-  const isGltf = src.toLowerCase().endsWith('.gltf') || src.toLowerCase().endsWith('.glb');
-
-  if (isGltf) {
-    const { scene } = useGLTF(src);
-    return <primitive object={scene} dispose={null} />;
-  }
-
   const [scene, setScene] = React.useState<Object3D | null>(null);
   const [error, setError] = React.useState<Error | null>(null);
 
@@ -58,6 +56,12 @@ function StlScene({ src }: { src: string }) {
   return <primitive object={scene} dispose={null} />;
 }
 
+function StlSceneRouter({ src }: { src: string }) {
+  const lower = src.toLowerCase();
+  const isGltf = lower.endsWith('.gltf') || lower.endsWith('.glb');
+  return isGltf ? <GltfScene src={src} /> : <StlScene src={src} />;
+}
+
 function StlViewerCanvas({ src }: { src: string }) {
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
@@ -74,7 +78,7 @@ function StlViewerCanvas({ src }: { src: string }) {
         />
         <primitive object={new AxesHelper(1)} />
         <Grid />
-        <StlScene src={src} />
+        <StlSceneRouter src={src} />
         <OrbitControls enableZoom enablePan enableRotate makeDefault />
       </Canvas>
       <div className="absolute top-2 right-2 z-10 flex gap-2">
