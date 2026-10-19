@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import 'dotenv/config'; // charge .env (HF_API_URL…) — nécessaire pour les skips conditionnels (isLightweight)
 import { users } from './fixtures/users';
 
 async function authRequest(
@@ -421,6 +422,11 @@ test.describe('Recherche par photo', () => {
       Boolean(process.env.HF_API_TOKEN),
       "HF_API_TOKEN défini — le chemin 503 ne s'applique pas",
     );
+    const hfUrl = String(process.env.HF_API_URL ?? '');
+    test.skip(
+      hfUrl.includes('localhost') || hfUrl.includes('127.0.0.1') || hfUrl.includes('hf.space'),
+      'provider lightweight (isLightweight) — chemin 503 inapplicable',
+    );
     const { headers } = await authRequest(request, 'ADMIN');
     const response = await request.post('/api/search/photo', {
       headers,
@@ -455,10 +461,11 @@ test.describe('Recherche par photo', () => {
 test.describe('Recherche avancée — filtres', () => {
   test('multi avec filter material → 200 et résultats filtrés', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&material=ABS', { headers });
+    const response = await request.get('/api/search?mode=multi&q=abs&material=ABS', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.mode).toBe('multi');
+    expect(body.results.length).toBeGreaterThan(0);
     body.results.forEach((r: { material: string | null }) => {
       expect(r.material).toBe('ABS');
     });
@@ -466,20 +473,22 @@ test.describe('Recherche avancée — filtres', () => {
 
   test('multi avec filter status → 200 et résultats filtrés', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&status=VALIDATED', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&status=SUBMITTED', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     body.results.forEach((r: { status: string }) => {
-      expect(r.status).toBe('VALIDATED');
+      expect(r.status).toBe('SUBMITTED');
     });
   });
 
   test('multi avec filter createdAfter → 200 et résultats filtrés', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
     const after = new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString();
-    const response = await request.get(`/api/search?mode=multi&q=plastique&createdAfter=${after}`, { headers });
+    const response = await request.get(`/api/search?mode=multi&q=roulement&createdAfter=${after}`, { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     body.results.forEach((r: { createdAt: string }) => {
       expect(new Date(r.createdAt).getTime()).toBeGreaterThanOrEqual(new Date(after).getTime());
     });
@@ -488,9 +497,10 @@ test.describe('Recherche avancée — filtres', () => {
   test('multi avec filter createdBefore → 200 et résultats filtrés', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
     const before = new Date().toISOString();
-    const response = await request.get(`/api/search?mode=multi&q=plastique&createdBefore=${before}`, { headers });
+    const response = await request.get(`/api/search?mode=multi&q=roulement&createdBefore=${before}`, { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     body.results.forEach((r: { createdAt: string }) => {
       expect(new Date(r.createdAt).getTime()).toBeLessThanOrEqual(new Date(before).getTime());
     });
@@ -498,9 +508,10 @@ test.describe('Recherche avancée — filtres', () => {
 
   test('multi avec filter minScore → 200 et scores ≥ seuil', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&minScore=0.5', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&minScore=0.5', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     body.results.forEach((r: { score: number }) => {
       expect(r.score).toBeGreaterThanOrEqual(0.5);
     });
@@ -510,9 +521,10 @@ test.describe('Recherche avancée — filtres', () => {
 test.describe('Recherche avancée — tri', () => {
   test('multi avec sort=date → 200 et tri décroissant', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&sort=date', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&sort=date', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     const dates = body.results.map((r: { createdAt: string }) => new Date(r.createdAt).getTime());
     for (let i = 1; i < dates.length; i++) {
       expect(dates[i]).toBeLessThanOrEqual(dates[i - 1]);
@@ -521,9 +533,10 @@ test.describe('Recherche avancée — tri', () => {
 
   test('multi avec sort=name → 200 et tri alphabétique', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&sort=name', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&sort=name', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     const names = body.results.map((r: { name: string | null }) => r.name ?? '');
     const sorted = [...names].sort((a, b) => a.localeCompare(b));
     expect(names).toEqual(sorted);
@@ -531,9 +544,10 @@ test.describe('Recherche avancée — tri', () => {
 
   test('multi avec sort=relevance (défaut) → 200 et tri score desc', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.results.length).toBeGreaterThan(0);
     const scores = body.results.map((r: { score: number }) => r.score);
     for (let i = 1; i < scores.length; i++) {
       expect(scores[i]).toBeLessThanOrEqual(scores[i - 1]);
@@ -544,26 +558,29 @@ test.describe('Recherche avancée — tri', () => {
 test.describe('Recherche avancée — pagination', () => {
   test('multi avec limit=5 → 200 et count ≤ 5', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&limit=5', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&limit=5', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.count).toBeGreaterThan(0);
     expect(body.count).toBeLessThanOrEqual(5);
     expect(body.limit).toBe(5);
   });
 
-  test('multi avec offset=5 → 200 et résultats décalés', async ({ request }) => {
+  test('multi avec offset=1 → 200 et résultats décalés', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&offset=5', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&offset=1&limit=10', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
-    expect(body.offset).toBe(5);
+    expect(body.offset).toBe(1);
+    expect(body.results.length).toBeGreaterThan(0);
   });
 
   test('multi avec limit + offset → 200 et hasMore cohérent', async ({ request }) => {
     const { headers } = await authRequest(request, 'ADMIN');
-    const response = await request.get('/api/search?mode=multi&q=plastique&limit=5&offset=0', { headers });
+    const response = await request.get('/api/search?mode=multi&q=roulement&limit=2&offset=0', { headers });
     expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(body.count).toBeGreaterThan(0);
     expect(typeof body.hasMore).toBe('boolean');
     expect(typeof body.total).toBe('number');
     expect(body.total).toBeGreaterThanOrEqual(body.count);

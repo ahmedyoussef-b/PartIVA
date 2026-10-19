@@ -1,6 +1,6 @@
 # DEBT — PartIVA
 
-**Dernière mise à jour :** 2026-10-18
+**Dernière mise à jour :** 2026-10-19
 **Structure :** une dette = un bloc (ID, statut, priorité, cause, périmètre, effort, prochaine session)
 **Encodage :** UTF-8 sans BOM
 **Lecture :** `Get-Content DEBT.md -Encoding UTF8` (PowerShell sans `-Encoding UTF8` masque le contenu)
@@ -11,11 +11,31 @@
 
 Aucune.
 
-### Moyenne (0)
+### Moyenne (2)
 
-Aucune.
+#### `D-E12-MACHINE-FILTER` — `machineId` non filtrable
 
-### Faible (2)
+- **Statut :** Active
+- **Priorité :** Moyenne
+- **Session origine :** E12-R1b
+- **Cause :** `machineId` n'existe pas dans `Part` (pas de FK `Part` → `Machine`)
+- **Périmètre :** Filtre `machineId` + facette `machines` (`/api/search/facets`)
+- **Effort estimé :** Moyen (migration Prisma + UI)
+- **Bloquant :** Non
+- **Prochaine session :** E12-R2
+
+#### `D-E12-STATUS-ENUM` — Zod `status` désynchronisé de `PartStatus`
+
+- **Statut :** Active
+- **Priorité :** Moyenne
+- **Session origine :** E12-R1b
+- **Cause :** Zod `status` = `['DRAFT', 'SUBMITTED', 'VALIDATED', 'ARCHIVED']` (4 valeurs) ; `PartStatus` Prisma = 11 valeurs (`DRAFT, SUBMITTED, ON_HOLD, IDENTIFYING, IDENTIFIED, MEASURING, READY, ORDERED, DELIVERED, ARCHIVED, CANCELLED`). `VALIDATED` est un **faux statut** (jamais matché) ; 8 vrais statuts (`READY`, `DELIVERED`, etc.) ne sont **pas filtrables**
+- **Périmètre :** `src/schemas/search.ts` (enum `status`)
+- **Effort estimé :** Faible (aligner sur `PartStatus`)
+- **Bloquant :** Non
+- **Prochaine session :** E12-R2
+
+### Faible (6)
 
 #### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
 
@@ -40,6 +60,39 @@ Aucune.
 - **Effort estimé :** Très faible (1 édition)
 - **Bloquant :** Non
 - **Prochaine session :** E13
+
+#### `D-E12-LIMIT-100` — `limit` max 50 (spec 100)
+
+- **Statut :** Active
+- **Priorité :** Très faible
+- **Session origine :** E12-R1b
+- **Cause :** `limit` max 50 dans `MultiSearchQuerySchema` et `PartSearchQuerySchema` (spec §6.1 : max 100)
+- **Périmètre :** `src/schemas/search.ts`
+- **Effort estimé :** Très faible (changer `max(50)` → `max(100)`)
+- **Bloquant :** Non
+- **Prochaine session :** E12-R2
+
+#### `D-E12-MINSCORE-MONO` — `minScore` non applicable en mono-mode
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E12-R1b
+- **Cause :** `minScore` filtre `score` (0-1) en mode `multi`, mais `rank` (ts_rank, non normalisé) en mono-mode
+- **Périmètre :** `src/app/api/search/route.ts` (branche mono-mode)
+- **Effort estimé :** Faible (normaliser `rank` ou ignorer `minScore`)
+- **Bloquant :** Non
+- **Prochaine session :** E12-R2
+
+#### `D-E12-FILTERS-MONO` — Filtres non supportés en mono-mode
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E12-R1b
+- **Cause :** Filtres (`material`, `status`, dates) appliqués en mode `multi` uniquement (Stratégie B)
+- **Périmètre :** `src/app/api/search/route.ts` (branches `reference`, `specs`, `dimensions`, `text`)
+- **Effort estimé :** Moyen (4 branches × 5 filtres)
+- **Bloquant :** Non
+- **Prochaine session :** E12-R2
 
 ### Reportée (0)
 
