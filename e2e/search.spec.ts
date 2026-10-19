@@ -586,3 +586,37 @@ test.describe('Recherche avancée — pagination', () => {
     expect(body.total).toBeGreaterThanOrEqual(body.count);
   });
 });
+
+// ============================================================================
+// E12-R1c — Facettes (/api/search/facets)
+// ============================================================================
+
+test.describe('Recherche avancée — facettes', () => {
+  test('facets avec q=roulement → 200 et materials/statuses non vides', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search/facets?q=roulement', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(typeof body.total).toBe('number');
+    expect(Array.isArray(body.materials)).toBe(true);
+    expect(Array.isArray(body.statuses)).toBe(true);
+    expect(body.statuses.length).toBeGreaterThan(0);
+  });
+
+  test('facets avec material=ABS → 200 et total cohérent', async ({ request }) => {
+    const { headers } = await authRequest(request, 'ADMIN');
+    const response = await request.get('/api/search/facets?material=ABS', { headers });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.total).toBeGreaterThanOrEqual(0);
+    body.materials.forEach((m: { value: string; count: number }) => {
+      expect(m.value).toBe('ABS');
+      expect(m.count).toBeGreaterThan(0);
+    });
+  });
+
+  test('facets sans auth → 401', async ({ request }) => {
+    const response = await request.get('/api/search/facets?q=roulement');
+    expect(response.status()).toBe(401);
+  });
+});
