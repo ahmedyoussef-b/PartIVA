@@ -11,20 +11,11 @@
 
 Aucune.
 
-### Moyenne (1)
+### Moyenne (0)
 
-#### `D-E12-MACHINE-FILTER` — `machineId` non filtrable
+Aucune.
 
-- **Statut :** Active
-- **Priorité :** Moyenne
-- **Session origine :** E12-R1b
-- **Cause :** `machineId` n'existe pas dans `Part` (pas de FK `Part` → `Machine`)
-- **Périmètre :** Filtre `machineId` + facette `machines` (`/api/search/facets`)
-- **Effort estimé :** Moyen (migration Prisma + UI)
-- **Bloquant :** Non
-- **Prochaine session :** E12-R2
-
-### Faible (7)
+### Faible (2)
 
 #### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
 
@@ -38,61 +29,6 @@ Aucune.
 - **Effort estimé :** Faible (état via `sessionStorage` ou query params)
 - **Bloquant :** Non
 - **Prochaine session :** À planifier (post-E12)
-
-#### `D-E12-NEWLINE` — `CONTEXT.md` sans newline finale
-
-- **Statut :** Active
-- **Priorité :** Très faible
-- **Session origine :** E12-R0
-- **Cause :** Fichier sans newline finale (POSIX recommande)
-- **Périmètre :** `CONTEXT.md`
-- **Effort estimé :** Très faible (1 édition)
-- **Bloquant :** Non
-- **Prochaine session :** E13
-
-#### `D-E12-LIMIT-100` — `limit` max 50 (spec 100)
-
-- **Statut :** Active
-- **Priorité :** Très faible
-- **Session origine :** E12-R1b
-- **Cause :** `limit` max 50 dans `MultiSearchQuerySchema` et `PartSearchQuerySchema` (spec §6.1 : max 100)
-- **Périmètre :** `src/schemas/search.ts`
-- **Effort estimé :** Très faible (changer `max(50)` → `max(100)`)
-- **Bloquant :** Non
-- **Prochaine session :** E12-R2
-
-#### `D-E12-MINSCORE-MONO` — `minScore` non applicable en mono-mode
-
-- **Statut :** Active
-- **Priorité :** Faible
-- **Session origine :** E12-R1b
-- **Cause :** `minScore` filtre `score` (0-1) en mode `multi`, mais `rank` (ts_rank, non normalisé) en mono-mode
-- **Périmètre :** `src/app/api/search/route.ts` (branche mono-mode)
-- **Effort estimé :** Faible (normaliser `rank` ou ignorer `minScore`)
-- **Bloquant :** Non
-- **Prochaine session :** E12-R2
-
-#### `D-E12-FILTERS-MONO` — Filtres non supportés en mono-mode
-
-- **Statut :** Active
-- **Priorité :** Faible
-- **Session origine :** E12-R1b
-- **Cause :** Filtres (`material`, `status`, dates) appliqués en mode `multi` uniquement (Stratégie B)
-- **Périmètre :** `src/app/api/search/route.ts` (branches `reference`, `specs`, `dimensions`, `text`)
-- **Effort estimé :** Moyen (4 branches × 5 filtres)
-- **Bloquant :** Non
-- **Prochaine session :** E12-R2 (ou post-E12)
-
-#### `D-E12-SEED-E2E` — Seed E2E nécessite la branche « dev »
-
-- **Statut :** Active
-- **Priorité :** Faible
-- **Session origine :** E12-R1e
-- **Cause :** `prisma/seed.ts` a deux branches : « prod » (1 admin) et « dev » (4 utilisateurs). Les tests E2E (`auth.setup.ts`) cherchent `user@partiva.dev` et `viewer@partiva.dev` → nécessite `ADMIN_EMAIL`/`ADMIN_PASSWORD` **absents** du `.env` pour re-seeder en mode dev.
-- **Périmètre :** `prisma/seed.ts` (branche prod)
-- **Effort estimé :** Faible (créer les 3 utilisateurs E2E dans la branche prod)
-- **Bloquant :** Non
-- **Prochaine session :** E12-R2 (ou post-E12)
 
 ### Reportée (0)
 
@@ -121,9 +57,14 @@ Aucune.
 
 - **`D-E9-R5-1`** (validation fonctionnelle Vercel) — ✅ Clôturée E11-R1 (8/8 tests Playwright passés, commit `c8e40da`)
 
-### E12 (1)
+### E12 (6)
 
 - **`D-E12-STATUS-ENUM`** (Zod `status` désynchronisé de `PartStatus`) — ✅ Clôturée E12-R1d (`z.enum(PART_STATUS_VALUES)` sur les 11 valeurs dans `schemas/search.ts` + `statusOrder` tri aligné dans `api/search/route.ts` + source unique `src/lib/search-constants.ts` — nécessaire au clic des facettes statut ; `VALIDATED` (faux statut) retiré)
+- **`D-E12-MACHINE-FILTER`** (`machineId` non filtrable) — ✅ Clôturée E12-R2 (supprimée : `machineId` n'existe pas dans `Modèle Part`, aucune FK `Part` → `Machine` ; filtre `machineId` et facette `machines` retirés de la spec et de l'API — commit `649c2b6`)
+- **`D-E12-SEED-E2E`** (Seed E2E nécessite la branche « dev ») — ✅ Clôturée E12-R1e (`prisma/seed.ts` branche prod étendue : 3 utilisateurs E2E `user@partiva.dev` / `viewer@partiva.dev` / `admin@partiva.dev` créés sans `ADMIN_EMAIL`/`ADMIN_PASSWORD` — commit `99a3ddc`)
+- **`D-E12-LIMIT-100`** (`limit` max 50, spec 100) — ✅ Clôturée E12-R2 (`max(50)` → `max(100)` dans `MultiSearchQuerySchema` + `PartSearchQuerySchema` — commit `649c2b6`)
+- **`D-E12-MINSCORE-MONO`** (`minScore` non applicable en mono-mode) — ✅ Clôturée E12-R2 (`minScore` appliqué en mode `multi` uniquement ; branches mono-mode `reference`/`specs`/`dimensions`/`text` l'ignorent — commit `649c2b6`)
+- **`D-E12-FILTERS-MONO`** (Filtres non supportés en mono-mode) — ✅ Clôturée E12-R2 (Stratégie B confirmée : filtres `material`/`status`/dates appliqués en mode `multi` uniquement, documentés dans `docs/e12-advanced-search-spec.md` §6.1 — commit `649c2b6`)
 
 ## Notes
 

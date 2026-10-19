@@ -1,12 +1,12 @@
 # CONTEXT — PartIVA
 
 **Dernière mise à jour :** 2026-10-19
-**Commit HEAD :** `99a3ddc` (E12-R1e)
-**Phase en cours :** E12 — **TERMINÉE** — E12-R1 (recherche avancée) clôturée, ouverture E12-R2 à venir
+**Commit HEAD :** `649c2b6` (E12-R2)
+**Phase en cours :** E12 — **TERMINÉE** — E12-R1 + E12-R2 clôturées, ouverture E13 à venir
 **Tag :** `v0.3.0-e9` (E9) · `v0.4.0-e10` (E10) · `v0.5.0-e11` (E11) · `v0.5.1-e12` (E12)
 
 ## État
-- Le repo est sain (HEAD = `99a3ddc`).
+- Le repo est sain (HEAD = `649c2b6`).
 - `next.config.mjs` : `output: 'export'` ✅
 - `tauri.conf.json` : sidecar retiré, `frontendDist: "../../out"`, `url: "index.html"` ✅
 - Sidecar supprimé (`desktop/server/`, `build-server.cjs`, `node.exe`) ✅
@@ -26,6 +26,7 @@
 - **E12-R1c** : Facettes API `/api/search/facets` (material, status, cache 30s) ✅
 - **E12-R1b** : Filtres (material, status, createdAfter, createdBefore, minScore) + tri (relevance/date/nom/status) + pagination ✅
 - **E12-R1a** : Spécification recherche avancée (filtres, tri, facettes, pagination) ✅
+- **E12-R2** : Purge P0+P1 — `D-E12-MACHINE-FILTER` (retirée : pas de FK `Part`→`Machine`), `D-E12-LIMIT-100` (`max(50)`→`max(100)`), `D-E12-MINSCORE-MONO` (ignoré en mono-mode), `D-E12-FILTERS-MONO` (Stratégie B documentée) ✅ (commit `649c2b6`)
 - `lib/search-constants.ts` : `PART_STATUS_VALUES` aligné PartStatus (11 valeurs) — dette D-E12-STATUS-ENUM clôturée E12-R1d ✅
 - `schemas/search.ts` : `z.enum(PART_STATUS_VALUES)` aligné PartStatus ✅
 - `api/search/route.ts` : `statusOrder` tri aligné PART_STATUS_VALUES (détection ordre statut) ✅

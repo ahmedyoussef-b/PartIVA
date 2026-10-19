@@ -681,7 +681,30 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E8 — FINALISATION, QA & DÉPLOIEMENT
+## 🏗️ E12 — RECHERCHE AVANCÉE (✅ CLÔTURÉE)
+
+**Statut :** ✅ **Clôturée 2026-10-19** (E12-R1 + E12-R2, commit `649c2b6`)
+
+**Objet :** feature recherche avancée — filtres, tri, facettes, pagination — + purge des dettes P0/P1 identifiées en E12-R1.
+
+| Session | Objet | Commit | Statut |
+|---|---|---|---|
+| **E12-R0** | Cadrage E12 (spec recherche avancée + `ROADMAP.md` E10/E11 à jour) | — | ✅ |
+| **E12-R1a** | Spécification recherche avancée (filtres, tri, facettes, pagination) | `1f0c930` | ✅ |
+| **E12-R1b** | Filtres (material, status, dates, minScore) + tri (relevance/date/nom/status) + pagination API | `ad6e526` | ✅ |
+| **E12-R1b fix** | Tests non-vacuites, skip photo, 5 dettes DEBT.md | `2a42c4e` | ✅ |
+| **E12-R1c** | Facettes API `/api/search/facets` (material, status, cache 30s) | `c39c0d5` | ✅ |
+| **E12-R1d** | UI filtres + tri + facettes + pagination + clôture D-E12-STATUS-ENUM | `788ca26` | ✅ |
+| **E12-R1e** | Validation finale — .env, next-env.d.ts, clôture D-E12-SEED-E2E | `99a3ddc` | ✅ |
+| **E12-R2** | Clôture — purge 4 dettes P0+P1 (machine filter, limit 100, minScore mono, filters mono) | `649c2b6` | ✅ |
+
+**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 59 routes · E2E 284/0/4 · Prisma 15 migrations.
+
+**Dettes E12 :** 6 clôturées (D-E12-STATUS-ENUM, D-E12-MACHINE-FILTER, D-E12-SEED-E2E, D-E12-LIMIT-100, D-E12-MINSCORE-MONO, D-E12-FILTERS-MONO), 1 active (D-E10-R2b-1, post-E12).
+
+**Spécification :** `docs/e12-advanced-search-spec.md` (commit `1f0c930`).
+
+---
 
 ## 🏗️ E8 — FINALISATION, QA & DÉPLOIEMENT
 **Objectif** : rendre PartIVA production-ready.

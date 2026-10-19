@@ -27,3 +27,4 @@
 | 2026-10-18 | E12-R1c | Facettes API `/api/search/facets` (material, status, cache 30s) | `c39c0d5` | ✅ |
 | 2026-10-18 | E12-R1d | UI filtres + tri + facettes + pagination | `788ca26` | ✅ |
 | 2026-10-19 | E12-R1e | Validation finale — .env, next-env.d.ts, clôture D-E12-SEED-E2E | `99a3ddc` | ✅ |
+| 2026-10-19 | E12-R2 | Clôture E12-R2 — purge 4 dettes P0+P1 (machine filter, limit 100, minScore mono, filters mono) | `649c2b6` | ✅ |
