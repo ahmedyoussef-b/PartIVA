@@ -38,6 +38,10 @@ export const TecDocProductSchema = z.object({
   cadFormats: z.array(z.string()).default([]),
   thumbnailUrl: z.string().url().optional(),
   productUrl: z.string().url().optional(),
+  // E14-R1 — enrichissement mock (3D / sécurité, optionnels).
+  safetyWarning: z.string().optional(),
+  printableModelUrl: z.string().url().optional(),
+  printMaterial: z.string().optional(),
 });
 
 export type TecDocProduct = z.infer<typeof TecDocProductSchema>;
@@ -404,6 +408,9 @@ export function mapTecDocToCandidate(product: TecDocProduct): {
   cadFormats: string[];
   thumbnailUrl: string | null;
   productUrl: string | null;
+  safetyWarning: string | null;
+  printableModelUrl: string | null;
+  printMaterial: string | null;
 } {
   return {
     source: 'tecdoc',
@@ -419,6 +426,9 @@ export function mapTecDocToCandidate(product: TecDocProduct): {
     cadFormats: product.cadFormats,
     thumbnailUrl: product.thumbnailUrl ?? null,
     productUrl: product.productUrl ?? null,
+    safetyWarning: product.safetyWarning ?? null,
+    printableModelUrl: product.printableModelUrl ?? null,
+    printMaterial: product.printMaterial ?? null,
   };
 }
 

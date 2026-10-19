@@ -65,6 +65,9 @@ export const tecDocConnector: SourceConnector = {
           cadFormats: mapped.cadFormats,
           productUrl: mapped.productUrl,
           description: mapped.description,
+          safetyWarning: mapped.safetyWarning,
+          printableModelUrl: mapped.printableModelUrl,
+          printMaterial: mapped.printMaterial,
         },
       };
       return candidate;
@@ -116,6 +119,9 @@ export async function searchTecDocByVIN(
         cadFormats: mapped.cadFormats,
         productUrl: mapped.productUrl,
         description: mapped.description,
+        safetyWarning: mapped.safetyWarning,
+        printableModelUrl: mapped.printableModelUrl,
+        printMaterial: mapped.printMaterial,
         vehicleFitment: response.vehicle
           ? {
               make: response.vehicle.make,
@@ -191,6 +197,9 @@ export async function searchTecDocByVehicle(
         cadFormats: mapped.cadFormats,
         productUrl: mapped.productUrl,
         description: mapped.description,
+        safetyWarning: mapped.safetyWarning,
+        printableModelUrl: mapped.printableModelUrl,
+        printMaterial: mapped.printMaterial,
         vehicleFitment: response.vehicle
           ? {
               make: response.vehicle.make,
@@ -247,6 +256,9 @@ export async function searchTecDocByPhotoAndVehicle(
         cadFormats: mapped.cadFormats,
         productUrl: mapped.productUrl,
         description: mapped.description,
+        safetyWarning: mapped.safetyWarning,
+        printableModelUrl: mapped.printableModelUrl,
+        printMaterial: mapped.printMaterial,
         vehicleFitment: response.vehicle
           ? {
               make: response.vehicle.make,

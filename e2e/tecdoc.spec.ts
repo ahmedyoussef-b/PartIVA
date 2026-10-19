@@ -79,6 +79,36 @@ test.describe('TecDoc connector (E5-S05)', () => {
     expect(candidate.category).toBe('Freinage');
   });
 
+  test.describe('E14-R1 — enrichissement mock (safetyWarning, printableModelUrl, printMaterial)', () => {
+    test('fixture avec printableModelUrl → champ présent', async () => {
+      const result = await withMockMode(() => searchTecDoc('pare-chocs'));
+      expect(result.products.length).toBeGreaterThanOrEqual(1);
+      const product = result.products.find((p) => p.id === 'TD-004')!;
+      expect(product.printableModelUrl).toBe('https://example.com/models/td-004.stl');
+      expect(product.printMaterial).toBe('ABS');
+      const mapped = mapTecDocToCandidate(product);
+      expect(mapped.printableModelUrl).toBe('https://example.com/models/td-004.stl');
+      expect(mapped.printMaterial).toBe('ABS');
+    });
+
+    test('fixture avec safetyWarning → champ présent', async () => {
+      const result = await withMockMode(() => searchTecDoc('frein'));
+      const product = result.products.find((p) => p.id === 'TD-001')!;
+      expect(product.safetyWarning).toContain('freinage');
+      const mapped = mapTecDocToCandidate(product);
+      expect(mapped.safetyWarning).toContain('freinage');
+    });
+
+    test('fixture sans printableModelUrl → champ undefined (optionnel)', async () => {
+      const result = await withMockMode(() => searchTecDoc('filtre'));
+      const product = result.products.find((p) => p.id === 'TD-002')!;
+      expect(product.printableModelUrl).toBeUndefined();
+      const mapped = mapTecDocToCandidate(product);
+      expect(mapped.printableModelUrl).toBeNull();
+      expect(mapped.safetyWarning).toBeNull();
+    });
+  });
+
   test('mode réel — conditionnel contrat commercial (skip si absent)', async () => {
     test.skip(
       !process.env.TECDOC_API_KEY || !process.env.TECDOC_PROVIDER_ID,

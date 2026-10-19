@@ -27,6 +27,9 @@ export interface TecDocMockProduct {
   cadFormats: string[];
   thumbnailUrl?: string;
   productUrl?: string;
+  safetyWarning?: string;
+  printableModelUrl?: string;
+  printMaterial?: string;
 }
 
 export interface TecDocMockVehicle {
@@ -61,6 +64,7 @@ export const MOCK_PRODUCTS: TecDocMockProduct[] = [
     cadFormats: [],
     thumbnailUrl: 'https://example.com/td-001.png',
     productUrl: 'https://example.com/td/001',
+    safetyWarning: 'Pièce critique (freinage) — ne pas imprimer en 3D sans homologation.',
   },
   {
     id: 'TD-002',
@@ -103,6 +107,8 @@ export const MOCK_PRODUCTS: TecDocMockProduct[] = [
     cadFormats: ['STEP', 'IGES'],
     thumbnailUrl: 'https://example.com/td-004.png',
     productUrl: 'https://example.com/td/004',
+    printableModelUrl: 'https://example.com/models/td-004.stl',
+    printMaterial: 'ABS',
   },
   {
     id: 'TD-005',
@@ -1241,6 +1247,9 @@ export const TecDocFixturesSchema = z.object({
       cadFormats: z.array(z.string()).default([]),
       thumbnailUrl: z.string().url().optional(),
       productUrl: z.string().url().optional(),
+      safetyWarning: z.string().optional(),
+      printableModelUrl: z.string().url().optional(),
+      printMaterial: z.string().optional(),
     }),
   ),
   vehicles: z.array(TecDocVehicleSchema),
