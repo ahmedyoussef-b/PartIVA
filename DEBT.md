@@ -15,7 +15,7 @@ Aucune.
 
 Aucune.
 
-### Faible (2)
+### Faible (4)
 
 #### `D-E10-R2b-1` — search-bar : perte d'état au rechargement
 
@@ -29,6 +29,28 @@ Aucune.
 - **Effort estimé :** Faible (état via `sessionStorage` ou query params)
 - **Bloquant :** Non
 - **Prochaine session :** À planifier (post-E12)
+
+#### `D-E12-NEWLINE` — `CONTEXT.md` sans newline finale
+
+- **Statut :** Active
+- **Priorité :** Très faible
+- **Session origine :** E12-R0
+- **Cause :** Fichier sans newline finale (POSIX recommande)
+- **Périmètre :** `CONTEXT.md`
+- **Effort estimé :** Très faible (1 édition)
+- **Bloquant :** Non
+- **Prochaine session :** E13-R1
+
+#### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts)
+
+- **Statut :** Active
+- **Priorité :** Multi-niveaux — Haute (modèles 3D imprimables + disclaimer sécurité), Moyenne (fit reports, outil de mesure, attribution/licence), Faible (print-on-demand)
+- **Session origine :** E13-R0
+- **Cause :** Analyse comparative 3DCarParts révèle 6 fonctionnalités manquantes : modèles 3D imprimables, fit reports, outil de mesure, avertissement sécurité, attribution/licence, print-on-demand.
+- **Périmètre :** E14-R1 (enrichissement TecDoc mock : `safetyWarning`, `printableModelUrl`, `printMaterial`), E14-R2 (table `FitReport` + API `/api/fit-reports`), E14-R3 (`docs/3d-printing-resources.md` + dettes `D-E14-3DCARPARTS-CONNECTOR` Moyenne, `D-E14-PRINT-ON-DEMAND` Faible).
+- **Effort estimé :** Moyen (E14-R1 + R2 + R3).
+- **Bloquant :** Non.
+- **Prochaine session :** E14-R0.
 
 ### Reportée (0)
 

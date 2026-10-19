@@ -34,10 +34,11 @@
 - Closed : `docs(DEBT): D-E12-SEED-E2E` (commit `99a3ddc`) ✅
 
 ## Dettes actives
-- `D-E10-R2b-1` (search-bar : perte d'état au rechargement) — Faible — **post-E11**
+- `D-E10-R2b-1` (search-bar : perte d'état au rechargement) — Faible — **post-E12**
+- `D-E13-3D-FEATURES` (fonctionnalités 3D manquantes, 3DCarParts) — Multi-niveaux (H/M/F) — **E14**
 
 
-**Dettes clôturées :** voir `DEBT.md` section « Clôturées » (9 E10 + 2 E9 + 1 E11).
+**Dettes clôturées :** voir `DEBT.md` section « Clôturées » (9 E10 + 2 E9 + 1 E11 + 6 E12).
 
 ## Décisions récentes
 - `D-E9-R7-1` : Refonte vers `output: 'export'` (abandon sidecar)
@@ -46,3 +47,5 @@
 - **E10-R4a** : Requalification `R7-1`/`R7-1b` — 9/9 pages fonctionnelles (leçon : « petit fichier » ≠ « stub »)
 - **E11-R1** : Validation fonctionnelle Vercel 8/8 — `D-E9-R5-1` clôturée
 - **E12-R0** : Cadrage E12 — feature recherche avancée + `ROADMAP.md` E10/E11 à jour
+- **E13-R0** : Cadrage E13 (hygiène) + E14 (enrichissement 3D) — 6 fonctionnalités manquantes identifiées (analyse 3DCarParts)
+- **Décisions E14** : D1 (Oui), D2 (Oui), D3 (Non — dette), D4 (Oui), D5 (Oui), D6 (Oui — dette)

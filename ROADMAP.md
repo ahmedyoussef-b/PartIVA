@@ -706,6 +706,35 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
+## 🏗️ E13 — HYGIÈNE & DETTES RÉSIDUELLES (🟢 EN COURS)
+
+**Statut :** 🟢 **En cours** (E13-R0)
+
+**Objet :** clôturer les 2 dettes résiduelles de E12 (hygiène, effort faible).
+
+| Session | Objet | Statut |
+|---|---|---|
+| **E13-R0** | Cadrage E13 + E14 (6 fonctionnalités 3D manquantes, analyse 3DCarParts) | ✅ |
+| **E13-R1** | `D-E12-NEWLINE` (newline `CONTEXT.md`) + `D-E10-R2b-1` (`sessionStorage` search-bar) | 🟢 À cadrer |
+
+---
+
+## 🏗️ E14 — ENRICHISSEMENT 3D & COMMUNAUTÉ (🟢 À CADRER)
+
+**Statut :** 🟢 **À cadrer** (E14-R0)
+
+**Objet :** intégrer les fonctionnalités manquantes identifiées dans l'analyse 3DCarParts (modèles 3D, fit reports, avertissements sécurité).
+
+| Session | Objet | Statut |
+|---|---|---|
+| **E14-R1** | Enrichissement TecDoc mock (`safetyWarning`, `printableModelUrl`, `printMaterial`) | 🟢 À cadrer |
+| **E14-R2** | Table `FitReport` + API `/api/fit-reports` | 🟢 À cadrer |
+| **E14-R3** | `docs/3d-printing-resources.md` + dette `D-E14-3DCARPARTS-CONNECTOR` | 🟢 À cadrer |
+
+**Décisions E14 :** D1 (Oui), D2 (Oui), D3 (Non — dette), D4 (Oui), D5 (Oui), D6 (Oui — dette).
+
+---
+
 ## 🏗️ E8 — FINALISATION, QA & DÉPLOIEMENT
 **Objectif** : rendre PartIVA production-ready.
 
@@ -729,18 +758,24 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ## 📅 Récapitulatif Global
 
-| Étape | Sessions | Durée estimée | Dépendance |
+| Étape | Statut | Sessions | Dépendance |
 |---|---|---|---|
-| **E0** Fondation | 9 | 3-4 sem. | — |
-| **E1** Modèle métier | 7 | 2-3 sem. | E0 |
-| **E2** Identification | 9 | 3-4 sem. | E1 |
-| **E3** Sources externes | 7 | 3-4 sem. | E2 |
-| **E4** Acquisition/RE | 7 | 4-6 sem. | E3 |
-| **E5** Intelligence | 7 | 4-6 sem. | E4 |
-| **E6** Écosystème | 7 | 4-6 sem. | E5 |
-| **E7** Desktop Tauri | 10 | 3-5 sem. | E6 |
-| **E8** Finalisation | 9 | 3-4 sem. | E7 |
-| **TOTAL** | **72 sessions** | **~30-42 sem.** | — |
+| **E0** Fondation technique | ✅ Clôturée | 10 | — |
+| **E1** Modèle métier | ✅ Clôturée | 7 | E0 |
+| **E2** Identification multimodale | ✅ Clôturée | 12 | E1 |
+| **E3** Sources externes | ✅ Clôturée | 7 | E2 |
+| **E4** Consolidation/UX | ✅ Clôturée | 8 | E3 |
+| **E5** Intelligence | ✅ Clôturée | 7 | E4 |
+| **E6** Écosystème client | ✅ Clôturée | 10 | E5 |
+| **E7** Déblocage dettes | ✅ Clôturée | 6 | E6 |
+| **E8** Stabilisation | ✅ Clôturée | 7 | E7 |
+| **E9** Desktop Tauri | ✅ Clôturée | 11 | E8 |
+| **E10** Migration/qualité | ✅ Clôturée | 5 | E9 |
+| **E11** Validation Vercel | ✅ Clôturée | 2 | E10 |
+| **E12** Recherche avancée | ✅ Clôturée | 8 | E11 |
+| **E13** Hygiène & dettes | 🟢 En cours | 2 | E12 |
+| **E14** Enrichissement 3D | 🟢 À cadrer | 3 | E13 |
+| **TOTAL** | — | **~87 sessions** | — |
 
 **Estimation réaliste** : **7 à 11 mois** pour la plateforme complète hybride.
 
