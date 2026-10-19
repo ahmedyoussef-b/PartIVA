@@ -50,7 +50,7 @@ export const PartSearchQuerySchema = z
       .number()
       .int()
       .min(1)
-      .max(50)
+      .max(100)
       .nullish()
       .transform((v) => v ?? undefined)
       .default(20),
@@ -70,6 +70,14 @@ export const PartSearchQuerySchema = z
       .nullish()
       .transform((v) => v ?? undefined),
     matchMode: z.enum(['nominal', 'tolerance']).nullish().default('nominal'),
+    machineId: z.string().cuid().optional(),
+    material: z.string().min(1).max(100).optional(),
+    status: z.enum(PART_STATUS_VALUES).optional(),
+    createdAfter: z.string().datetime().optional(),
+    createdBefore: z.string().datetime().optional(),
+    minScore: z.coerce.number().min(0).max(1).optional(),
+    sort: z.enum(['relevance', 'date', 'name', 'status']).optional().default('relevance'),
+    offset: z.coerce.number().int().min(0).optional().default(0),
   })
   .superRefine((data, ctx) => {
     if (data.mode === 'dimensions') {
@@ -104,7 +112,7 @@ export const MultiSearchQuerySchema = z
       .number()
       .int()
       .min(1)
-      .max(50)
+      .max(100)
       .nullish()
       .transform((v) => v ?? undefined)
       .default(20),
@@ -117,6 +125,7 @@ export const MultiSearchQuerySchema = z
     // Tri + pagination (E12-R1b)
     sort: z.enum(['relevance', 'date', 'name', 'status']).optional().default('relevance'),
     offset: z.coerce.number().int().min(0).optional().default(0),
+    machineId: z.string().cuid().optional(),
   })
   .superRefine((data, ctx) => {
     const hasAny =

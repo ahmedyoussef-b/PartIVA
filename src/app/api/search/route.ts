@@ -99,6 +99,7 @@ export async function GET(req: Request) {
         createdAfter: searchParams.get('createdAfter') ?? undefined,
         createdBefore: searchParams.get('createdBefore') ?? undefined,
         minScore: searchParams.get('minScore') ?? undefined,
+        machineId: searchParams.get('machineId') ?? undefined,
         sort: searchParams.get('sort') ?? undefined,
         offset: searchParams.get('offset') ?? undefined,
       });
@@ -133,6 +134,9 @@ export async function GET(req: Request) {
       }
       if (validatedMulti.minScore !== undefined) {
         results = results.filter((r) => r.score >= validatedMulti.minScore!);
+      }
+      if (validatedMulti.machineId) {
+        results = results.filter((r) => r.machineId === validatedMulti.machineId);
       }
 
       // Tri (E12-R1b)
@@ -181,6 +185,14 @@ export async function GET(req: Request) {
       min: searchParams.get('min') ?? undefined,
       max: searchParams.get('max') ?? undefined,
       matchMode: searchParams.get('matchMode') ?? undefined,
+      material: searchParams.get('material') ?? undefined,
+      status: searchParams.get('status') ?? undefined,
+      createdAfter: searchParams.get('createdAfter') ?? undefined,
+      createdBefore: searchParams.get('createdBefore') ?? undefined,
+      minScore: searchParams.get('minScore') ?? undefined,
+      sort: searchParams.get('sort') ?? undefined,
+      offset: searchParams.get('offset') ?? undefined,
+      machineId: searchParams.get('machineId') ?? undefined,
     });
 
     const results =
@@ -209,11 +221,27 @@ export async function GET(req: Request) {
                 limit: validated.limit,
               });
 
+    // Filtres avancés (E12-R2): appliquer aux modes mono (text, reference, specs, dimensions)
+    let filtered = results as Array<{
+      material: string | null;
+      status: string;
+      createdAt: Date;
+      machineId: string | null;
+    }>;
+    if (validated.material) filtered = filtered.filter((r) => r.material === validated.material);
+    if (validated.status) filtered = filtered.filter((r) => r.status === validated.status);
+    if (validated.createdAfter)
+      filtered = filtered.filter((r) => new Date(r.createdAt) >= new Date(validated.createdAfter!));
+    if (validated.createdBefore)
+      filtered = filtered.filter((r) => new Date(r.createdAt) <= new Date(validated.createdBefore!));
+    if (validated.machineId) filtered = filtered.filter((r) => r.machineId === validated.machineId);
+    // minScore ignoré en mono-mode (D-E12-MINSCORE-MONO)
+
     return NextResponse.json({
       query: validated.q,
       mode: validated.mode,
-      count: results.length,
-      results,
+      count: filtered.length,
+      results: filtered,
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'ZodError') {

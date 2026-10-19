@@ -83,6 +83,8 @@ model Part {
   categoryId     String?
   clientId       String?
   material       String?
+  machineId      String?
+  machine        Machine?                    @relation(fields: [machineId], references: [id], onDelete: SetNull)
   autoCategory   String?
   searchVector   Unsupported("tsvector")?    @map("search_vector")
   createdAt      DateTime                    @default(now())
@@ -354,6 +356,7 @@ model Machine {
   location  String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+  parts     Part[]
 
   @@index([status])
   @@map("machines")

@@ -10,6 +10,7 @@ export type SearchResult = {
   status: string;
   material: string | null;
   createdAt: Date;
+  machineId: string | null;
   rank: number;
 };
 
@@ -31,6 +32,7 @@ export async function searchParts(
       status::text AS status,
       material,
       "createdAt",
+      "machineId",
       ts_rank(search_vector, plainto_tsquery('french', ${query})) AS rank
     FROM parts
     WHERE search_vector @@ plainto_tsquery('french', ${query})
@@ -48,6 +50,7 @@ export type SpecSearchResult = {
   status: string;
   material: string | null;
   createdAt: Date;
+  machineId: string | null;
   matchedSpecs: { key: string; value: string }[];
   rank: number;
 };
@@ -80,13 +83,14 @@ export async function searchPartsBySpecs(
       p.status::text AS status,
       p.material,
       p."createdAt",
+      p."machineId",
       json_agg(json_build_object('key', m.key, 'value', m.value) ORDER BY m.rank DESC) AS "matchedSpecs",
       MAX(m.rank)::float AS rank
     FROM matched m
     JOIN parts p ON p.id = m."partId"
     WHERE true
       ${clientFilter}
-    GROUP BY p.id, p."ptvReference", p."partNumber", p.name, p.status
+    GROUP BY p.id, p."ptvReference", p."partNumber", p.name, p.status, p.material, p."createdAt", p."machineId"
     ORDER BY rank DESC, p."ptvReference" ASC NULLS LAST
     LIMIT ${limit}
   `;
@@ -100,6 +104,7 @@ export type DimensionSearchResult = {
   status: string;
   material: string | null;
   createdAt: Date;
+  machineId: string | null;
   specKey: string;
   specValue: string;
   unit: string | null;
@@ -137,6 +142,7 @@ export async function searchPartsByDimensions(
         p.status::text AS status,
         p.material,
         p."createdAt",
+        p."machineId",
         ps.key AS "specKey",
         ps.value AS "specValue",
         ps.unit,
@@ -167,6 +173,7 @@ export async function searchPartsByDimensions(
       p.status::text AS status,
       p.material,
       p."createdAt",
+      p."machineId",
       ps.key AS "specKey",
       ps.value AS "specValue",
       ps.unit,
@@ -192,6 +199,7 @@ export type ReferenceSearchResult = {
   status: string;
   material: string | null;
   createdAt: Date;
+  machineId: string | null;
   matchType: 'exact' | 'prefix';
 };
 
@@ -213,6 +221,7 @@ export async function searchPartsByReference(
       status::text AS status,
       material,
       "createdAt",
+      "machineId",
       CASE
         WHEN UPPER("ptvReference") = ${normalizedQuery}
           OR UPPER("partNumber") = ${normalizedQuery}

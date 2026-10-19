@@ -82,11 +82,71 @@ async function main() {
     });
     console.log(`✅ Admin réel créé : ${adminEmail}`);
 
-    // En production, l'admin réel porte aussi les rôles de référence
-    // du seed (user/viewer/client2 pointent sur le même admin).
-    user = admin;
-    viewer = admin;
-    client2 = admin;
+    // En production : création des 3 utilisateurs E2E dédiés (E12-R1e)
+    console.log('👥 Creating E2E users (user/viewer/client2)...');
+    const e2eUser = await prisma.user.upsert({
+      where: { email: 'user@partiva.dev' },
+      update: { name: 'E2E User', role: 'USER' },
+      create: {
+        email: 'user@partiva.dev',
+        name: 'E2E User',
+        role: 'USER',
+      },
+    });
+    const e2eViewer = await prisma.user.upsert({
+      where: { email: 'viewer@partiva.dev' },
+      update: { name: 'E2E Viewer', role: 'VIEWER' },
+      create: {
+        email: 'viewer@partiva.dev',
+        name: 'E2E Viewer',
+        role: 'VIEWER',
+      },
+    });
+    const e2eClient2 = await prisma.user.upsert({
+      where: { email: 'client2@partiva.dev' },
+      update: { name: 'E2E Client 2', role: 'USER' },
+      create: {
+        email: 'client2@partiva.dev',
+        name: 'E2E Client 2',
+        role: 'USER',
+      },
+    });
+    const e2ePasswordHash = await hashPassword('E2E-test-2026!');
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: e2eUser.id } },
+      update: { password: e2ePasswordHash },
+      create: {
+        userId: e2eUser.id,
+        accountId: e2eUser.id,
+        providerId: 'credential',
+        password: e2ePasswordHash,
+      },
+    });
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: e2eViewer.id } },
+      update: { password: e2ePasswordHash },
+      create: {
+        userId: e2eViewer.id,
+        accountId: e2eViewer.id,
+        providerId: 'credential',
+        password: e2ePasswordHash,
+      },
+    });
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: e2eClient2.id } },
+      update: { password: e2ePasswordHash },
+      create: {
+        userId: e2eClient2.id,
+        accountId: e2eClient2.id,
+        providerId: 'credential',
+        password: e2ePasswordHash,
+      },
+    });
+    console.log(`✅ E2E users créés : user@partiva.dev, viewer@partiva.dev, client2@partiva.dev`);
+
+    user = e2eUser;
+    viewer = e2eViewer;
+    client2 = e2eClient2;
   } else {
     // ── Dev : utilisateurs mock (E7-S01) ──────────────────────────
     console.log('⚠️  ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock (dev uniquement)');

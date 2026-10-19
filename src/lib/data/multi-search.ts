@@ -37,6 +37,7 @@ export type MultiSearchResult = {
   status: string;
   material: string | null;
   createdAt: Date;
+  machineId: string | null;
   score: number;
   breakdown: ScoringBreakdown;
 };
@@ -49,6 +50,7 @@ type IntermediateEntry = {
   status: string;
   material: string | null;
   createdAt: Date;
+  machineId: string | null;
   signals: {
     text?: number;
     reference?: number;
@@ -73,6 +75,7 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
         status: 'DRAFT',
         material: null,
         createdAt: new Date(0),
+        machineId: null,
         signals: {},
       };
       entries.set(id, entry);
@@ -93,6 +96,7 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
       entry.status = r.status;
       entry.material = r.material;
       entry.createdAt = r.createdAt;
+      entry.machineId = r.machineId ?? null;
       entry.signals.text = normalized[i];
     });
   }
@@ -111,6 +115,7 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
       entry.status = r.status;
       entry.material = r.material;
       entry.createdAt = r.createdAt;
+      entry.machineId = r.machineId ?? null;
       entry.signals.reference =
         r.matchType === 'exact' ? REFERENCE_EXACT_SCORE : REFERENCE_PREFIX_SCORE;
     });
@@ -133,6 +138,7 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
       entry.status = r.status;
       entry.material = r.material;
       entry.createdAt = r.createdAt;
+      entry.machineId = r.machineId ?? null;
       entry.signals.specs = normalized[i];
     });
   }
@@ -155,6 +161,7 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
       entry.status = r.status;
       entry.material = r.material;
       entry.createdAt = r.createdAt;
+      entry.machineId = r.machineId ?? null;
       entry.signals.dimensions = 1;
     });
   }
@@ -170,9 +177,10 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
         entry.partNumber = r.partNumber;
         entry.name = r.name;
         entry.status = r.status;
-        // PhotoSearchResult n'expose pas material/createdAt — fallback (E12-R1b)
+        // PhotoSearchResult n'expose pas material/createdAt/machineId — fallback (E12-R1b)
         entry.material = null;
         entry.createdAt = new Date(0);
+        entry.machineId = null;
         entry.signals.photo = r.similarity;
       });
     } catch (cause) {
@@ -197,6 +205,7 @@ export async function multiSearch(params: MultiSearchParams): Promise<MultiSearc
       status: entry.status,
       material: entry.material,
       createdAt: entry.createdAt,
+      machineId: entry.machineId,
       score: global,
       breakdown,
     });
