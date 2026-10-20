@@ -24,18 +24,7 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
 
-### Faible (3)
-
-#### `D-E16-THREE-CLOCK` — Horloge/animation Three.js non nettoyée
-
-- **Statut :** Active
-- **Priorité :** Faible
-- **Session origine :** E16-R3
-- **Cause :** Les canvas Three.js (`CadViewer`, `StlViewer`) n'arrêtent pas systématiquement `requestAnimationFrame` / `OrbitControls` au démontage — risque de fuite mémoire mineure sur navigation répétée.
-- **Périmètre :** `src/components/3d/cad-viewer.tsx`, `src/components/3d/stl-viewer.tsx`, `src/components/3d/model-viewer.tsx`.
-- **Effort estimé :** Faible (1 session).
-- **Bloquant :** Non.
-- **Prochaine session :** Post-E16.
+### Faible (2)
 
 #### `D-E16-IGES-ADMIN-E2E` — Tests E2E IGES admin bloqués (Faible)
 
@@ -112,6 +101,16 @@ Aucune.
 ### E16 (1)
 
 - **`D-E14-STEP-VIEWER`** (viewer STEP/IGES) — ✅ Clôturée E16-R4 (`CadViewer` occt-import-js : STEP + IGES + BREP, `ModelViewer` auto-détection, fixtures reproductibles, E2E admin + public 2/2 ; commits `714a966` (R1), `2cc2dbc` (R3), `ab2601b` + `cad26d4` (R2), doc `docs/3d-format-support.md` (R4))
+
+### E17 (1)
+
+#### `D-E16-THREE-CLOCK` — ✅ Clôturée E17-R2 (obsolète)
+
+- **Statut :** Clôturée
+- **Cause :** Avertissement `THREE.Clock` déprécié venait de `@react-three/fiber` (interne), pas du code applicatif.
+- **Vérification :** Aucun `THREE.Clock` / `requestAnimationFrame` / `useFrame` custom dans `src/` (0 occurrence) ; cleanups `useEffect` complets (worker `terminate()` + `clearTimeout` + flag `cancelled`) ; `OrbitControls` via drei (démontage React) ; render loop gérée nativement par fiber (teardown `cancelAnimationFrame` présent dans son bundle).
+- **Nuances mineures (non bloquantes) :** `dispose={null}` sur `<primitive>` STL (mesh local jamais disposé explicitement — GC + destruction du contexte WebGL au démontage du Canvas suffisent) ; lumières/`AxesHelper` recréés à chaque render de `StlViewerCanvas` (allocation par render, re-renders rares).
+- **Commit :** `[à venir]`
 
 ## Notes
 
