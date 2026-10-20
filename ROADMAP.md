@@ -744,21 +744,23 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 
 ---
 
-## 🏗️ E16 — INTÉGRATION 3D (en cours)
+## 🏗️ E16 — INTÉGRATION 3D (✅ CLÔTURÉE)
 
-**Statut :** 🕒 **En cours** (E16-R3 intégration → E16-R2 robustesse IGES → E16-R4 doc + clôture)
+**Statut :** ✅ **Clôturée** (E16-R4 — 2026-10-20 : doc formats + clôture `D-E14-STEP-VIEWER`)
 
 **Objet :** brancher `CadViewer` dans le parcours utilisateur et clôturer `D-E14-STEP-VIEWER`.
 
 | Session | Objet | Commit | Statut |
 |---|---|---|---|
-| **E16-R3** | `ModelViewer` (auto-détection `.step`/`.iges` → `CadViewer`, `.stl`/`.gltf` → `StlViewer`) dans `/admin/pieces/[id]` + pièce E2E `TD-STEP-001` + 2 tests E2E | `[à venir]` | 🕒 |
-| **E16-R2** | IGES robuste : timeout, limite mémoire, erreurs détaillées (`occt-import-js`) | — | ⬭ |
-| **E16-R4** | Doc `docs/3d-format-support.md` + clôture `D-E14-STEP-VIEWER` | — | ⬭ |
+| **E16-R0/R0a** | Rebase, baseline, resync documentaire | `4a7bf44`, `879060c`, `8884eee`, `57ce290` | ✅ |
+| **E16-R1** | `CadViewer` STEP prototype + assets WASM (LGPL-2.1) + fixture STEP reproductible | `a60fd22`, `16d316c`, `714a966` | ✅ |
+| **E16-R3** | `ModelViewer` (auto-détection `.step`/`.iges` → `CadViewer`, `.stl`/`.gltf` → `StlViewer`) dans `/admin/pieces/[id]` + pièce E2E `TD-STEP-001` + 2 tests E2E | `2cc2dbc` | ✅ |
+| **E16-R2** | IGES robuste : `ReadFile('iges')`, timeout, taille max, détection format + page publique `/test/iges-viewer` + E2E public 2/2 + licence fixture | `3ea8762`, `2b49214`, `ab2601b`, `cad26d4` | ✅ |
+| **E16-R4** | Doc `docs/3d-format-support.md` + clôture `D-E14-STEP-VIEWER` | `[à venir]` | ✅ |
 
-**Baseline attendue E16-R3 :** ESLint 0/0 · TS 0 · Prettier 0 · E2E 10/10 (piece-detail).
+**Baseline E16-R4 :** ESLint 0/0 · TS 0 · Prettier 0 · E2E public IGES 2/2.
 
-**Dettes E16 :** `D-E16-THREE-CLOCK` (Faible), `D-E16-DASHBOARD-FETCH` (Moyenne).
+**Dettes E16 résiduelles :** `D-E16-DASHBOARD-FETCH` (Moyenne), `D-E16-THREE-CLOCK` (Faible), `D-E16-IGES-ADMIN-E2E` (Faible).
 
 ---
 

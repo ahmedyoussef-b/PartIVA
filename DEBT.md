@@ -1,6 +1,6 @@
 # DEBT — PartIVA
 
-**Dernière mise à jour :** 2026-10-19
+**Dernière mise à jour :** 2026-10-20
 **Structure :** une dette = un bloc (ID, statut, priorité, cause, périmètre, effort, prochaine session)
 **Encodage :** UTF-8 sans BOM
 **Lecture :** `Get-Content DEBT.md -Encoding UTF8` (PowerShell sans `-Encoding UTF8` masque le contenu)
@@ -11,7 +11,7 @@
 
 Aucune.
 
-### Moyenne (2)
+### Moyenne (1)
 
 #### `D-E16-DASHBOARD-FETCH` — Fetch dashboard non optimisé
 
@@ -24,20 +24,7 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
 
-#### `D-E14-STEP-VIEWER` — Viewer STEP/IGES
-
-- **Statut :** Active → **En cours de clôture (E16-R3)**
-- **Priorité :** Moyenne
-- **Session origine :** E14-R3
-- **Cause :** `StlViewer` supporte STL/GLTF, mais pas STEP/IGES (formats CAO pro).
-- **Périmètre :** `src/components/3d/cad-viewer.tsx` (fait E16-R1), `src/components/3d/model-viewer.tsx` (nouveau E16-R3), `occt-import-js`.
-- **Effort estimé :** Élevé (4-6 sessions).
-- **Bloquant :** Non.
-- **Prochaine session :** E16-R2 (robustesse IGES : timeout, mémoire, erreurs détaillées) puis E16-R4 (doc + clôture définitive).
-
-Aucune.
-
-### Faible (4)
+### Faible (3)
 
 #### `D-E16-THREE-CLOCK` — Horloge/animation Three.js non nettoyée
 
@@ -48,7 +35,7 @@ Aucune.
 - **Périmètre :** `src/components/3d/cad-viewer.tsx`, `src/components/3d/stl-viewer.tsx`, `src/components/3d/model-viewer.tsx`.
 - **Effort estimé :** Faible (1 session).
 - **Bloquant :** Non.
-- **Prochaine session :** E16-R2 ou post-E16.
+- **Prochaine session :** Post-E16.
 
 #### `D-E16-IGES-ADMIN-E2E` — Test E2E IGES admin bloqué
 
@@ -61,17 +48,6 @@ Aucune.
 - **Bloquant :** Non.
 - **Mitigation :** Test public `e2e/public/iges-viewer.spec.ts` valide le parsing IGES.
 - **Prochaine session :** Quand DB accessible (Neon ou SQLite local).
-
-#### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts) — ✅ Clôturée E14-R3
-
-- **Statut :** Clôturée
-- **Priorité :** Multi-niveaux — Haute (modèles 3D imprimables + disclaimer sécurité), Moyenne (fit reports, outil de mesure, attribution/licence), Faible (print-on-demand)
-- **Session origine :** E13-R0
-- **Cause :** Analyse comparative 3DCarParts révèle 6 fonctionnalités manquantes : modèles 3D imprimables, fit reports, outil de mesure, avertissement sécurité, attribution/licence, print-on-demand.
-- **Périmètre :** E14-R1 (enrichissement TecDoc mock : `safetyWarning`, `printableModelUrl`, `printMaterial`), E14-R2 (table `FitReport` + API `/api/fit-reports`), E14-R3 (`docs/3d-printing-resources.md` + dettes `D-E14-3DCARPARTS-CONNECTOR` Moyenne, `D-E14-PRINT-ON-DEMAND` Faible).
-- **Effort estimé :** Moyen (E14-R1 + R2 + R3).
-- **Bloquant :** Non.
-- **Prochaine session :** E14-R0.
 
 #### `D-E14-PRINT-ON-DEMAND` — Print-on-demand
 
@@ -132,6 +108,10 @@ Aucune.
 ### E15 (1)
 
 - **`D-E14-3DCARPARTS-CONNECTOR`** — ✅ Clôturée E15-R1 (connecteur mock + fixtures + tests E2E, commit `308cec8`)
+
+### E16 (1)
+
+- **`D-E14-STEP-VIEWER`** (viewer STEP/IGES) — ✅ Clôturée E16-R4 (`CadViewer` occt-import-js : STEP + IGES + BREP, `ModelViewer` auto-détection, fixtures reproductibles, E2E admin + public 2/2 ; commits `714a966` (R1), `2cc2dbc` (R3), `ab2601b` + `cad26d4` (R2), doc `docs/3d-format-support.md` (R4))
 
 ## Notes
 

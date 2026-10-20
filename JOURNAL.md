@@ -36,7 +36,15 @@
 | 2026-10-19 | E15-R1 | Connecteur 3DCarParts (mock) + fixtures + tests E2E | `bc1aea6` | ✅ |
 | 2026-10-19 | E15-R1 | Clôture `D-E14-3DCARPARTS-CONNECTOR` | `15cfbb0` | ✅ |
 | 2026-10-19 | E16-R0 | Rebase `origin/master` + untrack `next-env.d.ts` (R.5.32) | `4a7bf44` | ✅ |
-| 2026-10-19 | E16-R3 | Intégration ModelViewer dans `/admin/pieces/[id]` — `.step`/`.iges` → `CadViewer`, `.stl`/`.gltf` → `StlViewer` + 2 tests E2E | `[à venir]` | 🕒 |
 | 2026-10-19 | E16-R0 | Baseline : prettier --write sur 21 fichiers (dette E12→E15) | `879060c` | ✅ |
 | 2026-10-19 | E16-R0 | Fix(3d) : règles-of-hooks `stl-viewer.tsx` | `8884eee` | ✅ |
-| 2026-10-19 | E16-R0a | Resynchronisation documentaire post-E15-R1 | `[à venir]` | ✅ |
+| 2026-10-19 | E16-R0a | Resynchronisation documentaire post-E15-R1 | `57ce290` | ✅ |
+| 2026-10-19 | E16-R1 | Fixture STEP cube ISO 10303-21 + script reproductible | `a60fd22` | ✅ |
+| 2026-10-19 | E16-R1 | Assets WASM occt-import-js + script sync (LGPL-2.1) | `16d316c` | ✅ |
+| 2026-10-19 | E16-R1 | `CadViewer` STEP via occt-import-js (prototype) | `714a966` | ✅ |
+| 2026-10-19 | E16-R3 | Intégration ModelViewer dans `/admin/pieces/[id]` — `.step`/`.iges` → `CadViewer`, `.stl`/`.gltf` → `StlViewer` + 2 tests E2E | `2cc2dbc` | ✅ |
+| 2026-10-20 | E16-R2 | Robustesse IGES — timeout, taille max, détection format | `3ea8762` | ✅ |
+| 2026-10-20 | E16-R2 | Fix — retirer faux support IGES (v0.0.23 = STEP only) | `2b49214` | ✅ |
+| 2026-10-20 | E16-R2 | Support IGES (`ReadIgesFile`) + page publique `/test/iges-viewer` + E2E public 2/2 | `ab2601b` | ✅ |
+| 2026-10-20 | E16-R2 | Documenter fixture IGES (LGPL-2.1, copie de référence) | `cad26d4` | ✅ |
+| 2026-10-20 | E16-R4 | Clôture E16 — doc formats 3D + clôture `D-E14-STEP-VIEWER` | `[à venir]` | ✅ |
