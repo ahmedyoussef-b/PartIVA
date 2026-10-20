@@ -24,11 +24,26 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
 
-### Faible (2)
 
-#### `D-E16-IGES-ADMIN-E2E` — Tests E2E IGES admin bloqués (Faible)
 
-- **Statut :** Active (documentée)
+
+
+### Acceptée — facteur externe (2)
+
+#### `D-E14-PRINT-ON-DEMAND` — Print-on-demand (Faible, accepté)
+
+- **Statut :** Acceptée (facteur externe)
+- **Priorité :** Faible
+- **Session origine :** E14-R3
+- **Cause :** Pas de partenariat avec un service d'impression professionnelle.
+- **Périmètre :** `src/app/api/print-order/route.ts` (nouveau), intégration Stripe + partenaire.
+- **Effort estimé :** Élevé (post-E17, nécessite partenariat externe).
+- **Bloquant :** Non.
+- **Prochaine session :** Quand partenariat disponible.
+
+#### `D-E16-IGES-ADMIN-E2E` — Tests E2E IGES admin bloqués (Faible, accepté)
+
+- **Statut :** Acceptée (facteur externe)
 - **Priorité :** Faible
 - **Session origine :** E16-R2
 - **Cause :** Base de données Neon inaccessible dans l'environnement de test → authentification admin échoue → tests `e2e/admin/cad-viewer.spec.ts` (IGES) non exécutables.
@@ -37,19 +52,6 @@ Aucune.
 - **Effort estimé :** Faible (débloquer DB ou exécuter en CI avec DB).
 - **Bloquant :** Non (mitigation en place).
 - **Prochaine session :** Quand DB accessible (Neon ou SQLite local) — ou en CI.
-
-#### `D-E14-PRINT-ON-DEMAND` — Print-on-demand (Faible)
-
-- **Statut :** Active (non prioritaire)
-- **Priorité :** Faible
-- **Session origine :** E14-R3
-- **Cause :** Pas de partenariat avec un service d'impression professionnelle.
-- **Périmètre :** `src/app/api/print-order/route.ts` (nouveau), intégration Stripe + partenaire.
-- **Effort estimé :** Élevé (post-E17, nécessite partenariat externe).
-- **Bloquant :** Non.
-- **Prochaine session :** Post-E17 (nécessite partenariat externe).
-
-
 
 #### `D-E17-AUDIT-MATERIALS-API` — Routes /api/audit et /api/materials absentes (Faible)
 

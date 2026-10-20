@@ -10,6 +10,8 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  baseURL: process.env.BETTER_AUTH_URL,
+
   // E9-R2-septies — autoriser localhost et 127.0.0.1 (ports dynamiques sidecar Tauri)
   trustedOrigins: [
     'http://127.0.0.1:*',

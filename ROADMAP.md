@@ -803,10 +803,34 @@ ESLint 0/0 · TS 0 err · Prettier 0 · Build 59 routes · E2E 284 · Prisma 15 
 | **E11** Validation Vercel | ✅ Clôturée | 2 | E10 |
 | **E12** Recherche avancée | ✅ Clôturée | 8 | E11 |
 | **E13** Hygiène & dettes | ✅ Clôturée | 2 | E12 |
-| **E14** Enrichissement 3D | 🟢 À cadrer | 3 | E13 |
-| **TOTAL** | — | **~87 sessions** | — |
+| **E14** Enrichissement 3D | ✅ Clôturée | 3 | E13 |
+| **E15** Connecteur 3DCarParts | ✅ Clôturée | 1 | E14 |
+| **E16** Visualiseur CAO | ✅ Clôturée | 4 | E15 |
+| **E17** Dettes résiduelles | ✅ Clôturée | 5 | E16 |
+| **E18** Routes API /api | ✅ Clôturée | 2 | E17 |
+| **E19** Dette getter mort | ✅ Clôturée | 2 | E18 |
+| **TOTAL** | — | **~97 sessions** | — |
 
 **Estimation réaliste** : **7 à 11 mois** pour la plateforme complète hybride.
+
+---
+
+## 🔒 E17–E19 — Clôture des dettes (résumé)
+
+| Dette | Session | Issue |
+|-------|---------|-------|
+| `D-E16-IGES-ADMIN-E2E` | E17-R1 | Acceptée — documentée (accès DB requis) |
+| `D-E16-THREE-CLOCK` | E17-R2 | Clôturée (obsolète) |
+| `D-E14-PRINT-ON-DEMAND` | E17-R3 | Acceptée — documentée (partenariat externe requis) |
+| `D-E16-DASHBOARD-FETCH` | E17-R4 | Clôturée (route `/api/dashboard` + fallback) |
+| `D-E17-AUDIT-MATERIALS-API` | E18-R1 | Clôturée (2 routes API + fallbacks) |
+| `D-E18-MATERIAL-SLUG-GETTER` | E19-R1 | Clôturée (getter client mort supprimé) |
+
+**6 dettes traitées en 3 sessions (E17, E18, E19).**
+
+**Dettes résiduelles acceptées (facteurs externes, non bloquantes) :**
+- `D-E14-PRINT-ON-DEMAND` — partenariat Stripe + service d'impression
+- `D-E16-IGES-ADMIN-E2E` — accès DB (Neon ou SQLite local)
 
 ---
 
