@@ -53,3 +53,5 @@
 | 2026-10-20 | E17-R3 | `D-E14-PRINT-ON-DEMAND` requalifiée (post-E17) | `[working tree]` | ✅ |
 | 2026-10-20 | E17-R4 | `D-E16-DASHBOARD-FETCH` clôturée (route `/api/dashboard` + fallback) | `[working tree]` | ✅ |
 | 2026-10-20 | E17-R5 | Clôture E17 — 4 dettes traitées | `[à venir]` | ✅ |
+| 2026-10-20 | E19-R1 | Suppression getter client mort `getMaterialBySlug` + clôture `D-E18-MATERIAL-SLUG-GETTER` | `[working tree]` | ✅ |
+| 2026-10-20 | E19-R2 | Clôture E19 — commit unique | `[à venir]` | ✅ |

@@ -30,11 +30,11 @@
 - **E15-R1** : Connecteur 3DCarParts (mock) clôturé ✅
 - **E16** : STEP + IGES supportés (`CadViewer` + `ModelViewer` + fixtures + E2E admin/public) — **clôturée E16-R4** ✅
 
-## Dettes actives (3)
+## Dettes actives (2)
 
 | ID | Priorité | Effort | Session origine |
 |---|---|---|---|
-| `D-E17-AUDIT-MATERIALS-API` | Faible | Faible | E17-R4 |
+
 | `D-E14-PRINT-ON-DEMAND` | Faible | Élevé (post-E17) | E14-R3 |
 | `D-E16-IGES-ADMIN-E2E` | Faible | Faible | E16-R2 |
 

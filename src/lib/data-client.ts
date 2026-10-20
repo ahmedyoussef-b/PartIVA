@@ -109,31 +109,6 @@ export async function getMaterials(): Promise<MaterialWithDetails[]> {
   }
 }
 
-export async function getMaterialBySlug(slug: string): Promise<MaterialWithDetails | null> {
-  if (isTauri())
-    return window.__TAURI_INTERNALS__!.invoke<MaterialWithDetails | null>('get_material_by_slug', {
-      slug,
-    });
-
-  // TODO(D-E18-MATERIAL-SLUG-GETTER): route /api/materials/[slug] inexistante côté web.
-  try {
-    const res = await fetch(`/api/materials/${slug}`);
-    if (!res.ok) {
-      console.warn('[data-client] /api/materials/${slug} returned', res.status);
-      return null;
-    }
-    const contentType = res.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      console.warn('[data-client] /api/materials/${slug} returned non-JSON');
-      return null;
-    }
-    return (await res.json()) as MaterialWithDetails | null;
-  } catch (error) {
-    console.warn('[data-client] /api/materials/${slug} fetch failed:', error);
-    return null;
-  }
-}
-
 export async function getDemandesFile(): Promise<RequestWithRelations[]> {
   if (isTauri())
     return window.__TAURI_INTERNALS__!.invoke<RequestWithRelations[]>('get_demandes_file');
