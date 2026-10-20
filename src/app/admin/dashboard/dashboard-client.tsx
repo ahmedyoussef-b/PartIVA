@@ -22,7 +22,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
   const pendingRequests = requests.filter((r) => r.status === 'new' || r.status === 'searching');
 
   return (
-    <div className="max-w-7xl space-y-8">
+    <div data-testid="dashboard-content" className="max-w-7xl space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>

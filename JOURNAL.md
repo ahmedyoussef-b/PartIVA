@@ -48,3 +48,8 @@
 | 2026-10-20 | E16-R2 | Support IGES (`ReadIgesFile`) + page publique `/test/iges-viewer` + E2E public 2/2 | `ab2601b` | ✅ |
 | 2026-10-20 | E16-R2 | Documenter fixture IGES (LGPL-2.1, copie de référence) | `cad26d4` | ✅ |
 | 2026-10-20 | E16-R4 | Clôture E16 — doc formats 3D + clôture `D-E14-STEP-VIEWER` | `[à venir]` | ✅ |
+| 2026-10-20 | E17-R1 | `D-E16-IGES-ADMIN-E2E` documentée (mitigation publique) | `74bb2dc` | ✅ |
+| 2026-10-20 | E17-R2 | `D-E16-THREE-CLOCK` clôturée (obsolète) | `6cf257e` | ✅ |
+| 2026-10-20 | E17-R3 | `D-E14-PRINT-ON-DEMAND` requalifiée (post-E17) | `[working tree]` | ✅ |
+| 2026-10-20 | E17-R4 | `D-E16-DASHBOARD-FETCH` clôturée (route `/api/dashboard` + fallback) | `[working tree]` | ✅ |
+| 2026-10-20 | E17-R5 | Clôture E17 — 4 dettes traitées | `[à venir]` | ✅ |

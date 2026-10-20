@@ -24,7 +24,7 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
 
-### Faible (2)
+### Faible (3)
 
 #### `D-E16-IGES-ADMIN-E2E` — Tests E2E IGES admin bloqués (Faible)
 
@@ -38,16 +38,27 @@ Aucune.
 - **Bloquant :** Non (mitigation en place).
 - **Prochaine session :** Quand DB accessible (Neon ou SQLite local) — ou en CI.
 
-#### `D-E14-PRINT-ON-DEMAND` — Print-on-demand
+#### `D-E14-PRINT-ON-DEMAND` — Print-on-demand (Faible)
 
-- **Statut :** Active
+- **Statut :** Active (non prioritaire)
 - **Priorité :** Faible
 - **Session origine :** E14-R3
 - **Cause :** Pas de partenariat avec un service d'impression professionnelle.
 - **Périmètre :** `src/app/api/print-order/route.ts` (nouveau), intégration Stripe + partenaire.
-- **Effort estimé :** Élevé (post-E14).
+- **Effort estimé :** Élevé (post-E17, nécessite partenariat externe).
 - **Bloquant :** Non.
-- **Prochaine session :** Post-E14.
+- **Prochaine session :** Post-E17 (nécessite partenariat externe).
+
+#### `D-E17-AUDIT-MATERIALS-API` — Routes /api/audit et /api/materials absentes (Faible)
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E17-R4
+- **Cause :** `getAuditLogs()` et `getMaterials()` appellent des routes inexistantes → même bug que `D-E16-DASHBOARD-FETCH` (HTML 404 → `SyntaxError` masqué par le `catch`).
+- **Périmètre :** `src/app/api/audit/route.ts` (nouveau), `src/app/api/materials/route.ts` (nouveau).
+- **Effort estimé :** Faible (même pattern que dashboard).
+- **Bloquant :** Non.
+- **Prochaine session :** Post-E17 (ou E18).
 
 ### Reportée (0)
 
@@ -102,7 +113,7 @@ Aucune.
 
 - **`D-E14-STEP-VIEWER`** (viewer STEP/IGES) — ✅ Clôturée E16-R4 (`CadViewer` occt-import-js : STEP + IGES + BREP, `ModelViewer` auto-détection, fixtures reproductibles, E2E admin + public 2/2 ; commits `714a966` (R1), `2cc2dbc` (R3), `ab2601b` + `cad26d4` (R2), doc `docs/3d-format-support.md` (R4))
 
-### E17 (1)
+### E17 (2)
 
 #### `D-E16-THREE-CLOCK` — ✅ Clôturée E17-R2 (obsolète)
 
@@ -110,7 +121,9 @@ Aucune.
 - **Cause :** Avertissement `THREE.Clock` déprécié venait de `@react-three/fiber` (interne), pas du code applicatif.
 - **Vérification :** Aucun `THREE.Clock` / `requestAnimationFrame` / `useFrame` custom dans `src/` (0 occurrence) ; cleanups `useEffect` complets (worker `terminate()` + `clearTimeout` + flag `cancelled`) ; `OrbitControls` via drei (démontage React) ; render loop gérée nativement par fiber (teardown `cancelAnimationFrame` présent dans son bundle).
 - **Nuances mineures (non bloquantes) :** `dispose={null}` sur `<primitive>` STL (mesh local jamais disposé explicitement — GC + destruction du contexte WebGL au démontage du Canvas suffisent) ; lumières/`AxesHelper` recréés à chaque render de `StlViewerCanvas` (allocation par render, re-renders rares).
-- **Commit :** `[à venir]`
+- **Commit :** `6cf257e`
+
+- **`D-E16-DASHBOARD-FETCH`** — ✅ Clôturée E17-R4 (route `/api/dashboard` créée, fallback `getDashboard()`, test E2E `dashboard.spec.ts` — à exécuter quand DB accessible)
 
 ## Notes
 

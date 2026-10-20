@@ -1,15 +1,42 @@
 'use client';
 
 import type { RequestWithRelations } from '@/lib/utils/request-mappers';
+import type { MachineWithRelations } from '@/lib/data/machines';
 
 export const isTauri = () => {
   if (typeof window === 'undefined') return false;
   return '__TAURI_INTERNALS__' in window;
 };
 
-export async function getDashboard() {
-  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke('get_dashboard');
-  return fetch('/api/dashboard').then((r) => r.json());
+export interface DashboardData {
+  requests: RequestWithRelations[];
+  machines: MachineWithRelations[];
+}
+
+export async function getDashboard(): Promise<DashboardData> {
+  if (isTauri()) {
+    return window.__TAURI_INTERNALS__!.invoke<DashboardData>('get_dashboard');
+  }
+
+  // Mode web — en export statique (NEXT_EXPORT=true) les Route Handlers ne
+  // sont pas servis : la réponse peut être une page 404/HTML → r.json() levait
+  // `SyntaxError: Unexpected token '<'`. Fallback propre vers des listes vides.
+  try {
+    const res = await fetch('/api/dashboard');
+    if (!res.ok) {
+      console.warn('[data-client] /api/dashboard returned', res.status);
+      return { requests: [], machines: [] };
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      console.warn('[data-client] /api/dashboard returned non-JSON');
+      return { requests: [], machines: [] };
+    }
+    return res.json();
+  } catch (error) {
+    console.warn('[data-client] /api/dashboard fetch failed:', error);
+    return { requests: [], machines: [] };
+  }
 }
 
 export async function getAuditLogs() {

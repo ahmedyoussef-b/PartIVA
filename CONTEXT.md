@@ -30,14 +30,13 @@
 - **E15-R1** : Connecteur 3DCarParts (mock) clôturé ✅
 - **E16** : STEP + IGES supportés (`CadViewer` + `ModelViewer` + fixtures + E2E admin/public) — **clôturée E16-R4** ✅
 
-## Dettes actives (4)
+## Dettes actives (3)
 
 | ID | Priorité | Effort | Session origine |
 |---|---|---|---|
-| `D-E16-DASHBOARD-FETCH` | Moyenne | Moyen (1-2 sessions) | E16-R3 |
-| `D-E14-PRINT-ON-DEMAND` | Faible | Élevé (post-E14) | E14-R3 |
-| `D-E16-THREE-CLOCK` | Faible | Faible (1 session) | E16-R3 |
-| `D-E16-IGES-ADMIN-E2E` | Faible | Faible (1 session) | E16-R2 |
+| `D-E17-AUDIT-MATERIALS-API` | Faible | Faible | E17-R4 |
+| `D-E14-PRINT-ON-DEMAND` | Faible | Élevé (post-E17) | E14-R3 |
+| `D-E16-IGES-ADMIN-E2E` | Faible | Faible | E16-R2 |
 
 Détail dans `DEBT.md` (à jour).
 
@@ -58,3 +57,7 @@ Détail dans `DEBT.md` (à jour).
 - **E16-R3** (2026-10-19) : `ModelViewer` auto-détection branchée sur `/admin/pieces/[id]`
 - **E16-R2** (2026-10-20) : IGES via `ReadFile('iges')` + `timeoutMs`/`maxSizeMb` + page publique `/test/iges-viewer` + E2E public 2/2 — fixture = copie de la référence package (LGPL-2.1, licence à côté)
 - **E16-R4** (2026-10-20) : clôture E16 — `docs/3d-format-support.md` + `D-E14-STEP-VIEWER` clôturée
+- **E17-R1** : `D-E16-IGES-ADMIN-E2E` documentée (mitigation publique)
+- **E17-R2** : `D-E16-THREE-CLOCK` clôturée (obsolète)
+- **E17-R3** : `D-E14-PRINT-ON-DEMAND` requalifiée (post-E17)
+- **E17-R4** : `D-E16-DASHBOARD-FETCH` clôturée (route `/api/dashboard` + fallback)
