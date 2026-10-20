@@ -49,16 +49,28 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E17 (nécessite partenariat externe).
 
+#### `D-E18-MATERIAL-SLUG-GETTER` — Getter `getMaterialBySlug()` sans route web (Faible)
+
+- **Statut :** Active (documentée)
+- **Priorité :** Faible
+- **Session origine :** E18-R1
+- **Cause :** `getMaterialBySlug()` appelle `/api/materials/${slug}` qui n'existe pas côté web (seule la commande Tauri `get_material_by_slug` est implémentée). Le getter n'est utilisé nulle part dans l'arbre actuel.
+- **Périmètre :** `src/lib/data-client.ts` (`getMaterialBySlug`), `src/lib/data/materials.ts` (`getMaterialBySlug` côté serveur existe).
+- **Effort estimé :** Faible (créer `src/app/api/materials/[slug]/route.ts` si besoin).
+- **Bloquant :** Non.
+- **Prochaine session :** Post-E18 (si route matériau par slug requise).
+
 #### `D-E17-AUDIT-MATERIALS-API` — Routes /api/audit et /api/materials absentes (Faible)
 
-- **Statut :** Active
+- **Statut :** Clôturée E18-R1
 - **Priorité :** Faible
 - **Session origine :** E17-R4
 - **Cause :** `getAuditLogs()` et `getMaterials()` appellent des routes inexistantes → même bug que `D-E16-DASHBOARD-FETCH` (HTML 404 → `SyntaxError` masqué par le `catch`).
-- **Périmètre :** `src/app/api/audit/route.ts` (nouveau), `src/app/api/materials/route.ts` (nouveau).
+- **Périmètre :** `src/app/api/audit/route.ts` (créé), `src/app/api/materials/route.ts` (créé), `src/lib/data-client.ts` (fallbacks renforcés).
 - **Effort estimé :** Faible (même pattern que dashboard).
 - **Bloquant :** Non.
-- **Prochaine session :** Post-E17 (ou E18).
+- **Prochaine session :** N/A — clôturée.
+- **Résolution :** Routes API créées avec `requireAdmin()`, mapping Prisma → contrat `AuditEntry`, gestion JSON 500. Getters client vérifient `res.ok` et `content-type`, retournent `[]` / `null` en cas d'échec.
 
 ### Reportée (0)
 
@@ -124,6 +136,15 @@ Aucune.
 - **Commit :** `6cf257e`
 
 - **`D-E16-DASHBOARD-FETCH`** — ✅ Clôturée E17-R4 (route `/api/dashboard` créée, fallback `getDashboard()`, test E2E `dashboard.spec.ts` — à exécuter quand DB accessible)
+
+### E18 (1)
+
+#### `D-E17-AUDIT-MATERIALS-API` — ✅ Clôturée E18-R1 (routes `/api/audit` et `/api/materials` créées, fallbacks `getAuditLogs()`/`getMaterials()` renforcés)
+
+- **Statut :** Clôturée E18-R1
+- **Cause :** `getAuditLogs()` et `getMaterials()` appellent des routes inexistantes → même bug que `D-E16-DASHBOARD-FETCH` (HTML 404 → `SyntaxError` masqué par le `catch`).
+- **Périmètre :** `src/app/api/audit/route.ts`, `src/app/api/materials/route.ts`, `src/lib/data-client.ts`.
+- **Résolution :** Routes API créées avec `requireAdmin()`, mapping Prisma → contrat `AuditEntry`, gestion JSON 500. Getters client vérifient `res.ok` et `content-type`, retournent `[]` / `null` en cas d'échec.
 
 ## Notes
 

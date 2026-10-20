@@ -2,6 +2,7 @@
 
 import type { RequestWithRelations } from '@/lib/utils/request-mappers';
 import type { MachineWithRelations } from '@/lib/data/machines';
+import type { MaterialWithDetails } from '@/lib/data/materials';
 
 export const isTauri = () => {
   if (typeof window === 'undefined') return false;
@@ -39,19 +40,98 @@ export async function getDashboard(): Promise<DashboardData> {
   }
 }
 
-export async function getAuditLogs() {
-  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke('get_audit_logs');
-  return fetch('/api/audit').then((r) => r.json());
+type AuditEntityType = 'request' | 'part' | 'sync';
+
+type AuditSeverity = 'info' | 'success' | 'warning';
+
+type AuditAction =
+  | 'sync_pull'
+  | 'request_received'
+  | 'search_launched'
+  | 'candidate_selected'
+  | 'reverse_started'
+  | 'machining_started'
+  | 'completed';
+
+interface AuditEntry {
+  id: string;
+  ts: string;
+  action: AuditAction;
+  actor: string;
+  entityId: string;
+  entityType: AuditEntityType;
+  description: string;
+  severity: AuditSeverity;
 }
 
-export async function getMaterials() {
-  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke('get_materials');
-  return fetch('/api/materials').then((r) => r.json());
+export async function getAuditLogs(): Promise<AuditEntry[]> {
+  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke<AuditEntry[]>('get_audit_logs');
+
+  // Mode web — en export statique (NEXT_EXPORT=true) les Route Handlers ne
+  // sont pas servis : la réponse peut être une page 404/HTML → r.json() levait
+  // `SyntaxError: Unexpected token '<'`. Fallback propre vers un tableau vide.
+  try {
+    const res = await fetch('/api/audit');
+    if (!res.ok) {
+      console.warn('[data-client] /api/audit returned', res.status);
+      return [];
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      console.warn('[data-client] /api/audit returned non-JSON');
+      return [];
+    }
+    return (await res.json()) as AuditEntry[];
+  } catch (error) {
+    console.warn('[data-client] /api/audit fetch failed:', error);
+    return [];
+  }
 }
 
-export async function getMaterialBySlug(slug: string) {
-  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke('get_material_by_slug', { slug });
-  return fetch(`/api/materials/${slug}`).then((r) => r.json());
+export async function getMaterials(): Promise<MaterialWithDetails[]> {
+  if (isTauri()) return window.__TAURI_INTERNALS__!.invoke<MaterialWithDetails[]>('get_materials');
+
+  try {
+    const res = await fetch('/api/materials');
+    if (!res.ok) {
+      console.warn('[data-client] /api/materials returned', res.status);
+      return [];
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      console.warn('[data-client] /api/materials returned non-JSON');
+      return [];
+    }
+    return (await res.json()) as MaterialWithDetails[];
+  } catch (error) {
+    console.warn('[data-client] /api/materials fetch failed:', error);
+    return [];
+  }
+}
+
+export async function getMaterialBySlug(slug: string): Promise<MaterialWithDetails | null> {
+  if (isTauri())
+    return window.__TAURI_INTERNALS__!.invoke<MaterialWithDetails | null>('get_material_by_slug', {
+      slug,
+    });
+
+  // TODO(D-E18-MATERIAL-SLUG-GETTER): route /api/materials/[slug] inexistante côté web.
+  try {
+    const res = await fetch(`/api/materials/${slug}`);
+    if (!res.ok) {
+      console.warn('[data-client] /api/materials/${slug} returned', res.status);
+      return null;
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      console.warn('[data-client] /api/materials/${slug} returned non-JSON');
+      return null;
+    }
+    return (await res.json()) as MaterialWithDetails | null;
+  } catch (error) {
+    console.warn('[data-client] /api/materials/${slug} fetch failed:', error);
+    return null;
+  }
 }
 
 export async function getDemandesFile(): Promise<RequestWithRelations[]> {

@@ -79,3 +79,6 @@ src/lib/actions/lib-actions/
 
 # Next.js generated (R.5.32)
 next-env.d.ts
+
+# Dev logs
+dev.log
