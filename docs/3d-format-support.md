@@ -52,8 +52,13 @@ API générique, **aucune limitation à STEP** (les trois formats dispatchent c�
 
 ## Tests
 
-- `e2e/public/iges-viewer.spec.ts` — IGES (public, sans auth, 2 tests : valide → canvas WebGL, invalide → erreur)
-- `e2e/admin/cad-viewer.spec.ts` — STEP + timeout (admin)
-- `e2e/admin/piece-detail.spec.ts` — intégration `ModelViewer` (admin)
+| Test | Fichier | Portée | Statut |
+|---|---|---|---|
+| STEP + timeout | `e2e/admin/cad-viewer.spec.ts` | Admin (DB requise) | ✅ (DB locale) |
+| IGES (admin) | `e2e/admin/cad-viewer.spec.ts` | Admin (DB requise) | ⚠️ **Bloqué DB** (dette `D-E16-IGES-ADMIN-E2E`) |
+| IGES (public) | `e2e/public/iges-viewer.spec.ts` | Public (sans auth) | ✅ **Validé** |
+| Intégration ModelViewer | `e2e/admin/piece-detail.spec.ts` | Admin (DB requise) | ✅ (DB locale) |
+
+**Note :** Les tests admin nécessitent une base de données accessible (Neon ou SQLite). Les tests publics couvrent le parsing IGES sans authentification.
 
 Bancs de test : `/admin/3d-test` (STEP), `/admin/3d-test-timeout` (timeout 2 s), `/admin/3d-test-iges` (IGES), `/test/iges-viewer` (public).

@@ -37,17 +37,17 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
 
-#### `D-E16-IGES-ADMIN-E2E` — Test E2E IGES admin bloqué
+#### `D-E16-IGES-ADMIN-E2E` — Tests E2E IGES admin bloqués (Faible)
 
-- **Statut :** Active
+- **Statut :** Active (documentée)
 - **Priorité :** Faible
 - **Session origine :** E16-R2
-- **Cause :** Base de données Neon inaccessible dans l'environnement de test.
-- **Périmètre :** `e2e/admin/cad-viewer.spec.ts` (tests IGES admin).
-- **Effort estimé :** Faible (1 session).
-- **Bloquant :** Non.
-- **Mitigation :** Test public `e2e/public/iges-viewer.spec.ts` valide le parsing IGES.
-- **Prochaine session :** Quand DB accessible (Neon ou SQLite local).
+- **Cause :** Base de données Neon inaccessible dans l'environnement de test → authentification admin échoue → tests `e2e/admin/cad-viewer.spec.ts` (IGES) non exécutables.
+- **Périmètre :** `e2e/admin/cad-viewer.spec.ts` (2 tests IGES).
+- **Mitigation :** `e2e/public/iges-viewer.spec.ts` (2 tests publics) valide le parsing IGES sans auth.
+- **Effort estimé :** Faible (débloquer DB ou exécuter en CI avec DB).
+- **Bloquant :** Non (mitigation en place).
+- **Prochaine session :** Quand DB accessible (Neon ou SQLite local) — ou en CI.
 
 #### `D-E14-PRINT-ON-DEMAND` — Print-on-demand
 
