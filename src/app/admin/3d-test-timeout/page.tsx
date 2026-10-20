@@ -7,7 +7,7 @@ export default function CadViewerTimeoutTestPage() {
       <p className="text-muted-foreground mb-6 text-sm">
         Banc de test E16-R2 — vérification du timeout de parsing (2 s).
       </p>
-      <CadViewer src="/models/test.iges" height={400} timeoutMs={2000} maxSizeMb={50} />
+      <CadViewer src="/models/test.step" height={400} timeoutMs={2000} maxSizeMb={50} />
     </div>
   );
 }

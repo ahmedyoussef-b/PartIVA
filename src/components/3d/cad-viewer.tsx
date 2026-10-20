@@ -31,9 +31,9 @@ interface OcctResult {
 
 const WORKER_URL = '/wasm/occt-import-js-worker.js';
 
-function detectFormat(): 'step' | 'iges' {
-  // occt-import-js ne supporte actuellement que STEP (cf. package.json keywords: step, stp).
-  // La détection d'extension est conservée pour quand la bibliothèque supportera l'IGES.
+function detectFormat(): 'step' {
+  // occt-import-js v0.0.23 supporte uniquement STEP (pas d'IGES ni de BREP).
+  // Voir package.json keywords: ["step", "stp"].
   return 'step';
 }
 

@@ -38,11 +38,11 @@ test.describe('E16-R1 — CadViewer STEP (occt-import-js)', () => {
   });
 });
 
-test.describe('E16-R2 — CadViewer robustesse (timeout, IGES)', () => {
+test.describe('E16-R2 — CadViewer robustesse (timeout)', () => {
   test('Timeout propre : erreur après timeoutMs configuré', async ({ page }) => {
     // La page /admin/3d-test-timeout utilise timeoutMs={2000}.
     // On retarde la réponse de 5s pour forcer le timeout à 2s.
-    await page.route('**/models/test.iges', async (route) => {
+    await page.route('**/models/test.step', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       await route.fulfill({ status: 200, body: 'delayed' });
     });
@@ -51,13 +51,5 @@ test.describe('E16-R2 — CadViewer robustesse (timeout, IGES)', () => {
 
     await expect(page.getByTestId('cad-viewer-error')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('cad-viewer-error')).toContainText(/Délai|Échec|parsing/i);
-  });
-
-  test('Fixture IGES rend un canvas WebGL', async ({ page }) => {
-    await page.goto('/admin/3d-test-iges', { waitUntil: 'domcontentloaded' });
-
-    await expect(page.getByTestId('cad-viewer-canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByTestId('cad-viewer-error')).toHaveCount(0);
   });
 });
