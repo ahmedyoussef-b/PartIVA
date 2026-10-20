@@ -35,7 +35,6 @@ export default defineConfig({
       name: 'public',
       testDir: './e2e/public',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
       retries: 1,
     },
     {

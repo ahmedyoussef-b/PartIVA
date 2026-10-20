@@ -37,7 +37,7 @@ Aucune.
 
 Aucune.
 
-### Faible (3)
+### Faible (4)
 
 #### `D-E16-THREE-CLOCK` — Horloge/animation Three.js non nettoyée
 
@@ -49,6 +49,18 @@ Aucune.
 - **Effort estimé :** Faible (1 session).
 - **Bloquant :** Non.
 - **Prochaine session :** E16-R2 ou post-E16.
+
+#### `D-E16-IGES-ADMIN-E2E` — Test E2E IGES admin bloqué
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E16-R2
+- **Cause :** Base de données Neon inaccessible dans l'environnement de test.
+- **Périmètre :** `e2e/admin/cad-viewer.spec.ts` (tests IGES admin).
+- **Effort estimé :** Faible (1 session).
+- **Bloquant :** Non.
+- **Mitigation :** Test public `e2e/public/iges-viewer.spec.ts` valide le parsing IGES.
+- **Prochaine session :** Quand DB accessible (Neon ou SQLite local).
 
 #### `D-E13-3D-FEATURES` — Fonctionnalités 3D manquantes (3DCarParts) — ✅ Clôturée E14-R3
 

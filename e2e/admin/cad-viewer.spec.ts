@@ -53,3 +53,32 @@ test.describe('E16-R2 — CadViewer robustesse (timeout)', () => {
     await expect(page.getByTestId('cad-viewer-error')).toContainText(/Délai|Échec|parsing/i);
   });
 });
+
+test.describe('E16-R2 — CadViewer IGES (occt-import-js)', () => {
+  test('charge la fixture IGES et rend un canvas WebGL', async ({ page }) => {
+    await page.goto('/admin/3d-test-iges', { waitUntil: 'networkidle' });
+
+    // Le parsing IGES passe par un Web Worker : le conteneur canvas doit apparaître.
+    await expect(page.getByTestId('cad-viewer-canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId('cad-viewer-error')).toHaveCount(0);
+  });
+
+  test('affiche une erreur détaillée pour une fixture IGES invalide', async ({ page }) => {
+    // La fixture est interceptée pour renvoyer un contenu IGES corrompu.
+    await page.route('**/models/test.iges', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/octet-stream',
+        body: 'not-an-iges-file',
+      }),
+    );
+
+    await page.goto('/admin/3d-test-iges', { waitUntil: 'networkidle' });
+
+    await expect(page.getByTestId('cad-viewer-error')).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId('cad-viewer-error')).toContainText(
+      /IgesFile|Parsing|invalide|Délai/i,
+    );
+  });
+});

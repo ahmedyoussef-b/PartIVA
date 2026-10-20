@@ -31,10 +31,22 @@ interface OcctResult {
 
 const WORKER_URL = '/wasm/occt-import-js-worker.js';
 
-function detectFormat(): 'step' {
-  // occt-import-js v0.0.23 supporte uniquement STEP (pas d'IGES ni de BREP).
-  // Voir package.json keywords: ["step", "stp"].
-  return 'step';
+function detectFormat(src: string): 'step' | 'iges' | 'brep' {
+  // occt-import-js v0.0.23 expose ReadFile(format, buffer, params) qui dispatch
+  // selon le format. L'extension du fichier détermine le format passé au worker.
+  // Voir README : ReadStepFile, ReadIgesFile, ReadBrepFile sont l'API documentée.
+  const ext = src.slice(src.lastIndexOf('.')).toLowerCase();
+  switch (ext) {
+    case '.iges':
+    case '.igs':
+      return 'iges';
+    case '.brep':
+      return 'brep';
+    case '.step':
+    case '.stp':
+    default:
+      return 'step';
+  }
 }
 
 function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
@@ -103,7 +115,7 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
           if (!cancelled) setError(`Erreur worker : ${e.message}`);
         };
 
-        const format = detectFormat();
+        const format = detectFormat(src);
         // occt-import-js attend un Uint8Array (un ArrayBuffer brut échoue au parsing).
         // Le buffer sous-jacent est transféré (pas de copie) via la transfer list.
         worker.postMessage({ format, buffer: new Uint8Array(buffer), params: null }, [buffer]);
