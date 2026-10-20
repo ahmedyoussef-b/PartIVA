@@ -9,6 +9,10 @@ import { Loader2 } from 'lucide-react';
 interface CadViewerProps {
   src: string;
   height?: number;
+  /** Timeout de parsing en ms (défaut 120 000 = 2 min) */
+  timeoutMs?: number;
+  /** Taille max du fichier en Mo (défaut 50) */
+  maxSizeMb?: number;
 }
 
 interface OcctMesh {
@@ -27,28 +31,54 @@ interface OcctResult {
 
 const WORKER_URL = '/wasm/occt-import-js-worker.js';
 
-function useStepGeometry(src: string) {
+function detectFormat(): 'step' | 'iges' {
+  // occt-import-js ne supporte actuellement que STEP (cf. package.json keywords: step, stp).
+  // La détection d'extension est conservée pour quand la bibliothèque supportera l'IGES.
+  return 'step';
+}
+
+function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
   const [geometry, setGeometry] = React.useState<THREE.BufferGeometry | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
     let worker: Worker | null = null;
-
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     async function load() {
       try {
         const response = await fetch(src);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const contentLength = response.headers.get('content-length');
+        if (contentLength && Number(contentLength) > maxSizeMb * 1024 * 1024) {
+          throw new Error(`Fichier trop volumineux (max ${maxSizeMb} Mo)`);
+        }
+
         const buffer = await response.arrayBuffer();
+        if (buffer.byteLength > maxSizeMb * 1024 * 1024) {
+          throw new Error(`Fichier trop volumineux (max ${maxSizeMb} Mo)`);
+        }
 
         worker = new Worker(WORKER_URL);
 
+        // Timeout de parsing : si le worker ne répond pas avant timeoutMs, on termine le worker.
+        // cancelled = true empêche le bloc catch et onmessage d'écraser l'erreur timeout.
+        timeoutId = setTimeout(() => {
+          if (!cancelled) {
+            cancelled = true;
+            worker?.terminate();
+            setError("Délai d'attente dépassé (parsing trop long)");
+          }
+        }, timeoutMs);
+
         worker.onmessage = (e: MessageEvent<OcctResult>) => {
+          if (timeoutId) clearTimeout(timeoutId);
           if (cancelled) return;
           const result = e.data;
           const mesh = result.meshes?.[0];
           if (!result.success || !mesh) {
-            setError('Échec du parsing STEP (voir console pour le détail OCCT)');
+            setError('Échec du parsing (voir console pour le détail OCCT)');
             return;
           }
 
@@ -69,15 +99,16 @@ function useStepGeometry(src: string) {
         };
 
         worker.onerror = (e) => {
+          if (timeoutId) clearTimeout(timeoutId);
           if (!cancelled) setError(`Erreur worker : ${e.message}`);
         };
 
+        const format = detectFormat();
         // occt-import-js attend un Uint8Array (un ArrayBuffer brut échoue au parsing).
         // Le buffer sous-jacent est transféré (pas de copie) via la transfer list.
-        worker.postMessage({ format: 'step', buffer: new Uint8Array(buffer), params: null }, [
-          buffer,
-        ]);
+        worker.postMessage({ format, buffer: new Uint8Array(buffer), params: null }, [buffer]);
       } catch (e) {
+        if (timeoutId) clearTimeout(timeoutId);
         if (!cancelled) setError(String(e));
       }
     }
@@ -86,15 +117,21 @@ function useStepGeometry(src: string) {
 
     return () => {
       cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
       worker?.terminate();
     };
-  }, [src]);
+  }, [src, timeoutMs, maxSizeMb]);
 
   return { geometry, error };
 }
 
-export function CadViewer({ src, height = 400 }: CadViewerProps) {
-  const { geometry, error } = useStepGeometry(src);
+export function CadViewer({
+  src,
+  height = 400,
+  timeoutMs = 120_000,
+  maxSizeMb = 50,
+}: CadViewerProps) {
+  const { geometry, error } = useStepGeometry(src, timeoutMs, maxSizeMb);
 
   if (error) {
     return (
