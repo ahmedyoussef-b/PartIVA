@@ -28,7 +28,7 @@ Aucune.
 
 
 
-### Acceptée — facteur externe (2)
+### Acceptée — facteur externe (1)
 
 #### `D-E14-PRINT-ON-DEMAND` — Print-on-demand (Faible, accepté)
 
@@ -41,17 +41,6 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Quand partenariat disponible.
 
-#### `D-E16-IGES-ADMIN-E2E` — Tests E2E IGES admin bloqués (Faible, accepté)
-
-- **Statut :** Acceptée (facteur externe)
-- **Priorité :** Faible
-- **Session origine :** E16-R2
-- **Cause :** Base de données Neon inaccessible dans l'environnement de test → authentification admin échoue → tests `e2e/admin/cad-viewer.spec.ts` (IGES) non exécutables.
-- **Périmètre :** `e2e/admin/cad-viewer.spec.ts` (2 tests IGES).
-- **Mitigation :** `e2e/public/iges-viewer.spec.ts` (2 tests publics) valide le parsing IGES sans auth.
-- **Effort estimé :** Faible (débloquer DB ou exécuter en CI avec DB).
-- **Bloquant :** Non (mitigation en place).
-- **Prochaine session :** Quand DB accessible (Neon ou SQLite local) — ou en CI.
 
 #### `D-E17-AUDIT-MATERIALS-API` — Routes /api/audit et /api/materials absentes (Faible)
 
@@ -148,6 +137,16 @@ Aucune.
 - **Périmètre :** `src/lib/data-client.ts` (suppression du getter client).
 - **Résolution :** Getter client supprimé. `getMaterialBySlug()` côté serveur conservé (utilisé par la page publique).
 - **Commit :** E19-R2 (à venir)
+
+### E21 (1)
+
+#### `D-E16-IGES-ADMIN-E2E` — ✅ Résolue E21-R1 (blocage DB Neon levé)
+
+- **Statut :** Résolue E21-R1
+- **Cause :** Base de données Neon inaccessible dans l'environnement de test → authentification admin échouait → tests E2E admin (`e2e/admin/cad-viewer.spec.ts`) non exécutables.
+- **Résolution :** Base de données Neon accessible (`prisma migrate status` up-to-date, 18 migrations), seed terminé (4 users, 13 parts, etc.), setup E2E auth réussi (3 rôles : ADMIN, USER, VIEWER), production Vercel fonctionnelle (dashboard admin chargé, login OK).
+- **Périmètre :** `e2e/admin/cad-viewer.spec.ts` (2 tests IGES) désormais exécutables.
+- **Commit :** E21-R1
 
 ## Notes
 
