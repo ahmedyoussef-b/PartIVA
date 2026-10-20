@@ -143,3 +143,4 @@ Aucune.
 - **Requalification E10-R3 :** `D-E9-R4b1-2` (photos TEXT JSON) n'est pas une dette technique mais un choix de conception. Refactor `Json?` → `Bytes?` = migration + 8 fichiers + rupture compat. Non justifié pour 10 photos <1 Mo.
 - **Requalification E10-R4a :** `D-E9-R7-1`/`R7-1b` mal calibrées en E9-R7. Les 9 « stubs » (251–973 o) sont des Server Components courts déléguant à des Client Components lourds (11–36 Ko). Aucune page vide. Leçon : « petit fichier » ≠ « stub ».
 - **Clôture E11 :** `D-E9-R5-1` validée (8/8 tests Playwright — 6 pages admin + login/register + healthcheck API). `D-E10-R2b-1` reste active (post-E11).
+- **Fixture IGES :** `public/models/test.iges` est une copie de la fixture de référence `occt-import-js` (cube 10mm, LGPL-2.1). Licence : `public/models/license.occt-import-js.txt`. Script : `scripts/generate-test-iges.mjs` (copie depuis `node_modules/occt-import-js/test/`).

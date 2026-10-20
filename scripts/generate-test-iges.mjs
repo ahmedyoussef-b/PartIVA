@@ -17,7 +17,7 @@
  *
  * Usage : node scripts/generate-test-iges.mjs
  */
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 const SRC = 'node_modules/occt-import-js/test/testfiles/cube-10x10mm/Cube 10x10.igs';
@@ -25,6 +25,16 @@ const OUT = 'public/models/test.iges';
 
 const srcPath = resolve(process.cwd(), SRC);
 const outPath = resolve(process.cwd(), OUT);
+
+// Reproductibilité : la source vit dans node_modules — sans install, message clair.
+if (!existsSync(srcPath)) {
+  console.error(`✘ Source introuvable : ${SRC}`);
+  console.error('  Installez les dépendances (npm install) puis relancez ce script.');
+  console.error(
+    '  Note : public/models/test.iges (fixture déjà installée) reste valide et committée.',
+  );
+  process.exit(1);
+}
 
 mkdirSync(dirname(outPath), { recursive: true });
 copyFileSync(srcPath, outPath);
