@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getPartById } from '@/lib/data/parts';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { UserRole } from '@/generated/prisma/client';
 
 export default async function AdminPieceDetailPage({
@@ -48,20 +49,13 @@ export default async function AdminPieceDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Visualiseur 3D */}
-        <div className="lg:col-span-1">
-          {hasModel ? (
-            <ModelViewer src={part.printableModelUrl!} alt="Modèle 3D de la pièce" height="500px" />
-          ) : (
-            <div className="text-muted-foreground flex aspect-video flex-col items-center justify-center rounded-lg border border-slate-700 bg-slate-900 py-12">
-              Aucun modèle 3D disponible
-            </div>
-          )}
-        </div>
+      <Tabs defaultValue="details">
+        <TabsList className="w-fit">
+          <TabsTrigger value="details">Détails</TabsTrigger>
+          <TabsTrigger value="modele3d">Visualisation 3D</TabsTrigger>
+        </TabsList>
 
-        {/* Détails */}
-        <div className="space-y-4 lg:col-span-2">
+        <TabsContent value="details" className="space-y-4">
           <div className="bg-card rounded-lg border p-6">
             <h2 className="mb-4 text-lg font-semibold">Détails</h2>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -86,7 +80,9 @@ export default async function AdminPieceDetailPage({
                 <dd className="text-sm">{part.description ?? '—'}</dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-muted-foreground text-xs font-medium">Modèle 3D imprimable</dt>
+                <dt className="text-muted-foreground text-xs font-medium">
+                  Modèle 3D imprimable
+                </dt>
                 <dd className="flex items-center gap-2 text-sm">
                   {hasModel ? (
                     <>
@@ -99,8 +95,29 @@ export default async function AdminPieceDetailPage({
               </div>
             </dl>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="modele3d" className="space-y-4">
+          <div className="bg-card rounded-lg border p-6">
+            <h2 className="mb-4 text-lg font-semibold">Visualisation 3D</h2>
+            <p className="text-muted-foreground text-sm mb-4">
+              Inspection du modèle CAO de la pièce. Utilisez la souris pour orbiter, zoomer et
+              déplacer la vue.
+            </p>
+            {hasModel ? (
+              <ModelViewer
+                src={part.printableModelUrl!}
+                alt="Modèle 3D de la pièce"
+                height="600px"
+              />
+            ) : (
+              <div className="flex aspect-video flex-col items-center justify-center rounded-lg border border-border bg-muted py-12">
+                <span className="text-muted-foreground">Aucun modèle 3D disponible</span>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -3,11 +3,19 @@
 import * as React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Grid } from '@react-three/drei';
-import { AmbientLight, SpotLight, AxesHelper, Object3D, Mesh, MeshStandardMaterial } from 'three';
+import {
+  AmbientLight,
+  SpotLight,
+  AxesHelper,
+  Object3D,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { useGLTF } from '@react-three/drei';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Loader2, RotateCcw, Maximize } from 'lucide-react';
 
 interface StlViewerProps {
   /** URL du fichier STL ou GLTF à afficher */
@@ -18,8 +26,6 @@ interface StlViewerProps {
   height?: string;
 }
 
-const MODEL_BG_COLOR = '#0f172a';
-
 function GltfScene({ src }: { src: string }) {
   const { scene } = useGLTF(src);
   return <primitive object={scene} dispose={null} />;
@@ -28,16 +34,24 @@ function GltfScene({ src }: { src: string }) {
 function StlScene({ src }: { src: string }) {
   const [scene, setScene] = React.useState<Object3D | null>(null);
   const [error, setError] = React.useState<Error | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     new STLLoader()
       .loadAsync(src)
       .then((geometry) => {
-        if (!cancelled) setScene(new Mesh(geometry, new MeshStandardMaterial({ color: 0xffffff })));
+        if (!cancelled) {
+          setScene(new Mesh(geometry, new MeshStandardMaterial({ color: 0xffffff })));
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        if (!cancelled) setError(err as Error);
+        if (!cancelled) {
+          setError(err as Error);
+          setLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -46,12 +60,16 @@ function StlScene({ src }: { src: string }) {
 
   if (error) {
     return (
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 p-4 text-center text-slate-300">
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-card/90 p-4 text-center text-muted-foreground">
+        <Loader2 className="h-6 w-6 animate-spin mb-2" />
         <p className="text-sm font-medium">Erreur de chargement du modèle 3D</p>
-        <p className="mt-1 max-w-[80%] truncate text-xs">{error.message}</p>
+        <p className="mt-1 max-w-[80%] truncate text-xs text-muted-foreground">
+          {error.message}
+        </p>
       </div>
     );
   }
+  if (loading) return null;
   if (!scene) return null;
   return <primitive object={scene} dispose={null} />;
 }
@@ -64,12 +82,12 @@ function StlSceneRouter({ src }: { src: string }) {
 
 function StlViewerCanvas({ src }: { src: string }) {
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-card">
       <Canvas
         shadows
         camera={{ position: [5, 5, 5], fov: 45 }}
         gl={{ preserveDrawingBuffer: true }}
-        style={{ width: '100%', height: '100%', backgroundColor: MODEL_BG_COLOR }}
+        style={{ width: '100%', height: '100%' }}
       >
         <primitive object={new AmbientLight(0xffffff, 0.6)} />
         <primitive
@@ -82,8 +100,11 @@ function StlViewerCanvas({ src }: { src: string }) {
         <OrbitControls enableZoom enablePan enableRotate makeDefault />
       </Canvas>
       <div className="absolute top-2 right-2 z-10 flex gap-2">
-        <Button size="sm" variant="outline">
-          Reset vue
+        <Button size="icon" variant="outline" aria-label="Reset de la vue">
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+        <Button size="icon" variant="outline" aria-label="Plein écran">
+          <Maximize className="h-4 w-4" />
         </Button>
       </div>
     </div>

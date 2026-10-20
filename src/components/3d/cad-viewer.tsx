@@ -4,7 +4,9 @@ import * as React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RotateCcw, Maximize } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface CadViewerProps {
   src: string;
@@ -147,37 +149,58 @@ export function CadViewer({
 
   if (error) {
     return (
-      <div
-        data-testid="cad-viewer-error"
-        className="flex h-full items-center justify-center text-sm text-red-500"
-      >
-        {error}
-      </div>
+      <Card className="w-full h-full">
+        <CardHeader>
+          <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
+        </CardHeader>
+        <CardContent className="flex h-full flex-col items-center justify-center text-sm text-destructive">
+          {error}
+        </CardContent>
+      </Card>
     );
   }
 
   if (!geometry) {
     return (
-      <div
-        data-testid="cad-viewer-loading"
-        className="flex items-center justify-center"
-        style={{ height }}
-      >
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <Card className="w-full" style={{ height }}>
+        <CardHeader>
+          <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
+        </CardHeader>
+        <CardContent className="flex h-full flex-col items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+          <span className="text-muted-foreground text-sm">Chargement du modèle CAO…</span>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div data-testid="cad-viewer-canvas" style={{ height }}>
-      <Canvas camera={{ position: [15, 15, 15], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 10, 10]} />
-        <mesh geometry={geometry}>
-          <meshStandardMaterial color="#888" side={THREE.DoubleSide} />
-        </mesh>
-        <OrbitControls />
-      </Canvas>
-    </div>
+    <Card className="w-full" style={{ height }}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <span className="text-muted-foreground">Visualiseur 3D</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 relative">
+        <div className="absolute top-2 right-2 z-10 flex gap-2">
+          <Button size="icon" variant="outline" aria-label="Reset de la vue">
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="outline" aria-label="Plein écran">
+            <Maximize className="h-4 w-4" />
+          </Button>
+        </div>
+        <div data-testid="cad-viewer-canvas" style={{ height: '100%', width: '100%' }}>
+          <Canvas camera={{ position: [15, 15, 15], fov: 50 }}>
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[10, 10, 10]} />
+            <mesh geometry={geometry}>
+              <meshStandardMaterial color="#bbbbbb" side={THREE.DoubleSide} />
+            </mesh>
+            <OrbitControls />
+          </Canvas>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
