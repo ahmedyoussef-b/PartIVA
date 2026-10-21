@@ -40,9 +40,10 @@ export const tecDocConnector: SourceConnector = {
   },
 
   async search(query, options = {}) {
-    const { limit = 20 } = options;
+    const { limit = 20, signal } = options;
     const response = await searchTecDoc(query, {
       pageSize: limit,
+      signal,
     });
     return response.products.map((product) => {
       const mapped = mapTecDocToCandidate(product);

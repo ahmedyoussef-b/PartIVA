@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { mergeAbortSignals } from './external-signal';
 import {
   MOCK_PRODUCTS,
   MOCK_VEHICLES,
@@ -91,12 +92,37 @@ const TECDOC_TIMEOUT_MS = 10_000;
 const TECDOC_MAX_RETRIES = 2;
 
 /**
+ * Valeurs de template non provisionnées (E25-R1).
+ *
+ * Le `.env` de développement contient `TECDOC_PROVIDER_ID=ton_provider_id` :
+ * `isTecDocConfigured()` les considérait comme un contrat commercial actif et
+ * déclenchait 3 appels réels à `api.tecdoc.net` (~31 s au total : 10 s de
+ * timeout × 3 tentatives + backoff) qui échouaient tous, alors que le mode
+ * mock fournit des produits exploitables et instantanés.
+ */
+const TECDOC_UNPROVISIONED_VALUES = new Set([
+  '',
+  'ton_provider_id',
+  'your_provider_id',
+  'changeme',
+  'todo',
+]);
+
+/**
  * Détecte si le mode réel est activé (contrat commercial provisionné).
  * Sécurité #7 : jamais NEXT_PUBLIC_.
  * D-tecdoc-credentials : les DEUX variables sont requises.
+ * E25-R1 : les valeurs de template ne comptent pas comme provisionnées.
  */
 export function isTecDocConfigured(): boolean {
-  return Boolean(process.env.TECDOC_API_KEY && process.env.TECDOC_PROVIDER_ID);
+  const apiKey = process.env.TECDOC_API_KEY;
+  const providerId = process.env.TECDOC_PROVIDER_ID;
+
+  if (!apiKey || !providerId) return false;
+  if (TECDOC_UNPROVISIONED_VALUES.has(apiKey.trim())) return false;
+  if (TECDOC_UNPROVISIONED_VALUES.has(providerId.trim())) return false;
+
+  return true;
 }
 
 /**
@@ -110,9 +136,9 @@ export function isTecDocConfigured(): boolean {
  */
 export async function searchTecDoc(
   query: string,
-  options: { page?: number; pageSize?: number } = {},
+  options: { page?: number; pageSize?: number; signal?: AbortSignal } = {},
 ): Promise<TecDocSearchResponse> {
-  const { page = 1, pageSize = 20 } = options;
+  const { page = 1, pageSize = 20, signal } = options;
 
   if (!isTecDocConfigured()) {
     const q = query.toLowerCase();
@@ -146,6 +172,10 @@ export async function searchTecDoc(
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), TECDOC_TIMEOUT_MS);
+      // E25-R1 — le signal de l'agrégateur (timeout global + timeout de source)
+      // est fusionné avec le timeout interne : la requête HTTP est réellement
+      // annulée au lieu de tourner en fond pendant les retries.
+      const requestSignal = mergeAbortSignals(controller.signal, signal);
 
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -154,7 +184,7 @@ export async function searchTecDoc(
           'X-Provider-Id': process.env.TECDOC_PROVIDER_ID ?? '',
           Accept: 'application/json',
         },
-        signal: controller.signal,
+        signal: requestSignal,
       });
 
       clearTimeout(timeout);

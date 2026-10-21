@@ -27,9 +27,10 @@ export const tracePartsConnector: SourceConnector = {
   },
 
   async search(query, options = {}) {
-    const { limit = 20 } = options;
+    const { limit = 20, signal } = options;
     const response = await searchTraceParts(query, {
       pageSize: limit,
+      signal,
     });
     return response.products.map((product) => {
       const mapped = mapTracePartsToCandidate(product);

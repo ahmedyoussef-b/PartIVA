@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { mergeAbortSignals } from './external-signal';
 
 /**
  * Schéma Zod — réponse TraceParts REST v3
@@ -132,9 +133,9 @@ async function getTracePartsToken(): Promise<string> {
  */
 export async function searchTraceParts(
   query: string,
-  options: { page?: number; pageSize?: number } = {},
+  options: { page?: number; pageSize?: number; signal?: AbortSignal } = {},
 ): Promise<TracePartsSearchResponse> {
-  const { page = 1, pageSize = 20 } = options;
+  const { page = 1, pageSize = 20, signal } = options;
 
   if (!isTracePartsConfigured()) {
     const filtered = MOCK_PRODUCTS.filter((p) =>
@@ -160,6 +161,9 @@ export async function searchTraceParts(
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), TRACEPARTS_TIMEOUT_MS);
+      // E25-R1 — le signal de l'agrégateur est fusionné avec le timeout interne
+      // pour annuler réellement la requête HTTP pendant les retries.
+      const requestSignal = mergeAbortSignals(controller.signal, signal);
 
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -167,7 +171,7 @@ export async function searchTraceParts(
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',
         },
-        signal: controller.signal,
+        signal: requestSignal,
       });
 
       clearTimeout(timeout);

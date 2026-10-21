@@ -1,6 +1,7 @@
 import type { SearchCandidate } from '@/schemas/search';
 import type { SourceConnector } from './types';
 import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
+import { mergeAbortSignals } from '@/lib/data/external-signal';
 
 /**
  * Timeout global d'agrégation (D-E3-21).
@@ -53,20 +54,30 @@ export async function aggregateSearch(
 
   const results = await Promise.allSettled(
     available.map(async (connector) => {
-      // Timeout spécifique à la source (D-E3-31)
-      const sourceTimeout = connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS;
+      // Timeout spécifique à la source (D-E3-31), plafonné par le timeout
+      // global : une source ne peut pas dépasser la borne globale de 5 s.
+      const sourceTimeout = Math.min(
+        connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS,
+        AGGREGATION_TIMEOUT_MS,
+      );
       const sourceController = new AbortController();
       const sourceTimer = setTimeout(() => sourceController.abort(), sourceTimeout);
       const sourceStart = Date.now();
 
       try {
         // Combiner les signaux : global + source (D-E3-31)
-        const combinedSignal = combineSignals(globalController.signal, sourceController.signal);
+        const combinedSignal = mergeAbortSignals(globalController.signal, sourceController.signal);
 
-        const candidates = await connector.search(query, {
-          limit,
-          signal: combinedSignal,
-        });
+        // E25-R1 — le timeout est appliqué *ici* et pas seulement via le signal :
+        // les connecteurs qui ignoraient `options.signal` bloquaient la réponse
+        // le temps total de leurs retries (~31 s sur TecDoc en mode réel).
+        const candidates = await withTimeout(
+          connector.search(query, {
+            limit,
+            signal: combinedSignal,
+          }),
+          sourceTimeout,
+        );
         sourceDurationsMs[connector.source] = Date.now() - sourceStart;
         return {
           source: connector.source,
@@ -274,19 +285,29 @@ export async function searchWithFallback(
 }
 
 /**
- * Combine deux AbortSignals : abort si l'un ou l'autre abort (D-E3-31).
- * Utilisé pour combiner le timeout global et le timeout par source.
+ * Impose une borne temporelle sur une promesse, même si la promesse sous
+ * jacente ignore le signal d'annulation (E25-R1).
+ *
+ * La promesse d'origine reste gérée (handlers attachés) : une rejection
+ * tardive ne produit donc pas d'unhandled rejection.
  */
-function combineSignals(...signals: AbortSignal[]): AbortSignal {
-  const controller = new AbortController();
-  for (const signal of signals) {
-    if (signal.aborted) {
-      controller.abort();
-      return controller.signal;
-    }
-    signal.addEventListener('abort', () => controller.abort(), { once: true });
-  }
-  return controller.signal;
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timeout de ${timeoutMs} ms dépassé`)),
+      timeoutMs,
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 /**
