@@ -111,7 +111,12 @@ async function main() {
         role: 'USER',
       },
     });
-    const e2ePasswordHash = await hashPassword('PartIVA-dev-2026!');
+    // E24-R2 — mot de passe commun : les comptes E2E partagent ADMIN_PASSWORD.
+    // `e2e/fixtures/users.ts` retombe sur ADMIN_PASSWORD pour les 3 rôles : si
+    // les comptes E2E avaient un autre mot de passe, les setups USER/VIEWER
+    // échoueraient en 401 et tous les tests attendant un 403 « rôle non-admin »
+    // seraient faux (le storage state pointerait sur le compte admin).
+    const e2ePasswordHash = await hashPassword(adminPassword);
     await prisma.account.upsert({
       where: { providerId_accountId: { providerId: 'credential', accountId: e2eUser.id } },
       update: { password: e2ePasswordHash },

@@ -1,3 +1,8 @@
+// E24-R2 — le process Playwright ne chargeait pas le `.env` : `process.env.ADMIN_PASSWORD`
+// était `undefined` dans `e2e/fixtures/users.ts`, qui retombait alors sur le mot de passe
+// mock 'PartIVA-dev-2026!' — différent du mot de passe réel seedé en production.
+// Les setups USER/VIEWER échouaient en 401.
+import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({

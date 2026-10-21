@@ -35,16 +35,16 @@ Aucune.
 - **Bloquant :** Non (bloque la validation du build complet et l'exécution E2E).
 - **Prochaine session :** E24-R0 (investigation infrastructure).
 
-#### `D-E23-E2E-CREDENTIALS` — Mots de passe E2E USER/VIEWER invalides
+#### `D-E24-E2E-TIMEOUT-SOURCES` — Timeout des tests `source=all`
 
 - **Statut :** Active
 - **Priorité :** Moyenne
-- **Session origine :** E23-R1
-- **Cause :** `e2e/fixtures/users.ts` retombe sur `ADMIN_EMAIL` pour les rôles USER et VIEWER quand `E2E_USER_EMAIL` / `E2E_VIEWER_EMAIL` ne sont pas définis — les 3 storage states pointent alors sur le compte admin. Les comptes de seed `user@partiva.dev` et `viewer@partiva.dev` existent en base mais avec un mot de passe différent de `ADMIN_PASSWORD` (vérifié : 401). Conséquence : les tests E2E qui attendent un 403 « USER » / « VIEWER » échoueront.
-- **Périmètre :** `e2e/fixtures/users.ts`, `prisma/seed.ts`, `.env` (variables `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` / `E2E_VIEWER_EMAIL` / `E2E_VIEWER_PASSWORD`).
-- **Effort estimé :** Faible (1 session).
-- **Bloquant :** Non (bloque les projets E2E `user` et `viewer`).
-- **Prochaine session :** E24-R0 (infrastructure E2E).
+- **Session origine :** E24-R2
+- **Cause :** `POST /api/search {source:'all'}` interroge des sources externes non configurées (TraceParts sans clé API, TecDoc avec un `providerId` placeholder, OpenSERP sur `localhost:7000` éteint, Wikidata en réseau) — la réponse arrive en **32,8 s**, au-delà du timeout Playwright de 30 s. L'endpoint répond correctement (200), les 2 tests admin concernés échouent en CI.
+- **Périmètre :** `e2e/admin/aggregation-tecdoc.spec.ts`, `e2e/admin/performance.spec.ts`, `playwright.config.ts` (timeout), `src/app/api/search/route.ts` (timeout d'agrégation).
+- **Effort estimé :** Faible (augmenter le timeout à 60 s, ou désactiver les sources externes non configurées en CI).
+- **Bloquant :** Non (2 tests rouges sur 52 dans le projet `admin`).
+- **Prochaine session :** E25-R0 (infrastructure CI).
 
 ### Faible (2)
 
@@ -198,6 +198,10 @@ Aucune.
 
 - **`D-E22-NEW-PART-ROUTE`** (route de création de pièce) — ✅ Clôturée E23-R1 (page `/admin/pieces/nouveau` + formulaire `pieces-form.tsx`, POST `/api/parts` sécurisé par `requireAdmin()` avec mapping `category: { connect }` et contrat d'erreur `{ message }` (400 Zod / 409 doublon / 401 / 403), CTA branchés sur `/admin/pieces` et le dashboard, 17/17 tests manuels Playwright)
 
+### E24 (1)
+
+- **`D-E23-E2E-CREDENTIALS`** (mots de passe E2E USER/VIEWER) — ✅ Clôturée E24-R2 (seed production aligné sur `ADMIN_PASSWORD` pour `user@partiva.dev` / `viewer@partiva.dev` / `client2@partiva.dev`, `e2e/fixtures/users.ts` auto-suffisant avec les bons emails par rôle, `dotenv` chargé par `playwright.config.ts` — 4/4 setups, `user` 17/17, `viewer` 22/22)
+
 ## Notes
 
 - **Structure :** une dette = un bloc (ID, statut, priorité, cause, périmètre, effort, prochaine session)
@@ -209,3 +213,5 @@ Aucune.
 - **Requalification E10-R4a :** `D-E9-R7-1`/`R7-1b` mal calibrées en E9-R7. Les 9 « stubs » (251–973 o) sont des Server Components courts déléguant à des Client Components lourds (11–36 Ko). Aucune page vide. Leçon : « petit fichier » ≠ « stub ».
 - **Clôture E11 :** `D-E9-R5-1` validée (8/8 tests Playwright — 6 pages admin + login/register + healthcheck API). `D-E10-R2b-1` reste active (post-E11).
 - **Fixture IGES :** `public/models/test.iges` est une copie de la fixture de référence `occt-import-js` (cube 10mm, LGPL-2.1). Licence : `public/models/license.occt-import-js.txt`. Script : `scripts/generate-test-iges.mjs` (copie depuis `node_modules/occt-import-js/test/`).
+- **Seed destructif :** `prisma/seed.ts` supprime **toutes** les tables (`deleteMany`) avant de recréer le jeu de données. `npx prisma db seed` purge donc la base Neon (branche `production`) : perte des données créées depuis le dernier seed **et invalidation de toutes les sessions** (les navigateurs connectés sont déconnectés). Le run E24-R2 a été précédé d'un état des tables avant/après : compteurs identiques (13 parts, 28 specs, 5 matériaux, 4 requêtes…), seule différence `sessions 10 → 0`.
+- **Credentials E2E :** un seul mot de passe (`ADMIN_PASSWORD`) pour les 4 comptes de test. `playwright.config.ts` charge le `.env` via `dotenv/config` — sans cela, le process de test ne voyait pas `ADMIN_PASSWORD` et retombait sur le mock dev.
