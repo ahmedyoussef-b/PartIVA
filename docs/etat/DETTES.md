@@ -14,7 +14,7 @@
 - **Effort estimé :** Faible (1 run de build valide à confirmer).
 - **Bloquant :** Non (bloque la validation du build complet et l'exécution E2E).
 - **Condition de résolution :** 2 à 3 builds consécutifs verts sur le pooler Neon.
-- **Prochaine session :** E25-R0 (infrastructure CI).
+- **Prochaine session :** Bloquée par `D-E26-CI-BRANCH-MISMATCH` (aucun run CI disponible pour vérifier les builds).
 
 ### `D-E24-E2E-TIMEOUT-SOURCES` — Timeout des tests `source=all`
 
@@ -24,7 +24,7 @@
 - **Effort estimé :** Faible (augmenter le timeout à 60s, ou désactiver les sources non configurées en CI).
 - **Bloquant :** Non (2 tests rouges sur 52 dans le projet `admin`).
 - **Condition de résolution :** les 2 tests `source=all` passent en CI.
-- **Prochaine session :** E25-R0 (infrastructure CI).
+- **Prochaine session :** Bloquée par `D-E26-CI-BRANCH-MISMATCH` (les tests `source=all` ne peuvent être exécutés en CI).
 
 ## Faible (3)
 
@@ -69,6 +69,20 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** un partenariat d'impression et un moyen de paiement sont établis.
 - **Prochaine session :** Non planifiée (facteur externe).
+
+### `D-E26-CI-BRANCH-MISMATCH` — CI configurée sur `main`, dépôt sur `master`
+- **Statut :** Active
+- **Priorité :** Haute
+- **Cause :** `.github/workflows/ci.yml` déclare `on.push.branches: [main]`
+  et `pull_request` sur `main`. La branche par défaut du dépôt distant
+  est `master`. Aucun run CI n'a jamais été déclenché (0 runs API GitHub).
+- **Périmètre :** `.github/workflows/ci.yml`, réglages du dépôt GitHub.
+- **Effort estimé :** Faible (alignement de la branche + premier run).
+- **Bloquant :** Oui — `D-E23-PRISMA-POOLER-TIMEOUT` et
+  `D-E24-E2E-TIMEOUT-SOURCES` ne peuvent pas être clôturées sans run CI.
+- **Condition de résolution :** au moins 2 runs CI consécutifs verts sur
+  `master`, déclenchés par push.
+- **Prochaine session :** E26-bis-C (infrastructure CI).
 
 ## Notes
 

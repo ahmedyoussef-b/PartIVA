@@ -1,8 +1,8 @@
 # ÉTAT COURANT — PartIVA
 
 **Dernière mise à jour :** 2026-10-21
-**Commit HEAD :** `c410423` (E25 — dernier commit code)
-**Phase en cours :** E26 — Réforme de la procédure de coopération
+**Commit HEAD :** `37d751d` (E26-ter — clôture E26)
+**Phase en cours :** E26-bis-B (doc) + E26-bis-C (CI) — en parallèle
 **Statut du projet :** En cours
 
 ## 1. Objectif actuel
@@ -19,7 +19,8 @@ Réformer l'infrastructure documentaire pour accélérer et fiabiliser la coopé
 
 ## 3. Travaux en cours
 
-- **E26-bis :** Correction des écarts documentaires (cf. §6).
+- **E26-bis-B** (doc, ⏳) : Correction des écarts documentaires (cf. §6) — statut `EN COURS`.
+- **E26-bis-C** (CI, ⏳) : Infrastructure CI — statut `EN COURS`.
 
 ## 4. Blocages
 
@@ -43,8 +44,9 @@ Réformer l'infrastructure documentaire pour accélérer et fiabiliser la coopé
 
 ## 6. Prochaine étape autorisée ou proposée
 
-- **ID Tâche :** `E26-bis` (correction des incohérences résiduelles + PROMPT_DE_REPRISE v3.0).
-- **Statut :** `PROPOSE` (en attente de validation du coordinateur).
+- **ID Tâche :** `E26-bis-B` (correction des incohérences documentaires) — statut `EN COURS`.
+- **ID Tâche :** `E26-bis-C` (infrastructure CI) — statut `EN COURS`.
+- **Statut :** `EN COURS` (exécution parallèle des deux tâches).
 
 ## 7. Notes
 

@@ -59,7 +59,7 @@
 
 ### `D-E26-DETTES-1` — Scission `DEBT.md` en `DETTES.md` + archive
 
-- **Date :** E3-S2 (2026-10-21)
+- **Date :** E3-S2 (2026-10-21) — *référence historique : scission `DEBT.md` → `DETTES.md` effectuée en E3-S2 ; conservée telle quelle par la réforme E26.*
 - **Décision :** Séparer les dettes actives (dans `DETTES.md`) de l'historique des dettes clôturées (dans `DEBT_HISTORIQUE.md`).
 - **Justification :** `DEBT.md` mélangeait actif et historique, contredisant la charte §10.
 - **Conséquences :** `DETTES.md` (6 actives), `DEBT_HISTORIQUE.md` (30 clôturées), `DEBT.md` archivé dans `docs/archive/DEBT.md` (E6).

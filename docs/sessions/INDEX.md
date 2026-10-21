@@ -17,7 +17,9 @@
 | E23 | 2026-10-21 | Page `/admin/pieces/nouveau` + formulaire + API sécurisée | CRUD Pièces | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E23.md` |
 | E24 | 2026-10-21 | Robustesse Prisma + credentials E2E auto-suffisants | Infrastructure, E2E | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E24.md` |
 | E25 | 2026-10-21 | Plafonner le timeout `source=all` + propager signaux | Sources externes | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E25.md` |
-| E26 | 2026-10-21 | Réforme de la procédure de coopération | Gouvernance | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E26.md` |
+| E26-bis-A | 2026-10-21 | Constat lecture seule (git status, CI, vérification droits) | Gouvernance | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-A.md` |
+| E26-bis-B | 2026-10-21 | Corrections documentaires (ETAT_COURANT, DETTES, DECISIONS, INDEX) | Documentation | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-B.md` |
+| E26-bis-C | 2026-10-21 | Infrastructure CI (alignement branche, run vert, protection) | CI | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-C.md` |
 
 ## 2. Rapports créés
 
