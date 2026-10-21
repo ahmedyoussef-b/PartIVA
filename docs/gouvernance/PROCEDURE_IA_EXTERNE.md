@@ -23,7 +23,8 @@ L'IA externe est responsable de :
 
 ### 3.1. Analyse du contexte
 
-- Lire les sources de référence (`ETAT_COURANT.md`, `DETTES.md`, `docs/sessions/INDEX.md`).
+- Lire les sources de référence (`docs/etat/ETAT_COURANT.md`, `docs/etat/DETTES.md`, `docs/sessions/INDEX.md`).
+- Lire `docs/etat/DECISIONS.md` (décisions validées).
 - Identifier les dépendances et les risques.
 - Signaler les contradictions et les informations manquantes.
 

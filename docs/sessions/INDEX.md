@@ -17,11 +17,11 @@
 | E23 | 2026-10-21 | Page `/admin/pieces/nouveau` + formulaire + API sécurisée | CRUD Pièces | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E23.md` |
 | E24 | 2026-10-21 | Robustesse Prisma + credentials E2E auto-suffisants | Infrastructure, E2E | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E24.md` |
 | E25 | 2026-10-21 | Plafonner le timeout `source=all` + propager signaux | Sources externes | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E25.md` |
-| E26 | 2026-10-21 | Réforme de la procédure de coopération | Gouvernance | 🟡 En cours | `docs/sessions/rapports/SESSION-2026-10-21-E26.md` |
+| E26 | 2026-10-21 | Réforme de la procédure de coopération | Gouvernance | ✅ | `docs/sessions/rapports/SESSION-2026-10-21-E26.md` |
 
 ## 2. Rapports créés
 
-Les rapports E17 → E24 sont créés (8/8). Seul le rapport de la session E26 reste à produire, à la clôture de la session.
+Les rapports E17 → E25 sont créés (9/9). Seul le rapport de la session E26 reste à produire, à la clôture de la session.
 
 ## 3. Index des fonctionnalités
 

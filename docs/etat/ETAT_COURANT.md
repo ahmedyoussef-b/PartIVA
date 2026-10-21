@@ -1,7 +1,7 @@
 # ÉTAT COURANT — PartIVA
 
 **Dernière mise à jour :** 2026-10-21
-**Commit HEAD :** `d227930` (E24 clôturée)
+**Commit HEAD :** `c410423` (E25 — dernier commit code)
 **Phase en cours :** E26 — Réforme de la procédure de coopération
 **Statut du projet :** En cours
 
@@ -15,11 +15,11 @@ Réformer l'infrastructure documentaire pour accélérer et fiabiliser la coopé
 - **Base de données :** Neon (PostgreSQL, pgvector).
 - **Desktop :** Tauri (export statique).
 - **Tests :** Playwright (E2E), ESLint, Prettier, TypeScript.
-- **Structure documentaire :** En cours de réforme (E0→E7).
+- **Structure documentaire :** Réforme E26 terminée (5 commits).
 
 ## 3. Travaux en cours
 
-- **E26-Réforme :** Création des fichiers de gouvernance, modèles, état courant, sessions.
+- **E26-bis :** Correction des écarts documentaires (cf. §6).
 
 ## 4. Blocages
 
@@ -27,6 +27,7 @@ Réformer l'infrastructure documentaire pour accélérer et fiabiliser la coopé
 - **D-E24-E2E-TIMEOUT-SOURCES :** 2 tests `source=all` échouent (timeout 30s vs 32.8s réels).
 - **D-E22-KPI-MOCK-DATA :** Données KPI factices en attendant un endpoint d'agrégats.
 - **D-E22-PART-STATUS-BADGE :** Composant mixte Server/Client (fonctionnel).
+- **D-E26-LEGACY-KILOCODE :** Fichier hérité `.kilocode/rules.md` (Faible).
 - **D-E14-PRINT-ON-DEMAND :** Acceptée (facteur externe).
 
 ## 5. Décisions ayant un effet opérationnel

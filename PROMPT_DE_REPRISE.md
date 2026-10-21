@@ -79,10 +79,9 @@ Vous êtes l'**IA externe** (Superviseur). Votre rôle est d'**analyser, planifi
 
 | Élément | Valeur |
 |---|---|
-| **ID Tâche** | `E26-bis` (correction des 3 incohérences résiduelles) |
+| **ID Tâche** | `E26-bis` (correction des 12 écarts documentaires) |
 | **Statut** | `PROPOSE` |
-| **Description** | Corriger : (1) `ETAT_COURANT.md` HEAD `d227930` → `3f1967c` ; (2) `ETAT_COURANT.md` §4 (5 dettes → 6) ; (3) `PROMPT_DE_REPRISE.md` §9 (prochaine étape). |
-| **Puis** | E25-R0 (CI — timeout `source=all`), E27 (à cadrer). |
+| **Description** | Voir le prompt de continuation (`docs/etat/PROMPT_DE_CONTINUATION.md`). |
 
 ---
 

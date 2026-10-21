@@ -36,7 +36,7 @@
 - **Effort estimé :** Moyen.
 - **Bloquant :** Non.
 - **Condition de résolution :** l'endpoint d'agrégats existe et alimente le dashboard.
-- **Prochaine session :** E26 (à cadrer).
+- **Prochaine session :** E27 (à cadrer).
 
 ### `D-E22-PART-STATUS-BADGE` — Composant mixte Server/Client
 
@@ -46,7 +46,7 @@
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
 - **Condition de résolution :** le composant est entièrement client ou entièrement serveur, sans import du namespace Prisma *browser* dans le bundle serveur.
-- **Prochaine session :** E26 (à cadrer).
+- **Prochaine session :** E27 (à cadrer).
 
 ### `D-E26-LEGACY-KILOCODE` — Fichier hérité `.kilocode/rules.md`
 
@@ -56,7 +56,7 @@
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
 - **Condition de résolution :** `.kilocode/rules.md` est supprimé, sans réécriture de son contenu (archivage optional).
-- **Prochaine session :** E7 (nettoyage final).
+- **Prochaine session :** E27 (nettoyage final).
 
 ## Acceptée — facteur externe (1)
 
