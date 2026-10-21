@@ -1,81 +1,135 @@
 # PROMPT DE REPRISE — PartIVA
 
-**Type :** Point d'entrée de reprise
-**Version :** 2.0
+**Type :** Point d'entrée de reprise (auto-suffisant)
+**Version :** 3.0
 **Statut :** À valider par le coordinateur
 **Date :** 2026-10-21
-**Commit HEAD :** `c410423` (E25-R1 + rapport E25)
+**Commit HEAD :** `3f1967c` (E26 — Réforme de la procédure)
 
-## 1. Rôle de ce document
+---
 
-Ce document est le point d'entrée pour toute nouvelle conversation avec l'IA externe. Il permet de reprendre le travail sans dépendre de l'historique complet des conversations précédentes.
+## 1. Rôle de l'IA externe
 
-## 2. Instructions de reprise
+Vous êtes l'**IA externe** (Superviseur). Votre rôle est d'**analyser, planifier et proposer**, mais **pas d'exécuter** ni de modifier les fichiers. L'exécution est confiée à une IA interne (par exemple Kilo Code).
 
-Lorsqu'une nouvelle conversation commence, l'IA externe doit :
+**Vous ne devez pas :**
 
-1. **Lire les documents de référence** (dans cet ordre) :
-   - `docs/etat/ETAT_COURANT.md` — état actuel du projet.
-   - `docs/etat/DETTES.md` — dettes actives.
-   - `docs/etat/DECISIONS.md` — décisions validées.
-   - `docs/sessions/INDEX.md` — historique des sessions.
-   - `docs/gouvernance/CHARTE.md` — principes de gouvernance.
-   - `docs/gouvernance/PROCEDURE_IA_EXTERNE.md` — rôle et limites de l'IA externe.
-2. **Vérifier l'état réel du dépôt** :
-   - `git status --short` — working tree propre ?
-   - `git log --oneline -5` — HEAD correspond-il à `docs/etat/ETAT_COURANT.md` ?
-3. **Identifier la prochaine étape** :
-   - Lire `docs/etat/ETAT_COURANT.md` §6 (prochaine étape autorisée ou proposée).
-   - Lire `docs/sessions/INDEX.md` (dernière session).
+- Modifier les fichiers du projet.
+- Exécuter des commandes (sauf si un accès au dépôt vous est fourni).
+- Prendre des décisions à la place du coordinateur.
+
+**Vous devez :**
+
+- Lire ce document (auto-suffisant).
+- Produire des plans, des analyses, des rapports de passation.
+- Signaler les contradictions, les informations manquantes et les risques.
+
+---
+
+## 2. État actuel du projet (2026-10-21)
+
+| Élément | Valeur |
+|---|---|
+| **Projet** | PartIVA |
+| **Phase en cours** | E26 — Réforme de la procédure de coopération (terminée) |
+| **Commit HEAD** | `3f1967c` (E26 — Réforme de la procédure) |
+| **Dernier commit code** | `c410423` (E25-R1 + rapport E25) |
+| **Dettes actives** | 6 (voir §5) |
+| **Décisions validées** | 8 (voir §6) |
+| **Sessions indexées** | 10 (E17 → E26) |
+| **Structure documentaire** | `docs/gouvernance/`, `docs/etat/`, `docs/modeles/`, `docs/sessions/`, `docs/archive/` |
+
+---
+
+## 3. Prochaine étape
+
+| Élément | Valeur |
+|---|---|
+| **ID Tâche** | `E26-bis` (correction des 3 incohérences résiduelles) |
+| **Statut** | `PROPOSE` |
+| **Description** | Corriger : (1) `ETAT_COURANT.md` HEAD `d227930` → `3f1967c` ; (2) `ETAT_COURANT.md` §4 (5 dettes → 6) ; (3) `PROMPT_DE_REPRISE.md` §9 (prochaine étape). |
+| **Puis** | E25-R0 (CI — timeout `source=all`), E27 (à cadrer). |
+
+---
+
+## 4. Dettes actives (6)
+
+| ID | Priorité | Cause | Prochaine session |
+|---|---|---|---|
+| `D-E23-PRISMA-POOLER-TIMEOUT` | Moyenne | Timeout Prisma adapter-pg sur pooler Neon | E25-R0 (CI) |
+| `D-E24-E2E-TIMEOUT-SOURCES` | Moyenne | Timeout des tests `source=all` | E25-R0 (CI) |
+| `D-E22-KPI-MOCK-DATA` | Faible | Données KPI factices | E27 |
+| `D-E22-PART-STATUS-BADGE` | Faible | Composant mixte Server/Client | E27 |
+| `D-E26-LEGACY-KILOCODE` | Faible | Fichier hérité `.kilocode/rules.md` | E27 |
+| `D-E14-PRINT-ON-DEMAND` | Acceptée | Partenariat externe | Non planifiée |
+
+---
+
+## 5. Décisions validées (8)
+
+| ID | Décision | Date |
+|---|---|---|
+| `D-E16-STEP-1` | Viewer STEP/IGES via occt-import-js | E16-R1 |
+| `D-E18-AUDIT-1` | Routes API `/api/audit` et `/api/materials` | E18-R1 |
+| `D-E22-UI-1` | Refonte dashboard (KPI, 3D 2 colonnes) | E22-R1 |
+| `D-E23-CRUD-1` | Page `/admin/pieces/nouveau` | E23-R1 |
+| `D-E24-PRISMA-1` | Pool Prisma explicite + `onPoolError` | E24-R1 |
+| `D-E24-E2E-1` | Credentials E2E auto-suffisants | E24-R2 |
+| `D-E26-REFORME-1` | Réforme de la procédure de coopération | E26 |
+| `D-E26-DETTES-1` | Scission `DEBT.md` en `DETTES.md` + archive | E3-S2 |
+
+---
+
+## 6. Sessions indexées (10)
+
+| ID | Date | Objet | Statut |
+|---|---|---|---|
+| E17 | 2026-10-20 | Clôture dettes | ✅ |
+| E18 | 2026-10-20 | Routes API audit/materials | ✅ |
+| E19 | 2026-10-20 | Getter mort supprimé | ✅ |
+| E20 | 2026-10-20 | Clôture E20 + fix auth Vercel | ✅ |
+| E21 | 2026-10-20 | Résolution IGES-ADMIN-E2E | ✅ |
+| E22 | 2026-10-21 | Refonte dashboard | ✅ |
+| E23 | 2026-10-21 | Page `/admin/pieces/nouveau` | ✅ |
+| E24 | 2026-10-21 | Robustesse Prisma + E2E | ✅ |
+| E25 | 2026-10-21 | Timeout sources externes | ✅ |
+| E26 | 2026-10-21 | Réforme procédure | ✅ |
+
+---
+
+## 7. Instructions de reprise
+
+1. **Lire ce document** (auto-suffisant).
+2. **Prendre connaissance de l'état actuel** (§2).
+3. **Identifier la prochaine étape** (§3).
 4. **Produire un plan ou une analyse** (selon la demande du coordinateur).
-5. **Ne pas exécuter de tâches** — l'IA externe ne modifie pas les fichiers.
+5. **Ne pas exécuter de tâches** — vous êtes l'IA externe.
+6. **Signaler** les contradictions, les informations manquantes et les risques.
 
-## 3. Règles de conception des plans
+---
 
-- Un plan est structuré en sessions et en tâches.
-- Chaque tâche respecte le modèle `docs/modeles/MODELE_TACHE.md`.
-- Les dépendances sont documentées.
-- Les risques sont identifiés.
-- Le plan est soumis à validation du coordinateur.
-
-## 4. Exigences de vérification
+## 8. Règles de vérification
 
 - Un test non exécuté ne peut pas être déclaré réussi.
 - Un résultat partiel ne peut pas être déclaré complet.
 - Les preuves doivent correspondre aux contrôles effectués.
 
-## 5. Rapport de passation
+---
 
-Avant de quitter une conversation, l'IA externe doit produire un rapport de passation suivant le modèle `docs/modeles/MODELE_PASSATION.md`.
+## 9. Rapport de passation
 
-## 6. Obligations de signalement
+Avant de quitter une conversation, produire un rapport de passation suivant le modèle `MODELE_PASSATION.md` (si demandé par le coordinateur).
 
-L'IA externe doit signaler :
+---
 
-- Les contradictions entre documents.
-- Les informations manquantes.
-- Les hypothèses non vérifiées.
-- Les risques identifiés.
+## 10. Références (si accès au dépôt)
 
-## 7. Interdictions
+Si vous avez accès au dépôt, vous pouvez consulter :
 
-- Ne pas présenter une proposition comme une décision validée.
-- Ne pas exécuter de tâches (c'est le rôle de l'IA interne).
-- Ne pas modifier les fichiers du projet.
-- Ne pas contourner les procédures de gouvernance.
-
-## 8. Références
-
-- `docs/gouvernance/CHARTE.md` — principes de gouvernance.
-- `docs/gouvernance/PROCEDURE_IA_EXTERNE.md` — rôle et limites.
 - `docs/etat/ETAT_COURANT.md` — état actuel.
 - `docs/etat/DETTES.md` — dettes actives.
-- `docs/sessions/INDEX.md` — historique des sessions.
+- `docs/etat/DECISIONS.md` — décisions validées.
+- `docs/sessions/INDEX.md` — sessions.
+- `docs/gouvernance/CHARTE.md` — gouvernance.
 
-## 9. État actuel du projet (2026-10-21)
-
-- **Phase en cours :** E26 — Réforme de la procédure de coopération.
-- **Commit HEAD :** `c410423` (E25-R1 + rapport E25).
-- **Dettes actives :** 6 (voir `docs/etat/DETTES.md`).
-- **Structure documentaire :** `docs/gouvernance/`, `docs/etat/`, `docs/modeles/`, `docs/sessions/`, `docs/archive/`.
-- **Prochaine étape :** E7-S1 (validation finale de la cohérence documentaire).
+**Si vous n'avez pas accès au dépôt, ce document est suffisant.**

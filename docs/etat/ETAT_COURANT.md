@@ -42,7 +42,7 @@ Réformer l'infrastructure documentaire pour accélérer et fiabiliser la coopé
 
 ## 6. Prochaine étape autorisée ou proposée
 
-- **ID Tâche :** `E7-S1` (validation finale de la cohérence documentaire).
+- **ID Tâche :** `E26-bis` (correction des incohérences résiduelles + PROMPT_DE_REPRISE v3.0).
 - **Statut :** `PROPOSE` (en attente de validation du coordinateur).
 
 ## 7. Notes
