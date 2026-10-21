@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
 import { FR } from '@/i18n/fr';
-import { KPICard } from '@/components/shared/kpi-card';
+import { KpiCard } from '@/components/shared/kpi-card';
 import type { MappedRequest } from '@/lib/utils/request-mappers';
 import type { MachineWithRelations } from '@/lib/data/machines';
 
@@ -58,10 +58,10 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KPICard title="En usinage" value={activeJobs.length} variant="success" />
-        <KPICard title="En attente" value={waiting.length} variant="warning" />
-        <KPICard title="Terminées (mois)" value={3} variant="default" />
-        <KPICard title="Machines" value={machines.length} variant="info" />
+        <KpiCard title="En usinage" value={activeJobs.length} variant="success" />
+        <KpiCard title="En attente" value={waiting.length} variant="warning" />
+        <KpiCard title="Terminées (mois)" value={3} variant="default" />
+        <KpiCard title="Machines" value={machines.length} variant="info" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

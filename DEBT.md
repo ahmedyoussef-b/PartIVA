@@ -1,6 +1,6 @@
 # DEBT — PartIVA
 
-**Dernière mise à jour :** 2026-10-20
+**Dernière mise à jour :** 2026-10-21
 **Structure :** une dette = un bloc (ID, statut, priorité, cause, périmètre, effort, prochaine session)
 **Encodage :** UTF-8 sans BOM
 **Lecture :** `Get-Content DEBT.md -Encoding UTF8` (PowerShell sans `-Encoding UTF8` masque le contenu)
@@ -11,7 +11,7 @@
 
 Aucune.
 
-### Moyenne (1)
+### Moyenne (2)
 
 #### `D-E16-DASHBOARD-FETCH` — Fetch dashboard non optimisé
 
@@ -23,6 +23,41 @@ Aucune.
 - **Effort estimé :** Moyen (1-2 sessions).
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
+
+#### `D-E22-NEW-PART-ROUTE` — Route de création de pièce manquante
+
+- **Statut :** Active
+- **Priorité :** Moyenne
+- **Session origine :** E22-R1
+- **Cause :** Le bouton « Nouvelle pièce » redirige vers `/admin/pieces` car `/admin/pieces/nouveau` n'existe pas — aucun parcours de création de pièce n'est atteignable depuis l'UI admin.
+- **Périmètre :** `src/app/admin/pieces/nouveau/page.tsx` (à créer), `src/app/admin/dashboard/dashboard-client.tsx` (CTA), `src/app/admin/pieces/pieces-client.tsx` (CTA inerte).
+- **Effort estimé :** Moyen (1-2 sessions).
+- **Bloquant :** Non.
+- **Prochaine session :** Feature « CRUD Pièces ».
+
+### Faible (2)
+
+#### `D-E22-KPI-MOCK-DATA` — Données KPI factices
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E22-R1
+- **Cause :** Les KPI du dashboard utilisent des données en dur (`+ 2`, `+ 184 réf.`, `74.2%`) en attendant un endpoint d'agrégats — les compteurs affichés ne reflètent pas l'état réel de la base.
+- **Périmètre :** `src/app/admin/dashboard/dashboard-client.tsx`, `src/app/api/dashboard/route.ts`.
+- **Effort estimé :** Faible (1 session).
+- **Bloquant :** Non.
+- **Prochaine session :** Feature « Agrégats Dashboard ».
+
+#### `D-E22-PART-STATUS-BADGE` — PartStatusBadge Server/Client mixte
+
+- **Statut :** Active
+- **Priorité :** Faible
+- **Session origine :** E22-R1
+- **Cause :** `PartStatusBadge` est un Server Component (pas de directive `'use client'`) qui rend `Badge`, un Client Component. Fonctionne, mais l'import de valeur `PartStatus` depuis `@/generated/prisma/browser` a été converti en `import type` pour éviter de tirer le namespace Prisma *browser* dans le bundle serveur — à surveiller.
+- **Périmètre :** `src/components/part-status-badge.tsx` (le composant `src/components/domain/part-status-badge.tsx` est distinct et n'est pas concerné).
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Prochaine session :** À surveiller (E23+).
 
 
 

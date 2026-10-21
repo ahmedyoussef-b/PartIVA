@@ -5,64 +5,87 @@ import { useSyncStore } from '@/lib/stores/sync-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { RefreshCw, Search } from 'lucide-react';
+import { ArrowRight, Package, RefreshCw, Search } from 'lucide-react';
 import { FR } from '@/i18n/fr';
-import { formatDate } from '@/lib/utils';
-import { KPICard } from '@/components/shared/kpi-card';
+import { cn, formatDate } from '@/lib/utils';
+import { KpiCard } from '@/components/shared/kpi-card';
+import { Button } from '@/components/ui/button';
+import { getMachineStatusLabel } from '@/lib/enum-labels';
 import type { MappedRequest } from '@/lib/utils/request-mappers';
 import type { MachineWithRelations } from '@/lib/data/machines';
+import type { MachineStatus } from '@/generated/prisma/browser';
 
 interface AdminDashboardClientProps {
   requests: MappedRequest[];
   machines: MachineWithRelations[];
 }
 
+const MACHINE_STATUS_STYLES: Record<MachineStatus, { dot: string; chip: string }> = {
+  RUNNING: {
+    dot: 'bg-emerald-500',
+    chip: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  },
+  IDLE: {
+    dot: 'bg-slate-400',
+    chip: 'bg-slate-500/10 text-slate-600 dark:text-slate-300',
+  },
+  MAINTENANCE: {
+    dot: 'bg-amber-500',
+    chip: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  },
+  OFFLINE: {
+    dot: 'bg-red-500',
+    chip: 'bg-red-500/10 text-red-700 dark:text-red-300',
+  },
+};
+
 export default function AdminDashboardClient({ requests, machines }: AdminDashboardClientProps) {
   const { lastSyncAt, pendingCount, isSyncing, triggerSync } = useSyncStore();
   const pendingRequests = requests.filter((r) => r.status === 'new' || r.status === 'searching');
 
   return (
-    <div data-testid="dashboard-content" className="max-w-7xl space-y-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div data-testid="dashboard-content" className="mx-auto max-w-7xl space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
+          <h1 className="text-foreground text-2xl font-bold tracking-tight">Tableau de bord</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
             File de fabrication, recherche multi-sources et parc machines.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/admin/sync">
-            <Badge variant="outline" className="gap-2 text-xs">
-              <RefreshCw className="h-3.5 w-3.5" />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href="/admin/sync">
+              <RefreshCw className={cn('h-4 w-4', isSyncing && 'animate-spin')} />
               Sync
-            </Badge>
-          </Link>
-          <Link href="/admin/pieces/nouveau">
-            <Badge variant="default" className="text-xs font-semibold">
-              Nouvelle pièce
-            </Badge>
-          </Link>
+            </Link>
+          </Button>
+          <Button asChild size="sm" className="gap-2">
+            <Link href="/admin/pieces">
+              <Package className="h-4 w-4" />
+              Catalogue pièces
+            </Link>
+          </Button>
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <KPICard
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <KpiCard
           title="Demandes en attente"
           value={pendingRequests.length + 2}
-          subtitle="À qualifier / chercher"
+          description="À qualifier / chercher"
           variant="warning"
         />
-        <KPICard
+        <KpiCard
           title="Pièces en BDD"
           value={`${requests.length + 184} réf.`}
-          subtitle="Source de vérité SQLite"
+          description="Source de vérité Neon Postgres"
           variant="default"
         />
-        <KPICard
+        <KpiCard
           title="Taux de succès"
           value="74.2%"
-          subtitle="Évite le reverse intégral"
+          description="Évite le reverse intégral"
           variant="success"
         />
       </div>
@@ -75,9 +98,10 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             <h2 className="text-lg font-semibold">File d&apos;attente</h2>
             <Link
               href="/admin/demandes"
-              className="text-primary text-xs font-medium hover:underline"
+              className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
             >
-              Voir tout ({requests.length}) →
+              Voir tout ({requests.length})
+              <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
@@ -158,7 +182,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
                 className="w-full justify-center gap-2 text-xs font-semibold"
                 onClick={() => triggerSync()}
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
                 {isSyncing ? 'Sync en cours...' : 'Forcer un Pull'}
               </Badge>
             </CardContent>
@@ -175,20 +199,25 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {machines.slice(0, 3).map((m) => (
-                <div key={m.id} className="space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="max-w-[160px] truncate font-medium">{m.name}</span>
-                    <span className="font-mono text-[10px] font-bold">{m.status}</span>
+              {machines.slice(0, 4).map((m) => {
+                const statusStyle = MACHINE_STATUS_STYLES[m.status] ?? MACHINE_STATUS_STYLES.IDLE;
+                return (
+                  <div key={m.id} className="space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="max-w-[160px] truncate font-medium">{m.name}</span>
+                      <span
+                        className={cn(
+                          'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium',
+                          statusStyle.chip,
+                        )}
+                      >
+                        <span className={cn('h-1.5 w-1.5 rounded-full', statusStyle.dot)} />
+                        {getMachineStatusLabel(m.status)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-                    <div
-                      className={`h-full bg-emerald-500 transition-all`}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </div>

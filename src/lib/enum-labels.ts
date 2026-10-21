@@ -1,5 +1,6 @@
 import type {
   AttachmentKind,
+  MachineStatus,
   MachineType,
   MaterialCategory,
   PartStatus,
@@ -21,6 +22,17 @@ export const MATERIAL_CATEGORY_LABELS: Record<MaterialCategory, string> = {
 
 export function getMachineTypeLabel(type: MachineType): string {
   return MACHINE_TYPE_LABELS[type] ?? type;
+}
+
+export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
+  IDLE: 'Libre',
+  RUNNING: 'En marche',
+  MAINTENANCE: 'Maintenance',
+  OFFLINE: 'Hors ligne',
+};
+
+export function getMachineStatusLabel(status: MachineStatus): string {
+  return MACHINE_STATUS_LABELS[status] ?? status;
 }
 
 export function getMaterialCategoryLabel(category: MaterialCategory): string {

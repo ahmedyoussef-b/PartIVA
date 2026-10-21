@@ -12,6 +12,8 @@ interface ModelViewerProps {
   alt?: string;
   /** Hauteur du visualiseur (ex: "500px" ou 500) */
   height?: string | number;
+  /** Rend le viewer sans la Card (intégration dans une Card existante) */
+  bare?: boolean;
 }
 
 /* Extensions CAO solides/surfaces → parsed par occt-import-js (Web Worker) */
@@ -31,35 +33,44 @@ function heightToPx(height: string | number | undefined, fallback = 400): number
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function heightToCss(height: string | number | undefined): string | undefined {
+  if (height === undefined) return undefined;
+  return typeof height === 'number' ? `${height}px` : height;
+}
+
 /**
  * ModelViewer — choisit le visualiseur 3D adapté selon l'extension du fichier :
  * - `.step` / `.stp` / `.iges` / `.igs` / `.brep` → `CadViewer` (occt-import-js)
  * - `.stl` / `.gltf` / `.glb`                   → `StlViewer` (Three.js)
  * - autre / inconnu                              → carte de fallback explicite
  */
-export function ModelViewer({ src, alt, height }: ModelViewerProps) {
+export function ModelViewer({ src, alt, height, bare = false }: ModelViewerProps) {
   const ext = extensionOf(src);
   const isCad = CAD_EXTENSIONS.includes(ext);
   const isMesh = MESH_EXTENSIONS.includes(ext);
 
-  const style = height ? { height: typeof height === 'number' ? `${height}px` : height } : {};
+  const style = height ? { height: heightToCss(height) } : {};
 
   if (!isCad && !isMesh) {
+    const fallback = (
+      <div className="text-muted-foreground flex flex-col items-center justify-center py-12 text-sm">
+        {alt ?? 'Format de modèle 3D non pris en charge'}
+      </div>
+    );
+    if (bare) return fallback;
     return (
       <Card className="w-full" style={style}>
         <CardHeader>
           <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
         </CardHeader>
-        <CardContent className="text-muted-foreground flex flex-col items-center justify-center py-12">
-          {alt ?? 'Format de modèle 3D non pris en charge'}
-        </CardContent>
+        <CardContent>{fallback}</CardContent>
       </Card>
     );
   }
 
   if (isCad) {
-    return <CadViewer src={src} height={heightToPx(height)} />;
+    return <CadViewer src={src} height={heightToPx(height)} bare={bare} />;
   }
 
-  return <StlViewer src={src} alt={alt} height={typeof height === 'string' ? height : undefined} />;
+  return <StlViewer src={src} alt={alt} height={heightToCss(height)} bare={bare} />;
 }

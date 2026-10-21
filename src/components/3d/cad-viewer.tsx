@@ -2,19 +2,31 @@
 
 import * as React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Grid, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { Loader2, RotateCcw, Maximize } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  CAMERA_HOME,
+  ViewerBridge,
+  ViewerError,
+  ViewerLoading,
+  ViewerSceneBridge,
+  ViewerShell,
+} from './viewer-shell';
+
+const MODEL_COLOR = '#94a3b8';
+const MODEL_EXTENT = 2.8;
 
 interface CadViewerProps {
   src: string;
+  /** Hauteur du viewport 3D en pixels (défaut 400) */
   height?: number;
   /** Timeout de parsing en ms (défaut 120 000 = 2 min) */
   timeoutMs?: number;
   /** Taille max du fichier en Mo (défaut 50) */
   maxSizeMb?: number;
+  /** Rend le viewer sans la Card (intégration dans une Card existante) */
+  bare?: boolean;
 }
 
 interface OcctMesh {
@@ -51,9 +63,36 @@ function detectFormat(src: string): 'step' | 'iges' | 'brep' {
   }
 }
 
+/**
+ * Centre et met à l'échelle la géométrie OCCT pour que le modèle tienne dans
+ * le viewport, quelle que soit l'unité du fichier CAO source (mm, pouces, …).
+ */
+function normalizeGeometry(geometry: THREE.BufferGeometry): void {
+  geometry.computeBoundingBox();
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  if (geometry.boundingBox) {
+    geometry.boundingBox.getSize(size);
+    geometry.boundingBox.getCenter(center);
+    geometry.translate(-center.x, -center.y, -center.z);
+  }
+  const maxDimension = Math.max(size.x, size.y, size.z) || 1;
+  const scale = MODEL_EXTENT / maxDimension;
+  geometry.scale(scale, scale, scale);
+}
+
+interface CadLoadState {
+  src: string;
+  geometry: THREE.BufferGeometry | null;
+  error: string | null;
+}
+
 function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
-  const [geometry, setGeometry] = React.useState<THREE.BufferGeometry | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  const [state, setState] = React.useState<CadLoadState>({
+    src: '',
+    geometry: null,
+    error: null,
+  });
 
   React.useEffect(() => {
     let cancelled = false;
@@ -82,7 +121,7 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
           if (!cancelled) {
             cancelled = true;
             worker?.terminate();
-            setError("Délai d'attente dépassé (parsing trop long)");
+            setState({ src, geometry: null, error: "Délai d'attente dépassé (parsing trop long)" });
           }
         }, timeoutMs);
 
@@ -92,7 +131,11 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
           const result = e.data;
           const mesh = result.meshes?.[0];
           if (!result.success || !mesh) {
-            setError('Échec du parsing (voir console pour le détail OCCT)');
+            setState({
+              src,
+              geometry: null,
+              error: 'Échec du parsing (voir console pour le détail OCCT)',
+            });
             return;
           }
 
@@ -109,12 +152,15 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
           }
           geom.setIndex(mesh.index.array);
           geom.computeBoundingSphere();
-          setGeometry(geom);
+          normalizeGeometry(geom);
+          setState({ src, geometry: geom, error: null });
         };
 
         worker.onerror = (e) => {
           if (timeoutId) clearTimeout(timeoutId);
-          if (!cancelled) setError(`Erreur worker : ${e.message}`);
+          if (!cancelled) {
+            setState({ src, geometry: null, error: `Erreur worker : ${e.message}` });
+          }
         };
 
         const format = detectFormat(src);
@@ -123,7 +169,7 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
         worker.postMessage({ format, buffer: new Uint8Array(buffer), params: null }, [buffer]);
       } catch (e) {
         if (timeoutId) clearTimeout(timeoutId);
-        if (!cancelled) setError(String(e));
+        if (!cancelled) setState({ src, geometry: null, error: String(e) });
       }
     }
 
@@ -136,7 +182,11 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
     };
   }, [src, timeoutMs, maxSizeMb]);
 
-  return { geometry, error };
+  return {
+    geometry: state.src === src ? state.geometry : null,
+    error: state.src === src ? state.error : null,
+    loading: state.src !== src,
+  };
 }
 
 export function CadViewer({
@@ -144,63 +194,71 @@ export function CadViewer({
   height = 400,
   timeoutMs = 120_000,
   maxSizeMb = 50,
+  bare = false,
 }: CadViewerProps) {
-  const { geometry, error } = useStepGeometry(src, timeoutMs, maxSizeMb);
+  const bridgeRef = React.useRef<ViewerBridge>({});
+  const { geometry, error, loading } = useStepGeometry(src, timeoutMs, maxSizeMb);
 
-  if (error) {
-    return (
-      <Card className="w-full h-full">
-        <CardHeader>
-          <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
-        </CardHeader>
-        <CardContent className="flex h-full flex-col items-center justify-center text-sm text-destructive">
-          {error}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!geometry) {
-    return (
-      <Card className="w-full" style={{ height }}>
-        <CardHeader>
-          <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
-        </CardHeader>
-        <CardContent className="flex h-full flex-col items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin mb-2" />
-          <span className="text-muted-foreground text-sm">Chargement du modèle CAO…</span>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="w-full" style={{ height }}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <span className="text-muted-foreground">Visualiseur 3D</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 relative">
-        <div className="absolute top-2 right-2 z-10 flex gap-2">
-          <Button size="icon" variant="outline" aria-label="Reset de la vue">
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-          <Button size="icon" variant="outline" aria-label="Plein écran">
-            <Maximize className="h-4 w-4" />
-          </Button>
-        </div>
-        <div data-testid="cad-viewer-canvas" style={{ height: '100%', width: '100%' }}>
-          <Canvas camera={{ position: [15, 15, 15], fov: 50 }}>
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[10, 10, 10]} />
+  const viewport = (
+    <ViewerShell
+      bridgeRef={bridgeRef}
+      height={`${height}px`}
+      className={bare ? 'rounded-none border-0' : undefined}
+    >
+      {error ? (
+        <ViewerError message={error} testId="cad-viewer-error" />
+      ) : loading || !geometry ? (
+        <ViewerLoading message="Chargement du modèle CAO…" />
+      ) : (
+        <div data-testid="cad-viewer-canvas" className="h-full w-full">
+          <Canvas
+            shadows
+            dpr={[1, 2]}
+            camera={{ position: CAMERA_HOME, fov: 50 }}
+            gl={{ preserveDrawingBuffer: true, antialias: true }}
+            className="h-full w-full"
+          >
+            <color attach="background" args={['#f8fafc']} />
+            <ambientLight intensity={0.85} />
+            <directionalLight position={[6, 8, 6]} intensity={1.15} castShadow />
+            <directionalLight position={[-6, -4, -6]} intensity={0.4} />
+            <Grid
+              position={[0, -1.4, 0]}
+              args={[10, 10]}
+              cellSize={0.5}
+              cellThickness={0.6}
+              cellColor="#cbd5e1"
+              sectionSize={2.5}
+              sectionThickness={1}
+              sectionColor="#94a3b8"
+              fadeDistance={20}
+              fadeStrength={1.5}
+              infiniteGrid
+            />
             <mesh geometry={geometry}>
-              <meshStandardMaterial color="#bbbbbb" side={THREE.DoubleSide} />
+              <meshStandardMaterial
+                color={MODEL_COLOR}
+                side={THREE.DoubleSide}
+                metalness={0.15}
+                roughness={0.45}
+              />
             </mesh>
-            <OrbitControls />
+            <ViewerSceneBridge bridgeRef={bridgeRef} />
+            <OrbitControls enableZoom enablePan enableRotate makeDefault target={[0, 0, 0]} />
           </Canvas>
         </div>
-      </CardContent>
+      )}
+    </ViewerShell>
+  );
+
+  if (bare) return viewport;
+
+  return (
+    <Card className="w-full overflow-hidden">
+      <CardHeader className="bg-muted/50 border-b">
+        <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">{viewport}</CardContent>
     </Card>
   );
 }

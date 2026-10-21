@@ -1,21 +1,23 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid } from '@react-three/drei';
-import {
-  AmbientLight,
-  SpotLight,
-  AxesHelper,
-  Object3D,
-  Mesh,
-  MeshStandardMaterial,
-} from 'three';
+import { Grid, OrbitControls, useGLTF, useProgress } from '@react-three/drei';
+import { BufferGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { useGLTF } from '@react-three/drei';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, RotateCcw, Maximize } from 'lucide-react';
+import {
+  CAMERA_HOME,
+  ViewerBridge,
+  ViewerError,
+  ViewerLoading,
+  ViewerSceneBridge,
+  ViewerShell,
+} from './viewer-shell';
+
+const MODEL_COLOR = '#94a3b8';
+const MODEL_EXTENT = 2.8;
 
 interface StlViewerProps {
   /** URL du fichier STL ou GLTF à afficher */
@@ -24,6 +26,8 @@ interface StlViewerProps {
   alt?: string;
   /** Hauteur du canvas en CSS (ex: "400px", "50vh") */
   height?: string;
+  /** Rend le viewer sans la Card (intégration dans une Card existante) */
+  bare?: boolean;
 }
 
 function GltfScene({ src }: { src: string }) {
@@ -31,110 +35,168 @@ function GltfScene({ src }: { src: string }) {
   return <primitive object={scene} dispose={null} />;
 }
 
-function StlScene({ src }: { src: string }) {
-  const [scene, setScene] = React.useState<Object3D | null>(null);
-  const [error, setError] = React.useState<Error | null>(null);
-  const [loading, setLoading] = React.useState(true);
+/**
+ * Normalise le maillage : centré à l'origine et redimensionné pour tenir dans
+ * le viewport quelle que soit l'unité du fichier source (mm, pouces, …).
+ */
+function buildNormalizedMesh(geometry: BufferGeometry): Mesh {
+  geometry.computeBoundingBox();
+  const size = new Vector3();
+  const center = new Vector3();
+  if (geometry.boundingBox) {
+    geometry.boundingBox.getSize(size);
+    geometry.boundingBox.getCenter(center);
+  }
+  const maxDimension = Math.max(size.x, size.y, size.z) || 1;
+  const mesh = new Mesh(
+    geometry,
+    new MeshStandardMaterial({ color: MODEL_COLOR, metalness: 0.15, roughness: 0.45 }),
+  );
+  mesh.position.sub(center);
+  mesh.scale.setScalar(MODEL_EXTENT / maxDimension);
+  return mesh;
+}
+
+interface StlLoadState {
+  src: string;
+  mesh: Mesh | null;
+  error: string | null;
+}
+
+/**
+ * Chargement STL hors du `<Canvas>` : l'état est indexé par `src` pour éviter
+ * un rendu transitoire avec le maillage de la source précédente.
+ */
+function useStlMesh(src: string | undefined) {
+  const [state, setState] = React.useState<StlLoadState>({ src: '', mesh: null, error: null });
 
   React.useEffect(() => {
+    if (!src) return;
     let cancelled = false;
-    setLoading(true);
     new STLLoader()
       .loadAsync(src)
       .then((geometry) => {
-        if (!cancelled) {
-          setScene(new Mesh(geometry, new MeshStandardMaterial({ color: 0xffffff })));
-          setLoading(false);
-        }
+        if (cancelled) return;
+        setState({ src, mesh: buildNormalizedMesh(geometry), error: null });
       })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err as Error);
-          setLoading(false);
-        }
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setState({
+          src,
+          mesh: null,
+          error: err instanceof Error ? err.message : String(err),
+        });
       });
     return () => {
       cancelled = true;
     };
   }, [src]);
 
-  if (error) {
-    return (
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-card/90 p-4 text-center text-muted-foreground">
-        <Loader2 className="h-6 w-6 animate-spin mb-2" />
-        <p className="text-sm font-medium">Erreur de chargement du modèle 3D</p>
-        <p className="mt-1 max-w-[80%] truncate text-xs text-muted-foreground">
-          {error.message}
-        </p>
-      </div>
-    );
-  }
-  if (loading) return null;
-  if (!scene) return null;
-  return <primitive object={scene} dispose={null} />;
+  return {
+    mesh: state.src === src ? state.mesh : null,
+    error: state.src === src ? state.error : null,
+    loading: Boolean(src) && state.src !== src,
+  };
 }
 
-function StlSceneRouter({ src }: { src: string }) {
-  const lower = src.toLowerCase();
-  const isGltf = lower.endsWith('.gltf') || lower.endsWith('.glb');
-  return isGltf ? <GltfScene src={src} /> : <StlScene src={src} />;
-}
-
-function StlViewerCanvas({ src }: { src: string }) {
+function StlViewerCanvas({
+  mesh,
+  src,
+  isGltf,
+  bridgeRef,
+}: {
+  mesh: Mesh | null;
+  src: string;
+  isGltf: boolean;
+  bridgeRef: React.RefObject<ViewerBridge>;
+}) {
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-card">
-      <Canvas
-        shadows
-        camera={{ position: [5, 5, 5], fov: 45 }}
-        gl={{ preserveDrawingBuffer: true }}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <primitive object={new AmbientLight(0xffffff, 0.6)} />
-        <primitive
-          object={new SpotLight(0xffffff, 1.2, 50, Math.PI / 4, 0.5, 1)}
-          position={[10, 10, 10]}
-        />
-        <primitive object={new AxesHelper(1)} />
-        <Grid />
-        <StlSceneRouter src={src} />
-        <OrbitControls enableZoom enablePan enableRotate makeDefault />
-      </Canvas>
-      <div className="absolute top-2 right-2 z-10 flex gap-2">
-        <Button size="icon" variant="outline" aria-label="Reset de la vue">
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-        <Button size="icon" variant="outline" aria-label="Plein écran">
-          <Maximize className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+    <Canvas
+      shadows
+      dpr={[1, 2]}
+      camera={{ position: CAMERA_HOME, fov: 45 }}
+      gl={{ preserveDrawingBuffer: true, antialias: true }}
+      className="h-full w-full"
+    >
+      <color attach="background" args={['#f8fafc']} />
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[6, 8, 6]} intensity={1.1} castShadow />
+      <directionalLight position={[-6, -4, -6]} intensity={0.35} />
+      <Grid
+        position={[0, -1.4, 0]}
+        args={[10, 10]}
+        cellSize={0.5}
+        cellThickness={0.6}
+        cellColor="#cbd5e1"
+        sectionSize={2.5}
+        sectionThickness={1}
+        sectionColor="#94a3b8"
+        fadeDistance={20}
+        fadeStrength={1.5}
+        infiniteGrid
+      />
+      <Suspense fallback={null}>
+        {isGltf ? (
+          <GltfScene src={src} />
+        ) : mesh ? (
+          <primitive object={mesh} dispose={null} />
+        ) : null}
+      </Suspense>
+      <ViewerSceneBridge bridgeRef={bridgeRef} />
+      <OrbitControls enableZoom enablePan enableRotate makeDefault target={[0, 0, 0]} />
+    </Canvas>
   );
 }
 
-export function StlViewer({ src, alt, height }: StlViewerProps) {
+export function StlViewer({ src, alt, height, bare = false }: StlViewerProps) {
+  const bridgeRef = React.useRef<ViewerBridge>({});
+  const { mesh, error, loading } = useStlMesh(src);
+  const isGltf = src ? /\.(gltf|glb)$/i.test(src) : false;
+  const { active: assetsLoading } = useProgress();
+
   if (!src) {
+    const fallback = (
+      <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 py-12 text-sm">
+        {alt ?? 'Aucun modèle 3D disponible'}
+      </div>
+    );
+    if (bare) return fallback;
     return (
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
         </CardHeader>
-        <CardContent className="text-muted-foreground flex flex-col items-center justify-center py-12">
-          {alt ?? 'Aucun modèle 3D disponible'}
-        </CardContent>
+        <CardContent>{fallback}</CardContent>
       </Card>
     );
   }
 
-  const style = height ? { height } : {};
+  const isLoading = isGltf ? assetsLoading : loading;
+
+  const viewport = (
+    <ViewerShell
+      bridgeRef={bridgeRef}
+      height={height}
+      className={bare ? 'rounded-none border-0' : undefined}
+    >
+      {error ? (
+        <ViewerError message={error} />
+      ) : isLoading ? (
+        <ViewerLoading />
+      ) : (
+        <StlViewerCanvas mesh={mesh} src={src} isGltf={isGltf} bridgeRef={bridgeRef} />
+      )}
+    </ViewerShell>
+  );
+
+  if (bare) return viewport;
 
   return (
-    <Card className="w-full" style={style}>
-      <CardHeader>
+    <Card className="w-full overflow-hidden">
+      <CardHeader className="bg-muted/50 border-b">
         <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <StlViewerCanvas src={src} />
-      </CardContent>
+      <CardContent className="p-0">{viewport}</CardContent>
     </Card>
   );
 }

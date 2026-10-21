@@ -1,4 +1,4 @@
-import { PartStatus } from '@/generated/prisma/browser';
+import type { PartStatus } from '@/generated/prisma/browser';
 import { getPartStatusLabel } from '@/lib/enum-labels';
 import { Badge } from '@/components/ui/badge';
 import type { VariantProps } from 'class-variance-authority';

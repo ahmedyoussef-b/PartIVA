@@ -1,70 +1,87 @@
 'use client';
 
-import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from 'lucide-react';
 
-interface KPICardProps {
+export type KpiCardVariant = 'default' | 'warning' | 'success' | 'info';
+export type KpiCardTrend = 'up' | 'down' | 'neutral';
+
+interface KpiCardProps {
   title: string;
   value: string | number;
-  subtitle?: string;
-  icon?: React.ReactNode;
-  trend?: {
-    value: number;
-    label: string;
-  };
-  variant?: 'default' | 'success' | 'warning' | 'critical' | 'info';
+  description?: string;
+  icon?: LucideIcon;
+  trend?: KpiCardTrend;
   className?: string;
+  variant?: KpiCardVariant;
 }
 
-const variantStyles = {
-  default: 'border-border/60',
-  success: 'border-emerald-500/30 bg-emerald-500/5',
-  warning: 'border-amber-500/30 bg-amber-500/5',
-  critical: 'border-rose-500/30 bg-rose-500/5',
-  info: 'border-blue-500/30 bg-blue-500/5',
+/**
+ * Conteneur des styles par variante.
+ * Le type `Record<KpiCardVariant, string>` garantit qu'une nouvelle variante
+ * ajoutée à l'union force son style ici (pas d'indexation implicite).
+ */
+const VARIANT_CLASSES: Record<KpiCardVariant, string> = {
+  default: 'border-border bg-card text-card-foreground',
+  warning:
+    'border-orange-200 bg-orange-50/50 text-orange-900 dark:border-orange-500/30 dark:bg-orange-950/20 dark:text-orange-200',
+  success:
+    'border-emerald-200 bg-emerald-50/50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/20 dark:text-emerald-200',
+  info: 'border-blue-200 bg-blue-50/50 text-blue-900 dark:border-blue-500/30 dark:bg-blue-950/20 dark:text-blue-200',
 };
 
-const valueStyles = {
-  default: 'text-foreground',
-  success: 'text-emerald-600 dark:text-emerald-400',
-  warning: 'text-amber-600 dark:text-amber-400',
-  critical: 'text-rose-600 dark:text-rose-400',
-  info: 'text-blue-600 dark:text-blue-400',
+const TREND_META: Record<KpiCardTrend, { icon: LucideIcon; className: string; label: string }> = {
+  up: {
+    icon: ArrowUpRight,
+    className: 'text-emerald-600 dark:text-emerald-400',
+    label: 'En hausse',
+  },
+  down: { icon: ArrowDownRight, className: 'text-red-600 dark:text-red-400', label: 'En baisse' },
+  neutral: { icon: Minus, className: 'text-muted-foreground', label: 'Stable' },
 };
 
-export function KPICard({
+export function KpiCard({
   title,
   value,
-  subtitle,
-  icon,
+  description,
+  icon: Icon,
   trend,
-  variant = 'default',
   className,
-}: KPICardProps) {
+  variant = 'default',
+}: KpiCardProps) {
+  const trendMeta = trend ? TREND_META[trend] : null;
+  const TrendIcon = trendMeta?.icon ?? null;
+
   return (
-    <Card className={cn('rounded-xl', variantStyles[variant], className)}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-              {title}
-            </p>
-            <p className={cn('font-mono text-2xl font-bold', valueStyles[variant])}>{value}</p>
-            {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
-            {trend && (
-              <p
-                className={cn(
-                  'text-xs font-medium',
-                  trend.value >= 0 ? 'text-emerald-600' : 'text-rose-600',
-                )}
+    <Card
+      className={cn(
+        'shadow-sm transition-shadow hover:shadow-md',
+        VARIANT_CLASSES[variant],
+        className,
+      )}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-muted-foreground text-xs font-semibold tracking-tight uppercase">
+            {title}
+          </p>
+          {Icon ? <Icon className="text-muted-foreground h-4 w-4 shrink-0" /> : null}
+        </div>
+        <div className="mt-3 flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="text-3xl font-bold tracking-tight tabular-nums">{value}</span>
+            {trendMeta && TrendIcon ? (
+              <span
+                className={cn('inline-flex items-center', trendMeta.className)}
+                title={trendMeta.label}
+                aria-label={trendMeta.label}
               >
-                {trend.value >= 0 ? '+' : ''}
-                {trend.value}% {trend.label}
-              </p>
-            )}
+                <TrendIcon className="h-4 w-4" />
+              </span>
+            ) : null}
           </div>
-          {icon && <div className="bg-muted/50 text-muted-foreground rounded-lg p-2">{icon}</div>}
+          {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
         </div>
       </CardContent>
     </Card>

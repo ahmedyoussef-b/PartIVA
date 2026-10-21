@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { KPICard } from '@/components/shared/kpi-card';
+import { KpiCard } from '@/components/shared/kpi-card';
 import { FilterBar } from '@/components/shared/filter-bar';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
@@ -90,10 +90,10 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KPICard title="Total références" value={stats.total} />
-        <KPICard title="Validées" value={stats.validated} variant="success" />
-        <KPICard title="Brouillons" value={stats.draft} variant="warning" />
-        <KPICard title="Avec CAO" value={stats.withCad} variant="info" />
+        <KpiCard title="Total références" value={stats.total} />
+        <KpiCard title="Validées" value={stats.validated} variant="success" />
+        <KpiCard title="Brouillons" value={stats.draft} variant="warning" />
+        <KpiCard title="Avec CAO" value={stats.withCad} variant="info" />
       </div>
 
       {/* Filters */}
