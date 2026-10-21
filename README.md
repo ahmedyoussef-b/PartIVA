@@ -83,37 +83,40 @@ Voir [docs/architecture.md](docs/architecture.md).
 
 | Phase | Objet | Statut |
 |---|---|---|
-| E1 | Fondations | ✅ |
-| E2 | Recherche (6 modes) | ✅ |
-| E3 | Sources externes | ✅ |
-| E4 | Consolidation | ✅ |
-| E5 | TecDoc mock | ✅ |
-| E6 | Déblocage, catalogue, auto-parts | ✅ |
-| E7 | Déblocage 5 Moyennes | 🟠 Bloquée (credentials) |
-| E8 | Stabilisation, production | ✅ |
-| E9 | Desktop Tauri (export) | ✅ |
-| E10 | Purge dettes E9 | ✅ |
-| E11 | Validation Vercel | ✅ |
-| E12 | Recherche avancée | ✅ |
-| E13 | Hygiène | ✅ |
-| E14 | Enrichissement 3D | ✅ |
-| E15 | Connecteur 3DCarParts | ✅ |
+| E1 → E9 | Fondations, recherche, desktop | ✅ |
+| E10 → E16 | Purge dettes, validation, 3D | ✅ |
+| E17 → E21 | Clôture dettes, auth Vercel | ✅ |
+| E22 → E24 | Refonte UI, CRUD pièces, robustesse Prisma | ✅ |
+| E25 | Correctif timeout sources externes | ✅ |
+| E26 | Réforme de la procédure de coopération | 🟡 En cours |
 
-**Dettes actives :** 2 (`D-E14-STEP-VIEWER` Moyenne, `D-E14-PRINT-ON-DEMAND` Faible).
+**Baseline :** ESLint 0/0 · TypeScript 0 · Prettier 0 · Build 61/61 pages (prerender `/admin/machines` bloqué par `D-E23-PRISMA-POOLER-TIMEOUT`) · E2E 4/4 setups.
 
-**Baseline :** ESLint 0/0 · TS 0 · Prettier 0 · Build 22 routes (export) · E2E 284/0/4 · Prisma 15 migrations · 16 pages admin.
+**Dettes actives :** 6 (voir `docs/etat/DETTES.md`).
+
+**Structure documentaire :** `docs/gouvernance/`, `docs/etat/`, `docs/modeles/`, `docs/sessions/`.
 
 ---
 
-## 6. Documentation
+## 6. Index documentaire
 
-- [docs/architecture.md](docs/architecture.md) — Architecture
-- [docs/positioning.md](docs/positioning.md) — Positionnement
-- [docs/deployment.md](docs/deployment.md) — Déploiement
-- [docs/e2e-constraints.md](docs/e2e-constraints.md) — Contraintes E2E
-- [docs/migration-drift.md](docs/migration-drift.md) — Drift migration
-- [docs/e6-close-report.md](docs/e6-close-report.md) — Clôture phase E6
-- [docs/e8-s02-audit.md](docs/e8-s02-audit.md) — Audit E8-S02
+| Document | Rôle |
+|---|---|
+| `PROMPT_DE_REPRISE.md` | Point d'entrée pour une nouvelle conversation |
+| `AGENTS.md` | Instructions pour les agents de développement |
+| `docs/gouvernance/CHARTE.md` | Principes de gouvernance |
+| `docs/etat/ETAT_COURANT.md` | État actuel du projet |
+| `docs/etat/DETTES.md` | Dettes actives |
+| `docs/etat/DECISIONS.md` | Décisions validées |
+| `docs/sessions/INDEX.md` | Index des sessions |
+| `docs/modeles/MODELE_TACHE.md` | Modèle de tâche |
+| `docs/sessions/rapports/SESSION-AAAA-MM-JJ-E<num>.md` | Rapports de session |
+| `docs/archive/` | Archives (lecture seule) |
+| `docs/architecture.md` | Architecture technique |
+| `docs/deployment.md` | Déploiement |
+| `docs/3d-format-support.md` | Support des formats 3D |
+| `docs/e2e-constraints.md` | Contraintes E2E (Playwright) |
+| `docs/migration-drift.md` | Procédure de gestion du drift Prisma |
 
 ---
 

@@ -168,7 +168,7 @@ BACKFILL_RESULT: { "total": 5, "processed": 5, "succeeded": 5, "failed": 0, "ski
 ## 8. Références
 
 - [docs/env-vars.md](env-vars.md) — Variables d'environnement
-- [DEBT.md](../DEBT.md) — Dettes
+- [docs/archive/DEBT.md](archive/DEBT.md) — Dettes
 - Space Lightweight : https://huggingface.co/spaces/lamhieu/lightweight-embeddings
 
 ---

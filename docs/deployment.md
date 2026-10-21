@@ -202,8 +202,8 @@ Procédure manuelle :
 
 **Conséquence :** l'app fonctionne en mode dégradé (mocks) sans ces credentials.
 
-**Credentials requis (E7) :** [docs/e7-credentials.md](e7-credentials.md) (E8-S06).
-**État de préparation E7 :** [docs/e7-readiness.md](e7-readiness.md) (E8-S06).
+**Credentials requis (E7) :** [docs/archive/e7-credentials.md](archive/e7-credentials.md) (E8-S06).
+**État de préparation E7 :** [docs/archive/e7-readiness.md](archive/e7-readiness.md) (E8-S06).
 
 ---
 
