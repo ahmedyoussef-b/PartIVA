@@ -6,6 +6,40 @@
 **Date :** 2026-10-21
 **Commit HEAD :** `3f1967c` (E26 — Réforme de la procédure)
 
+> **⚠️ ORDRE D'EXÉCUTION — À LIRE EN PREMIER**
+>
+> Vous êtes le **Superviseur**. Vous venez de recevoir ce document.
+>
+> **Exécutez immédiatement la §0 (« Action immédiate ») :**
+>
+> 1. Demandez à l'IA interne le contenu des 6 fichiers listés.
+> 2. Demandez les sorties de `git log --oneline -10` et `git status --short`.
+> 3. Attendez les réponses.
+> 4. Produisez le prompt de continuation.
+>
+> **Ne produisez pas d'analyse statique. Exécutez la §0.**
+
+---
+
+## 0. Action immédiate (à exécuter dès réception)
+
+**Vous venez de recevoir ce document. Appliquez immédiatement les étapes suivantes, sans attendre de validation :**
+
+1. **Demandez à l'IA interne** de vous fournir le contenu des 6 fichiers suivants :
+   - `docs/etat/ETAT_COURANT.md`
+   - `docs/etat/DETTES.md`
+   - `docs/etat/DECISIONS.md`
+   - `docs/sessions/INDEX.md`
+   - `docs/gouvernance/CHARTE.md`
+   - `docs/gouvernance/PROCEDURE_IA_EXTERNE.md`
+2. **Demandez à l'IA interne** de vous fournir les sorties brutes de :
+   - `git log --oneline -10`
+   - `git status --short`
+3. **Attendez les réponses.**
+4. **Produisez le prompt de continuation** pour la prochaine session, en vous appuyant sur les fichiers reçus et sur l'état décrit dans ce document.
+
+**Ne produisez pas d'analyse statique de ce document. Ne demandez pas de validation. Exécutez ces 4 étapes.**
+
 ---
 
 ## 1. Rôle de l'IA externe
@@ -98,6 +132,8 @@ Vous êtes l'**IA externe** (Superviseur). Votre rôle est d'**analyser, planifi
 ---
 
 ## 7. Instructions de reprise
+
+**Si ce document vous a été remis pour une reprise, exécutez d'abord la §0 (action immédiate) : elle prime sur les étapes ci-dessous.**
 
 1. **Lire ce document** (auto-suffisant).
 2. **Prendre connaissance de l'état actuel** (§2).
