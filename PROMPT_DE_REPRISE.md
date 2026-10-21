@@ -12,8 +12,8 @@
 >
 > **Exécutez immédiatement la §0 (« Action immédiate ») :**
 >
-> 1. Demandez à l'IA interne le contenu des 6 fichiers listés.
-> 2. Demandez les sorties de `git log --oneline -10` et `git status --short`.
+> 1. Demandez au coordinateur le contenu des 6 fichiers listés.
+> 2. Demandez au coordinateur les sorties de `git log --oneline -10` et `git status --short`.
 > 3. Attendez les réponses.
 > 4. Produisez le prompt de continuation.
 >
@@ -25,14 +25,14 @@
 
 **Vous venez de recevoir ce document. Appliquez immédiatement les étapes suivantes, sans attendre de validation :**
 
-1. **Demandez à l'IA interne** de vous fournir le contenu des 6 fichiers suivants :
+1. **Demandez au coordinateur** de vous fournir le contenu des 6 fichiers suivants :
    - `docs/etat/ETAT_COURANT.md`
    - `docs/etat/DETTES.md`
    - `docs/etat/DECISIONS.md`
    - `docs/sessions/INDEX.md`
    - `docs/gouvernance/CHARTE.md`
    - `docs/gouvernance/PROCEDURE_IA_EXTERNE.md`
-2. **Demandez à l'IA interne** de vous fournir les sorties brutes de :
+2. **Demandez au coordinateur** de vous fournir les sorties brutes de :
    - `git log --oneline -10`
    - `git status --short`
 3. **Attendez les réponses.**
