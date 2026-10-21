@@ -11,7 +11,7 @@
 
 Aucune.
 
-### Moyenne (2)
+### Moyenne (3)
 
 #### `D-E16-DASHBOARD-FETCH` — Fetch dashboard non optimisé
 
@@ -24,16 +24,27 @@ Aucune.
 - **Bloquant :** Non.
 - **Prochaine session :** Post-E16.
 
-#### `D-E22-NEW-PART-ROUTE` — Route de création de pièce manquante
+#### `D-E23-PRISMA-POOLER-TIMEOUT` — Prisma adapter-pg timeout sur pooler Neon
 
 - **Statut :** Active
 - **Priorité :** Moyenne
-- **Session origine :** E22-R1
-- **Cause :** Le bouton « Nouvelle pièce » redirige vers `/admin/pieces` car `/admin/pieces/nouveau` n'existe pas — aucun parcours de création de pièce n'est atteignable depuis l'UI admin.
-- **Périmètre :** `src/app/admin/pieces/nouveau/page.tsx` (à créer), `src/app/admin/dashboard/dashboard-client.tsx` (CTA), `src/app/admin/pieces/pieces-client.tsx` (CTA inerte).
-- **Effort estimé :** Moyen (1-2 sessions).
-- **Bloquant :** Non.
-- **Prochaine session :** Feature « CRUD Pièces ».
+- **Session origine :** E23-R1
+- **Cause :** `adapter-pg` de Prisma 7 décroche (`Connection terminated due to connection timeout`) sur le endpoint *pooler* Neon avec `channel_binding=require` — la connexion TCP aboutit mais la requête est terminée côté Neon. Le raw `pg` sur la même URL répond en ~640 ms, ce qui pointe l'adaptateur et non l'infrastructure Neon. Symptômes : prerender `/admin/machines` en échec (`npm run build`) et 500 sur `/api/auth/sign-in/email`.
+- **Périmètre :** `src/lib/prisma.ts` (config `PrismaPg`), `prisma/schema.prisma` (datasource), CI/CD.
+- **Effort estimé :** Moyen (1 session).
+- **Bloquant :** Non (bloque la validation du build complet et l'exécution E2E).
+- **Prochaine session :** E24-R0 (investigation infrastructure).
+
+#### `D-E23-E2E-CREDENTIALS` — Mots de passe E2E USER/VIEWER invalides
+
+- **Statut :** Active
+- **Priorité :** Moyenne
+- **Session origine :** E23-R1
+- **Cause :** `e2e/fixtures/users.ts` retombe sur `ADMIN_EMAIL` pour les rôles USER et VIEWER quand `E2E_USER_EMAIL` / `E2E_VIEWER_EMAIL` ne sont pas définis — les 3 storage states pointent alors sur le compte admin. Les comptes de seed `user@partiva.dev` et `viewer@partiva.dev` existent en base mais avec un mot de passe différent de `ADMIN_PASSWORD` (vérifié : 401). Conséquence : les tests E2E qui attendent un 403 « USER » / « VIEWER » échoueront.
+- **Périmètre :** `e2e/fixtures/users.ts`, `prisma/seed.ts`, `.env` (variables `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` / `E2E_VIEWER_EMAIL` / `E2E_VIEWER_PASSWORD`).
+- **Effort estimé :** Faible (1 session).
+- **Bloquant :** Non (bloque les projets E2E `user` et `viewer`).
+- **Prochaine session :** E24-R0 (infrastructure E2E).
 
 ### Faible (2)
 
@@ -182,6 +193,10 @@ Aucune.
 - **Résolution :** Base de données Neon accessible (`prisma migrate status` up-to-date, 18 migrations), seed terminé (4 users, 13 parts, etc.), setup E2E auth réussi (3 rôles : ADMIN, USER, VIEWER), production Vercel fonctionnelle (dashboard admin chargé, login OK).
 - **Périmètre :** `e2e/admin/cad-viewer.spec.ts` (2 tests IGES) désormais exécutables.
 - **Commit :** E21-R1
+
+### E23 (1)
+
+- **`D-E22-NEW-PART-ROUTE`** (route de création de pièce) — ✅ Clôturée E23-R1 (page `/admin/pieces/nouveau` + formulaire `pieces-form.tsx`, POST `/api/parts` sécurisé par `requireAdmin()` avec mapping `category: { connect }` et contrat d'erreur `{ message }` (400 Zod / 409 doublon / 401 / 403), CTA branchés sur `/admin/pieces` et le dashboard, 17/17 tests manuels Playwright)
 
 ## Notes
 

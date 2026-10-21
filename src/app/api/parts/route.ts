@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import { getParts, createPartWithPtvReference } from '@/lib/data/parts';
 import { NewPartSchema, type NewPart } from '@/schemas/part';
-import type { Part } from '@/generated/prisma/client';
+import { Prisma } from '@/generated/prisma/client';
+import { z } from 'zod';
 
 export async function GET() {
   const session = await auth.api.getSession({
@@ -20,23 +22,56 @@ export async function GET() {
   return NextResponse.json(parts);
 }
 
-export async function POST(req: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+function isUniqueConstraintError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === 'P2002';
+  }
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'P2002'
+  );
+}
 
-  if (!session?.user) {
-    return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
+export async function POST(req: Request) {
+  // Sécurité : la création de pièces est réservée à l'atelier (ADMIN).
+  // `requireAdmin` lève 'Unauthorized' / 'Forbidden' (cf. src/lib/auth-admin.ts).
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
   }
 
   try {
     const body = await req.json();
     const validated = NewPartSchema.parse(body) as NewPart;
 
+    // `partNumber` est @unique : on teste l'existence avant l'insert pour
+    // renvoyer une 409 explicite (sinon createPartWithPtvReference réessaie
+    // 4 fois la génération du ptvReference avant de propager le P2002).
+    const existing = await prisma.part.findUnique({
+      where: { partNumber: validated.partNumber },
+      select: { id: true },
+    });
+    if (existing) {
+      return NextResponse.json({ message: 'Ce numéro de pièce existe déjà.' }, { status: 409 });
+    }
+
+    // `categoryId` n'existe pas dans `Prisma.PartCreateInput` : la relation
+    // s'exprime via `category: { connect: { id } }`. Sans ce mapping, Prisma
+    // lève « Unknown arg `categoryId` » et la création échoue.
+    const { categoryId, ...rest } = validated;
+
     const newPart = await createPartWithPtvReference({
-      ...validated,
-      status: validated.status ? (validated.status.toUpperCase() as Part['status']) : 'DRAFT',
-      client: session.user.id ? { connect: { id: session.user.id } } : undefined,
+      ...rest,
+      // Le formulaire de création n'expose pas le statut : DRAFT par défaut.
+      // L'enum legacy 'draft' | 'validated' | 'deprecated' de NewPartSchema
+      // n'existe pas dans l'enum Prisma PartStatus (cf. D-E12-STATUS-ENUM).
+      status: 'DRAFT',
+      category: categoryId ? { connect: { id: categoryId } } : undefined,
     });
 
     const partWithRelations = await prisma.part.findUnique({
@@ -60,8 +95,20 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(partWithRelations, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating part:', error);
-    return NextResponse.json({ message: 'Erreur création pièce' }, { status: 400 });
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { message: 'Données invalides', issues: error.issues },
+        { status: 400 },
+      );
+    }
+
+    if (isUniqueConstraintError(error)) {
+      return NextResponse.json({ message: 'Ce numéro de pièce existe déjà.' }, { status: 409 });
+    }
+
+    return NextResponse.json({ message: 'Erreur lors de la création' }, { status: 400 });
   }
 }

@@ -18,7 +18,8 @@ import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
 import { PartDossier } from '@/components/part-dossier';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, FileDown } from 'lucide-react';
+import { Eye, FileDown, Package } from 'lucide-react';
+import Link from 'next/link';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import type { UserRole } from '@/generated/prisma/browser';
 
@@ -85,7 +86,12 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
             Pièces usinées, indexées et disponibles pour réutilisation.
           </p>
         </div>
-        <Button className="gap-2 text-xs font-semibold">Nouvelle pièce</Button>
+        <Button asChild size="sm" className="gap-2 text-xs font-semibold">
+          <Link href="/admin/pieces/nouveau">
+            <Package className="h-3.5 w-3.5" />
+            Nouvelle pièce
+          </Link>
+        </Button>
       </div>
 
       {/* Stats */}

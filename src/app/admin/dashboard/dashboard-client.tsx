@@ -60,9 +60,9 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             </Link>
           </Button>
           <Button asChild size="sm" className="gap-2">
-            <Link href="/admin/pieces">
+            <Link href="/admin/pieces/nouveau">
               <Package className="h-4 w-4" />
-              Catalogue pièces
+              Nouvelle pièce
             </Link>
           </Button>
         </div>
