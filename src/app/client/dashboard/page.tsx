@@ -17,6 +17,8 @@ const URGENCY_LABELS: Record<string, string> = {
   URGENT: FR.urgencies.critical,
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function ClientDashboardPage() {
   const user = await getCurrentUser();
   if (!user) {

@@ -1,5 +1,4 @@
 name: CI
-
 on:
   push:
     branches: [master]
@@ -22,6 +21,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
+      - run: npm run format:check
 
   typecheck:
     name: TypeScript
@@ -39,8 +39,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      DATABASE_URL: 'postgresql://placeholder:placeholder@localhost:5432/placeholder'
+      DIRECT_URL: 'postgresql://placeholder:placeholder@localhost:5432/placeholder'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,25 +69,33 @@ jobs:
       - run: npm run build
       - run: npx prisma db seed
         env:
-      - run: npx prisma db seed
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
-          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
-          E2E_VIEWER_PASSWORD: ${{ secrets.E2E_VIEWER_PASSWORD }}
-          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
-
-      - run: npm run test:e2e
-        env:
-          BETTER_AUTH_URL: http://localhost:3000
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
           E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
           E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
           E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
           E2E_VIEWER_EMAIL: ${{ secrets.E2E_VIEWER_EMAIL }}
           E2E_VIEWER_PASSWORD: ${{ secrets.E2E_VIEWER_PASSWORD }}
+          E2E_CLIENT2_EMAIL: ${{ secrets.E2E_CLIENT2_EMAIL }}
+          E2E_CLIENT2_PASSWORD: ${{ secrets.E2E_CLIENT2_PASSWORD }}
+      - run: npm run test:e2e
+        env:
+          BETTER_AUTH_URL: http://localhost:3000
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          # E27 — lève la limite Better Auth (3 sign-in / 10 s) pendant le run E2E.
+          # La suite émet ~104 sign-ins : sans cela, tous les appels au-delà du 3e
+          # renvoient 429 et masquent la cause réelle des échecs.
+          E2E_DISABLE_RATE_LIMIT: 'true'
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+          E2E_VIEWER_EMAIL: ${{ secrets.E2E_VIEWER_EMAIL }}
+          E2E_VIEWER_PASSWORD: ${{ secrets.E2E_VIEWER_PASSWORD }}
+          E2E_CLIENT2_EMAIL: ${{ secrets.E2E_CLIENT2_EMAIL }}
+          E2E_CLIENT2_PASSWORD: ${{ secrets.E2E_CLIENT2_PASSWORD }}

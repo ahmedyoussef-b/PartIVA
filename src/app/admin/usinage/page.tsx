@@ -3,6 +3,8 @@ import { getMachines as getMachinesData } from '@/lib/data/machines';
 import { mapRequestToUi } from '@/lib/utils/request-mappers';
 import AdminUsinageClient from './usinage-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminUsinagePage() {
   const [requests, machines] = await Promise.all([getRequests(), getMachinesData()]);
 

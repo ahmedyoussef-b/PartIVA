@@ -3,6 +3,8 @@ import { getRequests } from '@/lib/data/requests';
 import DemandesClient from './demandes-client';
 import { redirect } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ClientDemandesPage() {
   const user = await getCurrentUser();
   if (!user) {

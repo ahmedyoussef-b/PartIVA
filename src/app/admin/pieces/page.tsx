@@ -4,6 +4,8 @@ import { getParts } from '@/lib/data/parts';
 import PiecesClient from './pieces-client';
 import type { UserRole } from '@/generated/prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPiecesPage() {
   const parts = await getParts();
 

@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import PiecesPretesClient from './pieces-pretes-client';
 import type { UserRole } from '@/generated/prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function PiecesPretesPage() {
   const user = await getCurrentUser();
   if (!user) {

@@ -47,8 +47,9 @@ async function main() {
   await prisma.searchCandidate.deleteMany();
 
   // ── Users ───────────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  // E24-R2 — CI fournit E2E_ADMIN_EMAIL/PASSWORD ; fallback sur ADMIN_* pour la prod réelle.
+  const adminEmail = process.env.E2E_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
   const adminName = process.env.ADMIN_NAME ?? 'Admin PartIVA';
 
   let admin: Awaited<ReturnType<typeof prisma.user.upsert>>;
@@ -84,29 +85,38 @@ async function main() {
 
     // En production : création des 3 utilisateurs E2E dédiés (E12-R1e)
     console.log('👥 Creating E2E users (user/viewer/client2)...');
+
+    // E2E emails — même résolution que e2e/fixtures/users.ts (évite les 401).
+    // Déclarés AVANT leur première utilisation (E27) : `const` est sujet à la
+    // temporal dead zone, une déclaration plus bas provoquerait un
+    // ReferenceError à l'exécution (« used before its declaration »).
+    const e2eUserEmail = process.env.E2E_USER_EMAIL ?? 'user@partiva.dev';
+    const e2eViewerEmail = process.env.E2E_VIEWER_EMAIL ?? 'viewer@partiva.dev';
+    const e2eClient2Email = process.env.E2E_CLIENT2_EMAIL ?? 'client2@partiva.dev';
+
     const e2eUser = await prisma.user.upsert({
-      where: { email: 'user@partiva.dev' },
+      where: { email: e2eUserEmail },
       update: { name: 'E2E User', role: 'USER' },
       create: {
-        email: 'user@partiva.dev',
+        email: e2eUserEmail,
         name: 'E2E User',
         role: 'USER',
       },
     });
     const e2eViewer = await prisma.user.upsert({
-      where: { email: 'viewer@partiva.dev' },
+      where: { email: e2eViewerEmail },
       update: { name: 'E2E Viewer', role: 'VIEWER' },
       create: {
-        email: 'viewer@partiva.dev',
+        email: e2eViewerEmail,
         name: 'E2E Viewer',
         role: 'VIEWER',
       },
     });
     const e2eClient2 = await prisma.user.upsert({
-      where: { email: 'client2@partiva.dev' },
+      where: { email: e2eClient2Email },
       update: { name: 'E2E Client 2', role: 'USER' },
       create: {
-        email: 'client2@partiva.dev',
+        email: e2eClient2Email,
         name: 'E2E Client 2',
         role: 'USER',
       },
@@ -127,7 +137,6 @@ async function main() {
         password: e2ePasswordHash,
       },
     });
-    // E2E password for USER/VIEWER (overrides ADMIN_PASSWORD if set)
     const e2eUserPassword = process.env.E2E_USER_PASSWORD ?? adminPassword;
     const e2eViewerPassword = process.env.E2E_VIEWER_PASSWORD ?? adminPassword;
     const e2eClient2Password = process.env.E2E_CLIENT2_PASSWORD ?? adminPassword;
@@ -164,34 +173,9 @@ async function main() {
         password: e2ePasswordHashClient2,
       },
     });
-    console.log(`✅ E2E users créés : user@partiva.dev (password: ${e2eUserPassword}), viewer@partiva.dev (password: ${e2eViewerPassword}), client2@partiva.dev (password: ${e2eClient2Password})`);
-    const e2eUserPassword = process.env.E2E_USER_PASSWORD ?? adminPassword;
-    const e2eViewerPassword = process.env.E2E_VIEWER_PASSWORD ?? adminPassword;
-    const e2eClient2Password = process.env.E2E_CLIENT2_PASSWORD ?? adminPassword;
-    const e2ePasswordHashUser = await hashPassword(e2eUserPassword);
-    const e2ePasswordHashViewer = await hashPassword(e2eViewerPassword);
-    const e2ePasswordHashClient2 = await hashPassword(e2eClient2Password);
-    await prisma.account.upsert({
-      where: { providerId_accountId: { providerId: 'credential', accountId: e2eViewer.id } },
-      update: { password: e2ePasswordHash },
-      create: {
-        userId: e2eViewer.id,
-        accountId: e2eViewer.id,
-        providerId: 'credential',
-        password: e2ePasswordHash,
-      },
-    });
-    await prisma.account.upsert({
-      where: { providerId_accountId: { providerId: 'credential', accountId: e2eClient2.id } },
-      update: { password: e2ePasswordHash },
-      create: {
-        userId: e2eClient2.id,
-        accountId: e2eClient2.id,
-        providerId: 'credential',
-        password: e2ePasswordHash,
-      },
-    });
-    console.log(`✅ E2E users créés : user@partiva.dev, viewer@partiva.dev, client2@partiva.dev`);
+    console.log(
+      `✅ E2E users créés : ${e2eUserEmail} (password: ${e2eUserPassword}), ${e2eViewerEmail} (password: ${e2eViewerPassword}), ${e2eClient2Email} (password: ${e2eClient2Password})`,
+    );
 
     user = e2eUser;
     viewer = e2eViewer;
