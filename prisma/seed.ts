@@ -127,6 +127,50 @@ async function main() {
         password: e2ePasswordHash,
       },
     });
+    // E2E password for USER/VIEWER (overrides ADMIN_PASSWORD if set)
+    const e2eUserPassword = process.env.E2E_USER_PASSWORD ?? adminPassword;
+    const e2eViewerPassword = process.env.E2E_VIEWER_PASSWORD ?? adminPassword;
+    const e2eClient2Password = process.env.E2E_CLIENT2_PASSWORD ?? adminPassword;
+    const e2ePasswordHashUser = await hashPassword(e2eUserPassword);
+    const e2ePasswordHashViewer = await hashPassword(e2eViewerPassword);
+    const e2ePasswordHashClient2 = await hashPassword(e2eClient2Password);
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: e2eUser.id } },
+      update: { password: e2ePasswordHashUser },
+      create: {
+        userId: e2eUser.id,
+        accountId: e2eUser.id,
+        providerId: 'credential',
+        password: e2ePasswordHashUser,
+      },
+    });
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: e2eViewer.id } },
+      update: { password: e2ePasswordHashViewer },
+      create: {
+        userId: e2eViewer.id,
+        accountId: e2eViewer.id,
+        providerId: 'credential',
+        password: e2ePasswordHashViewer,
+      },
+    });
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: 'credential', accountId: e2eClient2.id } },
+      update: { password: e2ePasswordHashClient2 },
+      create: {
+        userId: e2eClient2.id,
+        accountId: e2eClient2.id,
+        providerId: 'credential',
+        password: e2ePasswordHashClient2,
+      },
+    });
+    console.log(`✅ E2E users créés : user@partiva.dev (password: ${e2eUserPassword}), viewer@partiva.dev (password: ${e2eViewerPassword}), client2@partiva.dev (password: ${e2eClient2Password})`);
+    const e2eUserPassword = process.env.E2E_USER_PASSWORD ?? adminPassword;
+    const e2eViewerPassword = process.env.E2E_VIEWER_PASSWORD ?? adminPassword;
+    const e2eClient2Password = process.env.E2E_CLIENT2_PASSWORD ?? adminPassword;
+    const e2ePasswordHashUser = await hashPassword(e2eUserPassword);
+    const e2ePasswordHashViewer = await hashPassword(e2eViewerPassword);
+    const e2ePasswordHashClient2 = await hashPassword(e2eClient2Password);
     await prisma.account.upsert({
       where: { providerId_accountId: { providerId: 'credential', accountId: e2eViewer.id } },
       update: { password: e2ePasswordHash },
