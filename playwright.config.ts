@@ -41,6 +41,10 @@ export default defineConfig({
       testDir: './e2e/public',
       use: { ...devices['Desktop Chrome'] },
       retries: 1,
+      // E27 — cookie-guard.spec.ts lit .auth/admin.json sur disque (loadAdminStorageState).
+      // Sans cette dépendance, le projet « public » s'exécutait AVANT le projet
+      // « setup » (qui produit ce fichier) → ENOENT sur .auth/admin.json.
+      dependencies: ['setup'],
     },
     {
       name: 'admin',
