@@ -1,6 +1,6 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-10-21
+**Dernière mise à jour :** 2026-10-22
 **Source :** Scission de `DEBT.md` (E3-S2)
 **Statut :** Dettes non résolues uniquement
 
@@ -25,6 +25,20 @@
 - **Bloquant :** Non (2 tests rouges sur 52 dans le projet `admin`).
 - **Condition de résolution :** les 2 tests `source=all` passent en CI.
 - **Prochaine session :** Bloquée par `D-E26-CI-BRANCH-MISMATCH` (les tests `source=all` ne peuvent être exécutés en CI).
+
+### `D-E27-E2E-RESIDUAL` - 5 echecs E2E pre-existants (hors authentification)
+
+- **Statut :** Active
+- **Cause :** 5 tests echouent independamment de l'authentification E2E (resolue en E27). Identiques au run de reference, sans regression :
+  1. `e2e/api.spec.ts:180` (#24) - liste de tables du manifest desktop codee en dur (derive du manifest).
+  2. `e2e/part-attachments.spec.ts:58` et `:100` (#59, #61) - configuration Cloudinary absente en local/CI.
+  3. `e2e/part-versions.spec.ts:53` (#97) - hypothese de donnees non verifiee.
+  4. 1 artefact Windows - `execFile` sous Windows (environnement d'execution).
+- **Perimetre :** `e2e/api.spec.ts`, `e2e/part-attachments.spec.ts`, `e2e/part-versions.spec.ts`, environnement Windows.
+- **Effort estime :** Moyen (1 a 2 sessions).
+- **Bloquant :** Non pour la cloture de `D-E26-CI-BRANCH-MISMATCH` (auth resolue, 336/341 passes), mais empeche un run E2E entierement vert.
+- **Condition de resolution :** les 5 tests passent en CI sur `master`.
+- **Prochaine session :** E27 (session dediee, distincte de la cloture E27 auth).
 
 ## Faible (3)
 
