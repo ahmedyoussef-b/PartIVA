@@ -10,6 +10,16 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  // E27 — Better Auth limite par défaut /sign-in/* à 3 requêtes / 10 s
+  // (node_modules/better-auth/dist/api/rate-limiter/index.mjs, getDefaultSpecialRules).
+  // La suite Playwright émet ~104 sign-ins par run (authRequest + sign-in directs) :
+  // sans levée explicite, tout appel au-delà du 3e renvoie 429 et masque la cause
+  // réelle des échecs. Levée strictement via E2E_DISABLE_RATE_LIMIT=true (job CI « e2e »
+  // uniquement) — la production conserve la limite par défaut.
+  rateLimit:
+    process.env.E2E_DISABLE_RATE_LIMIT === 'true'
+      ? { customRules: { '/sign-in/email': false } }
+      : {},
   baseURL: process.env.BETTER_AUTH_URL,
 
   // E9-R2-septies — autoriser localhost et 127.0.0.1 (ports dynamiques sidecar Tauri)
