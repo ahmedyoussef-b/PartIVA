@@ -13,14 +13,21 @@ Fiabiliser la CI E2E : le job `e2e` échouait depuis 2 jours sur `POST /api/auth
 d'environnement entre l'étape `prisma db seed` et l'étape `playwright test` (le seed basculait sur sa branche
 mock et ne créait pas les comptes `E2E_*`), aggravée par la limite de taux Better Auth (3 sign-in / 10 s
 pour ~104 sign-ins par run), par deux régressions de compilation dans l'arbre de travail (TDZ + redéclarations
-dans `prisma/seed.ts`, YAML dupliqué dans `ci.yml`) et par une régression de formatage Prettier qui faisait
-échouer le job `lint` de la CI avant le job `e2e`.
+dans `prisma/seed.ts`, YAML dupliqué dans `ci.yml`), par une régression de formatage Prettier qui faisait
+échouer le job `lint` de la CI avant le job `e2e`, et par 2 bloqueurs de CI découverts en observant les logs
+des runs (job `build` : 4 routes `[id]` pré-rendues interrogeaient la base ; projet `public` : dépendance non
+déclarée à `.auth/admin.json`).
 
 Rapport complet : `docs/sessions/rapports/SESSION-2026-10-22-E27-DIAGNOSTIC-E2E.md`.
 
-Validation locale après correction : `tsc --noEmit` exit 0, `npm run lint` exit 0, `npm run format:check` exit 0,
-`npm run build` OK, `npm run db:seed` OK, **336 tests passés / 5 échecs (pré-existants, sans rapport avec l'auth)**
-contre 159 passés / 17 échecs / 81 non exécutés auparavant. **Aucun commit effectué à ce stade.**
+**Validation CI (run `39777704765`, commit `5a2ac01`) :**
+`ESLint + Prettier` ✅ · `TypeScript` ✅ · `Build` ✅ · `E2E (Playwright)` ❌ **337 passés / 4 échecs / 4 skipped**.
+Les 2 lignes de vigilance sont **absentes** : ni branche mock du seed, ni `429` sur `sign-in`.
+Les 4 échecs restants sont **pré-existants et sans rapport avec l'authentification** (tests 24, 59, 61, 97).
+Progression : 159 passés / 17 échecs / 81 non exécutés (run `59fdba2`) → **337 passés / 4 échecs**.
+
+**Le job E2E reste non vert** à cause des 4 échecs pré-existants : `E2E (Playwright)` ne doit donc pas être
+ajouté aux checks requis tant qu'ils ne sont pas corrigés.
 
 ## 2. Architecture et choix applicables
 
@@ -32,7 +39,8 @@ contre 159 passés / 17 échecs / 81 non exécutés auparavant. **Aucun commit e
 
 ## 3. Travaux en cours
 
-- **E27** (CI, ⏳) : Corrections du bug E2E **appliquées et validées localement**, non commitées — en attente du commit atomique (§7.8 du rapport E27).
+- **E27** (CI, ✅ correctif validé en CI) : correctifs poussés (`a75ecd9`, `a8a1d59`, `c980e2d`, `7159dfe`, `3d7664d`, `5a2ac01`). Jobs `lint` / `typecheck` / `build` verts ; job `e2e` à 337/345.
+- **E27-bis** (CI, ⏳) : Activer `required_status_checks` sur `master` — **uniquement** sur `ESLint + Prettier`, `TypeScript`, `Build`. **Ne pas** ajouter `E2E (Playwright)` tant que les 4 échecs pré-existants ne sont pas corrigés.
 
 ## 4. Blocages
 
@@ -57,8 +65,9 @@ contre 159 passés / 17 échecs / 81 non exécutés auparavant. **Aucun commit e
 
 ## 6. Prochaine étape autorisée ou proposée
 
-- **ID Tâche :** `E27` — commit atomique des 3 correctifs (§7.8 du rapport E27), puis relance du job `e2e`.
-- **Point de vigilance :** le log du nouveau run CI ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock` — sa présence signalerait que les secrets GitHub ne sont pas alignés sur `e2e/fixtures/users.ts`.
+- **ID Tâche :** `E27-bis` — activer `required_status_checks` sur `master` (3 checks de base), puis traiter `D-E27-E2E-RESIDUAL` (4 échecs pré-existants) avant d'envisager d'exiger le job `E2E (Playwright)`.
+- **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock` — sa présence signalerait que les secrets GitHub ne sont pas alignés sur `e2e/fixtures/users.ts`.
+- **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
 
 ## 7. Notes
 
