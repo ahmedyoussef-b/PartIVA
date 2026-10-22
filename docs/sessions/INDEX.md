@@ -21,6 +21,7 @@
 | E26-bis-B | 2026-10-21 | Corrections documentaires (ETAT_COURANT, DETTES, DECISIONS, INDEX) | Documentation | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-B.md` |
 | E26-bis-C | 2026-10-21 | Infrastructure CI (alignement branche, run vert, protection) | CI | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-C.md` |
 | E26-bis-D | 2026-10-21 | Statut de suivi (post-incident CI) | CI | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-D.md` |
+| E27-bis | 2026-10-22 | Activation checks CI requis + intégration rapports | Infrastructure CI | ✅ | `docs/sessions/rapports/SESSION-2026-10-22-E27-bis.md` |
 
 ## 2. Rapports créés
 

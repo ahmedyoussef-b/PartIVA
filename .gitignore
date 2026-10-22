@@ -17,6 +17,13 @@ pnpm-debug.log*
 # Diagnostic artifacts
 lint-report*.json
 
+# CI / E2E diagnostic logs (non versionnés)
+build-test.log
+ci-run.log
+ci-run-utf8.log
+e2e-status.log
+test-setup.log
+
 # Tauri
 src-tauri/target/
 src-tauri/gen/

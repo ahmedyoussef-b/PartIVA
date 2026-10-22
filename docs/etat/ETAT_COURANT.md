@@ -1,7 +1,7 @@
 # ÉTAT COURANT — PartIVA
 
 **Dernière mise à jour :** 2026-10-22
-**Commit HEAD :** `b99b634` (E27 — corrections non commitées en attente de validation)
+**Commit HEAD :** `1cc5733` (E27 — corrections validées en CI, rapport `1cc5733` intégré)
 **Phase en cours :** E27 — correction du bug E2E persistant (diagnostic + correction validés)
 **Statut du projet :** En cours
 
@@ -39,8 +39,8 @@ ajouté aux checks requis tant qu'ils ne sont pas corrigés.
 
 ## 3. Travaux en cours
 
-- **E27** (CI, ✅ correctif validé en CI) : correctifs poussés (`a75ecd9`, `a8a1d59`, `c980e2d`, `7159dfe`, `3d7664d`, `5a2ac01`). Jobs `lint` / `typecheck` / `build` verts ; job `e2e` à 337/345.
-- **E27-bis** (CI, ⏳) : Activer `required_status_checks` sur `master` — **uniquement** sur `ESLint + Prettier`, `TypeScript`, `Build`. **Ne pas** ajouter `E2E (Playwright)` tant que les 4 échecs pré-existants ne sont pas corrigés.
+- **E27** (CI, ✅ terminé) : correctifs poussés (`a75ecd9`, `a8a1d59`, `c980e2d`, `7159dfe`, `3d7664d`, `5a2ac01`, `1cc5733` — rapport) et validés en CI (run `39777704765`). Jobs `lint` / `typecheck` / `build` verts ; job `e2e` à 337/345.
+- **E27-bis** (CI, ✅ terminé) : `required_status_checks` activés sur `master` — **uniquement** sur `ESLint + Prettier`, `TypeScript`, `Build`. **E2E (Playwright) exclu** (4 échecs pré-existants — `D-E27-E2E-RESIDUAL`). `enforce_admins` non modifié (état actuel : `false`).
 
 ## 4. Blocages
 
@@ -66,6 +66,7 @@ ajouté aux checks requis tant qu'ils ne sont pas corrigés.
 ## 6. Prochaine étape autorisée ou proposée
 
 - **ID Tâche :** `E27-bis` — activer `required_status_checks` sur `master` (3 checks de base), puis traiter `D-E27-E2E-RESIDUAL` (4 échecs pré-existants) avant d'envisager d'exiger le job `E2E (Playwright)`.
+- **ID Tâche proposé :** `E28` — correction des 4 échecs E2E pré-existants (`D-E27-E2E-RESIDUAL`) avant réactivation éventuelle de `E2E (Playwright)` en check requis.
 - **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock` — sa présence signalerait que les secrets GitHub ne sont pas alignés sur `e2e/fixtures/users.ts`.
 - **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
 

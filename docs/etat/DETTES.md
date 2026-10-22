@@ -1,4 +1,4 @@
-# DETTES ACTIVES — PartIVA
+﻿# DETTES ACTIVES — PartIVA
 
 **Dernière mise à jour :** 2026-10-22
 **Source :** Scission de `DEBT.md` (E3-S2)
@@ -27,6 +27,7 @@
 - **Prochaine session :** Bloquée par `D-E26-CI-BRANCH-MISMATCH` (les tests `source=all` ne peuvent être exécutés en CI).
 
 ### `D-E27-E2E-RESIDUAL` - 5 echecs E2E pre-existants (hors authentification)
+- **Note E27-bis :** Checks CI de base (`ESLint + Prettier`, `TypeScript`, `Build`) activés sur `master` via `required_status_checks` — `E2E (Playwright)` exclu (résiduels D-E27-E2E-RESIDUAL).
 
 - **Statut :** Active
 - **Cause :** 5 tests echouent independamment de l'authentification E2E (resolue en E27). Identiques au run de reference, sans regression :
@@ -85,7 +86,7 @@
 - **Prochaine session :** Non planifiée (facteur externe).
 
 ### `D-E26-CI-BRANCH-MISMATCH` — CI configurée sur `main`, dépôt sur `master`
-- **Statut :** Active
+- **Statut :** Résolue
 - **Priorité :** Haute
 - **Cause :** `.github/workflows/ci.yml` déclare `on.push.branches: [main]`
   et `pull_request` sur `main`. La branche par défaut du dépôt distant
