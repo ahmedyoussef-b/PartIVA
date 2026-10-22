@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, CheckCircle2, Box } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function MaterialDetailPage({
   params,
 }: {

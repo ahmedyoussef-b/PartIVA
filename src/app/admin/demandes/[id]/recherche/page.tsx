@@ -2,6 +2,8 @@ import { getRequestById } from '@/lib/data/requests';
 import { getSearchCandidates } from '@/lib/data/search-candidates';
 import RechercheClient from './recherche-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function RechercheMultiSourcePage({
   params,
 }: {
