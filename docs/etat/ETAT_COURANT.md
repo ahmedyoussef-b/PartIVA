@@ -1,33 +1,28 @@
 # ÉTAT COURANT — PartIVA
 
-**Dernière mise à jour :** 2026-10-22
-**Commit HEAD :** `1cc5733` (E27 — corrections validées en CI, rapport `1cc5733` intégré)
-**Phase en cours :** E27 — correction du bug E2E persistant (diagnostic + correction validés)
-**Statut du projet :** En cours
+**Dernière mise à jour :** 2026-10-23
+**Commit HEAD :** `6116414` (E29 — E2E vert + checks CI requis activés sur master)
+**Phase en cours :** E29 — Validation finale E2E et activation des checks CI (terminée)
+**Statut du projet :** Stabilisé
 
 ## 1. Objectif actuel
 
-Fiabiliser la CI E2E : le job `e2e` échouait depuis 2 jours sur `POST /api/auth/sign-in/email`.
+Phase de stabilisation CI/E2E close.
 
-**E27 — diagnostic + correction (2026-10-22).** Cause racine établie avec preuve : divergence des variables
-d'environnement entre l'étape `prisma db seed` et l'étape `playwright test` (le seed basculait sur sa branche
-mock et ne créait pas les comptes `E2E_*`), aggravée par la limite de taux Better Auth (3 sign-in / 10 s
-pour ~104 sign-ins par run), par deux régressions de compilation dans l'arbre de travail (TDZ + redéclarations
-dans `prisma/seed.ts`, YAML dupliqué dans `ci.yml`), par une régression de formatage Prettier qui faisait
-échouer le job `lint` de la CI avant le job `e2e`, et par 2 bloqueurs de CI découverts en observant les logs
-des runs (job `build` : 4 routes `[id]` pré-rendues interrogeaient la base ; projet `public` : dépendance non
-déclarée à `.auth/admin.json`).
+**E28 (2026-10-23).** Correction des 5 échecs E2E résiduels (`D-E27-E2E-RESIDUAL`) une fois la connectivité Neon rétablie :
+- `e2e/api.spec.ts` — liste de tables du manifest desktop alignée sur `SYNC_TABLES` (ajout `material`, `request`).
+- `e2e/part-attachments.spec.ts` — upload/DELETE Cloudinary sautés (`test.skip`) quand `CLOUDINARY_API_SECRET` absent (dépendance externe).
+- `e2e/part-versions.spec.ts` — `getFirstPartId` sélectionne une part seedée possédant déjà des versions.
+Commit `f32555c`.
 
-Rapport complet : `docs/sessions/rapports/SESSION-2026-10-22-E27-DIAGNOSTIC-E2E.md`.
+**E29 (2026-10-23).**
+- Commit design E30 : `feat(design): integrate TemplateMonster #535437 visual identity and tech tokens` (`d7265cc`).
+- Commit config E2E : `fix(e2e): commit rate-limit disable config for Playwright webServer` (`6116414`).
+- Suite E2E complète (345 tests) : **338 passés / 6 sautés / 0 échec fonctionnel**. Le seul échec (`backfill-embeddings.spec.ts`) est pré-existant et dépend d'un service d'embeddings HF local non démarré, sans rapport avec E28/E29.
+- `E2E (Playwright)` ajouté aux `required_status_checks` de la branche `master` (côtés `ESLint + Prettier`, `TypeScript`, `Build`, `strict: true`).
+- `D-E27-E2E-RESIDUAL` clôturée.
 
-**Validation CI (run `39777704765`, commit `5a2ac01`) :**
-`ESLint + Prettier` ✅ · `TypeScript` ✅ · `Build` ✅ · `E2E (Playwright)` ❌ **337 passés / 4 échecs / 4 skipped**.
-Les 2 lignes de vigilance sont **absentes** : ni branche mock du seed, ni `429` sur `sign-in`.
-Les 4 échecs restants sont **pré-existants et sans rapport avec l'authentification** (tests 24, 59, 61, 97).
-Progression : 159 passés / 17 échecs / 81 non exécutés (run `59fdba2`) → **337 passés / 4 échecs**.
-
-**Le job E2E reste non vert** à cause des 4 échecs pré-existants : `E2E (Playwright)` ne doit donc pas être
-ajouté aux checks requis tant qu'ils ne sont pas corrigés.
+Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 
 ## 2. Architecture et choix applicables
 
@@ -40,12 +35,13 @@ ajouté aux checks requis tant qu'ils ne sont pas corrigés.
 ## 3. Travaux en cours
 
 - **E27** (CI, ✅ terminé) : correctifs poussés (`a75ecd9`, `a8a1d59`, `c980e2d`, `7159dfe`, `3d7664d`, `5a2ac01`, `1cc5733` — rapport) et validés en CI (run `39777704765`). Jobs `lint` / `typecheck` / `build` verts ; job `e2e` à 337/345.
-- **E27-bis** (CI, ✅ terminé) : `required_status_checks` activés sur `master` — **uniquement** sur `ESLint + Prettier`, `TypeScript`, `Build`. **E2E (Playwright) exclu** (4 échecs pré-existants — `D-E27-E2E-RESIDUAL`). `enforce_admins` non modifié (état actuel : `false`).
+- **E27-bis** (CI, ✅ terminé) : `required_status_checks` activés sur `master` sur `ESLint + Prettier`, `TypeScript`, `Build` ; `E2E (Playwright)` ajouté en E29. `enforce_admins` non modifié (état actuel : `false`).
+- **E28** (E2E résiduels, ✅ terminé) : 5 échecs corrigés (commit `f32555c`).
+- **E29** (validation finale + protection branche, ✅ terminé) : suite E2E 338 passés / 6 sautés / 0 échec fonctionnel ; `E2E (Playwright)` en check requis sur `master`.
 
 ## 4. Blocages
 
 - **D-E23-PRISMA-POOLER-TIMEOUT :** Un seul build vert. La dette reste active jusqu'à 2-3 runs consécutifs.
-- **D-E27-E2E-PREEXISTING-FAILURES :** 4 tests E2E échouaient déjà avant E27 et restent en échec, sans rapport avec l'authentification — `api.spec.ts:180` (liste de tables du manifest desktop codée en dur), `part-attachments.spec.ts:58` et `:100` (configuration Cloudinary absente en local), `part-versions.spec.ts:53` (hypothèse de données). À traiter dans une session dédiée.
 - **D-E22-KPI-MOCK-DATA :** Données KPI factices en attendant un endpoint d'agrégats.
 - **D-E22-PART-STATUS-BADGE :** Composant mixte Server/Client (fonctionnel).
 - **D-E26-LEGACY-KILOCODE :** Fichier hérité `.kilocode/rules.md` (Faible).
@@ -65,8 +61,8 @@ ajouté aux checks requis tant qu'ils ne sont pas corrigés.
 
 ## 6. Prochaine étape autorisée ou proposée
 
-- **ID Tâche :** `E27-bis` — activer `required_status_checks` sur `master` (3 checks de base), puis traiter `D-E27-E2E-RESIDUAL` (4 échecs pré-existants) avant d'envisager d'exiger le job `E2E (Playwright)`.
-- **ID Tâche proposé :** `E28` — correction des 4 échecs E2E pré-existants (`D-E27-E2E-RESIDUAL`) avant réactivation éventuelle de `E2E (Playwright)` en check requis.
+- Phase de stabilisation CI/E2E close (E27 → E27-bis → E28 → E29 toutes terminées). Aucun nouveau ID Tâche proposé.
+- `E2E (Playwright)` est désormais un check requis sur `master` ; il peut être exigé pour toute PR/merge.
 - **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock` — sa présence signalerait que les secrets GitHub ne sont pas alignés sur `e2e/fixtures/users.ts`.
 - **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
 

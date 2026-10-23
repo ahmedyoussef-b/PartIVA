@@ -22,6 +22,8 @@
 | E26-bis-C | 2026-10-21 | Infrastructure CI (alignement branche, run vert, protection) | CI | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-C.md` |
 | E26-bis-D | 2026-10-21 | Statut de suivi (post-incident CI) | CI | ⏳ | `docs/sessions/rapports/SESSION-2026-10-21-E26-bis-D.md` |
 | E27-bis | 2026-10-22 | Activation checks CI requis + intégration rapports | Infrastructure CI | ✅ | `docs/sessions/rapports/SESSION-2026-10-22-E27-bis.md` |
+| E28 | 2026-10-23 | Correction des 5 échecs E2E résiduels (D-E27-E2E-RESIDUAL) | E2E, Tests | ✅ | `docs/sessions/rapports/SESSION-2026-10-23-E28.md` |
+| E29 | 2026-10-23 | Validation finale E2E + activation check requis sur master | E2E, CI, Gouvernance | ✅ | `docs/sessions/rapports/SESSION-2026-10-23-E29.md` |
 
 ## 2. Rapports créés
 
