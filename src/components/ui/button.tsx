@@ -16,9 +16,11 @@ const buttonVariants = cva(
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
         secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
         success: 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700',
         warning: 'bg-amber-600 text-white shadow-sm hover:bg-amber-700',
+        tech: 'bg-tech-primary text-white rounded-full font-semibold shadow hover:bg-tech-accent hover:shadow-tech-glow transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0',
+        'tech-outline':
+          'border border-tech-border-dark bg-transparent text-white rounded-full font-medium hover:border-tech-primary hover:bg-white/10 transition-all duration-300',
       },
       size: {
         default: 'h-9 px-4 py-2',

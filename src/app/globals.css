@@ -4,6 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+  --font-mono: var(--font-mono);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -23,6 +27,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Status Tokens */
   --color-status-new: hsl(217 91% 60%);
   --color-status-searching: hsl(38 92% 50%);
   --color-status-candidate: hsl(199 89% 48%);
@@ -31,9 +37,41 @@
   --color-status-machining: hsl(262 83% 58%);
   --color-status-completed: hsl(158 64% 42%);
   --color-status-archived: hsl(215 16% 47%);
+
+  /* Design Tokens — TemplateMonster #535437 (ITAgency / MultiIT) */
+  --color-tech-navy: #072066;
+  --color-tech-dark: #000000;
+  --color-tech-primary: #1e88e5;
+  --color-tech-primary-light: #64b5f6;
+  --color-tech-primary-deep: #0d47a1;
+  --color-tech-accent: #2196f3;
+  --color-tech-gradient-end: #0d47a1;
+  --color-tech-surface: #ffffff;
+  --color-tech-surface-subtle: #f8f9fa;
+  --color-tech-border: #e0e0e0;
+  --color-tech-border-dark: #30363d;
+  --color-tech-text-heading: #000000;
+  --color-tech-text-body: #424242;
+  --color-tech-text-muted: #9e9e9e;
+  --color-tech-text-heading-dark: rgba(255, 255, 255, 0.87);
+  --color-tech-text-body-dark: rgba(255, 255, 255, 0.6);
+
+  /* Border Radius Tokens */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --radius-tech-sm: 0.25rem;
+  --radius-tech-btn: 0.5rem;
+  --radius-tech-card: 1rem;
+  --radius-tech-pill: 50px;
+
+  /* Custom Shadow Tokens */
+  --shadow-tech: 0 0 20px rgba(116, 116, 116, 0.1);
+  --shadow-tech-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-tech-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-tech-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --shadow-tech-glow: 0 0 20px rgba(30, 136, 229, 0.25);
+
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-pulse-subtle: pulse_subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;

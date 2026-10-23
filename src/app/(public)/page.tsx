@@ -1,185 +1,177 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { HeroSection } from '@/components/landing/hero-section';
+import { ServiceCardsGrid } from '@/components/landing/service-cards-grid';
 import {
+  Clock,
+  Compass,
+  CheckCircle2,
   ArrowRight,
-  Search,
-  Hammer,
-  Layers,
-  Factory,
+  PhoneCall,
   Utensils,
   Shirt,
   Package,
-  PhoneCall,
+  Factory,
+  Pill,
+  Sparkles,
 } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col">
-      {/* HERO */}
-      <section className="relative flex min-h-[90vh] items-center overflow-hidden border-b pt-12 pb-16 md:pt-20 md:pb-24">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/hero-cnc-workshop.jpg')" }}
-        />
-        <div className="from-background/90 via-background/75 to-background absolute inset-0 bg-gradient-to-b" />
-        <div className="relative z-10 container">
-          <div className="max-w-3xl space-y-6">
-            <Badge variant="secondary" className="text-xs font-medium">
-              Atelier Technique Spécialisé • Fabrication Plastiques à la Demande
-            </Badge>
+    <div className="bg-tech-surface-subtle flex flex-col">
+      {/* 1. HERO SECTION TEMPLATEMONSTER #535437 */}
+      <HeroSection />
 
-            <h1 className="text-4xl leading-[1.1] font-black tracking-tight sm:text-5xl lg:text-6xl">
-              Une pièce cassée ?{' '}
-              <span className="from-primary bg-gradient-to-r to-sky-400 bg-clip-text text-transparent">
-                Refabriquée à l&apos;identique
-              </span>{' '}
-              en quelques jours.
-            </h1>
+      {/* 2. SERVICE CARDS GRID */}
+      <ServiceCardsGrid />
 
-            <p className="text-muted-foreground max-w-xl text-lg leading-relaxed">
-              Usinage CNC et reverse engineering de pièces industrielles en plastique technique
-              (POM-C, PTFE, PE1000, PA6, PEEK) en Tunisie. Évitez les arrêts de ligne.
-            </p>
-
-            <div className="flex flex-col gap-4 pt-2 sm:flex-row">
-              <Link href="/contact">
-                <Button size="lg" className="w-full gap-2 text-base font-bold shadow-md sm:w-auto">
-                  Contacter l&apos;Atelier
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full text-base font-semibold sm:w-auto"
-                >
-                  Devenir Client Permanent
-                </Button>
-              </Link>
+      {/* 3. POURQUOI CHOISIR PARTIVA ATELIER */}
+      <section className="border-tech-border relative border-t bg-white py-20 lg:py-28">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-16 max-w-3xl space-y-4 text-center">
+            <div className="bg-tech-primary/10 border-tech-primary/20 text-tech-primary inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold tracking-wider uppercase">
+              <span>Performance & Réactivité Industrielle</span>
             </div>
 
-            <div className="text-muted-foreground flex items-center gap-6 pt-4 text-sm">
-              <span className="flex items-center gap-2">
-                <span className="text-foreground font-mono text-lg font-bold">24-48h</span> délai
-                critique
+            <h2 className="font-heading text-tech-navy text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+              Pourquoi Confier vos Pièces Critiques à{' '}
+              <span className="from-tech-primary via-tech-accent to-tech-navy bg-gradient-to-r bg-clip-text text-transparent">
+                PartIVA ?
               </span>
-              <span className="bg-border h-4 w-px" />
-              <span className="flex items-center gap-2">
-                <span className="text-primary font-mono text-lg font-bold">±0.02 mm</span> tolérance
-                CNC
-              </span>
-              <span className="bg-border h-4 w-px" />
-              <span className="flex items-center gap-2">
-                <span className="font-mono text-lg font-bold text-emerald-600">100%</span> matières
-                certifiées
-              </span>
+            </h2>
+
+            <p className="text-tech-text-body mx-auto max-w-2xl font-sans text-base leading-relaxed sm:text-lg">
+              Trois engagements concrets pour sécuriser vos chaînes de production et éliminer
+              définitivement les arrêts imprévus.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {/* Pilier 1 */}
+            <div className="group rounded-tech-card border-tech-border bg-tech-surface-subtle/50 hover:shadow-tech-hover hover:border-tech-primary flex flex-col justify-between border p-8 transition-all duration-300 hover:bg-white">
+              <div className="space-y-4">
+                <div className="bg-tech-primary/10 text-tech-primary group-hover:bg-tech-primary flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 group-hover:text-white">
+                  <Clock className="h-7 w-7" />
+                </div>
+                <h3 className="font-heading text-tech-navy group-hover:text-tech-primary text-xl font-bold transition-colors">
+                  Zéro Dépendance Import
+                </h3>
+                <p className="text-tech-text-body font-sans text-sm leading-relaxed">
+                  Fini les délais de 6 à 12 semaines pour importer un pignon ou un guide depuis
+                  l’étranger. Nous usinons localement en Tunisie sous 24 à 48 heures pour vos
+                  urgences.
+                </p>
+              </div>
+
+              <div className="border-tech-border text-tech-primary mt-6 flex items-center gap-1.5 border-t pt-6 font-mono text-xs font-semibold">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span>Gain de temps : jusqu’à 95%</span>
+              </div>
+            </div>
+
+            {/* Pilier 2 */}
+            <div className="group rounded-tech-card border-tech-border bg-tech-surface-subtle/50 hover:shadow-tech-hover hover:border-tech-primary flex flex-col justify-between border p-8 transition-all duration-300 hover:bg-white">
+              <div className="space-y-4">
+                <div className="bg-tech-primary/10 text-tech-primary group-hover:bg-tech-primary flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 group-hover:text-white">
+                  <Compass className="h-7 w-7" />
+                </div>
+                <h3 className="font-heading text-tech-navy group-hover:text-tech-primary text-xl font-bold transition-colors">
+                  Rétro-Ingénierie Sans Plan
+                </h3>
+                <p className="text-tech-text-body font-sans text-sm leading-relaxed">
+                  Votre machine est ancienne ou le fabricant n’existe plus ? Fournissez-nous
+                  simplement votre pièce usée ou brisée : nous la numérisons et la reproduisons à
+                  l’identique.
+                </p>
+              </div>
+
+              <div className="border-tech-border text-tech-primary mt-6 flex items-center gap-1.5 border-t pt-6 font-mono text-xs font-semibold">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span>Reconstitution CAO 3D exacte</span>
+              </div>
+            </div>
+
+            {/* Pilier 3 */}
+            <div className="group rounded-tech-card border-tech-border bg-tech-surface-subtle/50 hover:shadow-tech-hover hover:border-tech-primary flex flex-col justify-between border p-8 transition-all duration-300 hover:bg-white">
+              <div className="space-y-4">
+                <div className="bg-tech-primary/10 text-tech-primary group-hover:bg-tech-primary flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 group-hover:text-white">
+                  <Sparkles className="h-7 w-7" />
+                </div>
+                <h3 className="font-heading text-tech-navy group-hover:text-tech-primary text-xl font-bold transition-colors">
+                  100% Polymères Certifiés
+                </h3>
+                <p className="text-tech-text-body font-sans text-sm leading-relaxed">
+                  POM-C, PTFE pur ou chargé, UHMW-PE 1000, PEEK haute température : nous
+                  sélectionnons uniquement des ébauches certifiées CE/FDA adaptées à vos contraintes
+                  mécaniques.
+                </p>
+              </div>
+
+              <div className="border-tech-border text-tech-primary mt-6 flex items-center gap-1.5 border-t pt-6 font-mono text-xs font-semibold">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span>Conformité alimentaire & chimique</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PROBLEMES + SOLUTION */}
-      <section className="container py-16 md:py-24">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <div className="space-y-2">
-            <Badge variant="outline" className="border-destructive/30 text-destructive">
-              Le problème
-            </Badge>
-            <h2 className="text-3xl font-bold tracking-tight">
-              Les pièces cassées paralysent votre usine
+      {/* 4. SECTEURS D'INTERVENTION */}
+      <section className="bg-tech-surface-subtle border-tech-border border-t py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-12 max-w-2xl space-y-3 text-center">
+            <span className="text-tech-primary font-mono text-xs font-bold tracking-wider uppercase">
+              Industrie & Maintenance
+            </span>
+            <h2 className="font-heading text-tech-navy text-3xl font-bold sm:text-4xl">
+              Partenaire Clé des Sites Industriels en Tunisie
             </h2>
-            <p className="text-muted-foreground">
-              Trois impasses majeures que nous résolvons chaque jour pour les directeurs de
-              maintenance en Tunisie.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <Card className="border-border/60">
-              <CardContent className="flex gap-4 p-5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
-                  <Search className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="mb-1 text-base">Pièce introuvable</CardTitle>
-                  <p className="text-muted-foreground text-sm">
-                    Fabricant disparu, référence obsolète. Nous modélisons en CAO 3D et usinons à
-                    l&apos;identique.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/60">
-              <CardContent className="flex gap-4 p-5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
-                  <Hammer className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="mb-1 text-base">Délais d&apos;import bloquants</CardTitle>
-                  <p className="text-muted-foreground text-sm">
-                    6 à 12 semaines d&apos;attente depuis l&apos;Europe ou l&apos;Asie. Nous
-                    fabriquons localement en 24-72h.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/60">
-              <CardContent className="flex gap-4 p-5">
-                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-                  <Layers className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="mb-1 text-base">Coûts prohibitifs</CardTitle>
-                  <p className="text-muted-foreground text-sm">
-                    Frais de port, douane, marges. Jusqu&apos;à 10x le prix d&apos;une pièce.
-                    Fabriqué localement = maîtrisé.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTEURS */}
-      <section className="bg-muted/20 border-t">
-        <div className="container py-16">
-          <div className="mx-auto mb-10 max-w-2xl space-y-3 text-center">
-            <Badge variant="outline">Secteurs</Badge>
-            <h2 className="text-3xl font-bold tracking-tight">
-              Partenaire de maintenance des fleurons industriels
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              De Bizerte à Sfax en passant par le Grand Tunis.
+            <p className="text-tech-text-body font-sans text-sm sm:text-base">
+              Nous intervenons auprès des responsables de maintenance et directeurs d’usine de
+              Bizerte à Sfax.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {[
-              { name: 'Agroalimentaire & Boissons', icon: Utensils },
-              { name: 'Textile & Confection', icon: Shirt },
-              { name: 'Conditionnement & Emballage', icon: Package },
-              { name: 'Mécanique & Céramique', icon: Factory },
-              { name: 'Chimie & Pharmacie', icon: Factory },
+              {
+                name: 'Agroalimentaire & Boissons',
+                icon: Utensils,
+                desc: 'Normes FDA / Inox & Plastique',
+              },
+              {
+                name: 'Conditionnement & Emballage',
+                icon: Package,
+                desc: 'Guides, pignons & étoiles',
+              },
+              {
+                name: 'Textile & Confection',
+                icon: Shirt,
+                desc: 'Poulies légères & bagues téflon',
+              },
+              { name: 'Pharmacie & Chimie', icon: Pill, desc: 'PTFE, PEEK résistant aux acides' },
+              {
+                name: 'Mécanique Industrielle',
+                icon: Factory,
+                desc: 'Pignons, galets & coussinets',
+              },
             ].map((sector) => {
               const Icon = sector.icon;
               return (
                 <div
                   key={sector.name}
-                  className="bg-background hover:border-primary/40 flex flex-col items-center justify-center gap-2 rounded-xl border p-5 text-center transition-colors"
+                  className="group rounded-tech-card border-tech-border shadow-tech hover:shadow-tech-hover hover:border-tech-primary flex flex-col items-center gap-3 border bg-white p-6 text-center transition-all duration-300 hover:-translate-y-1"
                 >
-                  <div className="bg-primary/10 text-primary rounded-full p-2.5">
-                    <Icon className="h-5 w-5" />
+                  <div className="bg-tech-primary/10 text-tech-primary group-hover:bg-tech-primary flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-200 group-hover:text-white">
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <h4 className="text-xs leading-snug font-medium">{sector.name}</h4>
+                  <h4 className="font-heading text-tech-navy text-sm leading-snug font-bold">
+                    {sector.name}
+                  </h4>
+                  <p className="text-tech-text-muted font-sans text-[11px] leading-tight">
+                    {sector.desc}
+                  </p>
                 </div>
               );
             })}
@@ -187,44 +179,52 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="container py-16">
-        <Card className="from-primary/90 via-primary text-primary-foreground border-0 bg-gradient-to-br to-blue-700">
-          <CardContent className="flex flex-col items-center justify-between gap-6 p-8 sm:p-12 md:flex-row">
-            <div className="space-y-2">
-              <Badge className="border-none bg-white/20 text-white hover:bg-white/30">
-                Intervention Rapide
-              </Badge>
-              <h2 className="text-2xl font-bold sm:text-3xl">
-                Envoyez une photo, on s&apos;occupe du reste.
-              </h2>
-              <p className="text-sm text-white/80">
-                Estimation sous 2 heures. Recherche automatique et matière adaptée.
-              </p>
+      {/* 5. BANNIÈRE D'APPEL À L'ACTION FINALE */}
+      <section className="bg-tech-navy relative overflow-hidden py-20 text-white">
+        {/* Subtle background ambient lights */}
+        <div className="pointer-events-none absolute inset-0 opacity-20">
+          <div className="bg-tech-accent absolute -top-32 right-1/4 h-96 w-96 rounded-full blur-3xl" />
+          <div className="bg-tech-primary absolute -bottom-32 left-1/4 h-96 w-96 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-tech-card mx-auto max-w-4xl space-y-8 border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl backdrop-blur-xl sm:p-14">
+            <div className="text-tech-primary-light inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide">
+              <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
+              <span>Devis Express en Moins de 2 Heures</span>
             </div>
-            <div className="flex shrink-0 gap-3">
-              <Link href="/register">
-                <Button
-                  size="lg"
-                  className="text-primary bg-white font-bold shadow-md hover:bg-white/90"
-                >
-                  Devenir Client Permanent
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+
+            <h2 className="font-heading text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-5xl">
+              Une Pièce Défectueuse ?{' '}
+              <span className="from-tech-primary via-tech-accent to-tech-primary-light bg-gradient-to-r bg-clip-text text-transparent">
+                Envoyez une Photo ou un Plan
+              </span>
+            </h2>
+
+            <p className="text-tech-text-body-dark mx-auto max-w-2xl font-sans text-base leading-relaxed sm:text-lg">
+              Nos ingénieurs et techniciens analysent la faisabilité, identifient la matière
+              adéquate et vous transmettent un devis ferme avec engagement de livraison immédiat.
+            </p>
+
+            <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
+              <Link
+                href="/demande"
+                className="bg-tech-primary hover:bg-tech-accent hover:shadow-tech-glow group inline-flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full px-9 py-4 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 sm:w-auto"
+              >
+                <span>Demander mon Devis Immédiat</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
-              <Link href="/contact">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white/40 font-medium text-white hover:bg-white/10"
-                >
-                  <PhoneCall className="mr-2 h-4 w-4" />
-                  Contact & Atelier
-                </Button>
+
+              <Link
+                href="/contact"
+                className="hover:border-tech-primary inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-base font-medium text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/10 sm:w-auto"
+              >
+                <PhoneCall className="text-tech-primary-light h-4 w-4" />
+                <span>Contacter l’Atelier Direct</span>
               </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </section>
     </div>
   );
