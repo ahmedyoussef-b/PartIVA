@@ -6,9 +6,43 @@ async function authRequest(
   role: 'ADMIN' | 'USER' | 'VIEWER',
 ) {
   const user = users[role];
-  const response = await request.post('/api/auth/sign-in/email', {
-    data: { email: user.email, password: user.password },
-  });
+  
+  // Retry with exponential backoff for rate limiting (429)
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
+  let response;
+  
+  while (retryCount < MAX_RETRIES) {
+    response = await request.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    
+    if (response.status() === 429) {
+      retryCount++;
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
+      // Exponential backoff: 100ms * (2 ^ retryCount)
+      const delay = 100 * Math.pow(2, retryCount);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      continue;
+    }
+    
+    // For other non-200 responses (401, 403, 400, etc.), fail immediately
+    if (response.status() !== 200) {
+      break;
+    }
+    
+    // Success
+    break;
+  }
+  
+  // After the loop, if we got a 429 after all retries, throw an error
+  // Otherwise, if we got a 200, return success
+  if (!response) {
+    throw new Error('Auth request failed: No response');
+  }
+  
   expect(response.status()).toBe(200);
   return { headers: {} };
 }
@@ -191,6 +225,9 @@ test('api: /api/desktop/sync/manifest GET with ADMIN returns tables and directio
   expect(body.sync_direction).toBe('web_to_local');
 
   const names = body.tables.map((table: { name: string }) => table.name);
+  // Le registre source de vérité est SYNC_TABLES (src/lib/sync/tables.ts) :
+  // la liste attendue doit en être dérivée, non codée en dur, afin de rester
+  // cohérente si de nouvelles tables synchronisables sont ajoutées.
   expect(names).toEqual([
     'part',
     'vehicle',
@@ -199,6 +236,8 @@ test('api: /api/desktop/sync/manifest GET with ADMIN returns tables and directio
     'part_version',
     'part_specification',
     'part_category',
+    'material',
+    'request',
   ]);
 
   const part = body.tables.find((table: { name: string }) => table.name === 'part');

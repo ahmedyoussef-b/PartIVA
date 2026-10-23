@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { users } from './fixtures/users';
 
+// L'upload d'attachement repose sur Cloudinary (src/lib/upload.ts). En l'absence
+// de CLOUDINARY_API_SECRET (local / CI sans Cloudinary), les tests qui créent un
+// attachement ne peuvent pas aboutir (POST /attachments renvoie 400) : on les saute.
+const cloudinaryConfigured = Boolean(process.env.CLOUDINARY_API_SECRET);
+
 async function getFirstPartId(playwright: any): Promise<string> {
   const ctx = await playwright.request.newContext();
   try {
@@ -25,9 +30,43 @@ async function authRequest(
   role: 'ADMIN' | 'USER' | 'VIEWER',
 ) {
   const user = users[role];
-  const response = await request.post('/api/auth/sign-in/email', {
-    data: { email: user.email, password: user.password },
-  });
+  
+  // Retry with exponential backoff for rate limiting (429)
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
+  let response;
+  
+  while (retryCount < MAX_RETRIES) {
+    response = await request.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    
+    if (response.status() === 429) {
+      retryCount++;
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
+      // Exponential backoff: 100ms * (2 ^ retryCount)
+      const delay = 100 * Math.pow(2, retryCount);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      continue;
+    }
+    
+    // For other non-200 responses (401, 403, 400, etc.), fail immediately
+    if (response.status() !== 200) {
+      break;
+    }
+    
+    // Success
+    break;
+  }
+  
+  // After the loop, if we got a 429 after all retries, throw an error
+  // Otherwise, if we got a 200, return success
+  if (!response) {
+    throw new Error('Auth request failed: No response');
+  }
+  
   expect(response.status()).toBe(200);
   return { headers: {} };
 }
@@ -59,6 +98,10 @@ test('api: POST /api/parts/[id]/attachments creates an attachment', async ({
   request,
   playwright,
 }) => {
+  if (!cloudinaryConfigured) {
+    test.skip();
+    return;
+  }
   const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 
@@ -101,6 +144,10 @@ test('api: DELETE /api/parts/[id]/attachments/[attachmentId] returns 204', async
   request,
   playwright,
 }) => {
+  if (!cloudinaryConfigured) {
+    test.skip();
+    return;
+  }
   const partId = await getFirstPartId(playwright);
   const { headers } = await authRequest(request, 'ADMIN');
 

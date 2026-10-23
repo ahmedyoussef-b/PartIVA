@@ -24,12 +24,43 @@ async function listPartsAsAdmin(
 }
 
 async function getFirstPartId(playwright: any): Promise<string> {
-  const parts = await listPartsAsAdmin(playwright);
-  // Les parts E2E-* (fixture E2E-RESET-* + tests POST /api/parts E2-S11)
-  // n'ont pas de versions stables — exclues pour ne pas casser les tests
-  // qui vérifient le contenu des versions (tri createdAt desc).
-  const seeded = parts.find((p) => !p.partNumber.startsWith('E2E-'));
-  return (seeded ?? parts[0])?.id as string;
+  const ctx = await playwright.request.newContext();
+  try {
+    const user = users.ADMIN;
+    const login = await ctx.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    expect(login.status()).toBe(200);
+    const partsResponse = await ctx.get('/api/parts');
+    expect(partsResponse.status()).toBe(200);
+    const parts = (await partsResponse.json()) as Array<{
+      id: string;
+      partNumber: string;
+      status: string;
+      clientId?: string | null;
+    }>;
+    expect(Array.isArray(parts)).toBe(true);
+    expect(parts.length).toBeGreaterThan(0);
+
+    // Privilégier une part non-E2E qui possède déjà des versions : le test
+    // "versions non vides" échouerait sur une part du seed sans versions
+    // (ex. TD-001, TD-STEP-001). L'hypothèse de données est ainsi vérifiée.
+    for (const part of parts) {
+      if (part.partNumber.startsWith('E2E-')) continue;
+      const versionsResponse = await ctx.get(`/api/parts/${part.id}/versions`);
+      expect(versionsResponse.status()).toBe(200);
+      const versionsBody = await versionsResponse.json();
+      if ((versionsBody.total ?? 0) > 0) {
+        return part.id as string;
+      }
+    }
+
+    // Fallback : première part non-E2E (comportement historique).
+    const seeded = parts.find((p) => !p.partNumber.startsWith('E2E-'));
+    return (seeded ?? parts[0])?.id as string;
+  } finally {
+    await ctx.dispose();
+  }
 }
 
 async function authRequest(
@@ -37,9 +68,43 @@ async function authRequest(
   role: 'ADMIN' | 'USER' | 'VIEWER',
 ) {
   const user = users[role];
-  const response = await request.post('/api/auth/sign-in/email', {
-    data: { email: user.email, password: user.password },
-  });
+  
+  // Retry with exponential backoff for rate limiting (429)
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
+  let response;
+  
+  while (retryCount < MAX_RETRIES) {
+    response = await request.post('/api/auth/sign-in/email', {
+      data: { email: user.email, password: user.password },
+    });
+    
+    if (response.status() === 429) {
+      retryCount++;
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
+      // Exponential backoff: 100ms * (2 ^ retryCount)
+      const delay = 100 * Math.pow(2, retryCount);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      continue;
+    }
+    
+    // For other non-200 responses (401, 403, 400, etc.), fail immediately
+    if (response.status() !== 200) {
+      break;
+    }
+    
+    // Success
+    break;
+  }
+  
+  // After the loop, if we got a 429 after all retries, throw an error
+  // Otherwise, if we got a 200, return success
+  if (!response) {
+    throw new Error('Auth request failed: No response');
+  }
+  
   expect(response.status()).toBe(200);
   return { headers: {} };
 }
