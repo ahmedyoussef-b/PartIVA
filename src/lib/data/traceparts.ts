@@ -78,6 +78,18 @@ const MOCK_PRODUCTS: TracePartsProduct[] = [
     thumbnailUrl: 'https://example.com/tp-002.png',
     productUrl: 'https://example.com/tp/002',
   },
+  {
+    id: 'TP-003',
+    name: 'Ball bearing 6205-2RS',
+    description: 'Deep groove ball bearing, sealed, SKF',
+    manufacturer: 'SKF',
+    partNumber: '6205-2RS-BALL',
+    category: 'Bearing',
+    cadAvailable: true,
+    cadFormats: ['STEP', 'IGES', 'DXF'],
+    thumbnailUrl: 'https://example.com/tp-003.png',
+    productUrl: 'https://example.com/tp/003',
+  },
 ];
 
 /**
