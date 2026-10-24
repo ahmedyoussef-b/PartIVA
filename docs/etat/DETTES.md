@@ -1,6 +1,6 @@
-﻿# DETTES ACTIVES — PartIVA
+# DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-10-22
+**Dernière mise à jour :** 2026-10-24
 **Source :** Scission de `DEBT.md` (E3-S2)
 **Statut :** Dettes non résolues uniquement
 
@@ -40,13 +40,13 @@
 
 ### `D-E22-PART-STATUS-BADGE` — Composant mixte Server/Client
 
-- **Statut :** Active
-- **Cause :** `PartStatusBadge` est un Server Component qui rend un composant client.
-- **Périmètre :** `src/components/part-status-badge.tsx`.
+- **Statut :** Résolue
+- **Cause :** `PartStatusBadge` était un Server Component qui rendait un composant client et importait le namespace Prisma browser.
+- **Périmètre :** `src/components/part-status-badge.tsx`, `src/components/domain/part-status-badge.tsx`, `src/components/part-dossier.tsx`.
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
-- **Condition de résolution :** le composant est entièrement client ou entièrement serveur, sans import du namespace Prisma *browser* dans le bundle serveur.
-- **Prochaine session :** E27 (à cadrer).
+- **Condition de résolution :** le composant est entièrement client ou entièrement serveur, sans import du namespace Prisma *browser* dans le bundle serveur. ✅ (E33 — `PartStatusBadge` refactorisé en composant purement Client 'use client', découplé de Prisma avec tokens tech E31).
+- **Résolue en :** session E33 (2026-10-24).
 
 ### `D-E26-LEGACY-KILOCODE` — Fichier hérité `.kilocode/rules.md`
 

@@ -13,7 +13,7 @@ import { PartAttachmentList } from '@/components/part-attachment-list';
 import type { PartAttachmentItem } from '@/components/part-attachment-list';
 import PartImageGallery from '@/components/part-image-gallery';
 import { getMaterialCategoryLabel } from '@/lib/enum-labels';
-import type { MaterialCategory, PartStatus } from '@/generated/prisma/browser';
+import type { MaterialCategory } from '@/generated/prisma/browser';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 
 interface PartDossierProps {
@@ -51,7 +51,7 @@ export function PartDossier({ part }: PartDossierProps) {
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">Dossier pièce — {part.ptvReference}</CardTitle>
-          <PartStatusBadge status={part.status as PartStatus} />
+          <PartStatusBadge status={part.status} />
         </div>
         <CardDescription>
           Vue centralisée du dossier : informations, mesures, documents, historique et images.
