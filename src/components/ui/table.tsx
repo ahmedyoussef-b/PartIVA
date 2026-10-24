@@ -20,7 +20,13 @@ function TableHeader({
   ref,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement> & { ref?: React.Ref<HTMLTableSectionElement> }) {
-  return <thead ref={ref} className={cn('bg-muted/30 [&_tr]:border-b', className)} {...props} />;
+  return (
+    <thead
+      ref={ref}
+      className={cn('border-b border-gray-200 bg-gray-50 [&_tr]:border-b', className)}
+      {...props}
+    />
+  );
 }
 
 function TableBody({
@@ -54,7 +60,7 @@ function TableRow({
     <tr
       ref={ref}
       className={cn(
-        'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+        'border-b border-gray-100 transition-colors hover:bg-blue-50/40 data-[state=selected]:bg-blue-50/60',
         className,
       )}
       {...props}
@@ -71,7 +77,7 @@ function TableHead({
     <th
       ref={ref}
       className={cn(
-        'text-muted-foreground h-11 px-4 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0',
+        'h-11 px-4 text-left align-middle font-heading text-xs font-semibold uppercase tracking-wider text-gray-500 [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}

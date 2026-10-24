@@ -1,9 +1,9 @@
 # ÉTAT COURANT — PartIVA
 
-**Dernière mise à jour :** 2026-10-23
-**Commit HEAD :** `6116414` (E29 — E2E vert + checks CI requis activés sur master)
-**Phase en cours :** E29 — Validation finale E2E et activation des checks CI (terminée)
-**Statut du projet :** Stabilisé
+**Dernière mise à jour :** 2026-10-24
+**Commit HEAD :** à préciser (commit groupé E32-Bis en cours)
+**Phase en cours :** E32-Bis — Remédiation bloquants CI avant commit (terminée)
+**Statut du projet :** CI-ready
 
 ## 1. Objectif actuel
 
@@ -38,11 +38,13 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **E27-bis** (CI, ✅ terminé) : `required_status_checks` activés sur `master` sur `ESLint + Prettier`, `TypeScript`, `Build` ; `E2E (Playwright)` ajouté en E29. `enforce_admins` non modifié (état actuel : `false`).
 - **E28** (E2E résiduels, ✅ terminé) : 5 échecs corrigés (commit `f32555c`).
 - **E29** (validation finale + protection branche, ✅ terminé) : suite E2E 338 passés / 6 sautés / 0 échec fonctionnel ; `E2E (Playwright)` en check requis sur `master`.
+- **E30** (design, ✅ terminé) : intégration identité visuelle tech + tokens (commit `d7265cc`).
+- **E31** (design, ✅ terminé) : travaux de design en attente dans l'arbre de travail — intégrés au commit groupé E32-Bis.
+- **E32** (KPI réels, ✅ terminé) : endpoint `/api/dashboard/kpi` alimentant le dashboard avec données réelles ; erreurs ESLint corrigées ; encodage UTF-8 restauré.
 
 ## 4. Blocages
 
 - **D-E23-PRISMA-POOLER-TIMEOUT :** Un seul build vert. La dette reste active jusqu'à 2-3 runs consécutifs.
-- **D-E22-KPI-MOCK-DATA :** Données KPI factices en attendant un endpoint d'agrégats.
 - **D-E22-PART-STATUS-BADGE :** Composant mixte Server/Client (fonctionnel).
 - **D-E26-LEGACY-KILOCODE :** Fichier hérité `.kilocode/rules.md` (Faible).
 - **D-E14-PRINT-ON-DEMAND :** Acceptée (facteur externe).

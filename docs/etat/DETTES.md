@@ -30,13 +30,13 @@
 
 ### `D-E22-KPI-MOCK-DATA` — Données KPI factices
 
-- **Statut :** Active
-- **Cause :** Les KPI du dashboard utilisent des données en dur (`+ 2`, `+ 184 réf.`, `74.2%`) en attendant un endpoint d'agrégats.
-- **Périmètre :** `src/app/admin/dashboard/dashboard-client.tsx`, `src/app/api/dashboard/route.ts`.
+- **Statut :** Résolue
+- **Cause :** Les KPI du dashboard utilisaient des données en dur (`+ 2`, `+ 184 réf.`, `74.2%`) en attendant un endpoint d'agrégats.
+- **Périmètre :** `src/app/admin/dashboard/dashboard-client.tsx`, `src/app/api/dashboard/route.ts` (nouveau `src/app/api/dashboard/kpi/route.ts`).
 - **Effort estimé :** Moyen.
 - **Bloquant :** Non.
-- **Condition de résolution :** l'endpoint d'agrégats existe et alimente le dashboard.
-- **Prochaine session :** E27 (à cadrer).
+- **Condition de résolution :** l'endpoint d'agrégats existe et alimente le dashboard. ✅ (E32 — endpoint `/api/dashboard/kpi` en place, dashboard consomme les données réelles).
+- **Résolue en :** session E32-Bis (2026-10-24).
 
 ### `D-E22-PART-STATUS-BADGE` — Composant mixte Server/Client
 

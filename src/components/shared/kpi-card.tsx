@@ -23,12 +23,12 @@ interface KpiCardProps {
  * ajoutée à l'union force son style ici (pas d'indexation implicite).
  */
 const VARIANT_CLASSES: Record<KpiCardVariant, string> = {
-  default: 'border-border bg-card text-card-foreground',
+  default: 'border-gray-200 bg-white text-gray-900 shadow-tech-sm',
   warning:
-    'border-orange-200 bg-orange-50/50 text-orange-900 dark:border-orange-500/30 dark:bg-orange-950/20 dark:text-orange-200',
+    'border-orange-200 bg-orange-50/60 text-orange-900 shadow-tech-sm',
   success:
-    'border-emerald-200 bg-emerald-50/50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/20 dark:text-emerald-200',
-  info: 'border-blue-200 bg-blue-50/50 text-blue-900 dark:border-blue-500/30 dark:bg-blue-950/20 dark:text-blue-200',
+    'border-emerald-200 bg-emerald-50/60 text-emerald-900 shadow-tech-sm',
+  info: 'border-tech-primary/30 bg-tech-primary/5 text-tech-primary-deep shadow-tech-sm',
 };
 
 const TREND_META: Record<KpiCardTrend, { icon: LucideIcon; className: string; label: string }> = {
@@ -56,21 +56,23 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        'shadow-sm transition-shadow hover:shadow-md',
+        'rounded-xl border transition-all hover:shadow-tech-lg hover:-translate-y-0.5',
         VARIANT_CLASSES[variant],
         className,
       )}
     >
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-muted-foreground text-xs font-semibold tracking-tight uppercase">
+          <p className="text-xs font-heading font-semibold tracking-widest uppercase text-gray-500">
             {title}
           </p>
-          {Icon ? <Icon className="text-muted-foreground h-4 w-4 shrink-0" /> : null}
+          {Icon ? <Icon className="h-4 w-4 shrink-0 text-gray-400" /> : null}
         </div>
         <div className="mt-3 flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-3xl font-bold tracking-tight tabular-nums">{value}</span>
+            <span className="text-3xl font-heading font-bold tracking-tight tabular-nums">
+              {value}
+            </span>
             {trendMeta && TrendIcon ? (
               <span
                 className={cn('inline-flex items-center', trendMeta.className)}

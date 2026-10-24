@@ -53,34 +53,34 @@ export function AdminSidebar() {
   const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
   return (
-    <Sidebar>
-      <SidebarHeader>
+    <Sidebar className="border-r border-white/10 bg-tech-navy text-white">
+      <SidebarHeader className="border-b border-white/10">
         <Link href="/admin/dashboard" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm">
-            <Cog className="h-5 w-5" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-tech-primary shadow-tech-glow">
+            <Cog className="h-5 w-5 text-white" />
           </div>
           {open && (
             <div className="flex flex-col">
-              <span className="text-foreground text-sm leading-none font-bold tracking-tight">
-                Atelier Admin
+              <span className="font-heading text-sm leading-none font-bold tracking-tight text-white">
+                PartIVA
               </span>
-              <span className="text-muted-foreground mt-0.5 font-mono text-[10px]">
-                BDD Locale • SQLite
+              <span className="mt-1 font-mono text-[9px] uppercase tracking-wider text-white/60">
+                Atelier Admin
               </span>
             </div>
           )}
         </Link>
       </SidebarHeader>
 
-      <SidebarContent>
-        <div className="px-2 pb-2">
+      <SidebarContent className="py-4">
+        <div className="px-3 pb-2">
           {open && (
-            <span className="text-muted-foreground px-2 text-[10px] font-semibold tracking-wider uppercase">
-              Opérations Atelier
+            <span className="px-2 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
+              Opérations
             </span>
           )}
         </div>
-        <SidebarMenu>
+        <SidebarMenu className="px-2">
           {ADMIN_NAV.map((item) => {
             // Skip desktop downloads in Tauri (desktop) mode
             if (item.href === '/admin/desktop-downloads' && isTauri) {
@@ -93,11 +93,19 @@ export function AdminSidebar() {
 
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton href={item.href} active={active} title={item.label}>
+                <SidebarMenuButton
+                  href={item.href}
+                  active={active}
+                  title={item.label}
+                  className="group h-9 gap-2.5 rounded-lg px-2.5 text-white/70 transition-all hover:bg-white/10 hover:text-white data-[active=true]:bg-tech-primary data-[active=true]:text-white data-[active=true]:shadow-tech-glow"
+                >
                   <Icon className="h-4 w-4 shrink-0" />
-                  {open && <span className="flex-1 truncate">{item.label}</span>}
+                  {open && <span className="flex-1 truncate text-sm">{item.label}</span>}
                   {open && item.badge && (
-                    <Badge variant="secondary" className="h-5 px-1.5 font-mono text-[10px]">
+                    <Badge
+                      variant="secondary"
+                      className="h-5 rounded-full bg-white/20 px-1.5 font-mono text-[9px] text-white"
+                    >
                       {item.badge}
                     </Badge>
                   )}
@@ -108,11 +116,11 @@ export function AdminSidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="flex w-full flex-col gap-1">
+      <SidebarFooter className="border-t border-white/10">
+        <div className="flex w-full flex-col gap-1 px-2 py-2">
           <Link
             href="/"
-            className="text-muted-foreground hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md p-2 text-xs transition-colors"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
             title="Aller sur le site public"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />
@@ -120,7 +128,7 @@ export function AdminSidebar() {
           </Link>
           <Link
             href="/login"
-            className="flex items-center gap-2 rounded-md p-2 text-xs text-rose-500 transition-colors hover:bg-rose-500/10 hover:text-rose-600"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-rose-200"
             title="Déconnexion"
           >
             <LogOut className="h-4 w-4 shrink-0" />

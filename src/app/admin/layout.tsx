@@ -127,14 +127,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        <header className="bg-card/60 sticky top-0 z-20 flex h-16 items-center justify-between border-b px-6 backdrop-blur">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-tech-sm">
           <div className="flex items-center gap-3">
             <SidebarTrigger />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Poste de Contrôle Atelier</span>
+              <span className="font-heading text-sm font-semibold text-gray-900">
+                Poste de Contrôle Atelier
+              </span>
               <Badge
                 variant="outline"
-                className="border-primary/40 text-primary font-mono text-[10px]"
+                className="border-tech-primary/40 text-tech-primary font-mono text-[10px]"
               >
                 {isTauri ? 'Hybride Tauri • Atelier Local' : 'Mode Web Admin'}
               </Badge>
@@ -143,14 +145,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="flex items-center gap-4">
             <SyncStatusIndicator />
-            <div className="bg-border hidden h-4 w-px sm:block" />
+            <div className="hidden h-4 w-px bg-gray-200 sm:block" />
             <NotificationBell />
             <ThemeToggle />
-            <div className="flex items-center gap-2.5 border-l pl-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/20 text-xs font-bold text-emerald-500">
+            <div className="flex items-center gap-2.5 border-l border-gray-200 pl-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-50 text-xs font-bold text-emerald-600">
                 ADM
               </div>
-              <span className="hidden text-xs font-medium sm:inline">
+              <span className="hidden text-xs font-medium text-gray-700 sm:inline">
                 {isTauri ? 'Admin (Tauri)' : session?.user?.name || 'Admin'}
               </span>
             </div>
@@ -165,16 +167,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }
                 router.push('/login');
               }}
-              className="text-muted-foreground h-7 px-2 text-[10px]"
+              className="h-8 gap-1.5 px-3 text-xs text-gray-600 hover:text-gray-900"
               title="Déconnexion"
             >
-              <LogOut className="mr-1 h-3.5 w-3.5" />
+              <LogOut className="h-3.5 w-3.5" />
               Déconnexion
             </Button>
           </div>
         </header>
 
-        <main className="bg-muted/10 flex-1 overflow-y-auto p-6 md:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

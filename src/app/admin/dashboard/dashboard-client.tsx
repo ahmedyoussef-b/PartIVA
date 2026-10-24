@@ -39,16 +39,50 @@ const MACHINE_STATUS_STYLES: Record<MachineStatus, { dot: string; chip: string }
   },
 };
 
+interface KpiData {
+  demandesEnAttente: number;
+  piecesEnBdd: number;
+  tauxSucces: number;
+  lastUpdated?: string;
+}
+
 export default function AdminDashboardClient({ requests, machines }: AdminDashboardClientProps) {
   const { lastSyncAt, pendingCount, isSyncing, triggerSync } = useSyncStore();
   const pendingRequests = requests.filter((r) => r.status === 'new' || r.status === 'searching');
+
+  const [kpi, setKpi] = React.useState<KpiData | null>(null);
+  const [kpiLoading, setKpiLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function fetchKpi() {
+      try {
+        setKpiLoading(true);
+        const res = await fetch('/api/dashboard/kpi', { cache: 'no-store' });
+        if (res.ok) {
+          const data = (await res.json()) as KpiData;
+          if (mounted) setKpi(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch KPI:', err);
+      } finally {
+        if (mounted) setKpiLoading(false);
+      }
+    }
+    fetchKpi();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div data-testid="dashboard-content" className="mx-auto max-w-7xl space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-foreground text-2xl font-bold tracking-tight">Tableau de bord</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-gray-900">
+            Tableau de bord
+          </h1>
+          <p className="mt-0.5 text-sm text-gray-500">
             File de fabrication, recherche multi-sources et parc machines.
           </p>
         </div>
@@ -72,20 +106,20 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
           title="Demandes en attente"
-          value={pendingRequests.length + 2}
+          value={kpiLoading ? '—' : (kpi?.demandesEnAttente ?? pendingRequests.length)}
           description="À qualifier / chercher"
           variant="warning"
         />
         <KpiCard
           title="Pièces en BDD"
-          value={`${requests.length + 184} réf.`}
+          value={kpiLoading ? '—' : `${kpi?.piecesEnBdd ?? requests.length} réf.`}
           description="Source de vérité Neon Postgres"
           variant="default"
         />
         <KpiCard
           title="Taux de succès"
-          value="74.2%"
-          description="Évite le reverse intégral"
+          value={kpiLoading ? '—' : kpi && kpi.tauxSucces > 0 ? `${kpi.tauxSucces}%` : 'N/A'}
+          description="30 derniers jours (clôturées)"
           variant="success"
         />
       </div>

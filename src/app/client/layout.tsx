@@ -10,12 +10,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <SidebarProvider>
       <ClientSidebar />
       <SidebarInset>
-        <header className="bg-card/60 sticky top-0 z-20 flex h-16 items-center justify-between border-b px-6 backdrop-blur">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-tech-sm">
           <div className="flex items-center gap-3">
             <SidebarTrigger />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Délice Danone Soliman</span>
-              <Badge variant="outline" className="font-mono text-[10px]">
+              <span className="font-heading text-sm font-semibold text-gray-900">
+                Espace Client
+              </span>
+              <Badge
+                variant="outline"
+                className="border-tech-primary/40 text-tech-primary font-mono text-[10px]"
+              >
                 Compte Industriel Actif
               </Badge>
             </div>
@@ -23,15 +28,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <div className="flex items-center gap-4">
             <NotificationBell />
             <ThemeToggle />
-            <div className="flex items-center gap-2.5 border-l pl-2">
-              <div className="bg-primary/20 text-primary flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold">
+            <div className="flex items-center gap-2.5 border-l border-gray-200 pl-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-tech-primary/30 bg-tech-primary/10 text-xs font-bold text-tech-primary">
                 MB
               </div>
-              <span className="hidden text-xs font-medium sm:inline">M. Ben Salem</span>
+              <span className="hidden text-xs font-medium text-gray-700 sm:inline">
+                M. Ben Salem
+              </span>
             </div>
           </div>
         </header>
-        <main className="bg-muted/10 flex-1 overflow-y-auto p-6 md:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

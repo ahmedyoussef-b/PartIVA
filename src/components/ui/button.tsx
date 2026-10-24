@@ -10,23 +10,25 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
+        default:
+          'bg-tech-primary text-white shadow-tech-sm hover:bg-tech-primary-deep transition-colors',
+        destructive:
+          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
         outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+          'border border-gray-300 bg-white text-gray-700 shadow-tech-sm hover:bg-gray-50 hover:text-gray-900',
+        secondary: 'bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-200',
+        ghost: 'hover:bg-gray-100 hover:text-gray-900',
         success: 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700',
         warning: 'bg-amber-600 text-white shadow-sm hover:bg-amber-700',
         tech: 'bg-tech-primary text-white rounded-full font-semibold shadow hover:bg-tech-accent hover:shadow-tech-glow transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0',
         'tech-outline':
-          'border border-tech-border-dark bg-transparent text-white rounded-full font-medium hover:border-tech-primary hover:bg-white/10 transition-all duration-300',
+          'border border-white/40 bg-transparent text-white rounded-full font-medium hover:border-tech-primary hover:bg-white/10 transition-all duration-300',
       },
       size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-11 rounded-md px-8 text-base',
-        icon: 'h-9 w-9',
+        default: 'h-9 rounded-lg px-4 py-2',
+        sm: 'h-8 rounded-lg px-3 text-xs',
+        lg: 'h-11 rounded-lg px-8 text-base',
+        icon: 'h-9 w-9 rounded-lg',
       },
     },
     defaultVariants: {
