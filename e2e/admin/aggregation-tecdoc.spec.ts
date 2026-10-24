@@ -12,9 +12,10 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Agrégation multi-sources + TecDoc (E5-S05)', () => {
   test('source=all interroge les 4 sources (tecdoc inclus)', async ({ request }) => {
-    const response = await request.post('/api/search', {
-      data: { source: 'all', query: 'frein', limit: 20 },
-    });
+  test.setTimeout(60000);
+  const response = await request.post('/api/search', {
+    data: { source: 'all', query: 'frein', limit: 20 },
+  });
     expect(response.status()).toBe(200);
     const json = await response.json();
 

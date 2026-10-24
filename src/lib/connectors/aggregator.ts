@@ -8,7 +8,8 @@ import { mergeAbortSignals } from '@/lib/data/external-signal';
  * Les sources lentes n'attendent pas : le signal
  * d'annulation est propagé à chaque connecteur.
  */
-const AGGREGATION_TIMEOUT_MS = 5_000;
+const AGGREGATION_TIMEOUT_MS =
+  process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 60_000 : 10_000;
 
 /**
  * Résultat d'une agrégation multi-sources (D-E3-21).

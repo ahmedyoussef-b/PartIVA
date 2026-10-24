@@ -1,0 +1,66 @@
+﻿F:\PartIVA\src\app\(auth)\register\page.tsx:78: name="fakeusernameremembered"
+F:\PartIVA\src\app\(auth)\register\page.tsx:85: name="fakepasswordremembered"
+F:\PartIVA\src\lib\connectors\3dcarparts.ts:11: * Mode mock (pas d'API publique) — mode réel post-E15.
+F:\PartIVA\src\lib\connectors\aggregator.ts:207: * En mode mock, la photo est ignorée (pas d'embedding mock) —
+F:\PartIVA\src\lib\connectors\tecdoc.ts:16: * (filtre `includes` en mode mock, API TecDoc en mode réel).
+F:\PartIVA\src\lib\connectors\tecdoc.ts:18: * Mode mock actif (D-tecdoc-credentials) :
+F:\PartIVA\src\lib\connectors\tecdoc.ts:19: * isAvailable() retourne true — le mode mock est
+F:\PartIVA\src\lib\connectors\tecdoc.ts:36: timeoutMs: SOURCE_WEIGHTS.tecdoc.timeoutMs, // mock rapide, réel à ajuster
+F:\PartIVA\src\lib\connectors\tecdoc.ts:222: * En mode mock, la photo est ignorée (pas d'embedding mock) —
+F:\PartIVA\src\lib\connectors\traceparts.ts:10: * (filtre `includes` en mode mock, API REST v3 en mode réel).
+F:\PartIVA\src\lib\connectors\traceparts.ts:12: * Mode mock actif (D-traceparts-credentials) :
+F:\PartIVA\src\lib\connectors\traceparts.ts:13: * isAvailable() retourne true — le mode mock est
+F:\PartIVA\src\lib\connectors\traceparts.ts:23: timeoutMs: SOURCE_WEIGHTS.traceparts.timeoutMs, // mock rapide, réel à ajuster (D-E3-31)
+F:\PartIVA\src\lib\connectors\types.ts:25: * (référentiel automobile, mock — contrat commercial requis).
+F:\PartIVA\src\lib\connectors\types.ts:40: * Retourne false si la source est en mode mock non fonctionnel
+F:\PartIVA\src\lib\data\3dcarparts-fixtures.ts:2: * Fixtures 3DCarParts — mock (E15-R1).
+F:\PartIVA\src\lib\data\3dcarparts-fixtures.ts:8: * Mode mock : fixtures statiques. Mode réel : à provisionner (post-E15).
+F:\PartIVA\src\lib\data\3dcarparts-fixtures.ts:11: export interface ThreeDCarPartMockProduct {
+F:\PartIVA\src\lib\data\3dcarparts-fixtures.ts:23: export const MOCK_3DCARPARTS_PRODUCTS: ThreeDCarPartMockProduct[] = [
+F:\PartIVA\src\lib\data\3dcarparts.ts:2: import { MOCK_3DCARPARTS_PRODUCTS } from './3dcarparts-fixtures';
+F:\PartIVA\src\lib\data\3dcarparts.ts:10: * Mode mock : fixtures statiques (pas d'API publique).
+F:\PartIVA\src\lib\data\3dcarparts.ts:46: const filtered = MOCK_3DCARPARTS_PRODUCTS.filter(
+F:\PartIVA\src\lib\data\3dcarparts.ts:62: return false; // Mode mock uniquement (pas d'API publique).
+F:\PartIVA\src\lib\data\elta.ts:13: * gratuit). Mode mock : les fixtures respectent ce schéma.
+F:\PartIVA\src\lib\data\elta.ts:64: * Fixtures mock — utilisées quand l'accès ELTA est absent.
+F:\PartIVA\src\lib\data\elta.ts:68: * (inscription gratuite). Le mock est un connecteur initial
+F:\PartIVA\src\lib\data\elta.ts:72: const MOCK_PRODUCTS: EltaProduct[] = [
+F:\PartIVA\src\lib\data\elta.ts:118: * Recherche ELTA — mode mock par défaut.
+F:\PartIVA\src\lib\data\elta.ts:134: const filtered = MOCK_PRODUCTS.filter(
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:4: * Fixtures TecDoc mock enrichies (E6-S08).
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:13: * Mode mock uniquement (D-tecdoc-credentials) — le mode réel
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:17: export interface TecDocMockProduct {
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:35: export interface TecDocMockVehicle {
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:45: export interface TecDocMockFitment {
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:53: export const MOCK_PRODUCTS: TecDocMockProduct[] = [
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:901: export const MOCK_VEHICLES: TecDocMockVehicle[] = [
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:1131: export const MOCK_FITMENTS: TecDocMockFitment[] = [
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:1267: products: MOCK_PRODUCTS,
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:1268: vehicles: MOCK_VEHICLES,
+F:\PartIVA\src\lib\data\tecdoc-fixtures.ts:1269: fitments: MOCK_FITMENTS,
+F:\PartIVA\src\lib\data\tecdoc.ts:4: MOCK_PRODUCTS,
+F:\PartIVA\src\lib\data\tecdoc.ts:5: MOCK_VEHICLES,
+F:\PartIVA\src\lib\data\tecdoc.ts:6: MOCK_FITMENTS,
+F:\PartIVA\src\lib\data\tecdoc.ts:25: * Mode mock : les fixtures respectent ce schéma.
+F:\PartIVA\src\lib\data\tecdoc.ts:42: // E14-R1 — enrichissement mock (3D / sécurité, optionnels).
+F:\PartIVA\src\lib\data\tecdoc.ts:101: * mock fournit des produits exploitables et instantanés.
+F:\PartIVA\src\lib\data\tecdoc.ts:129: * Recherche TecDoc — mode mock par défaut.
+F:\PartIVA\src\lib\data\tecdoc.ts:145: const filtered = MOCK_PRODUCTS.filter(
+F:\PartIVA\src\lib\data\tecdoc.ts:214: * Décodage VIN (mock) → véhicule (make, model, year, engine, ktype)
+F:\PartIVA\src\lib\data\tecdoc.ts:217: * Mode mock : recherche exacte sur le VIN des fixtures.
+F:\PartIVA\src\lib\data\tecdoc.ts:233: MOCK_VEHICLES.find((v) => (v.vin ?? '').toUpperCase() === normalizedVin) ?? null;
+F:\PartIVA\src\lib\data\tecdoc.ts:245: const vehicleFitments = MOCK_FITMENTS.filter((f) => f.vehicleId === vehicle.id);
+F:\PartIVA\src\lib\data\tecdoc.ts:247: const products = MOCK_PRODUCTS.filter((p) => productIds.has(p.id)).slice(0, limit);
+F:\PartIVA\src\lib\data\tecdoc.ts:314: const vehicles = MOCK_VEHICLES.filter(
+F:\PartIVA\src\lib\data\tecdoc.ts:334: const fitments = MOCK_FITMENTS.filter((f) => vehicleIds.has(f.vehicleId));
+F:\PartIVA\src\lib\data\tecdoc.ts:337: let products = MOCK_PRODUCTS.filter((p) => productIds.has(p.id));
+F:\PartIVA\src\lib\data\tecdoc.ts:396: * Mode mock : la photo est ignorée (pas de modèle d'embedding
+F:\PartIVA\src\lib\data\tecdoc.ts:397: * dans le mock) — le fitment véhicule est le filtre principal.
+F:\PartIVA\src\lib\data\tecdoc.ts:400: * @param photo - Photo base64 (JPEG/PNG, ignorée en mock)
+F:\PartIVA\src\lib\data\tecdoc.ts:415: // Mode mock : la photo n'est pas analysée (pas d'embedding mock).
+F:\PartIVA\src\lib\data\traceparts.ts:9: * Mode mock : les fixtures respectent ce schéma.
+F:\PartIVA\src\lib\data\traceparts.ts:53: * Fixtures mock — utilisées quand les credentials sont absents.
+F:\PartIVA\src\lib\data\traceparts.ts:56: const MOCK_PRODUCTS: TracePartsProduct[] = [
+F:\PartIVA\src\lib\data\traceparts.ts:138: * Recherche TraceParts — mode mock par défaut.
+F:\PartIVA\src\lib\data\traceparts.ts:153: const filtered = MOCK_PRODUCTS.filter((p) =>
+F:\PartIVA\src\lib\scoring\weights.ts:15: *    - tecdoc = 0.5 (référentiel automobile, mock —

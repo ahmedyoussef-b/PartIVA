@@ -517,3 +517,23 @@ model FitReport {
   @@index([userId])
   @@map("fit_reports")
 }
+
+model DesktopBuild {
+  id          String   @id @default(cuid())
+  version     String
+  os          String
+  arch        String   @default("x86_64")
+  format      String
+  filename    String
+  sizeBytes   Int      @map("size_bytes")
+  downloadUrl String   @map("download_url")
+  checksum    String?
+  notes       String?
+  publishedAt DateTime @default(now()) @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([version])
+  @@index([publishedAt])
+  @@map("desktop_builds")
+}
