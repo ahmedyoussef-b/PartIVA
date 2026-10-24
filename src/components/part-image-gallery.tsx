@@ -3,6 +3,8 @@
 import React from 'react';
 import { Plus, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -18,7 +20,7 @@ export default function PartImageGallery({ images, primaryImage, partName, class
 
   if (!hasImages) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader>
           <CardTitle className="text-sm font-medium">Images ({images.length})</CardTitle>
           <CardDescription>Aucune image disponible pour cette pièce.</CardDescription>
@@ -70,9 +72,10 @@ export default function PartImageGallery({ images, primaryImage, partName, class
                 primaryImage === img.url ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-gray-300'
               }`}
             >
-              <img
+              <Image
                 src={img.url}
                 alt={img.altText || img.caption || `Image ${img.order ? img.order + 1 : '1'}`}
+                fill
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   console.error(`[DEBUG-GALLERY] Erreur chargement image:`, img.url);
