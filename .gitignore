@@ -89,3 +89,4 @@ next-env.d.ts
 
 # Dev logs
 dev.log
+*.tmp
