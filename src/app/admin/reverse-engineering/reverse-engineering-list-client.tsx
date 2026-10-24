@@ -56,7 +56,9 @@ export default function ReverseEngineeringListClient({
             Projets de rétro-ingénierie CAO — {projects.length} projet(s)
           </p>
         </div>
-        <Button className="gap-2 text-xs font-semibold">Nouveau projet RE</Button>
+        <Link href="/admin/reverse-engineering/new">
+          <Button className="gap-2 text-xs font-semibold">Nouveau projet RE</Button>
+        </Link>
       </div>
 
       <Card>

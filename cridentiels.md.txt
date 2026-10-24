@@ -1,0 +1,3 @@
+ADMIN : admin@partiva.dev / PartIVA-dev-2026!
+USER : user@partiva.dev / PartIVA-dev-2026!
+VIEWER: viewer@partiva.dev / PartIVA-dev-2026!

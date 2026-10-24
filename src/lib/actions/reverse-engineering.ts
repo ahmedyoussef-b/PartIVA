@@ -76,6 +76,35 @@ export async function createREProject(
   }
 }
 
+const CreateREProjectFromFormSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis'),
+  description: z.string().optional(),
+  status: ProjectStatusSchema.default('DRAFT'),
+});
+
+export async function createREProjectFromForm(
+  prevState: { success?: boolean; error?: string; projectId?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string; projectId?: string }> {
+  'use server';
+
+  const name = formData.get('name') as string;
+  const description = formData.get('description') as string | undefined;
+  const status = formData.get('status') as string | undefined;
+
+  const validated = CreateREProjectFromFormSchema.safeParse({ name, description, status });
+  if (!validated.success) {
+    return { success: false, error: validated.error.issues[0]?.message || 'Données invalides' };
+  }
+
+  const result = await createREProject(validated.data);
+
+  if (result.success) {
+    return { success: true, projectId: result.data.id };
+  }
+  return { success: false, error: result.error };
+}
+
 export async function updateREProjectStatus(
   input: z.infer<typeof UpdateREProjectStatusSchema>,
 ): Promise<{ success: true; data: REProjectWithRelations } | { success: false; error: string }> {

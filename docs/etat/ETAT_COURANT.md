@@ -41,6 +41,7 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **E30** (design, ✅ terminé) : intégration identité visuelle tech + tokens (commit `d7265cc`).
 - **E31** (design, ✅ terminé) : travaux de design en attente dans l'arbre de travail — intégrés au commit groupé E32-Bis.
 - **E32** (KPI réels, ✅ terminé) : endpoint `/api/dashboard/kpi` alimentant le dashboard avec données réelles ; erreurs ESLint corrigées ; encodage UTF-8 restauré.
+- **E40-Fix** (bouton "Nouveau projet RE", ✅ terminé) : page `/admin/reverse-engineering/new` créée avec formulaire de création de projet RE ; bouton connecté via `<Link href="/admin/reverse-engineering/new">` dans `reverse-engineering-list-client.tsx` ; action serveur `createREProjectFromForm` ajoutée dans `src/lib/actions/reverse-engineering.ts`. Validation : typecheck EXIT 0, lint EXIT 0, build EXIT 0.
 
 ## 4. Blocages
 
@@ -63,6 +64,7 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 ## 6. Prochaine étape autorisée ou proposée
 
 - Phase de stabilisation CI/E2E close (E27 → E27-bis → E28 → E29 toutes terminées). Aucun nouveau ID Tâche proposé.
+- **E40-Fix** clôturée : le bouton "Nouveau projet RE" est maintenant fonctionnel (redirection vers `/admin/reverse-engineering/new` avec formulaire de création).
 - `E2E (Playwright)` est désormais un check requis sur `master` ; il peut être exigé pour toute PR/merge.
 - **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock` — sa présence signalerait que les secrets GitHub ne sont pas alignés sur `e2e/fixtures/users.ts`.
 - **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
