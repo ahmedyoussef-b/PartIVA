@@ -218,16 +218,12 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                         alt={photoTag || `Photo ${i + 1}`}
                         className="h-full w-full object-cover transition-transform group-hover:scale-105"
                         onError={(e) => {
-                          console.error(
-                            `[DEBUG-ADMIN] Erreur chargement image:`,
-                            photoUrl,
-                          );
-                          (e.target as HTMLImageElement).src =
-                            '/placeholder-image.png';
+                          console.error(`[DEBUG-ADMIN] Erreur chargement image:`, photoUrl);
+                          (e.target as HTMLImageElement).src = '/placeholder-image.png';
                         }}
                       />
                       {photoTag && (
-                        <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-xs text-white">
                           {photoTag}
                         </div>
                       )}

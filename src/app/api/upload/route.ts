@@ -40,10 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (file.size > MAX_SIZE) {
       console.error(`${DEBUG_PREFIX} Fichier trop volumineux:`, file.size);
-      return NextResponse.json(
-        { error: `Fichier trop volumineux (max 15MB)` },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: `Fichier trop volumineux (max 15MB)` }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -56,10 +53,7 @@ export async function POST(request: NextRequest) {
         {
           folder: 'partiva/requests',
           resource_type: 'auto',
-          transformation: [
-            { width: 1200, height: 1200, crop: 'limit' },
-            { quality: 'auto' },
-          ],
+          transformation: [{ width: 1200, height: 1200, crop: 'limit' }, { quality: 'auto' }],
         },
         (error, result) => {
           if (error) {
@@ -83,7 +77,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error(`${DEBUG_PREFIX} 💥 EXCEPTION:`, error);
     return NextResponse.json(
-      { error: (error as Error)?.message || 'Échec de l\'upload' },
+      { error: (error as Error)?.message || "Échec de l'upload" },
       { status: 500 },
     );
   }

@@ -186,7 +186,9 @@ export default function CreerPiecePage() {
       });
 
       // ÉTAPE 1 : Upload des photos vers Cloudinary
-      console.log(`${DEBUG_PREFIX} Étape 1: Upload de ${photos.length} photo(s) vers Cloudinary...`);
+      console.log(
+        `${DEBUG_PREFIX} Étape 1: Upload de ${photos.length} photo(s) vers Cloudinary...`,
+      );
 
       const uploadedPhotoUrls: string[] = [];
 

@@ -51,7 +51,8 @@ export function mapRequestToUi(request: RequestWithRelations): MappedRequest {
   const photos = Array.isArray(request.photos)
     ? request.photos.map((p) => {
         if (typeof p === 'string') return p;
-        if (typeof p === 'object' && p !== null && 'url' in p) return p as { url: string; tag: string };
+        if (typeof p === 'object' && p !== null && 'url' in p)
+          return p as { url: string; tag: string };
         return String(p);
       })
     : [];
