@@ -4,7 +4,14 @@ import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createREProjectFromForm } from '@/lib/actions/reverse-engineering';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,29 +35,37 @@ export default function NewREProjectPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="bg-card border border-border rounded-xl p-6">
+    <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="bg-card border-border rounded-xl border p-6">
           <div className="space-y-2">
-            <h1 className="text-3xl font-heading font-bold text-tech-navy">Nouveau projet Reverse Engineering</h1>
+            <h1 className="font-heading text-tech-navy text-3xl font-bold">
+              Nouveau projet Reverse Engineering
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Créez un nouveau projet de rétro-ingénierie CAO pour démarrer l&apos;analyse d&apos;une pièce.
+              Créez un nouveau projet de rétro-ingénierie CAO pour démarrer l&apos;analyse
+              d&apos;une pièce.
             </p>
           </div>
         </div>
 
-        <form action={formAction} className="space-y-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+        <form
+          action={formAction}
+          className="bg-card border-border space-y-6 rounded-xl border p-6 shadow-sm"
+        >
           <Card>
             <CardHeader>
-              <CardTitle className="font-heading text-lg font-bold text-tech-navy">Informations du projet</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardTitle className="font-heading text-tech-navy text-lg font-bold">
+                Informations du projet
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-sm">
                 Les champs marqués d&apos;une astérisque sont requis.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-0">
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="font-medium text-sm">
+                  <Label htmlFor="name" className="text-sm font-medium">
                     Nom du projet <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -64,7 +79,7 @@ export default function NewREProjectPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="font-medium text-sm">
+                  <Label htmlFor="description" className="text-sm font-medium">
                     Description
                   </Label>
                   <Textarea
@@ -80,7 +95,7 @@ export default function NewREProjectPage() {
             </CardContent>
           </Card>
 
-          <CardFooter className="flex flex-row items-center justify-between gap-4 bg-card/50 border-t border-border/50">
+          <CardFooter className="bg-card/50 border-border/50 flex flex-row items-center justify-between gap-4 border-t">
             <Button
               variant="outline"
               type="button"
@@ -89,18 +104,14 @@ export default function NewREProjectPage() {
             >
               Annuler
             </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="px-6"
-            >
+            <Button type="submit" disabled={isPending} className="px-6">
               {isPending ? 'Création en cours...' : 'Créer le projet'}
             </Button>
           </CardFooter>
         </form>
 
         {state?.error && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg p-4">
+          <div className="bg-destructive/10 border-destructive/20 text-destructive rounded-lg border p-4">
             <p className="text-sm">{state.error}</p>
           </div>
         )}
