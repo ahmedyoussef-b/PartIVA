@@ -6,7 +6,7 @@ import { PipelineStepper } from '@/components/domain/pipeline-stepper';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Clock, Phone, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Clock, Phone, CheckCircle2, PackageCheck } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-mappers';
 import { FR } from '@/i18n/fr';
@@ -100,6 +100,19 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                     {request.quantity} unité(s)
                   </span>
                 </div>
+                {request.status === 'candidate_found' && (
+                  <div className="mt-4 flex justify-start">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="gap-2 text-xs"
+                      title="Convertir cette demande validée en pièce catalogue (admin uniquement)"
+                    >
+                      <PackageCheck className="h-3.5 w-3.5" />
+                      Convertir en Pièce (admin)
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

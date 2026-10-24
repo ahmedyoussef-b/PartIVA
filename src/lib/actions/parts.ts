@@ -79,6 +79,8 @@ export async function createPart(
     if (images.length > 0) {
       console.log(`${DEBUG_PREFIX} Upload de ${images.length} image(s)...`);
 
+      const failedUploads: { index: number; error: string; fileName: string }[] = [];
+
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
         if (!image) {
@@ -89,15 +91,17 @@ export async function createPart(
         // Validation MIME type
         const mimeType = image.type;
         if (!ALLOWED_IMAGE_MIME_TYPES.includes(mimeType as never)) {
-          console.error(`${DEBUG_PREFIX} Type MIME non autorisé: ${mimeType}`);
+          const errorMsg = `Type MIME non autorisé: ${mimeType}`;
+          console.error(`${DEBUG_PREFIX} ${errorMsg}`);
+          failedUploads.push({ index: i, error: errorMsg, fileName: image.name });
           continue;
         }
 
         // Validation taille
         if (image.size > MAX_IMAGE_SIZE_BYTES) {
-          console.error(
-            `${DEBUG_PREFIX} Image trop volumineuse: ${image.name} (${image.size} octets)`,
-          );
+          const errorMsg = `Image trop volumineuse: ${image.name} (${image.size} octets)`;
+          console.error(`${DEBUG_PREFIX} ${errorMsg}`);
+          failedUploads.push({ index: i, error: errorMsg, fileName: image.name });
           continue;
         }
 
@@ -125,10 +129,25 @@ export async function createPart(
 
           console.log(`${DEBUG_PREFIX} Image ${i + 1}/${images.length} uploadée: ${uploaded.url}`);
         } catch (uploadErr) {
-          console.error(`${DEBUG_PREFIX} Échec upload image ${image.name}:`, uploadErr);
+          const errorMsg = (uploadErr as Error).message || String(uploadErr);
+          console.error(`${DEBUG_PREFIX} Échec upload image ${i + 1}:`, uploadErr);
+          failedUploads.push({ index: i, error: errorMsg, fileName: image.name });
         }
       }
-      console.log(`${DEBUG_PREFIX} ✅ Images traitées`);
+
+      // Si des uploads ont échoué, arrêter et retourner une erreur détaillée
+      if (failedUploads.length > 0) {
+        const errorMsg = failedUploads
+          .map((f) => `Image ${f.index + 1} (${f.fileName}): ${f.error}`)
+          .join('. ');
+        console.error(`${DEBUG_PREFIX} ❌ ${failedUploads.length} image(s) n'ont pas pu être uploadées`);
+        return {
+          success: false,
+          error: `${failedUploads.length} image(s) n'ont pas pu être uploadées. La pièce a été créée mais sans ces images : ${errorMsg}.`,
+        };
+      }
+
+      console.log(`${DEBUG_PREFIX} ✅ Toutes les images ont été traitées avec succès`);
     }
 
     console.log(`${DEBUG_PREFIX} === FIN ACTION SERVEUR (SUCCÈS) ===`);

@@ -600,7 +600,7 @@ export default function CreerPiecePage() {
                 </>
               ) : (
                 <>
-                  Envoyer la demande de refabrication
+                  Soumettre la demande de pièce
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

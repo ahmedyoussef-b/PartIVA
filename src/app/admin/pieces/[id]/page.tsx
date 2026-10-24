@@ -1,13 +1,20 @@
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { ArrowLeft, Box, Download, Ruler } from 'lucide-react';
+import { ArrowLeft, Box, Download, Ruler, Image as ImageIcon } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { getPartById } from '@/lib/data/parts';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { PartStatusBadge } from '@/components/part-status-badge';
+import PartImageGallery from '@/components/part-image-gallery';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@/components/ui/tabs';
 import type { UserRole } from '@/generated/prisma/client';
 
 export default async function AdminPieceDetailPage({
@@ -121,103 +128,119 @@ export default async function AdminPieceDetailPage({
 
         {/* Colonne droite : détails et spécifications */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Détails</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <dt className="text-muted-foreground text-xs font-medium">Référence PTV</dt>
-                  <dd className="font-mono text-sm">{part.ptvReference ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground text-xs font-medium">N° pièce (legacy)</dt>
-                  <dd className="font-mono text-sm">{part.partNumber}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground text-xs font-medium">Statut</dt>
-                  <dd>
-                    <PartStatusBadge status={part.status} />
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground text-xs font-medium">Matière</dt>
-                  <dd className="text-sm">{part.material ?? '—'}</dd>
-                </div>
-                <div className="sm:col-span-2">
-                  <dt className="text-muted-foreground text-xs font-medium">Description</dt>
-                  <dd className="text-sm">{part.description ?? '—'}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details">Détails</TabsTrigger>
+              <TabsTrigger value="images">
+                <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                Images ({part.images?.length || 0})
+              </TabsTrigger>
+            </TabsList>
 
-          {part.specifications.length > 0 ? (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                  <Ruler className="text-muted-foreground h-4 w-4" />
-                  Spécifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="divide-border divide-y">
-                  {part.specifications.map((spec) => (
-                    <div key={spec.id} className="flex items-baseline justify-between gap-4 py-2">
-                      <dt className="text-muted-foreground text-xs font-medium">{spec.key}</dt>
-                      <dd className="text-right font-mono text-sm">
-                        {spec.value}
-                        {spec.unit ? ` ${spec.unit}` : ''}
-                        {spec.toleranceMin !== null || spec.toleranceMax !== null ? (
-                          <span className="text-muted-foreground ml-1 text-[11px]">
-                            {spec.toleranceMin !== null ? `+${spec.toleranceMin}` : ''}
-                            {spec.toleranceMax !== null ? ` / ${spec.toleranceMax}` : ''}
-                          </span>
-                        ) : null}
+            <TabsContent value="details" className="mt-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Détails</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-muted-foreground text-xs font-medium">Référence PTV</dt>
+                      <dd className="font-mono text-sm">{part.ptvReference ?? '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground text-xs font-medium">N° pièce (legacy)</dt>
+                      <dd className="font-mono text-sm">{part.partNumber}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground text-xs font-medium">Statut</dt>
+                      <dd>
+                        <PartStatusBadge status={part.status} />
                       </dd>
                     </div>
-                  ))}
-                </dl>
-              </CardContent>
-            </Card>
-          ) : null}
+                    <div>
+                      <dt className="text-muted-foreground text-xs font-medium">Matière</dt>
+                      <dd className="text-sm">{part.material ?? '—'}</dd>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <dt className="text-muted-foreground text-xs font-medium">Description</dt>
+                      <dd className="text-sm">{part.description ?? '—'}</dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
 
-          {part.suppliers.length > 0 ? (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">Fournisseurs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="divide-border divide-y">
-                  {part.suppliers.map((supplier) => (
-                    <li
-                      key={supplier.id}
-                      className="flex items-baseline justify-between gap-4 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{supplier.supplier.name}</p>
-                        <p className="text-muted-foreground font-mono text-[11px]">
-                          {supplier.supplier.code}
-                          {supplier.supplierRef ? ` · ${supplier.supplierRef}` : ''}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-mono text-sm">
-                          {supplier.price ?? '—'} {supplier.currency}
-                        </p>
-                        {supplier.leadTimeDays !== null ? (
-                          <p className="text-muted-foreground text-[11px]">
-                            {supplier.leadTimeDays} j
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ) : null}
+              {part.specifications.length > 0 ? (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                      <Ruler className="text-muted-foreground h-4 w-4" />
+                      Spécifications
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="divide-border divide-y">
+                      {part.specifications.map((spec) => (
+                        <div key={spec.id} className="flex items-baseline justify-between gap-4 py-2">
+                          <dt className="text-muted-foreground text-xs font-medium">{spec.key}</dt>
+                          <dd className="text-right font-mono text-sm">
+                            {spec.value}
+                            {spec.unit ? ` ${spec.unit}` : ''}
+                            {spec.toleranceMin !== null || spec.toleranceMax !== null ? (
+                              <span className="text-muted-foreground ml-1 text-[11px]">
+                                {spec.toleranceMin !== null ? `+${spec.toleranceMin}` : ''}
+                                {spec.toleranceMax !== null ? ` / ${spec.toleranceMax}` : ''}
+                              </span>
+                            ) : null}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {part.suppliers.length > 0 ? (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium">Fournisseurs</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="divide-border divide-y">
+                      {part.suppliers.map((supplier) => (
+                        <li
+                          key={supplier.id}
+                          className="flex items-baseline justify-between gap-4 py-2"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{supplier.supplier.name}</p>
+                            <p className="text-muted-foreground font-mono text-[11px]">
+                              {supplier.supplier.code}
+                              {supplier.supplierRef ? ` · ${supplier.supplierRef}` : ''}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-mono text-sm">
+                              {supplier.price ?? '—'} {supplier.currency}
+                            </p>
+                            {supplier.leadTimeDays !== null ? (
+                              <p className="text-muted-foreground text-[11px]">
+                                {supplier.leadTimeDays} j
+                              </p>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </TabsContent>
+
+            <TabsContent value="images" className="mt-4">
+              <PartImageGallery images={part.images || []} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

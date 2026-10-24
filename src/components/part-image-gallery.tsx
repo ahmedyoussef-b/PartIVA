@@ -1,101 +1,114 @@
 'use client';
 
-import * as React from 'react';
-import { Camera, Eye } from 'lucide-react';
+import React from 'react';
+import { Plus, Move } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-
-export interface PartImageItem {
-  id: string;
-  url: string;
-  altText: string | null;
-  caption: string | null;
-  isPrimary: boolean;
-}
 
 interface PartImageGalleryProps {
-  images: PartImageItem[];
-  partName: string;
+  images: { id: string; url: string; altText?: string | null; caption?: string | null; order?: number }[];
+  primaryImage?: string | null;
+  className?: string;
+  partName?: string;
 }
 
-export default function PartImageGallery({ images, partName }: PartImageGalleryProps) {
-  const [activeImage, setActiveImage] = React.useState<PartImageItem | null>(null);
+export default function PartImageGallery({ images, primaryImage, partName, className }: PartImageGalleryProps) {
+  const hasImages = images.length > 0;
 
-  if (images.length === 0) {
-    return <p className="text-muted-foreground text-sm">Aucune photo pour cette pièce.</p>;
+  if (!hasImages) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Images ({images.length})</CardTitle>
+          <CardDescription>Aucune image disponible pour cette pièce.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex h-40 items-center justify-center rounded-md border border-dashed border-gray-300 bg-muted/50">
+            <p className="text-muted-foreground text-sm">Aucune image téléchargée</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-muted-foreground flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase">
-          <Camera className="text-primary h-4 w-4" />
-          Photographies de la pièce
-        </span>
-        <span className="text-muted-foreground text-xs">
-          Cliquez sur une photo pour l&apos;agrandir
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {images.map((image, idx) => (
-          <div
-            key={image.id}
-            onClick={() => setActiveImage(image)}
-            className="group bg-background hover:border-primary/60 flex cursor-pointer flex-col overflow-hidden rounded-xl border transition-all hover:shadow-md"
-          >
-            <div className="bg-muted relative aspect-[16/10] w-full overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle className="text-sm font-medium">
+            {partName || `Images (${images.length})`}
+          </CardTitle>
+          <CardDescription>Galerie des photos de la pièce</CardDescription>
+        </div>
+        <div className="flex gap-1">
+          {images.map((img, idx) => (
+            <Button
+              key={img.id}
+              variant="ghost"
+              size="sm"
+              className={`h-8 w-8 p-0 ${
+                primaryImage === img.url ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+              }`}
+              title={`Sélectionner comme image principale (${idx + 1})`}
+            >
+              <Move className="h-3.5 w-3.5" />
+            </Button>
+          ))}
+          <Button variant="outline" size="sm" className="h-8 px-3">
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Ajouter
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          {images.map((img) => (
+            <div
+              key={img.id}
+              className={`relative aspect-video rounded-md overflow-hidden border-2 transition-shadow ${
+                primaryImage === img.url ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-gray-300'
+              }`}
+            >
               <img
-                src={image.url}
-                alt={image.altText ?? `${partName} - Vue ${idx + 1}`}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                src={img.url}
+                alt={img.altText || img.caption || `Image ${img.order ? img.order + 1 : '1'}`}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  console.error(`[DEBUG-GALLERY] Erreur chargement image:`, img.url);
+                  (e.target as HTMLImageElement).src = '/placeholder-image.png';
+                }}
               />
-              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                <Eye className="h-5 w-5" />
-                <span className="text-xs font-semibold">Agrandir la photo</span>
-              </div>
-              <div className="absolute bottom-2 left-2">
-                <Badge
+              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/40 opacity-0 transition-opacity hover:bg-black/40 hover:opacity-100">
+                <Button
                   variant="secondary"
-                  className="bg-black/60 text-[10px] text-white backdrop-blur-xs"
+                  size="sm"
+                  className="bg-background/80 text-foreground hover:bg-background"
                 >
-                  {image.isPrimary ? 'Photo principale' : `Vue #${idx + 1}`}
-                </Badge>
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
               </div>
+              <Badge
+                variant="secondary"
+                className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white"
+              >
+                {img.caption || `Image ${img.order ? img.order + 1 : '1'}`}
+              </Badge>
             </div>
-
-            <div className="space-y-1 p-3">
-              <p className="text-foreground line-clamp-1 text-xs font-semibold">
-                {image.caption ?? image.altText ?? `${partName} - Vue ${idx + 1}`}
-              </p>
-            </div>
+          ))}
+        </div>
+        {images.length > 4 && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <span className="font-medium">{images.length}</span> photos au total
+            <button
+              className="hover:text-foreground underline underline-offset-2"
+              onClick={() => document.getElementById('gallery-full')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Tout afficher
+            </button>
           </div>
-        ))}
-      </div>
-
-      {activeImage && (
-        <Dialog open={Boolean(activeImage)} onOpenChange={() => setActiveImage(null)}>
-          <DialogContent className="max-w-4xl overflow-hidden border-zinc-800 bg-black/95 p-0 text-white">
-            <div className="relative flex aspect-[16/10] w-full items-center justify-center bg-black">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={activeImage.url}
-                alt={activeImage.altText ?? partName}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-            <div className="space-y-1 border-t border-zinc-800 bg-zinc-950 p-6">
-              <DialogTitle className="text-lg font-bold text-white">
-                {activeImage.caption ?? activeImage.altText ?? partName}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-zinc-300">
-                {activeImage.altText ?? partName}
-              </DialogDescription>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
