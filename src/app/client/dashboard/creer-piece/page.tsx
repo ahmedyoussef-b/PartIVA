@@ -48,6 +48,8 @@ const MATERIAL_OPTIONS = [
   { value: 'INCONNU', label: 'À déterminer par nos ingénieurs méthodes' },
 ];
 
+const DEBUG_PREFIX = '[DEBUG-CREER-PIECE]';
+
 export default function CreerPiecePage() {
   const [photos, setPhotos] = React.useState<UploadedPhoto[]>([
     {
@@ -76,7 +78,25 @@ export default function CreerPiecePage() {
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  React.useEffect(() => {
+    console.log(`${DEBUG_PREFIX} Composant monté`);
+    console.log(`${DEBUG_PREFIX} État initial:`, {
+      photosCount: photos.length,
+      partName,
+      machineRef,
+      material,
+      quantity,
+      urgency,
+      hasNotes: notes.length > 0,
+    });
+  }, []);
+
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
+    console.log(`${DEBUG_PREFIX} onDrop: ${acceptedFiles.length} fichier(s) accepté(s)`);
+    console.log(
+      `${DEBUG_PREFIX} Fichiers:`,
+      acceptedFiles.map((f) => ({ name: f.name, size: f.size, type: f.type })),
+    );
     const newItems: UploadedPhoto[] = acceptedFiles.map((file, idx) => ({
       id: `${Date.now()}-${idx}`,
       url: URL.createObjectURL(file),
@@ -96,29 +116,46 @@ export default function CreerPiecePage() {
   });
 
   const removePhoto = (id: string) => {
+    console.log(`${DEBUG_PREFIX} removePhoto: id=${id}`);
     setPhotos((prev) => prev.filter((p) => p.id !== id));
     toast.info('Photo supprimée.');
   };
 
   const updateTag = (id: string, newTag: string) => {
+    console.log(`${DEBUG_PREFIX} updateTag: id=${id}, newTag=${newTag}`);
     setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, tag: newTag } : p)));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log(`${DEBUG_PREFIX} === DÉBUT SOUMISSION ===`);
     e.preventDefault();
 
+    console.log(`${DEBUG_PREFIX} État du formulaire:`, {
+      photosCount: photos.length,
+      partName,
+      machineRef,
+      material,
+      quantity,
+      urgency,
+      notesLength: notes.length,
+    });
+
     if (photos.length === 0) {
+      console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: aucune photo`);
       toast.error('Veuillez ajouter au moins une photo de la pièce souhaitée.');
       return;
     }
 
+    console.log(`${DEBUG_PREFIX} Appel action serveur createRequest...`);
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
+      console.log(`${DEBUG_PREFIX} setTimeout simulé terminé - redirection vers /client/dashboard`);
       toast.success('Votre demande avec photos a été transmise à notre atelier CNC !');
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/client/dashboard';
     }, 1200);
+    console.log(`${DEBUG_PREFIX} === FIN SOUMISSION (setTimeout programmé) ===`);
   };
 
   return (
