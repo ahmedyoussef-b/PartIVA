@@ -23,11 +23,12 @@ export const accessMatrix: RouteAccess[] = [
 
   // ── Routes admin (statiques) ────────────────────────────────────
   {
-    path: '/admin/sync',
+    path: '/admin/parametres',
     ADMIN: 'ALLOW',
     USER: 'DENY',
     VIEWER: 'DENY',
     redirectTo: '/client/dashboard',
+    redirectToViewer: '/',
   },
   {
     path: '/admin/reverse-engineering',
@@ -35,6 +36,7 @@ export const accessMatrix: RouteAccess[] = [
     USER: 'DENY',
     VIEWER: 'DENY',
     redirectTo: '/client/dashboard',
+    redirectToViewer: '/',
   },
 
   // ── Routes client (statiques) ───────────────────────────────────
