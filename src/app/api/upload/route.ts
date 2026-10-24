@@ -1,55 +1,90 @@
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
-import { uploadToCloudinary, UploadError } from '@/lib/upload';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
+import { v2 as cloudinary } from 'cloudinary';
 
-const UploadRequestSchema = z.object({
-  folder: z.string().min(1).max(200),
-  data: z.string().min(1),
-  mimeType: z.string().min(1),
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ?? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function POST(req: Request) {
+const DEBUG_PREFIX = '[DEBUG-API-UPLOAD]';
+const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
+
+interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+}
+
+export async function POST(request: NextRequest) {
+  console.log(`${DEBUG_PREFIX} === DÉBUT UPLOAD ===`);
+
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      console.error(`${DEBUG_PREFIX} Aucun fichier fourni`);
+      return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
+    }
+
+    console.log(`${DEBUG_PREFIX} Fichier reçu:`, {
+      name: file.name,
+      size: file.size,
+      type: file.type,
     });
 
-    if (!session?.user) {
-      return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
+    if (!file.type.startsWith('image/')) {
+      console.error(`${DEBUG_PREFIX} Type de fichier invalide:`, file.type);
+      return NextResponse.json({ error: 'Seules les images sont acceptées' }, { status: 400 });
     }
 
-    const body = await req.json();
-    const validated = UploadRequestSchema.parse(body);
+    if (file.size > MAX_SIZE) {
+      console.error(`${DEBUG_PREFIX} Fichier trop volumineux:`, file.size);
+      return NextResponse.json(
+        { error: `Fichier trop volumineux (max 15MB)` },
+        { status: 400 },
+      );
+    }
 
-    const buffer = Buffer.from(validated.data, 'base64');
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const resourceType = validated.mimeType.startsWith('image/') ? 'image' : 'raw';
+    console.log(`${DEBUG_PREFIX} Upload vers Cloudinary...`);
 
-    const result = await uploadToCloudinary(
-      buffer,
-      validated.folder,
-      resourceType,
-      validated.mimeType,
-    );
+    const result = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'partiva/requests',
+          resource_type: 'auto',
+          transformation: [
+            { width: 1200, height: 1200, crop: 'limit' },
+            { quality: 'auto' },
+          ],
+        },
+        (error, result) => {
+          if (error) {
+            console.error(`${DEBUG_PREFIX} Erreur Cloudinary:`, error);
+            reject(error);
+          } else {
+            resolve(result as CloudinaryUploadResult);
+          }
+        },
+      );
+      uploadStream.end(buffer);
+    });
 
-    return NextResponse.json(result, { status: 201 });
+    console.log(`${DEBUG_PREFIX} ✅ Upload réussi:`, result.secure_url);
+
+    return NextResponse.json({
+      success: true,
+      url: result.secure_url,
+      public_id: result.public_id,
+    });
   } catch (error) {
-    if (error instanceof UploadError) {
-      const statusMap: Record<UploadError['code'], number> = {
-        INVALID_MIME: 400,
-        TOO_LARGE: 400,
-        UPLOAD_FAILED: 502,
-      };
-      return NextResponse.json({ message: error.message }, { status: statusMap[error.code] });
-    }
-
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json({ message: 'Payload invalide' }, { status: 400 });
-    }
-
-    console.error('Error uploading to Cloudinary:', error);
-    return NextResponse.json({ message: 'Erreur upload' }, { status: 400 });
+    console.error(`${DEBUG_PREFIX} 💥 EXCEPTION:`, error);
+    return NextResponse.json(
+      { error: (error as Error)?.message || 'Échec de l\'upload' },
+      { status: 500 },
+    );
   }
 }

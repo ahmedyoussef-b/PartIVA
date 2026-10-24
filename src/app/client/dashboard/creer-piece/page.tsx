@@ -28,6 +28,7 @@ import {
 interface UploadedPhoto {
   id: string;
   url: string;
+  file?: File;
   name: string;
   size: string;
   tag: string;
@@ -96,7 +97,8 @@ export default function CreerPiecePage() {
       urgency,
       hasNotes: notes.length > 0,
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Exécution unique au montage
 
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
     console.log(`${DEBUG_PREFIX} onDrop: ${acceptedFiles.length} fichier(s) accepté(s)`);
@@ -110,6 +112,7 @@ export default function CreerPiecePage() {
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       tag: 'Vue d’ensemble',
+      file,
     }));
 
     setPhotos((prev) => [...prev, ...newItems]);
@@ -182,6 +185,49 @@ export default function CreerPiecePage() {
         mapped: mappedUrgency,
       });
 
+      // ÉTAPE 1 : Upload des photos vers Cloudinary
+      console.log(`${DEBUG_PREFIX} Étape 1: Upload de ${photos.length} photo(s) vers Cloudinary...`);
+
+      const uploadedPhotoUrls: string[] = [];
+
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        if (!photo) continue;
+        console.log(`${DEBUG_PREFIX} Upload photo ${i + 1}/${photos.length}:`, photo.name);
+
+        try {
+          // Si la photo a un fichier associé (upload nouveau), l'envoyer à Cloudinary
+          if (photo.file) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', photo.file);
+
+            const uploadResponse = await fetch('/api/upload', {
+              method: 'POST',
+              body: uploadFormData,
+            });
+
+            if (!uploadResponse.ok) {
+              const errorData = await uploadResponse.json();
+              throw new Error(errorData.error || `Upload échoué: ${uploadResponse.statusText}`);
+            }
+
+            const uploadResult = await uploadResponse.json();
+            uploadedPhotoUrls.push(uploadResult.url);
+            console.log(`${DEBUG_PREFIX} ✅ Photo ${i + 1} uploadée:`, uploadResult.url);
+          } else {
+            // Photo préexistante (URL externe), utiliser telle quelle
+            uploadedPhotoUrls.push(photo.url);
+            console.log(`${DEBUG_PREFIX} Photo ${i + 1} déjà externe (URL):`, photo.url);
+          }
+        } catch (uploadError) {
+          console.error(`${DEBUG_PREFIX} ❌ Erreur upload photo ${i + 1}:`, uploadError);
+          toast.error(`Échec de l'upload de ${photo.name}: ${(uploadError as Error).message}`);
+          throw uploadError;
+        }
+      }
+
+      console.log(`${DEBUG_PREFIX} ✅ Toutes les photos uploadées:`, uploadedPhotoUrls);
+
       const input = {
         client: {
           name: clientName,
@@ -193,7 +239,7 @@ export default function CreerPiecePage() {
         suspectedMaterial: material,
         quantity: parseInt(quantity, 10) || 1,
         urgency: mappedUrgency,
-        photos: photos.map((p) => p.url),
+        photos: uploadedPhotoUrls,
       };
 
       console.log(`${DEBUG_PREFIX} Appel action serveur createRequest...`);

@@ -13,7 +13,7 @@ export type MappedRequest = {
   quantity: number;
   status: RequestStatus;
   urgency: RequestUrgency;
-  photos: string[];
+  photos: Array<string | { url: string; tag: string }>;
   createdAt: string;
   updatedAt: string;
   client: {
@@ -49,7 +49,11 @@ const UI_URGENCY_MAP: Record<string, RequestUrgency> = {
 
 export function mapRequestToUi(request: RequestWithRelations): MappedRequest {
   const photos = Array.isArray(request.photos)
-    ? request.photos.filter((p): p is string => typeof p === 'string')
+    ? request.photos.map((p) => {
+        if (typeof p === 'string') return p;
+        if (typeof p === 'object' && p !== null && 'url' in p) return p as { url: string; tag: string };
+        return String(p);
+      })
     : [];
 
   const status = UI_STATUS_MAP[request.status] ?? 'new';

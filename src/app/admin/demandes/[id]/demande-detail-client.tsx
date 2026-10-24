@@ -203,19 +203,37 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {request.photos.map((url, i) => (
-                  <div
-                    key={i}
-                    className="group bg-muted relative aspect-square overflow-hidden rounded-lg border"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={url}
-                      alt={`Photo ${i + 1}`}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    />
-                  </div>
-                ))}
+                {request.photos.map((photo, i) => {
+                  // Support ancien format (string) et nouveau (objet {url, tag})
+                  const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                  const photoTag = typeof photo === 'object' ? photo.tag : null;
+                  return (
+                    <div
+                      key={i}
+                      className="group bg-muted relative aspect-square overflow-hidden rounded-lg border"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoUrl}
+                        alt={photoTag || `Photo ${i + 1}`}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        onError={(e) => {
+                          console.error(
+                            `[DEBUG-ADMIN] Erreur chargement image:`,
+                            photoUrl,
+                          );
+                          (e.target as HTMLImageElement).src =
+                            '/placeholder-image.png';
+                        }}
+                      />
+                      {photoTag && (
+                        <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                          {photoTag}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

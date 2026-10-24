@@ -117,19 +117,22 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {request.photos.map((url, i) => (
-                  <div
-                    key={i}
-                    className="bg-muted relative aspect-square overflow-hidden rounded-lg border"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={url}
-                      alt={`Photo pièce ${i + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
+                {request.photos.map((photo, i) => {
+                  const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                  return (
+                    <div
+                      key={i}
+                      className="bg-muted relative aspect-square overflow-hidden rounded-lg border"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoUrl}
+                        alt={`Photo pièce ${i + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

@@ -41,14 +41,6 @@ export const RequestSchema = z.object({
 });
 export type Request = z.infer<typeof RequestSchema>;
 
-// Checks whether an object is a browser File or uploaded file data
-const isFile = (val: unknown): boolean => {
-  if (typeof File !== 'undefined' && val instanceof File) return true;
-  if (typeof val === 'object' && val !== null && 'name' in val && 'size' in val) return true;
-  if (typeof val === 'string' && val.length > 0) return true;
-  return false;
-};
-
 export const CreateRequestSchema = RequestSchema.pick({
   client: true,
   machineRef: true,
@@ -59,7 +51,7 @@ export const CreateRequestSchema = RequestSchema.pick({
   urgency: true,
 }).extend({
   photos: z
-    .array(z.custom<File>((val) => isFile(val), { message: 'Fichier invalide' }))
+    .array(z.string().url({ message: 'URL photo invalide' }))
     .min(1, 'Au moins une photo est requise')
     .max(10, 'Maximum 10 photos autorisées'),
 });

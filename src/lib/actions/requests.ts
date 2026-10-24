@@ -102,12 +102,8 @@ export async function createRequest(
     }
 
     console.log(`${DEBUG_PREFIX} Étape 3: Mapping des photos...`);
-    const photos =
-      validated.photos?.map((file) => {
-        if (typeof file === 'string') return file;
-        if (file instanceof File) return URL.createObjectURL(file);
-        return String(file);
-      }) ?? [];
+    // Les photos sont déjà des URLs Cloudinary (chaînes de caractères)
+    const photos = validated.photos ?? [];
     console.log(`${DEBUG_PREFIX} Photos mappées:`, photos.length, 'éléments');
 
     console.log(`${DEBUG_PREFIX} Étape 4: Création Prisma (prisma.request.create)...`);

@@ -67,13 +67,39 @@ export default function DemandePage() {
   const formValues = useWatch({ control });
 
   const onDrop = React.useCallback(
-    (acceptedFiles: File[]) => {
+    async (acceptedFiles: File[]) => {
       const currentPhotos = formValues.photos || [];
-      const newPhotos = [...currentPhotos, ...acceptedFiles].slice(0, 10);
+      const uploadedUrls: string[] = [];
+
+      for (const file of acceptedFiles) {
+        try {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: uploadFormData,
+          });
+
+          if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.json();
+            throw new Error(errorData.error || `Upload échoué: ${uploadResponse.statusText}`);
+          }
+
+          const uploadResult = await uploadResponse.json();
+          uploadedUrls.push(uploadResult.url);
+          toast.success(`${file.name} uploadée avec succès`);
+        } catch (err) {
+          console.error(`Erreur upload ${file.name}:`, err);
+          toast.error(`Échec de l'upload de ${file.name}`);
+        }
+      }
+
+      const newPhotos = [...currentPhotos, ...uploadedUrls].slice(0, 10);
       setValue('photos', newPhotos, { shouldValidate: true });
+
       const newUrls = acceptedFiles.map((f) => URL.createObjectURL(f));
       setPhotoPreviews((prev) => [...prev, ...newUrls].slice(0, 10));
-      toast.success(`${acceptedFiles.length} photo(s) ajoutée(s)`);
     },
     [formValues.photos, setValue],
   );
@@ -126,7 +152,7 @@ export default function DemandePage() {
       valid = await trigger(['partDescription']);
     } else if (currentStep === 4) {
       if ((formValues.photos || []).length === 0) {
-        setValue('photos', [] as File[], { shouldValidate: true });
+        setValue('photos', [], { shouldValidate: true });
         setPhotoPreviews([]);
         valid = true;
       } else {

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useDropzone } from 'react-dropzone';
 import { X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export interface UploadedImage {
   id: string;
@@ -123,9 +124,12 @@ export function ImageUploader({
                 key={image.id}
                 className="group bg-card relative overflow-hidden rounded-lg border"
               >
-                <img
+                <Image
                   src={image.preview}
-                  alt={image.file.name}
+                  alt={image.tag || 'Photo de la pièce'}
+                  width={400}
+                  height={192}
+                  unoptimized
                   className="h-48 w-full object-cover"
                 />
                 <button
