@@ -8,13 +8,14 @@
 
 ### `D-E23-PRISMA-POOLER-TIMEOUT` — Timeout Prisma adapter-pg sur pooler Neon
 
-- **Statut :** Active
+- **Statut :** Résolue
 - **Cause :** `adapter-pg` de Prisma 7 décroche sur le endpoint pooler Neon avec `channel_binding=require`. Le raw `pg` répond en ~640 ms sur la même URL.
 - **Périmètre :** `src/lib/prisma.ts`, `prisma/schema.prisma`, CI/CD.
-- **Effort estimé :** Faible (1 run de build valide à confirmer).
-- **Bloquant :** Non (bloque la validation du build complet et l'exécution E2E).
-- **Condition de résolution :** 2 à 3 builds consécutifs verts sur le pooler Neon.
-- **Prochaine session :** Bloquée par `D-E26-CI-BRANCH-MISMATCH` (aucun run CI disponible pour vérifier les builds).
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** 2 à 3 builds consécutifs verts sur le pooler Neon. ✅ (3 runs CI consécutifs validés en session E34).
+- **Résolue en :** session E34 (2026-10-24).
+- **Preuve empirique :** `docs/infrastructure/E34-POOLER-STABILITY-LOG.md` — 3 runs verts consécutifs (b4052e2, 915c402, 9a9a903), 0 erreur DB (P1001/P1017/Timeout).
 
 ### `D-E24-E2E-TIMEOUT-SOURCES` — Timeout des tests `source=all`
 

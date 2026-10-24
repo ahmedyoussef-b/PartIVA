@@ -44,7 +44,7 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 
 ## 4. Blocages
 
-- **D-E23-PRISMA-POOLER-TIMEOUT :** Un seul build vert. La dette reste active jusqu'à 2-3 runs consécutifs.
+- **D-E23-PRISMA-POOLER-TIMEOUT :** Résolue — 3 runs CI consécutifs verts sur le pooler Neon (session E34). Preuve : `docs/infrastructure/E34-POOLER-STABILITY-LOG.md`.
 - **D-E22-PART-STATUS-BADGE :** Composant mixte Server/Client (fonctionnel).
 - **D-E14-PRINT-ON-DEMAND :** Acceptée (facteur externe).
 
