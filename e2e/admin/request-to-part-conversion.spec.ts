@@ -14,7 +14,7 @@ import { accessMatrix } from '../fixtures/access-matrix';
 
 async function getCandidateRequestId(): Promise<string> {
   const requests = await prisma.request.findMany({
-    where: { status: 'candidate_found' },
+    where: { status: 'ACCEPTED' },
     orderBy: { createdAt: 'desc' },
     take: 1,
     select: { id: true },
@@ -26,7 +26,7 @@ async function getCandidateRequestId(): Promise<string> {
     );
   }
 
-  return requests[0].id;
+  return requests[0]!.id;
 }
 
 const staticRequestRoutes = accessMatrix.filter((r) => r.dynamicId === 'request');
@@ -82,7 +82,7 @@ for (const route of staticRequestRoutes) {
       await expect(page.getByRole('tab', { name: /images/i })).toBeFocused();
       await expect(page.getByTestId('gallery-grid')).toBeVisible();
       // Le composant PartImageGallery génère un <img /> pour chaque image
-      await expect(page.locator('img')).toHaveCount({ minimum: 1 });
+      await expect(page.locator('img')).toHaveCount(1);
     });
   });
 }

@@ -47,7 +47,7 @@ for (const route of staticPieceRoutes) {
       const fileChooserPromise = page.waitForEvent('filechooser');
       await fileInput.setInputFiles(testImagePath);
       const fileChooser = await fileChooserPromise;
-      await fileChooser.accept(['e2e/fixtures/test-part.jpg']);
+      await fileChooser.setFiles(['e2e/fixtures/test-part.jpg']);
 
       // 5. Soumettre
       await page.getByRole('button', { name: /soumettre/i }).click();
