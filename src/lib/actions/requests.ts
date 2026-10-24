@@ -153,14 +153,32 @@ export async function createRequest(
     console.error(`${DEBUG_PREFIX} Error stack:`, error instanceof Error ? error.stack : undefined);
 
     if (error && typeof error === 'object' && 'errors' in error) {
-      console.error(
-        `${DEBUG_PREFIX} Erreur validation Zod:`,
-        (error as { errors: unknown }).errors,
-      );
+      const zodErr = error as { errors: Array<{ path: Array<string | number>; message: string }> };
+      console.error(`${DEBUG_PREFIX} Erreur validation Zod:`, zodErr.errors);
+      return {
+        success: false,
+        error: `Validation: ${zodErr.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+      };
     }
 
-    console.error(`${DEBUG_PREFIX} === FIN ACTION SERVEUR (ÉCHEC) ===`);
-    return { success: false, error: 'Erreur lors de la création de la demande' };
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      typeof (error as { code: unknown }).code === 'string'
+    ) {
+      console.error(`${DEBUG_PREFIX} Erreur Prisma code:`, (error as { code: string }).code);
+      return {
+        success: false,
+        error: `Base de données (code ${(error as { code: string }).code}): ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+
+    // Retourne le message d'erreur exact au client pour debug
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
+    };
   }
 }
 
