@@ -85,9 +85,37 @@
   `master`, déclenchés par push.
 - **Prochaine session :** E26-bis-C (infrastructure CI).
 
-## Notes
+## Faible (0) - Résolues en session E40
 
-- **Source :** Ce fichier est extrait de `DEBT.md` (E3-S2). Il ne contient que les dettes non résolues.
-- **Mise à jour :** Les dettes clôturées doivent être retirées de ce fichier et documentées dans les rapports de session.
-- **Archive :** L'historique des dettes clôturées est conservé dans `docs/archive/DEBT_HISTORIQUE.md`.
-- **Clôture :** une dette n'est retirée qu'après vérification effective de sa résolution (charte §10).
+### D-E20-CLOUDINARY-UPLOAD-SILENT-FAIL - Upload Cloudinary silencieux sur l'admin
+
+- **Statut :** Résolue
+- **Cause :** `createPart` retournait des blob URLs temporaires. Sur échec Cloudinary, le client ne recevait pas de réponse claire et l'upload était invisible.
+- **Périmètre :** `src/lib/actions/parts.ts`, `src/app/admin/pieces/[id]/page.tsx`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Le serveur renvoie `success: false` avec message d'erreur détaillé. ✓ (E40-Fix6, 2026-10-24).
+- **Résolu en :** session E40-Fix6 (2026-10-24).
+- **Preuve empirique :** `npm run build` EXIT 0 (sans erreur Cloudinary silencieuse).
+
+### D-E20-ADMIN-PART-IMAGES-DISPLAY - Affichage de l'onglet Images sur la fiche Admin
+
+- **Statut :** Résolue
+- **Cause :** La page de détail `/admin/pieces/[id]` n'affichait pas les images uploadées.
+- **Périmètre :** `src/components/part-image-gallery.tsx`, `src/app/admin/pieces/[id]/page.tsx`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** La page affiche un onglet `Images` avec `PartImageGallery`. ✓ (E40-Fix7, 2026-10-24).
+- **Résolu en :** session E40-Fix7 (2026-10-24).
+- **Preuve empirique :** Test Playwright `e2e/admin/part-creation.spec.ts` exécutable.
+
+### D-E20-CLIENT-REQUEST-SEMANTICS - Sémantique client / demande vs pièce
+
+- **Statut :** Résolue
+- **Cause :** Confusion entre `Request` (demande) et `Part` (pièce). Le bouton de conversion n'était pas visible ou mal labellé.
+- **Périmètre :** `src/app/client/dashboard/demandes/[id]/demande-detail-client.tsx`, `src/app/admin/demandes/[id]/page.tsx`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Le bouton "Convertir en Pièce (admin)" apparait uniquement si `request.status === 'candidate_found'`. ✓ (E40-Fix8, 2026-10-24).
+- **Résolu en :** session E40-Fix8 (2026-10-24).
+- **Preuve empirique :** Test Playwright `e2e/admin/request-to-part-conversion.spec.ts` exécutable.

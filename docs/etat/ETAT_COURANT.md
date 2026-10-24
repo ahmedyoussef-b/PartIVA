@@ -1,8 +1,8 @@
 # ÉTAT COURANT — PartIVA
 
 **Dernière mise à jour :** 2026-10-24
-**Commit HEAD :** à préciser (commit groupé E32-Bis en cours)
-**Phase en cours :** E32-Bis — Remédiation bloquants CI avant commit (terminée)
+**Commit HEAD :** 53b6ad1 (E40-Fix6/7/8 + documentation)
+**Phase en cours :** E40-Fix — Clôture administrative de la session
 **Statut du projet :** CI-ready
 
 ## 1. Objectif actuel
@@ -42,6 +42,9 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **E31** (design, ✅ terminé) : travaux de design en attente dans l'arbre de travail — intégrés au commit groupé E32-Bis.
 - **E32** (KPI réels, ✅ terminé) : endpoint `/api/dashboard/kpi` alimentant le dashboard avec données réelles ; erreurs ESLint corrigées ; encodage UTF-8 restauré.
 - **E40-Fix** (bouton "Nouveau projet RE", ✅ terminé) : page `/admin/reverse-engineering/new` créée avec formulaire de création de projet RE ; bouton connecté via `<Link href="/admin/reverse-engineering/new">` dans `reverse-engineering-list-client.tsx` ; action serveur `createREProjectFromForm` ajoutée dans `src/lib/actions/reverse-engineering.ts`. Validation : typecheck EXIT 0, lint EXIT 0, build EXIT 0.
+- **E40-Fix6** (upload Cloudinary, ✅ terminé) : correction de `createPart` pour gérer les erreurs d'upload Cloudinary. Les échecs précédents étaient silencieux (blob URLs temporaires) ; le serveur renvoie maintenant `success: false` avec message d'erreur. Fix nommé `D-E20-CLOUDINARY-UPLOAD-SILENT-FAIL`.
+- **E40-Fix7** (onglet Images, ✅ terminé) : intégration de l'onglet `Images` dans la page de détail `/admin/pieces/[id]` via `PartImageGallery`. La consultation des images est désormais possible quel que soit le point d'entrée. Fix nommé `D-E20-ADMIN-PART-IMAGES-DISPLAY`.
+- **E40-Fix8** (sémantique Client, ✅ terminé) : clarification de la sémantique entre `Request` et `Part`. Ajout du bouton "Convertir en Pièce (admin)" dans le détail des demandes (`/admin/demandes/[id]`) pour migrer automatiquement une demande validée (`candidate_found`) vers le catalogue de pièces avec ses photos. Fix nommé `D-E20-CLIENT-REQUEST-SEMANTICS`.
 
 ## 4. Blocages
 
@@ -69,7 +72,17 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock` — sa présence signalerait que les secrets GitHub ne sont pas alignés sur `e2e/fixtures/users.ts`.
 - **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
 
-## 7. Notes
+## 8. Dernières Améliorations — Session E40
 
-- `CONTEXT.md` (ancien) est archivé dans `docs/archive/CONTEXT.md`.
-- `DEBT.md` (ancien) a été scindé en `DETTES.md` (actives) + archive (clôturées) en E3-S2, puis archivé dans `docs/archive/DEBT.md`.
+### 🛠️ Améliorations Récentes (Session E40)
+
+- **Flux Admin (Création de Pièce) :** Sécurisation de l'upload Cloudinary. Les échecs d'upload bloquent désormais la création et affichent un message d'erreur explicite (fin des échecs silencieux). Fix `D-E20-CLOUDINARY-UPLOAD-SILENT-FAIL` (E40-Fix6).
+- **Affichage Admin :** Intégration de l'onglet `Images` (via `PartImageGallery`) dans la page de détail `/admin/pieces/[id]` pour une consultation cohérente, quel que soit le point d'entrée. Fix `D-E20-ADMIN-PART-IMAGES-DISPLAY` (E40-Fix7).
+- **Flux Client :** Clarification sémantique. Le bouton est désormais libellé "Soumettre la demande de pièce". Distinction claire entre "Demande" (Request) et "Pièce" (Part), avec un pont de conversion Admin. Fix `D-E20-CLIENT-REQUEST-SEMANTICS` (E40-Fix8).
+
+### 🔒 Blocages et Points de Vigilance
+
+- **E40-Fix** clôturé : l'ensemble des corrections E40-Fix6/7/8 est maintenant stable et documenté.
+- `E2E (Playwright)` est désormais un check requis sur `master`.
+- **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock`.
+- **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
