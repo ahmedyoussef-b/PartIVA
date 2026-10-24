@@ -23,8 +23,7 @@ const badgeVariants = cva(
         critical:
           'border-transparent bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/30 animate-pulse',
         tech: 'border-transparent bg-tech-primary text-white shadow hover:bg-tech-accent',
-        'tech-outline':
-          'border-tech-border text-tech-primary hover:bg-tech-primary/10',
+        'tech-outline': 'border-tech-border text-tech-primary hover:bg-tech-primary/10',
       },
     },
     defaultVariants: {

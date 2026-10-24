@@ -77,7 +77,7 @@ function TableHead({
     <th
       ref={ref}
       className={cn(
-        'h-11 px-4 text-left align-middle font-heading text-xs font-semibold uppercase tracking-wider text-gray-500 [&:has([role=checkbox])]:pr-0',
+        'font-heading h-11 px-4 text-left align-middle text-xs font-semibold tracking-wider text-gray-500 uppercase [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}
