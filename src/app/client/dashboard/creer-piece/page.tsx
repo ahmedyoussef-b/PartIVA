@@ -167,6 +167,21 @@ export default function CreerPiecePage() {
     try {
       console.log(`${DEBUG_PREFIX} Construction de l'input createRequest...`);
 
+      // Mapping des valeurs d'urgence du formulaire vers les valeurs techniques Zod
+      const urgencyMap: Record<string, 'low' | 'normal' | 'high' | 'critical'> = {
+        normal: 'normal',
+        urgent: 'high',
+        critical: 'critical',
+        low: 'low',
+        high: 'high',
+      };
+      const mappedUrgency = urgencyMap[urgency] ?? 'normal';
+
+      console.log(`${DEBUG_PREFIX} Mapping urgence:`, {
+        original: urgency,
+        mapped: mappedUrgency,
+      });
+
       const input = {
         client: {
           name: clientName,
@@ -177,7 +192,7 @@ export default function CreerPiecePage() {
         partFunction: notes || undefined,
         suspectedMaterial: material,
         quantity: parseInt(quantity, 10) || 1,
-        urgency,
+        urgency: mappedUrgency,
         photos: photos.map((p) => p.url),
       };
 
