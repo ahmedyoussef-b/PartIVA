@@ -1,10 +1,5 @@
 import path from 'path';
 
-const imageLoader = ({ src }) => {
-  if (!src) return src;
-  return src;
-};
-
 /** @type {import('next').NextConfig} */
 const isExport = process.env.NEXT_EXPORT === 'true';
 
@@ -18,7 +13,8 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.traceparts.com' },
     ],
     unoptimized: isExport,
-    loader: imageLoader,
+    loader: 'cloudinary',
+    path: 'https://res.cloudinary.com/dl8ngmflh/image/upload/',
   },
   turbopack: {
     root: path.resolve(process.cwd()),

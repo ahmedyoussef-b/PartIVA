@@ -140,7 +140,9 @@ export async function createPart(
         const errorMsg = failedUploads
           .map((f) => `Image ${f.index + 1} (${f.fileName}): ${f.error}`)
           .join('. ');
-        console.error(`${DEBUG_PREFIX} ❌ ${failedUploads.length} image(s) n'ont pas pu être uploadées`);
+        console.error(
+          `${DEBUG_PREFIX} ❌ ${failedUploads.length} image(s) n'ont pas pu être uploadées`,
+        );
         return {
           success: false,
           error: `${failedUploads.length} image(s) n'ont pas pu être uploadées. La pièce a été créée mais sans ces images : ${errorMsg}.`,

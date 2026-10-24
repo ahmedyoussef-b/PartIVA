@@ -9,13 +9,24 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 
 interface PartImageGalleryProps {
-  images: { id: string; url: string; altText?: string | null; caption?: string | null; order?: number }[];
+  images: {
+    id: string;
+    url: string;
+    altText?: string | null;
+    caption?: string | null;
+    order?: number;
+  }[];
   primaryImage?: string | null;
   className?: string;
   partName?: string;
 }
 
-export default function PartImageGallery({ images, primaryImage, partName, className }: PartImageGalleryProps) {
+export default function PartImageGallery({
+  images,
+  primaryImage,
+  partName,
+  className,
+}: PartImageGalleryProps) {
   const hasImages = images.length > 0;
 
   if (!hasImages) {
@@ -26,7 +37,7 @@ export default function PartImageGallery({ images, primaryImage, partName, class
           <CardDescription>Aucune image disponible pour cette pièce.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex h-40 items-center justify-center rounded-md border border-dashed border-gray-300 bg-muted/50">
+          <div className="bg-muted/50 flex h-40 items-center justify-center rounded-md border border-dashed border-gray-300">
             <p className="text-muted-foreground text-sm">Aucune image téléchargée</p>
           </div>
         </CardContent>
@@ -58,7 +69,7 @@ export default function PartImageGallery({ images, primaryImage, partName, class
             </Button>
           ))}
           <Button variant="outline" size="sm" className="h-8 px-3">
-            <Plus className="h-3.5 w-3.5 mr-1" />
+            <Plus className="mr-1 h-3.5 w-3.5" />
             Ajouter
           </Button>
         </div>
@@ -68,8 +79,10 @@ export default function PartImageGallery({ images, primaryImage, partName, class
           {images.map((img) => (
             <div
               key={img.id}
-              className={`relative aspect-video rounded-md overflow-hidden border-2 transition-shadow ${
-                primaryImage === img.url ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-gray-300'
+              className={`relative aspect-video overflow-hidden rounded-md border-2 transition-shadow ${
+                primaryImage === img.url
+                  ? 'border-primary ring-primary/20 ring-2'
+                  : 'border-transparent hover:border-gray-300'
               }`}
             >
               <Image
@@ -93,7 +106,7 @@ export default function PartImageGallery({ images, primaryImage, partName, class
               </div>
               <Badge
                 variant="secondary"
-                className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white"
+                className="absolute bottom-1 left-1 bg-black/60 text-[10px] text-white"
               >
                 {img.caption || `Image ${img.order ? img.order + 1 : '1'}`}
               </Badge>
@@ -101,11 +114,13 @@ export default function PartImageGallery({ images, primaryImage, partName, class
           ))}
         </div>
         {images.length > 4 && (
-          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="text-muted-foreground mt-3 flex items-center justify-center gap-2 text-xs">
             <span className="font-medium">{images.length}</span> photos au total
             <button
               className="hover:text-foreground underline underline-offset-2"
-              onClick={() => document.getElementById('gallery-full')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() =>
+                document.getElementById('gallery-full')?.scrollIntoView({ behavior: 'smooth' })
+              }
             >
               Tout afficher
             </button>

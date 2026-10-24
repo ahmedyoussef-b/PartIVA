@@ -9,12 +9,7 @@ import PartImageGallery from '@/components/part-image-gallery';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { UserRole } from '@/generated/prisma/client';
 
 export default async function AdminPieceDetailPage({
@@ -132,7 +127,7 @@ export default async function AdminPieceDetailPage({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details">Détails</TabsTrigger>
               <TabsTrigger value="images">
-                <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                <ImageIcon className="mr-1.5 h-3.5 w-3.5" />
                 Images ({part.images?.length || 0})
               </TabsTrigger>
             </TabsList>
@@ -149,7 +144,9 @@ export default async function AdminPieceDetailPage({
                       <dd className="font-mono text-sm">{part.ptvReference ?? '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground text-xs font-medium">N° pièce (legacy)</dt>
+                      <dt className="text-muted-foreground text-xs font-medium">
+                        N° pièce (legacy)
+                      </dt>
                       <dd className="font-mono text-sm">{part.partNumber}</dd>
                     </div>
                     <div>
@@ -181,7 +178,10 @@ export default async function AdminPieceDetailPage({
                   <CardContent>
                     <dl className="divide-border divide-y">
                       {part.specifications.map((spec) => (
-                        <div key={spec.id} className="flex items-baseline justify-between gap-4 py-2">
+                        <div
+                          key={spec.id}
+                          className="flex items-baseline justify-between gap-4 py-2"
+                        >
                           <dt className="text-muted-foreground text-xs font-medium">{spec.key}</dt>
                           <dd className="text-right font-mono text-sm">
                             {spec.value}

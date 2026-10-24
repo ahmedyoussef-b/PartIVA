@@ -20,7 +20,7 @@ for (const route of staticPieceRoutes) {
   if (route.ADMIN !== 'ALLOW') continue;
 
   test.describe(`ADMIN création pièce — ${route.path}`, () => {
-    test('créer une pièce et voir l\'onglet Images avec l\'image uploadée', async ({
+    test("créer une pièce et voir l'onglet Images avec l'image uploadée", async ({
       page,
       request,
     }) => {
@@ -57,7 +57,10 @@ for (const route of staticPieceRoutes) {
       await expect(page.getByText(/pièce de test/i)).toBeVisible();
 
       // 7. Cliquer sur la pièce pour ouvrir le détail
-      await page.getByText(/pièce de test/i).first().click();
+      await page
+        .getByText(/pièce de test/i)
+        .first()
+        .click();
       await expect(page).toHaveURL(/\/admin\/pieces\//, { timeout: 30_000 });
 
       // 8. Vérifier l'onglet "Images" est présent
