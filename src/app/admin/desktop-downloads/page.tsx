@@ -82,8 +82,28 @@ export default function DesktopDownloadsPage() {
   }, []);
 
   React.useEffect(() => {
-    fetchBuilds();
-  }, [fetchBuilds]);
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/desktop-builds');
+        if (!res.ok) throw new Error('Erreur lors du chargement');
+        const data = await res.json();
+        if (mounted) setBuilds(data.builds || []);
+      } catch (e) {
+        if (mounted) {
+          setError(e instanceof Error ? e.message : 'Erreur inconnue');
+          setBuilds([]);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -152,7 +172,7 @@ export default function DesktopDownloadsPage() {
       )}
 
       {latestBuild && (
-        <Card className="mb-6 border-primary/20">
+        <Card className="border-primary/20 mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -160,7 +180,9 @@ export default function DesktopDownloadsPage() {
                   <FileDown className="h-5 w-5" />
                   Dernière version
                 </CardTitle>
-                <CardDescription>Version recommandée pour la plupart des utilisateurs</CardDescription>
+                <CardDescription>
+                  Version recommandée pour la plupart des utilisateurs
+                </CardDescription>
               </div>
               <Badge variant="secondary">v{latestBuild.version}</Badge>
             </div>
@@ -200,13 +222,13 @@ export default function DesktopDownloadsPage() {
           ) : builds.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               Aucun installateur disponible pour le moment.
-              {isAdmin && " Utilisez le bouton ci-dessus pour en ajouter un."}
+              {isAdmin && ' Utilisez le bouton ci-dessus pour en ajouter un.'}
             </p>
           ) : (
             <div className="rounded-md border">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-muted/50">
+                  <tr className="bg-muted/50 border-b">
                     <th className="p-3 text-left">Version</th>
                     <th className="p-3 text-left">OS</th>
                     <th className="p-3 text-left">Architecture</th>
@@ -219,7 +241,7 @@ export default function DesktopDownloadsPage() {
                 </thead>
                 <tbody>
                   {builds.map((build) => (
-                    <tr key={build.id} className="border-b hover:bg-muted/30">
+                    <tr key={build.id} className="hover:bg-muted/30 border-b">
                       <td className="p-3 font-medium">v{build.version}</td>
                       <td className="p-3">
                         <Badge variant="outline" className={getOsBadgeColor(build.os)}>
@@ -263,16 +285,16 @@ export default function DesktopDownloadsPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-start gap-2">
-            <Shield className="mt-0.5 h-4 w-4 text-muted-foreground" />
+            <Shield className="text-muted-foreground mt-0.5 h-4 w-4" />
             <p className="text-muted-foreground">
-              <strong className="text-foreground">Windows :</strong> Un avertissement SmartScreen peut
-              apparaître lors de la première exécution car l&apos;application n&apos;est pas encore
-              signée avec un certificat de confiance.
+              <strong className="text-foreground">Windows :</strong> Un avertissement SmartScreen
+              peut apparaître lors de la première exécution car l&apos;application n&apos;est pas
+              encore signée avec un certificat de confiance.
             </p>
           </div>
           <p className="text-muted-foreground text-xs">
-            Placez vos installateurs dans le dossier <code>public/builds/</code> ou utilisez le bouton
-            d&apos;upload si vous êtes administrateur.
+            Placez vos installateurs dans le dossier <code>public/builds/</code> ou utilisez le
+            bouton d&apos;upload si vous êtes administrateur.
           </p>
         </CardContent>
       </Card>

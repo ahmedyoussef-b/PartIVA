@@ -92,9 +92,9 @@ export async function GET() {
         filename: entry,
         size: stats.size,
         downloadUrl: `/builds/${encodeURIComponent(entry)}`,
-        checksum,
+        ...(checksum === undefined ? {} : { checksum }),
         publishedAt: stats.mtime.toISOString(),
-      });
+      } as DesktopBuild);
     }
 
     builds.sort((a, b) => {
