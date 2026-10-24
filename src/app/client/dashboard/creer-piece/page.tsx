@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { createRequest } from '@/lib/actions/requests';
 import {
   UploadCloud,
   X,
@@ -20,6 +22,7 @@ import {
   Layers,
   PackageCheck,
   Tag,
+  Loader2,
 } from 'lucide-react';
 
 interface UploadedPhoto {
@@ -76,7 +79,11 @@ export default function CreerPiecePage() {
   const [notes, setNotes] = React.useState(
     'Présence d’arrachement de matière sur 3 dents. Merci de respecter le diamètre d’arbre de 25mm avec tolérance H7.',
   );
+  const [clientName, setClientName] = React.useState('Client démonstration');
+  const [clientEmail, setClientEmail] = React.useState('client@demo.fr');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const router = useRouter();
 
   React.useEffect(() => {
     console.log(`${DEBUG_PREFIX} Composant monté`);
@@ -126,8 +133,8 @@ export default function CreerPiecePage() {
     setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, tag: newTag } : p)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    console.log(`${DEBUG_PREFIX} === DÉBUT SOUMISSION ===`);
+  const handleSubmit = async (e: React.FormEvent) => {
+    console.log(`${DEBUG_PREFIX} === DÉBUT SOUMISSION RÉELLE ===`);
     e.preventDefault();
 
     console.log(`${DEBUG_PREFIX} État du formulaire:`, {
@@ -138,6 +145,8 @@ export default function CreerPiecePage() {
       quantity,
       urgency,
       notesLength: notes.length,
+      clientName,
+      clientEmail,
     });
 
     if (photos.length === 0) {
@@ -146,16 +155,59 @@ export default function CreerPiecePage() {
       return;
     }
 
-    console.log(`${DEBUG_PREFIX} Appel action serveur createRequest...`);
+    if (!clientName || !clientEmail) {
+      console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: infos client manquantes`);
+      toast.error('Veuillez indiquer votre nom et email.');
+      return;
+    }
+
     setIsSubmitting(true);
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      console.log(`${DEBUG_PREFIX} Construction de l'input createRequest...`);
+
+      const input = {
+        client: {
+          name: clientName,
+          email: clientEmail,
+        },
+        machineRef: machineRef || undefined,
+        partDescription: partName,
+        partFunction: notes || undefined,
+        suspectedMaterial: material,
+        quantity: parseInt(quantity, 10) || 1,
+        urgency,
+        photos: photos.map((p) => p.url),
+      };
+
+      console.log(`${DEBUG_PREFIX} Appel action serveur createRequest...`);
+      const result = await createRequest(input);
+
+      console.log(`${DEBUG_PREFIX} Réponse action serveur:`, {
+        success: result.success,
+        requestId: result.success ? result.data.id : undefined,
+        error: !result.success ? result.error : undefined,
+      });
+
+      if (result.success) {
+        console.log(`${DEBUG_PREFIX} ✅ Succès - ID demande:`, result.data.id);
+        toast.success('Demande soumise avec succès');
+        router.push('/client/dashboard');
+      } else {
+        console.error(`${DEBUG_PREFIX} ❌ Échec:`, result.error);
+        setError(result.error || 'Erreur inconnue');
+        toast.error(result.error || 'Erreur lors de la soumission');
+      }
+    } catch (err) {
+      console.error(`${DEBUG_PREFIX} 💥 Exception:`, err);
+      console.error(`${DEBUG_PREFIX} Stack:`, err instanceof Error ? err.stack : undefined);
+      setError(err instanceof Error ? err.message : 'Erreur inattendue');
+      toast.error('Erreur inattendue lors de la soumission');
+    } finally {
       setIsSubmitting(false);
-      console.log(`${DEBUG_PREFIX} setTimeout simulé terminé - redirection vers /client/dashboard`);
-      toast.success('Votre demande avec photos a été transmise à notre atelier CNC !');
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = '/client/dashboard';
-    }, 1200);
-    console.log(`${DEBUG_PREFIX} === FIN SOUMISSION (setTimeout programmé) ===`);
+      console.log(`${DEBUG_PREFIX} === FIN SOUMISSION ===`);
+    }
   };
 
   return (
@@ -189,6 +241,46 @@ export default function CreerPiecePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* SECTION 0: INFORMATIONS CLIENT */}
+
+        <Card className="border-border shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Tag className="text-primary h-5 w-5" />
+              0. Informations client
+            </CardTitle>
+            <CardDescription>
+              Vos coordonnées nous permettent de vous identifier et de créer votre demande.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 space-y-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="clientName">
+                Nom / Société <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="clientName"
+                type="text"
+                placeholder="Ex: SARL Méca Precision"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="clientEmail">
+                Email <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="clientEmail"
+                type="email"
+                placeholder="exemple@entreprise.fr"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* SECTION 1: ZONE D'UPLOAD PHOTOS MULTIPLES */}
         <Card className="border-border shadow-sm">
           <CardHeader className="pb-3">
@@ -435,11 +527,14 @@ export default function CreerPiecePage() {
             </Link>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || photos.length === 0}
               className="w-full gap-2 px-6 font-bold shadow-md sm:w-auto"
             >
               {isSubmitting ? (
-                'Transmission en cours...'
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Soumission en cours...
+                </>
               ) : (
                 <>
                   Envoyer la demande de refabrication
@@ -449,6 +544,12 @@ export default function CreerPiecePage() {
             </Button>
           </div>
         </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <strong>Erreur :</strong> {error}
+          </div>
+        )}
       </form>
     </div>
   );
