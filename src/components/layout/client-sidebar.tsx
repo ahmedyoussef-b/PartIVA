@@ -53,10 +53,10 @@ export function ClientSidebar() {
   const { open } = useSidebar();
 
   return (
-    <Sidebar className="border-r border-white/10 bg-tech-navy text-white">
+    <Sidebar className="bg-tech-navy border-r border-white/10 text-white">
       <SidebarHeader className="border-b border-white/10">
         <Link href="/client/dashboard" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-tech-primary shadow-tech-glow">
+          <div className="bg-tech-primary shadow-tech-glow flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
             <Cog className="h-5 w-5 text-white" />
           </div>
           {open && (
@@ -64,7 +64,7 @@ export function ClientSidebar() {
               <span className="font-heading text-sm leading-none font-bold tracking-tight text-white">
                 PartIVA
               </span>
-              <span className="mt-1 font-mono text-[9px] uppercase tracking-wider text-white/60">
+              <span className="mt-1 font-mono text-[9px] tracking-wider text-white/60 uppercase">
                 Espace Client
               </span>
             </div>
@@ -78,7 +78,7 @@ export function ClientSidebar() {
             <Link href="/client/dashboard/creer-piece">
               <Button
                 size="sm"
-                className="w-full gap-2 rounded-lg bg-tech-primary font-semibold text-white shadow-tech-glow hover:bg-tech-primary-deep"
+                className="bg-tech-primary shadow-tech-glow hover:bg-tech-primary-deep w-full gap-2 rounded-lg font-semibold text-white"
               >
                 <PlusCircle className="h-4 w-4" />
                 Uploader une pièce
@@ -107,7 +107,7 @@ export function ClientSidebar() {
                   href={item.href}
                   active={active}
                   title={item.label}
-                  className="group h-9 gap-2.5 rounded-lg px-2.5 text-white/70 transition-all hover:bg-white/10 hover:text-white data-[active=true]:bg-tech-primary data-[active=true]:text-white data-[active=true]:shadow-tech-glow"
+                  className="group data-[active=true]:bg-tech-primary data-[active=true]:shadow-tech-glow h-9 gap-2.5 rounded-lg px-2.5 text-white/70 transition-all hover:bg-white/10 hover:text-white data-[active=true]:text-white"
                 >
                   <Icon className="h-4 w-4 shrink-0" />
                   {open && <span className="flex-1 truncate text-sm">{item.label}</span>}

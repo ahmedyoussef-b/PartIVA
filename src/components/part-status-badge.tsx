@@ -120,7 +120,7 @@ export function PartStatusBadge({ status, className }: PartStatusBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 font-sans text-xs font-medium uppercase tracking-wide transition-colors',
+        'inline-flex items-center rounded-full border px-2.5 py-0.5 font-sans text-xs font-medium tracking-wide uppercase transition-colors',
         styles,
         className,
       )}
