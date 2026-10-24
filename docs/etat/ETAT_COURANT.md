@@ -46,7 +46,6 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 
 - **D-E23-PRISMA-POOLER-TIMEOUT :** Un seul build vert. La dette reste active jusqu'à 2-3 runs consécutifs.
 - **D-E22-PART-STATUS-BADGE :** Composant mixte Server/Client (fonctionnel).
-- **D-E26-LEGACY-KILOCODE :** Fichier hérité `.kilocode/rules.md` (Faible).
 - **D-E14-PRINT-ON-DEMAND :** Acceptée (facteur externe).
 
 ## 5. Décisions ayant un effet opérationnel

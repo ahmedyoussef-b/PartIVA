@@ -50,13 +50,13 @@
 
 ### `D-E26-LEGACY-KILOCODE` — Fichier hérité `.kilocode/rules.md`
 
-- **Statut :** Active
-- **Cause :** `.kilocode/rules.md` contient 5 références mortes vers `PCT.md` et `SESSION.md` (archivés en E6). Le répertoire `.kilocode/` est un héritage remplacé par `.kilo/`.
+- **Statut :** Résolue
+- **Cause :** `.kilocode/rules.md` contenait 5 références mortes vers `PCT.md` et `SESSION.md` (archivés en E6). Le répertoire `.kilocode/` est un héritage remplacé par `.kilo/`.
 - **Périmètre :** `.kilocode/` (suppression recommandée).
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
-- **Condition de résolution :** `.kilocode/rules.md` est supprimé, sans réécriture de son contenu (archivage optional).
-- **Prochaine session :** E27 (nettoyage final).
+- **Condition de résolution :** `.kilocode/rules.md` est supprimé. ✅ (session E35, 2026-10-24)
+- **Résolue en :** session E35 (2026-10-24).
 
 ## Acceptée — facteur externe (1)
 
