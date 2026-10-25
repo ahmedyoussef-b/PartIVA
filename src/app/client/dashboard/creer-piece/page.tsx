@@ -62,14 +62,16 @@ export default function CreerPiecePage() {
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
 
-  const [photos, setPhotos] = React.useState<{ id: string; file: File; tag: string; url?: string }[]>([]);
+  const [photos, setPhotos] = React.useState<
+    { id: string; file: File; tag: string; url?: string }[]
+  >([]);
 
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
     setSelectedFiles(acceptedFiles);
     const newPhotos = acceptedFiles.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       file,
-      tag: 'Vue d\'ensemble',
+      tag: "Vue d'ensemble",
       url: URL.createObjectURL(file),
     }));
     setPhotos((prev) => [...prev, ...newPhotos]);
@@ -96,7 +98,6 @@ export default function CreerPiecePage() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-
 
     if (photos.length === 0) {
       console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: aucune photo`);
@@ -129,7 +130,7 @@ export default function CreerPiecePage() {
       photos.forEach((photo) => {
         if (photo.file instanceof File) {
           formData.append('photos', photo.file);
-          formData.append('photoTags', photo.tag || 'Vue d\'ensemble');
+          formData.append('photoTags', photo.tag || "Vue d'ensemble");
         }
       });
 
