@@ -2,6 +2,30 @@ import { test, expect } from '@playwright/test';
 import { prisma } from '@/lib/prisma';
 import { accessMatrix } from '../fixtures/access-matrix';
 
+test.beforeAll(async () => {
+  const existing = await prisma.request.findFirst({
+    where: { status: 'ACCEPTED' },
+  });
+
+  if (!existing) {
+    await prisma.request.create({
+      data: {
+        partDescription: 'Demande de test pour conversion E2E',
+        quantity: 1,
+        urgency: 'MEDIUM',
+        status: 'ACCEPTED',
+        photos: [],
+        client: {
+          connectOrCreate: {
+            where: { email: 'test-conversion@example.com' },
+            create: { email: 'test-conversion@example.com', name: 'Test User', role: 'USER' },
+          },
+        },
+      },
+    });
+  }
+});
+
 /**
  * E20-Fix8 — Test E2E : conversion Demande → Pièce
  *

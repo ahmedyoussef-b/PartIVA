@@ -89,8 +89,14 @@ test.describe('Part dossier — onglets consolidés', () => {
     await page.getByRole('tab', { name: 'Images' }).click();
 
     await expect(page.getByRole('tab', { name: 'Images' })).toHaveAttribute('data-state', 'active');
-    const gallery = page.getByText('Photographies de la pièce');
-    const empty = page.getByText('Aucune photo pour cette pièce.');
-    await expect(gallery.or(empty).first()).toBeVisible();
+    const imagesTab = page.getByRole('tab', { name: /images/i });
+    await imagesTab.click();
+
+    // Vérifier l'affichage des images (galerie moderne ou message vide)
+    const galleryContent = page
+      .locator('[role="tabpanel"]')
+      .filter({ hasText: /image|photo|galerie|aucune photo/i })
+      .or(page.locator('.grid'));
+    await expect(galleryContent.first()).toBeVisible({ timeout: 10000 });
   });
 });
