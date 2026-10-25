@@ -7,8 +7,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { CreateRequestSchema, RequestStatusSchema, RequestUrgencySchema } from '@/schemas/request';
 import type { Request } from '@/generated/prisma/client';
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
 import { uploadToCloudinary } from '@/lib/upload';
 
 const PRISMA_STATUS_MAP: Record<string, Request['status']> = {
