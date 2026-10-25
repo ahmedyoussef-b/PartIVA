@@ -36,6 +36,12 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
         const file = formData.get('file') as File;
 
+        console.log('[DEBUG-API-UPLOAD] Fichier reçu:', {
+          name: file?.name,
+          size: file?.size,
+          type: file?.type,
+        });
+
         if (!file) {
           console.error(`${DEBUG_PREFIX} Aucun fichier fourni`);
           return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });

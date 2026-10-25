@@ -8,6 +8,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { uploadToCloudinary, UploadError } from '@/lib/upload';
 import { ALLOWED_IMAGE_MIME_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/schemas/part';
+import { Prisma } from '@/generated/prisma/client';
 
 const CreatePartSchema = z.object({
   partNumber: z.string().min(1, 'Numéro de pièce requis'),
@@ -158,6 +159,14 @@ export async function createPart(
     console.error(`${DEBUG_PREFIX} 💥 EXCEPTION:`, error);
     console.error(`${DEBUG_PREFIX} Error name:`, (error as Error)?.name);
     console.error(`${DEBUG_PREFIX} Error message:`, (error as Error)?.message);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const target = (error.meta?.target as string[] | undefined)?.join(', ') || 'partNumber';
+      return {
+        success: false,
+        error: `Le numéro de pièce existe déjà (${target}). Veuillez utiliser un numéro unique.`,
+      };
+    }
 
     if (error instanceof z.ZodError) {
       const zodErr = error as unknown as {
