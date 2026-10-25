@@ -116,7 +116,7 @@ export default function CreerPiecePage() {
     try {
       const uploadedUrls: string[] = [];
       for (let i = 0; i < photos.length; i++) {
-        const photoObj: any = photos[i];
+        const photoObj = photos[i] as { file?: File; name?: string };
         const file = photoObj.file || photoObj;
         if (!(file instanceof File)) continue;
 
