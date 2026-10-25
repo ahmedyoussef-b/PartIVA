@@ -14,8 +14,6 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { createRequest } from '@/lib/actions/requests';
 import {
-  UploadCloud,
-  X,
   Camera,
   CheckCircle2,
   ArrowRight,
@@ -24,15 +22,6 @@ import {
   Tag,
   Loader2,
 } from 'lucide-react';
-
-interface UploadedPhoto {
-  id: string;
-  url: string;
-  file?: File;
-  name: string;
-  size: string;
-  tag: string;
-}
 
 const PHOTO_TAGS = [
   'Vue d’ensemble',
@@ -55,22 +44,7 @@ const MATERIAL_OPTIONS = [
 const DEBUG_PREFIX = '[DEBUG-CREER-PIECE]';
 
 export default function CreerPiecePage() {
-  const [photos, setPhotos] = React.useState<UploadedPhoto[]>([
-    {
-      id: 'photo-1',
-      url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-      name: 'pignon_denture_usee.jpg',
-      size: '2.4 MB',
-      tag: 'Zone d’usure / rupture',
-    },
-    {
-      id: 'photo-2',
-      url: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80',
-      name: 'vue_face_alésage.jpg',
-      size: '1.8 MB',
-      tag: 'Vue d’ensemble',
-    },
-  ]);
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
   const [partName, setPartName] = React.useState('Pignon d’entraînement chaîne');
   const [machineRef, setMachineRef] = React.useState('Convoyeur Ligne 3 - Remplisseuse');
@@ -86,37 +60,11 @@ export default function CreerPiecePage() {
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
 
-  React.useEffect(() => {
-    console.log(`${DEBUG_PREFIX} Composant monté`);
-    console.log(`${DEBUG_PREFIX} État initial:`, {
-      photosCount: photos.length,
-      partName,
-      machineRef,
-      material,
-      quantity,
-      urgency,
-      hasNotes: notes.length > 0,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Exécution unique au montage
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
-    console.log(`${DEBUG_PREFIX} onDrop: ${acceptedFiles.length} fichier(s) accepté(s)`);
-    console.log(
-      `${DEBUG_PREFIX} Fichiers:`,
-      acceptedFiles.map((f) => ({ name: f.name, size: f.size, type: f.type })),
-    );
-    const newItems: UploadedPhoto[] = acceptedFiles.map((file, idx) => ({
-      id: `${Date.now()}-${idx}`,
-      url: URL.createObjectURL(file),
-      name: file.name,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      tag: 'Vue d’ensemble',
-      file,
-    }));
-
-    setPhotos((prev) => [...prev, ...newItems]);
-    toast.success(`${acceptedFiles.length} photo(s) ajoutée(s) avec succès.`);
+    setSelectedFiles(acceptedFiles);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -137,15 +85,47 @@ export default function CreerPiecePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log(`${DEBUG_PREFIX} === DÉBUT SOUMISSION RÉELLE ===`);
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
-    console.log(`${DEBUG_PREFIX} État du formulaire:`, {
-      photosCount: photos.length,
-      partName,
-      machineRef,
-      material,
-      quantity,
+    console.log(`${DEBUG_PREFIX} Création de FormData...`);
+    console.log(`${DEBUG_PREFIX} selectedFiles:`, selectedFiles.length);
+
+    const formData = new FormData();
+    formData.append('clientName', clientName);
+    formData.append('clientEmail', clientEmail);
+    formData.append('machineRef', machineRef);
+    formData.append('partName', partName);
+    formData.append('material', material);
+    formData.append('quantity', quantity);
+    formData.append('urgency', urgency);
+    formData.append('notes', notes);
+
+    // Add selected files as photos with tags
+    selectedFiles.forEach((file, index) => {
+      const tag = PHOTO_TAGS[index] || 'Vue d\'ensemble';
+      formData.append('photos', file);
+      formData.append('photoTags', tag);
+    });
+
+    try {
+      console.log(`${DEBUG_PREFIX} Appel createRequest...`);
+      const result = await createRequest(formData);
+
+      if (result.success) {
+        toast.success('Demande de pièce créée avec succès');
+        router.push('/client/dashboard/demandes');
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      console.error(`${DEBUG_PREFIX} Erreur finale:``, err);
+      setError('Erreur lors de la soumission de la demande');
+    }
+
+    setIsSubmitting(false);
+  };ty,
       urgency,
       notesLength: notes.length,
       clientName,
@@ -590,7 +570,7 @@ export default function CreerPiecePage() {
             </Link>
             <Button
               type="submit"
-              disabled={isSubmitting || photos.length === 0}
+              disabled={isSubmitting || selectedFiles.length === 0}
               className="w-full gap-2 px-6 font-bold shadow-md sm:w-auto"
             >
               {isSubmitting ? (
@@ -608,6 +588,12 @@ export default function CreerPiecePage() {
           </div>
         </div>
 
+        {error && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <strong>Erreur :</strong> {error}
+          </div>
+        )}
+      <form onSubmit={handleSubmit}>
         {error && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             <strong>Erreur :</strong> {error}
