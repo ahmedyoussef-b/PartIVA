@@ -42,12 +42,18 @@ for (const route of staticPieceRoutes) {
       await page.getByRole('textbox', { name: /description/i }).fill('Description de test');
 
       // 4. Upload d'image
-      const fileInput = page.locator('input[type=file]');
+      // ✅ MÉTHODE CORRECTE : injection directe, sans attendre de dialog
       const testImagePath = 'e2e/fixtures/test-part.jpg';
-      const fileChooserPromise = page.waitForEvent('filechooser');
+      const fileInput = page.locator('input[type="file"]').first();
+
+      // setInputFiles fonctionne même sur un input caché (cas react-dropzone)
       await fileInput.setInputFiles(testImagePath);
-      const fileChooser = await fileChooserPromise;
-      await fileChooser.setFiles(['e2e/fixtures/test-part.jpg']);
+
+      // Attendre que l'UI confirme la réception de l'image
+      // (le composant affiche "1 photo chargée" ou une preview")
+      await expect(page.getByText(/1 photo chargée|photo\(s\) chargée\(s\)/i)).toBeVisible({
+        timeout: 10000,
+      });
 
       // 5. Soumettre
       await page.getByRole('button', { name: /soumettre/i }).click();
