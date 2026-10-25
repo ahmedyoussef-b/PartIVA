@@ -38,6 +38,7 @@ const URGENCY_OPTIONS = [
 export default function DemandePage() {
   const [currentStep, setCurrentStep] = React.useState(1);
   const [photoPreviews, setPhotoPreviews] = React.useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = React.useState<File[]>([]);
 
   const {
     control,
@@ -72,6 +73,7 @@ export default function DemandePage() {
       const uploadedUrls: string[] = [];
 
       for (const file of acceptedFiles) {
+        setPhotoFiles((prev) => [...prev, file]);
         try {
           const uploadFormData = new FormData();
           uploadFormData.append('file', file);
@@ -121,17 +123,24 @@ export default function DemandePage() {
 
   const onSubmit = async (data: CreateRequest) => {
     startTransition(async () => {
-      const payload = {
-        client: data.client,
-        machineRef: data.machineRef,
-        partDescription: data.partDescription,
-        partFunction: data.partFunction,
-        suspectedMaterial: data.suspectedMaterial,
-        quantity: data.quantity,
-        urgency: data.urgency,
-        photos: photoPreviews.length > 0 ? photoPreviews : [],
-      };
-      const result = await createRequest(payload);
+      const formData = new FormData();
+      formData.append('clientName', data.client.name);
+      formData.append('clientEmail', data.client.email);
+      if (data.client.company) formData.append('clientCompany', data.client.company);
+      if (data.client.phone) formData.append('clientPhone', data.client.phone);
+      if (data.machineRef) formData.append('machineRef', data.machineRef);
+      formData.append('partName', data.partDescription);
+      if (data.partFunction) formData.append('notes', data.partFunction);
+      if (data.suspectedMaterial) formData.append('material', data.suspectedMaterial);
+      formData.append('quantity', String(data.quantity));
+      formData.append('urgency', data.urgency);
+
+      photoFiles.forEach((file, index) => {
+        formData.append('photos', file);
+        formData.append('photoTags', `Photo ${index + 1}`);
+      });
+
+      const result = await createRequest(formData);
       if (result.success) {
         toast.success('Demande enregistrée avec succès !');
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination

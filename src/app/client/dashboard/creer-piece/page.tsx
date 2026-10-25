@@ -21,6 +21,8 @@ import {
   PackageCheck,
   Tag,
   Loader2,
+  UploadCloud,
+  X,
 } from 'lucide-react';
 
 const PHOTO_TAGS = [
@@ -60,8 +62,17 @@ export default function CreerPiecePage() {
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
 
+  const [photos, setPhotos] = React.useState<{ id: string; file: File; tag: string; url?: string }[]>([]);
+
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
     setSelectedFiles(acceptedFiles);
+    const newPhotos = acceptedFiles.map((file) => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      file,
+      tag: 'Vue d\'ensemble',
+      url: URL.createObjectURL(file),
+    }));
+    setPhotos((prev) => [...prev, ...newPhotos]);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -103,84 +114,27 @@ export default function CreerPiecePage() {
     setError(null);
 
     try {
-      console.log(`${DEBUG_PREFIX} Construction de l'input createRequest...`);
+      console.log(`${DEBUG_PREFIX} Construction du FormData createRequest...`);
 
-      // Mapping des valeurs d'urgence du formulaire vers les valeurs techniques Zod
-      const urgencyMap: Record<string, 'low' | 'normal' | 'high' | 'critical'> = {
-        normal: 'normal',
-        urgent: 'high',
-        critical: 'critical',
-        low: 'low',
-        high: 'high',
-      };
-      const mappedUrgency = urgencyMap[urgency] ?? 'normal';
+      const formData = new FormData();
+      formData.append('clientName', clientName);
+      formData.append('clientEmail', clientEmail);
+      formData.append('machineRef', machineRef);
+      formData.append('partName', partName);
+      formData.append('material', material);
+      formData.append('quantity', quantity);
+      formData.append('urgency', urgency);
+      formData.append('notes', notes);
 
-      console.log(`${DEBUG_PREFIX} Mapping urgence:`, {
-        original: urgency,
-        mapped: mappedUrgency,
+      photos.forEach((photo) => {
+        if (photo.file instanceof File) {
+          formData.append('photos', photo.file);
+          formData.append('photoTags', photo.tag || 'Vue d\'ensemble');
+        }
       });
 
-      // ÉTAPE 1 : Upload des photos vers Cloudinary
-      console.log(
-        `${DEBUG_PREFIX} Étape 1: Upload de ${photos.length} photo(s) vers Cloudinary...`,
-      );
-
-      const uploadedPhotoUrls: string[] = [];
-
-      for (let i = 0; i < photos.length; i++) {
-        const photo = photos[i];
-        if (!photo) continue;
-        console.log(`${DEBUG_PREFIX} Upload photo ${i + 1}/${photos.length}:`, photo.name);
-
-        try {
-          // Si la photo a un fichier associé (upload nouveau), l'envoyer à Cloudinary
-          if (photo.file) {
-            const uploadFormData = new FormData();
-            uploadFormData.append('file', photo.file);
-
-            const uploadResponse = await fetch('/api/upload', {
-              method: 'POST',
-              body: uploadFormData,
-            });
-
-            if (!uploadResponse.ok) {
-              const errorData = await uploadResponse.json();
-              throw new Error(errorData.error || `Upload échoué: ${uploadResponse.statusText}`);
-            }
-
-            const uploadResult = await uploadResponse.json();
-            uploadedPhotoUrls.push(uploadResult.url);
-            console.log(`${DEBUG_PREFIX} ✅ Photo ${i + 1} uploadée:`, uploadResult.url);
-          } else {
-            // Photo préexistante (URL externe), utiliser telle quelle
-            uploadedPhotoUrls.push(photo.url);
-            console.log(`${DEBUG_PREFIX} Photo ${i + 1} déjà externe (URL):`, photo.url);
-          }
-        } catch (uploadError) {
-          console.error(`${DEBUG_PREFIX} ❌ Erreur upload photo ${i + 1}:`, uploadError);
-          toast.error(`Échec de l'upload de ${photo.name}: ${(uploadError as Error).message}`);
-          throw uploadError;
-        }
-      }
-
-      console.log(`${DEBUG_PREFIX} ✅ Toutes les photos uploadées:`, uploadedPhotoUrls);
-
-      const input = {
-        client: {
-          name: clientName,
-          email: clientEmail,
-        },
-        machineRef: machineRef || undefined,
-        partDescription: partName,
-        partFunction: notes || undefined,
-        suspectedMaterial: material,
-        quantity: parseInt(quantity, 10) || 1,
-        urgency: mappedUrgency,
-        photos: uploadedPhotoUrls,
-      };
-
       console.log(`${DEBUG_PREFIX} Appel action serveur createRequest...`);
-      const result = await createRequest(input);
+      const result = await createRequest(formData);
 
       console.log(`${DEBUG_PREFIX} Réponse action serveur:`, {
         success: result.success,
@@ -347,7 +301,7 @@ export default function CreerPiecePage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo.url}
-                          alt={photo.name}
+                          alt={photo.file.name}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <button
@@ -361,7 +315,7 @@ export default function CreerPiecePage() {
 
                         <div className="absolute bottom-2 left-2">
                           <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs">
-                            {photo.size}
+                            {photo.file.size}
                           </span>
                         </div>
                       </div>
@@ -370,9 +324,9 @@ export default function CreerPiecePage() {
                       <div className="flex flex-1 flex-col justify-between space-y-2 p-3">
                         <div
                           className="text-foreground truncate text-xs font-medium"
-                          title={photo.name}
+                          title={photo.file.name}
                         >
-                          {photo.name}
+                          {photo.file.name}
                         </div>
 
                         <div className="space-y-1">
