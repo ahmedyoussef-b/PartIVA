@@ -43,17 +43,16 @@ export async function createRequest(
     const machineRef = input.get('machineRef') as string;
     const partName = input.get('partName') as string;
     const material = input.get('material') as string;
-    const quantity = parseInt(input.get('quantity') as string || '1', 10) || 1;
+    const quantity = parseInt((input.get('quantity') as string) || '1', 10) || 1;
     const urgency = input.get('urgency') as string;
     const notes = input.get('notes') as string;
 
-    // 2. Extraction des fichiers photo et tags
+    // 2. Extraction des fichiers photo
     const rawPhotos = input.getAll('photos');
-    const photoTags = input.getAll('photoTags') as string[];
 
     // 3. ⭐ Upload direct vers Cloudinary (Côté Serveur) - VERSION SÉCURISÉE
     const uploadedPhotoUrls: string[] = [];
-    
+
     // Récupération sécurisée des fichiers
     if (!rawPhotos || rawPhotos.length === 0) {
       return { success: false, error: 'Aucune photo fournie.' };
@@ -61,15 +60,15 @@ export async function createRequest(
 
     for (let i = 0; i < rawPhotos.length; i++) {
       const item = rawPhotos[i];
-      
+
       // Vérification stricte que c'est bien un File
       if (!(item instanceof File)) {
         console.warn(`${DEBUG_PREFIX} ⚠️ Ignoré (pas un fichier):`, item);
         continue;
       }
-      
+
       const file = item as File; // Cast sécurisé après vérification
-      
+
       // Validation MIME basique côté serveur aussi
       if (!file.type.startsWith('image/')) {
         console.warn(`${DEBUG_PREFIX} ⚠️ Ignoré (non-image): ${file.name}`);
@@ -79,9 +78,9 @@ export async function createRequest(
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
         // Dossier temporaire ou spécifique aux demandes
-        const folder = `partiva/requests/${Date.now()}`; 
+        const folder = `partiva/requests/${Date.now()}`;
         const uploaded = await uploadToCloudinary(buffer, folder, 'image', file.type);
-        
+
         if (uploaded?.url) {
           uploadedPhotoUrls.push(uploaded.url);
           console.log(`${DEBUG_PREFIX} ✅ Image ${i + 1} uploadée:`, uploaded.url);
@@ -95,7 +94,7 @@ export async function createRequest(
     }
 
     if (uploadedPhotoUrls.length === 0) {
-      return { success: false, error: 'Échec total de l\'upload des photos.' };
+      return { success: false, error: "Échec total de l'upload des photos." };
     }
 
     // 4. Préparation des données pour Zod
@@ -118,13 +117,13 @@ export async function createRequest(
 
     // 5. Résolution Client ID
     let clientId: string | undefined;
-    
+
     // Essayer d'abord via Session (si connecté)
     const session = await auth.api.getSession({ headers: await headers() });
     if (session?.user?.id) {
       clientId = session.user.id;
       console.log(`${DEBUG_PREFIX} Utilisateur connecté: userId=${clientId}`);
-    } 
+    }
     // Sinon, chercher/créer via Email fourni dans le formulaire
     else if (validated.client?.email) {
       console.log(`${DEBUG_PREFIX} Recherche utilisateur par email:`, validated.client.email);
@@ -177,14 +176,13 @@ export async function createRequest(
     revalidatePath('/demande');
 
     return { success: true, data: request };
-
   } catch (error) {
     console.error(`${DEBUG_PREFIX} 💥 EXCEPTION GLOBALE:`, error);
-    
+
     // Gestion Zod - Compatible Zod v3/v4
     if (error instanceof z.ZodError) {
       // error.issues est la propriété standard contenant les détails
-      const details = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const details = error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
       return {
         success: false,
         error: `Validation: ${details}`,
@@ -193,10 +191,10 @@ export async function createRequest(
 
     // Gestion Prisma
     if (error && typeof error === 'object' && 'code' in error) {
-       const prismaErr = error as { code: string; meta?: any };
-       if (prismaErr.code === 'P2002') {
-         return { success: false, error: 'Doublon détecté en base de données.' };
-       }
+      const prismaErr = error as { code: string; meta?: unknown };
+      if (prismaErr.code === 'P2002') {
+        return { success: false, error: 'Doublon détecté en base de données.' };
+      }
     }
 
     return {
@@ -229,7 +227,7 @@ export async function updateRequestStatus(
     revalidatePath('/admin/demandes');
     revalidatePath(`/admin/demandes/[id]`);
     revalidatePath('/client/dashboard/demandes');
-    
+
     return { success: true, data: request };
   } catch (error) {
     console.error('Error updating status:', error);
@@ -247,7 +245,8 @@ export async function updateRequestUrgency(
 ): Promise<{ success: boolean; data?: Request; error?: string }> {
   try {
     const validated = RequestUrgencySchema.parse(input.urgency);
-    const dbUrgency = PRISMA_URGENCY_MAP[validated] ?? (validated.toUpperCase() as Request['urgency']);
+    const dbUrgency =
+      PRISMA_URGENCY_MAP[validated] ?? (validated.toUpperCase() as Request['urgency']);
 
     const request = await prisma.request.update({
       where: { id: input.id },
@@ -257,7 +256,7 @@ export async function updateRequestUrgency(
 
     revalidatePath('/admin/demandes');
     revalidatePath(`/admin/demandes/[id]`);
-    
+
     return { success: true, data: request };
   } catch (error) {
     console.error('Error updating urgency:', error);
