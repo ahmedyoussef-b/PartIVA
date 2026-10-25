@@ -1,6 +1,4 @@
-'use server';
-
-const DEBUG_PREFIX = '[DEBUG-ACTION-CREATE-REQUEST]';
+﻿'use server';
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
@@ -9,8 +7,11 @@ import { CreateRequestSchema, RequestStatusSchema, RequestUrgencySchema } from '
 import type { Request } from '@/generated/prisma/client';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { uploadToCloudinary } from '@/lib/upload';
+import { uploadToCloudinary } from '@/lib/upload'; // Assure-toi que ce chemin est correct
 
+const DEBUG_PREFIX = '[DEBUG-ACTION-CREATE-REQUEST]';
+
+// Mappings Enums Prisma <-> Zod/String
 const PRISMA_STATUS_MAP: Record<string, Request['status']> = {
   new: 'PENDING',
   searching: 'REVIEW',
@@ -29,13 +30,14 @@ const PRISMA_URGENCY_MAP: Record<string, Request['urgency']> = {
   high: 'HIGH',
   critical: 'URGENT',
 };
+
 export async function createRequest(
   input: FormData,
 ): Promise<{ success: true; data: Request } | { success: false; error: string }> {
   console.log(`${DEBUG_PREFIX} === DÉBUT ACTION SERVEUR ===`);
 
   try {
-    // Extraction des champs texte du FormData
+    // 1. Extraction des champs texte
     const clientName = input.get('clientName') as string;
     const clientEmail = input.get('clientEmail') as string;
     const machineRef = input.get('machineRef') as string;
@@ -45,43 +47,62 @@ export async function createRequest(
     const urgency = input.get('urgency') as string;
     const notes = input.get('notes') as string;
 
-    // Extraction des fichiers photo et de leurs tags
-    const photoFiles = input.getAll('photos') as File[];
+    // 2. Extraction des fichiers photo et tags
+    const rawPhotos = input.getAll('photos');
     const photoTags = input.getAll('photoTags') as string[];
 
-    // ⭐ NOUVELLE LOGIQUE : Upload des photos directement vers Cloudinary
+    // 3. ⭐ Upload direct vers Cloudinary (Côté Serveur) - VERSION SÉCURISÉE
     const uploadedPhotoUrls: string[] = [];
-    for (let i = 0; i < photoFiles.length; i++) {
-      const file = photoFiles[i];
-      const tag = photoTags[i] || 'Vue d\'ensemble';
+    
+    // Récupération sécurisée des fichiers
+    if (!rawPhotos || rawPhotos.length === 0) {
+      return { success: false, error: 'Aucune photo fournie.' };
+    }
 
+    for (let i = 0; i < rawPhotos.length; i++) {
+      const item = rawPhotos[i];
+      
+      // Vérification stricte que c'est bien un File
+      if (!(item instanceof File)) {
+        console.warn(`${DEBUG_PREFIX} ⚠️ Ignoré (pas un fichier):`, item);
+        continue;
+      }
+      
+      const file = item as File; // Cast sécurisé après vérification
+      
+      // Validation MIME basique côté serveur aussi
       if (!file.type.startsWith('image/')) {
-        console.warn(`${DEBUG_PREFIX} ⚠️ Type MIME non autorisé: ${file.type}`);
+        console.warn(`${DEBUG_PREFIX} ⚠️ Ignoré (non-image): ${file.name}`);
         continue;
       }
 
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const uploaded = await uploadToCloudinary(buffer, `requests/temp-${Date.now()}`, 'image', file.type);
-        uploadedPhotoUrls.push(uploaded.url);
-        console.log(`${DEBUG_PREFIX} ✅ Image ${i + 1}:`, uploaded.url);
+        // Dossier temporaire ou spécifique aux demandes
+        const folder = `partiva/requests/${Date.now()}`; 
+        const uploaded = await uploadToCloudinary(buffer, folder, 'image', file.type);
+        
+        if (uploaded?.url) {
+          uploadedPhotoUrls.push(uploaded.url);
+          console.log(`${DEBUG_PREFIX} ✅ Image ${i + 1} uploadée:`, uploaded.url);
+        } else {
+          throw new Error('Réponse Cloudinary invalide');
+        }
       } catch (uploadErr) {
-        console.error(`${DEBUG_PREFIX} ❌ Échec image ${i + 1}:`, uploadErr);
+        console.error(`${DEBUG_PREFIX} ❌ Échec upload image ${i + 1}:`, uploadErr);
+        // On ne bloque pas toute la demande si une seule image échoue, mais on logge
       }
     }
 
     if (uploadedPhotoUrls.length === 0) {
-      return {
-        success: false,
-        error: 'Aucune photo valide.',
-      };
+      return { success: false, error: 'Échec total de l\'upload des photos.' };
     }
 
-    console.log(`${DEBUG_PREFIX} Validation Zod...`);
-    const validated = CreateRequestSchema.parse({
+    // 4. Préparation des données pour Zod
+    const payloadForZod = {
       client: {
-        name: clientName,
-        email: clientEmail,
+        name: clientName || 'Client Anonyme',
+        email: clientEmail || '',
       },
       machineRef: machineRef || undefined,
       partDescription: partName,
@@ -89,22 +110,24 @@ export async function createRequest(
       suspectedMaterial: material,
       quantity,
       urgency,
-      photos: uploadedPhotoUrls,
-    });
+      photos: uploadedPhotoUrls, // URLs persistantes
+    };
 
-    console.log(`${DEBUG_PREFIX} Données validées:`, {
-      clientEmail: validated.client?.email,
-      machineRef: validated.machineRef,
-      partDescriptionLength: validated.partDescription?.length,
-      quantity: validated.quantity,
-      urgency: validated.urgency,
-      photosCount: validated.photos?.length,
-    });
+    console.log(`${DEBUG_PREFIX} Validation Zod...`);
+    const validated = CreateRequestSchema.parse(payloadForZod);
 
+    // 5. Résolution Client ID
     let clientId: string | undefined;
-    if (validated.client?.email) {
-      console.log(`${DEBUG_PREFIX} Session utilisateur...`);
-      console.log(`${DEBUG_PREFIX} Email:`, validated.client.email);
+    
+    // Essayer d'abord via Session (si connecté)
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (session?.user?.id) {
+      clientId = session.user.id;
+      console.log(`${DEBUG_PREFIX} Utilisateur connecté: userId=${clientId}`);
+    } 
+    // Sinon, chercher/créer via Email fourni dans le formulaire
+    else if (validated.client?.email) {
+      console.log(`${DEBUG_PREFIX} Recherche utilisateur par email:`, validated.client.email);
       const existingUser = await prisma.user.findUnique({
         where: { email: validated.client.email },
         select: { id: true },
@@ -112,7 +135,6 @@ export async function createRequest(
 
       if (existingUser) {
         clientId = existingUser.id;
-        console.log(`${DEBUG_PREFIX} Utilisateur existant: userId=${clientId}`);
       } else {
         console.log(`${DEBUG_PREFIX} Création nouvel utilisateur...`);
         const newUser = await prisma.user.create({
@@ -124,14 +146,10 @@ export async function createRequest(
           select: { id: true },
         });
         clientId = newUser.id;
-        console.log(`${DEBUG_PREFIX} Nouvel utilisateur: userId=${clientId}`);
       }
-    } else {
-      console.log(`${DEBUG_PREFIX} Pas d'email client`);
     }
 
-    console.log(`${DEBUG_PREFIX} Photos: ${uploadedPhotoUrls.length}`);
-
+    // 6. Création de la Demande en Base
     console.log(`${DEBUG_PREFIX} Création Prisma...`);
     const request = await prisma.request.create({
       data: {
@@ -143,173 +161,52 @@ export async function createRequest(
         quantity: validated.quantity,
         urgency: PRISMA_URGENCY_MAP[validated.urgency] ?? 'MEDIUM',
         status: 'PENDING',
-        photos: uploadedPhotoUrls,
+        photos: validated.photos, // Tableau d'URLs strings
       },
       include: {
         client: true,
         projects: true,
       },
     });
-    console.log(`${DEBUG_PREFIX} ✅ Demande créée:`, {
-      id: request.id,
-      status: request.status,
-      clientId: request.clientId,
-    });
 
+    console.log(`${DEBUG_PREFIX} ✅ Demande créée:`, { id: request.id, status: request.status });
+
+    // 7. Revalidation Cache Next.js
     revalidatePath('/admin/demandes');
     revalidatePath('/client/dashboard/demandes');
     revalidatePath('/demande');
 
-    console.log(`${DEBUG_PREFIX} === FIN ACTION SERVEUR (SUCCÈS) ===`);
     return { success: true, data: request };
-  } catch (error) {
-    console.error(`${DEBUG_PREFIX} Erreur:`, error instanceof Error ? error.message : String(error));
-    console.error(`${DEBUG_PREFIX} Stack:`, error instanceof Error ? error.stack : undefined);
 
-    if (error && typeof error === 'object' && 'errors' in error) {
-      const zodErr = error as { errors: Array<{ path: Array<string | number>; message: string }> };
-      console.error(`${DEBUG_PREFIX} Erreur validation Zod:`, zodErr.errors);
+  } catch (error) {
+    console.error(`${DEBUG_PREFIX} 💥 EXCEPTION GLOBALE:`, error);
+    
+    // Gestion Zod - Compatible Zod v3/v4
+    if (error instanceof z.ZodError) {
+      // error.issues est la propriété standard contenant les détails
+      const details = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
       return {
         success: false,
-        error: `Validation: ${zodErr.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+        error: `Validation: ${details}`,
       };
     }
 
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      typeof (error as { code: unknown }).code === 'string'
-    ) {
-      console.error(`${DEBUG_PREFIX} Erreur Prisma code:`, (error as { code: string }).code);
-      return {
-        success: false,
-        error: `Base de données (code ${(error as { code: string }).code}): ${error instanceof Error ? error.message : String(error)}`,
-      };
+    // Gestion Prisma
+    if (error && typeof error === 'object' && 'code' in error) {
+       const prismaErr = error as { code: string; meta?: any };
+       if (prismaErr.code === 'P2002') {
+         return { success: false, error: 'Doublon détecté en base de données.' };
+       }
     }
 
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Erreur inconnue',
+      error: error instanceof Error ? error.message : 'Erreur interne serveur',
     };
   }
 }
 
-const PRISMA_STATUS_MAP: Record<string, Request['status']> = {
-    console.log(`${DEBUG_PREFIX} Données validées:`, {
-      clientEmail: validated.client?.email,
-      machineRef: validated.machineRef,
-      partDescriptionLength: validated.partDescription?.length,
-      quantity: validated.quantity,
-      urgency: validated.urgency,
-      photosCount: validated.photos?.length,
-    });
-
-    let clientId: string | undefined;
-    if (validated.client?.email) {
-      console.log(`${DEBUG_PREFIX} Étape 2: Récupération session (recherche utilisateur)...`);
-      console.log(`${DEBUG_PREFIX} Email recherché:`, validated.client.email);
-      const existingUser = await prisma.user.findUnique({
-        where: { email: validated.client.email },
-        select: { id: true },
-      });
-
-      if (existingUser) {
-        clientId = existingUser.id;
-        console.log(`${DEBUG_PREFIX} Utilisateur existant trouvé: userId=${clientId}`);
-      } else {
-        console.log(`${DEBUG_PREFIX} Utilisateur non trouvé, création d'un nouvel utilisateur...`);
-        const newUser = await prisma.user.create({
-          data: {
-            email: validated.client.email,
-            name: validated.client.name,
-            role: 'USER',
-          },
-          select: { id: true },
-        });
-        clientId = newUser.id;
-        console.log(`${DEBUG_PREFIX} Nouvel utilisateur créé: userId=${clientId}`);
-      }
-    } else {
-      console.log(`${DEBUG_PREFIX} Étape 2: Aucun email client, clientId rester undefined`);
-    }
-
-    console.log(`${DEBUG_PREFIX} Étape 3: Mapping des photos...`);
-    // Les photos sont déjà des URLs Cloudinary (chaînes de caractères)
-    const photos = validated.photos ?? [];
-    console.log(`${DEBUG_PREFIX} Photos mappées:`, photos.length, 'éléments');
-
-    console.log(`${DEBUG_PREFIX} Étape 4: Création Prisma (prisma.request.create)...`);
-    const request = await prisma.request.create({
-      data: {
-        clientId,
-        machineRef: validated.machineRef,
-        partDescription: validated.partDescription,
-        partFunction: validated.partFunction,
-        suspectedMaterial: validated.suspectedMaterial,
-        quantity: validated.quantity,
-        urgency: PRISMA_URGENCY_MAP[validated.urgency] ?? 'MEDIUM',
-        status: 'PENDING',
-        photos,
-      },
-      include: {
-        client: true,
-        projects: true,
-      },
-    });
-    console.log(`${DEBUG_PREFIX} ✅ Demande créée:`, {
-      id: request.id,
-      status: request.status,
-      clientId: request.clientId,
-    });
-
-    revalidatePath('/admin/demandes');
-    revalidatePath('/client/dashboard/demandes');
-    revalidatePath('/demande');
-
-    console.log(`${DEBUG_PREFIX} === FIN ACTION SERVEUR (SUCCÈS) ===`);
-    return { success: true, data: request };
-  } catch (error) {
-    console.error(`${DEBUG_PREFIX} 💥 EXCEPTION:`, error);
-    console.error(
-      `${DEBUG_PREFIX} Error name:`,
-      error instanceof Error ? error.name : typeof error,
-    );
-    console.error(
-      `${DEBUG_PREFIX} Error message:`,
-      error instanceof Error ? error.message : String(error),
-    );
-    console.error(`${DEBUG_PREFIX} Error stack:`, error instanceof Error ? error.stack : undefined);
-
-    if (error && typeof error === 'object' && 'errors' in error) {
-      const zodErr = error as { errors: Array<{ path: Array<string | number>; message: string }> };
-      console.error(`${DEBUG_PREFIX} Erreur validation Zod:`, zodErr.errors);
-      return {
-        success: false,
-        error: `Validation: ${zodErr.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
-      };
-    }
-
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      typeof (error as { code: unknown }).code === 'string'
-    ) {
-      console.error(`${DEBUG_PREFIX} Erreur Prisma code:`, (error as { code: string }).code);
-      return {
-        success: false,
-        error: `Base de données (code ${(error as { code: string }).code}): ${error instanceof Error ? error.message : String(error)}`,
-      };
-    }
-
-    // Retourne le message d'erreur exact au client pour debug
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Erreur inconnue',
-    };
-  }
-}
+// --- Fonctions utilitaires restantes (Update Status/Urgency) ---
 
 type UpdateRequestStatusInput = {
   id: string;
@@ -318,30 +215,25 @@ type UpdateRequestStatusInput = {
 
 export async function updateRequestStatus(
   input: UpdateRequestStatusInput,
-): Promise<{ success: true; data: Request } | { success: false; error: string }> {
+): Promise<{ success: boolean; data?: Request; error?: string }> {
   try {
     const validated = RequestStatusSchema.parse(input.status);
+    const dbStatus = PRISMA_STATUS_MAP[validated] ?? (validated.toUpperCase() as Request['status']);
 
     const request = await prisma.request.update({
       where: { id: input.id },
-      data: {
-        status: (PRISMA_STATUS_MAP[validated] ?? validated.toUpperCase()) as Request['status'],
-      },
-      include: {
-        client: true,
-        projects: true,
-      },
+      data: { status: dbStatus },
+      include: { client: true, projects: true },
     });
 
     revalidatePath('/admin/demandes');
-    revalidatePath('/admin/demandes/[id]');
+    revalidatePath(`/admin/demandes/[id]`);
     revalidatePath('/client/dashboard/demandes');
-    revalidatePath('/client/dashboard/demandes/[id]');
-
+    
     return { success: true, data: request };
   } catch (error) {
-    console.error('Error updating request status:', error);
-    return { success: false, error: 'Erreur lors de la mise à jour du statut' };
+    console.error('Error updating status:', error);
+    return { success: false, error: 'Échec mise à jour statut' };
   }
 }
 
@@ -352,29 +244,23 @@ type UpdateRequestUrgencyInput = {
 
 export async function updateRequestUrgency(
   input: UpdateRequestUrgencyInput,
-): Promise<{ success: true; data: Request } | { success: false; error: string }> {
+): Promise<{ success: boolean; data?: Request; error?: string }> {
   try {
     const validated = RequestUrgencySchema.parse(input.urgency);
+    const dbUrgency = PRISMA_URGENCY_MAP[validated] ?? (validated.toUpperCase() as Request['urgency']);
 
     const request = await prisma.request.update({
       where: { id: input.id },
-      data: {
-        urgency: (PRISMA_URGENCY_MAP[validated] ?? validated.toUpperCase()) as Request['urgency'],
-      },
-      include: {
-        client: true,
-        projects: true,
-      },
+      data: { urgency: dbUrgency },
+      include: { client: true, projects: true },
     });
 
     revalidatePath('/admin/demandes');
-    revalidatePath('/admin/demandes/[id]');
-    revalidatePath('/client/dashboard/demandes');
-    revalidatePath('/client/dashboard/demandes/[id]');
-
+    revalidatePath(`/admin/demandes/[id]`);
+    
     return { success: true, data: request };
   } catch (error) {
-    console.error('Error updating request urgency:', error);
-    return { success: false, error: "Erreur lors de la mise à jour de l'urgence" };
+    console.error('Error updating urgency:', error);
+    return { success: false, error: 'Échec mise à jour urgence' };
   }
 }

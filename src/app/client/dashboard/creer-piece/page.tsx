@@ -60,9 +60,6 @@ export default function CreerPiecePage() {
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
-
   const onDrop = React.useCallback((acceptedFiles: File[]) => {
     setSelectedFiles(acceptedFiles);
   }, []);
@@ -89,48 +86,6 @@ export default function CreerPiecePage() {
     setIsSubmitting(true);
     setError(null);
 
-    console.log(`${DEBUG_PREFIX} Création de FormData...`);
-    console.log(`${DEBUG_PREFIX} selectedFiles:`, selectedFiles.length);
-
-    const formData = new FormData();
-    formData.append('clientName', clientName);
-    formData.append('clientEmail', clientEmail);
-    formData.append('machineRef', machineRef);
-    formData.append('partName', partName);
-    formData.append('material', material);
-    formData.append('quantity', quantity);
-    formData.append('urgency', urgency);
-    formData.append('notes', notes);
-
-    // Add selected files as photos with tags
-    selectedFiles.forEach((file, index) => {
-      const tag = PHOTO_TAGS[index] || 'Vue d\'ensemble';
-      formData.append('photos', file);
-      formData.append('photoTags', tag);
-    });
-
-    try {
-      console.log(`${DEBUG_PREFIX} Appel createRequest...`);
-      const result = await createRequest(formData);
-
-      if (result.success) {
-        toast.success('Demande de pièce créée avec succès');
-        router.push('/client/dashboard/demandes');
-      } else {
-        setError(result.error);
-      }
-    } catch (err) {
-      console.error(`${DEBUG_PREFIX} Erreur finale:``, err);
-      setError('Erreur lors de la soumission de la demande');
-    }
-
-    setIsSubmitting(false);
-  };ty,
-      urgency,
-      notesLength: notes.length,
-      clientName,
-      clientEmail,
-    });
 
     if (photos.length === 0) {
       console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: aucune photo`);
@@ -593,7 +548,6 @@ export default function CreerPiecePage() {
             <strong>Erreur :</strong> {error}
           </div>
         )}
-      <form onSubmit={handleSubmit}>
         {error && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             <strong>Erreur :</strong> {error}
