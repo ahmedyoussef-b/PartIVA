@@ -102,40 +102,51 @@ export default function CreerPiecePage() {
     if (photos.length === 0) {
       console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: aucune photo`);
       toast.error('Veuillez ajouter au moins une photo de la pièce souhaitée.');
+      setIsSubmitting(false);
       return;
     }
 
     if (!clientName || !clientEmail) {
       console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: infos client manquantes`);
       toast.error('Veuillez indiquer votre nom et email.');
+      setIsSubmitting(false);
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
-
     try {
-      console.log(`${DEBUG_PREFIX} Construction du FormData createRequest...`);
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < photos.length; i++) {
+        const photoObj: any = photos[i];
+        const file = photoObj.file || photoObj;
+        if (!(file instanceof File)) continue;
 
-      const formData = new FormData();
-      formData.append('clientName', clientName);
-      formData.append('clientEmail', clientEmail);
-      formData.append('machineRef', machineRef);
-      formData.append('partName', partName);
-      formData.append('material', material);
-      formData.append('quantity', quantity);
-      formData.append('urgency', urgency);
-      formData.append('notes', notes);
+        const fdImg = new FormData();
+        fdImg.append('file', file);
 
-      photos.forEach((photo) => {
-        if (photo.file instanceof File) {
-          formData.append('photos', photo.file);
-          formData.append('photoTags', photo.tag || "Vue d'ensemble");
-        }
-      });
+        console.log(`[FRONTEND] Envoi image ${i + 1}/${photos.length} vers /api/upload...`);
+        const res = await fetch('/api/upload', { method: 'POST', body: fdImg });
+        if (!res.ok) throw new Error('Échec upload image');
+        const data = await res.json();
+        if (data.url) uploadedUrls.push(data.url);
+      }
 
-      console.log(`${DEBUG_PREFIX} Appel action serveur createRequest...`);
-      const result = await createRequest(formData);
+      if (uploadedUrls.length === 0) {
+        throw new Error('Aucune photo uploadée');
+      }
+
+      const finalFormData = new FormData();
+      finalFormData.append('clientName', clientName);
+      finalFormData.append('clientEmail', clientEmail);
+      finalFormData.append('machineRef', machineRef || '');
+      finalFormData.append('partName', partName);
+      finalFormData.append('material', material || '');
+      finalFormData.append('quantity', quantity || '1');
+      finalFormData.append('urgency', urgency || 'normal');
+      finalFormData.append('notes', notes || '');
+      finalFormData.append('photos', JSON.stringify(uploadedUrls));
+
+      console.log('[FRONTEND] Soumission finale createRequest (payload léger)...');
+      const result = await createRequest(finalFormData);
 
       console.log(`${DEBUG_PREFIX} Réponse action serveur:`, {
         success: result.success,
@@ -154,7 +165,6 @@ export default function CreerPiecePage() {
       }
     } catch (err) {
       console.error(`${DEBUG_PREFIX} 💥 Exception:`, err);
-      console.error(`${DEBUG_PREFIX} Stack:`, err instanceof Error ? err.stack : undefined);
       setError(err instanceof Error ? err.message : 'Erreur inattendue');
       toast.error('Erreur inattendue lors de la soumission');
     } finally {
