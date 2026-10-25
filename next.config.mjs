@@ -1,5 +1,3 @@
-import path from 'path';
-
 /** @type {import('next').NextConfig} */
 const isExport = process.env.NEXT_EXPORT === 'true';
 
@@ -18,6 +16,11 @@ const nextConfig = {
   },
   turbopack: {
     root: path.resolve(process.cwd()),
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
   outputFileTracingExcludes: {
     '*': [
