@@ -44,11 +44,10 @@ jobs:
 - name: Build Next.js app (static export)
   env:
     NEXT_EXPORT: 'true'
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+    NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
   run: npm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
 
       - name: Build desktop app with Tauri
         working-directory: ./desktop/src-tauri
