@@ -15,7 +15,7 @@
  *   BLOB_READ_WRITE_TOKEN — token d'écriture Vercel Blob
  */
 
-import { upload } from '@vercel/blob';
+import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 
@@ -83,7 +83,7 @@ async function main() {
 
     let blobUrl;
     try {
-      const blob = await upload(fileName, fileStream, {
+      const blob = await put(fileName, fileStream, {
         access: 'public',
         addRandomSuffix: false,
       });
