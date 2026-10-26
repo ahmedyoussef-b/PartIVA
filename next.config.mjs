@@ -20,7 +20,7 @@ const nextConfig = {
     root: path.resolve(process.cwd()),
   },
   experimental: isExport
-    ? { serverActions: false }
+    ? {}
     : {
         serverActions: {
           bodySizeLimit: '10mb',
