@@ -86,6 +86,7 @@ async function main() {
       const blob = await put(fileName, fileStream, {
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true,
       });
       blobUrl = blob.url;
     } catch (err) {
