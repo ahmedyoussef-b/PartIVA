@@ -1,3 +1,5 @@
+export const dynamic = 'force-static';
+
 import { NextResponse } from 'next/server';
 import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
@@ -39,3 +41,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Download failed' }, { status: 500 });
   }
 }
+

@@ -19,7 +19,7 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(process.cwd()),
   },
-  experimental: {
+  experimental: isExport ? {} : {
     serverActions: {
       bodySizeLimit: '10mb',
     },
