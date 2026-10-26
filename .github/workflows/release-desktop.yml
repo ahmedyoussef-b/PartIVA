@@ -48,8 +48,8 @@ jobs:
           if [ -d "src/app/admin" ]; then
             mv src/app/admin admin.disabled
           fi
-          if [ -d "src/app/(public)/demande" ]; then
-            mv src/app/(public)/demande public-demande.disabled
+          if [ -d "src/app/\(public\)/demande" ]; then
+            mv "src/app/\(public\)/demande" public-demande.disabled
           fi
           if [ -d "src/app/client/dashboard/creer-piece" ]; then
             mv src/app/client/dashboard/creer-piece creer-piece.disabled
@@ -61,7 +61,7 @@ jobs:
           ls src/app
           echo "=== Contenu de src/lib après déplacement ==="
           ls src/lib
-          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)/demande" ] || [ -d "src/app/client/dashboard/creer-piece" ] || [ -d "src/lib/actions" ]; then
+          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/\(public\)/demande" ] || [ -d "src/app/client/dashboard/creer-piece" ] || [ -d "src/lib/actions" ]; then
             echo "ERREUR: un dossier n'a pas pu être déplacé"
             exit 1
           fi
@@ -86,7 +86,8 @@ jobs:
             mv admin.disabled src/app/admin
           fi
           if [ -d "public-demande.disabled" ]; then
-            mv public-demande.disabled src/app/(public)/demande
+            mkdir -p "src/app/(public)"
+            mv public-demande.disabled "src/app/(public)/demande"
           fi
           if [ -d "creer-piece.disabled" ]; then
             mv creer-piece.disabled src/app/client/dashboard/creer-piece
