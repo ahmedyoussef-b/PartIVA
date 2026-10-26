@@ -6,6 +6,26 @@ import { useRouter } from 'next/navigation';
 import { UploadCloud, Download, Monitor, Apple, Terminal, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 type Installer = {
   id: string;
   version: string;
@@ -25,24 +45,36 @@ export default function DesktopDownloadsClient({
 }) {
   const [installers, setInstallers] = useState<Installer[]>(initialInstallers);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [version, setVersion] = useState('');
+  const [os, setOs] = useState('windows');
   const router = useRouter();
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (file) setSelectedFile(file);
+    e.target.value = '';
+  };
 
-    const version = prompt('Version (ex: v1.0.0) ?');
-    if (!version) return;
-    const os = prompt('OS (windows, macos, linux) ?') || 'windows';
-    const fileType = file.name.split('.').pop() || 'exe';
+  const handleConfirmUpload = async () => {
+    if (!selectedFile) {
+      toast.error('Veuillez sélectionner un fichier.');
+      return;
+    }
+    if (!version) {
+      toast.error('Veuillez saisir une version.');
+      return;
+    }
+
+    const fileType = selectedFile.name.split('.').pop() || 'exe';
 
     setIsUploading(true);
-    const toastId = toast.loading(`Upload de ${file.name}...`);
+    const toastId = toast.loading(`Upload de ${selectedFile.name}...`);
     try {
-      const blob = await upload(file.name, file, {
+      const blob = await upload(selectedFile.name, selectedFile, {
         access: 'public',
         handleUploadUrl: '/api/desktop-builds/upload',
-        multipart: file.size > 100 * 1024 * 1024,
+        multipart: selectedFile.size > 100 * 1024 * 1024,
       });
 
       const res = await fetch('/api/installers', {
@@ -53,13 +85,16 @@ export default function DesktopDownloadsClient({
           os,
           fileType,
           fileUrl: blob.url,
-          fileSize: file.size,
+          fileSize: selectedFile.size,
         }),
       });
 
       if (!res.ok) throw new Error('Échec sauvegarde');
       const newInstaller = await res.json();
       setInstallers((prev) => [newInstaller, ...prev]);
+      setSelectedFile(null);
+      setVersion('');
+      setOs('windows');
       toast.success('Installateur déployé !', { id: toastId });
       router.refresh();
     } catch (error) {
@@ -100,25 +135,102 @@ export default function DesktopDownloadsClient({
         </div>
         {isAdmin && (
           <div>
-            <input
-              type="file"
-              id="installer-upload"
-              className="hidden"
-              onChange={handleUpload}
-              accept=".exe,.msi,.dmg,.deb,.AppImage"
-              disabled={isUploading}
-            />
-            <label
-              htmlFor="installer-upload"
-              className={`inline-flex cursor-pointer items-center rounded-lg bg-blue-600 px-4 py-2 text-white shadow-sm transition hover:bg-blue-700 ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
-            >
-              {isUploading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <UploadCloud className="mr-2 h-5 w-5" />
-              )}
-              {isUploading ? 'Déploiement...' : 'Déployer un installateur'}
-            </label>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={isUploading}
+                  className="bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+                >
+                  {isUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                  )}
+                  {isUploading ? 'Déploiement...' : 'Déployer un installateur'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Déployer un installateur</DialogTitle>
+                  <DialogDescription>
+                    Choisissez le fichier, la version et le système d’exploitation.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="installer-version">Version</Label>
+                    <Input
+                      id="installer-version"
+                      type="text"
+                      placeholder="ex: v1.0.0"
+                      value={version}
+                      onChange={(e) => setVersion(e.target.value)}
+                      disabled={isUploading}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="installer-os">Système d’exploitation</Label>
+                    <Select
+                      value={os}
+                      onValueChange={(value) => setOs(value as string)}
+                      disabled={isUploading}
+                    >
+                      <SelectTrigger id="installer-os">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="windows">Windows</SelectItem>
+                        <SelectItem value="macos">macOS</SelectItem>
+                        <SelectItem value="linux">Linux</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="installer-file">Fichier</Label>
+                    <input
+                      id="installer-file"
+                      type="file"
+                      accept=".exe,.msi,.dmg,.deb,.AppImage"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                      className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setVersion('');
+                      setOs('windows');
+                    }}
+                    disabled={isUploading}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={handleConfirmUpload}
+                    disabled={isUploading || !selectedFile || !version}
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                    )}
+                    Confirmer l’upload
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
