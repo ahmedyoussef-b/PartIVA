@@ -19,11 +19,13 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(process.cwd()),
   },
-  experimental: isExport ? {} : {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
+  experimental: isExport
+    ? { serverActions: false }
+    : {
+        serverActions: {
+          bodySizeLimit: '10mb',
+        },
+      },
   outputFileTracingExcludes: {
     '*': [
       './desktop/**',
