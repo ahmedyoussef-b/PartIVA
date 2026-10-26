@@ -22,5 +22,6 @@ export default async function ClientDemandeDetailPage({
 
 
 
-export function generateStaticParams() { return []; }
+export function generateStaticParams() { return [{ id: 'placeholder' }]; }
+
 

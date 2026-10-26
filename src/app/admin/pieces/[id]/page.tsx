@@ -253,5 +253,6 @@ export default async function AdminPieceDetailPage({
 
 
 
-export function generateStaticParams() { return []; }
+export function generateStaticParams() { return [{ id: 'placeholder' }]; }
+
 
