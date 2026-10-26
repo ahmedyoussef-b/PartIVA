@@ -61,6 +61,13 @@ export async function createRequest(
     for (let i = 0; i < rawPhotos.length; i++) {
       const item = rawPhotos[i];
 
+      // Si c'est déjà une URL (string), l'utiliser directement (widget Cloudinary côté client)
+      if (typeof item === 'string' && item.startsWith('http')) {
+        uploadedPhotoUrls.push(item);
+        console.log(`${DEBUG_PREFIX} ✅ URL photo ${i + 1} conservée:`, item);
+        continue;
+      }
+
       // Vérification stricte que c'est bien un File
       if (!(item instanceof File)) {
         console.warn(`${DEBUG_PREFIX} ⚠️ Ignoré (pas un fichier):`, item);

@@ -1,6 +1,6 @@
 # ÉTAT COURANT — PartIVA
 
-**Dernière mise à jour :** 2026-10-24
+**Dernière mise à jour :** 2026-10-26
 **Commit HEAD :** 53b6ad1 (E40-Fix6/7/8 + documentation)
 **Phase en cours :** E40-Fix — Clôture administrative de la session
 **Statut du projet :** CI-ready
@@ -79,6 +79,7 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **Flux Admin (Création de Pièce) :** Sécurisation de l'upload Cloudinary. Les échecs d'upload bloquent désormais la création et affichent un message d'erreur explicite (fin des échecs silencieux). Fix `D-E20-CLOUDINARY-UPLOAD-SILENT-FAIL` (E40-Fix6).
 - **Affichage Admin :** Intégration de l'onglet `Images` (via `PartImageGallery`) dans la page de détail `/admin/pieces/[id]` pour une consultation cohérente, quel que soit le point d'entrée. Fix `D-E20-ADMIN-PART-IMAGES-DISPLAY` (E40-Fix7).
 - **Flux Client :** Clarification sémantique. Le bouton est désormais libellé "Soumettre la demande de pièce". Distinction claire entre "Demande" (Request) et "Pièce" (Part), avec un pont de conversion Admin. Fix `D-E20-CLIENT-REQUEST-SEMANTICS` (E40-Fix8).
+- **Upload photos (creer-piece) :** Remplacement du `react-dropzone` + upload intermédiaire `/api/upload` par un upload direct vers Cloudinary depuis le navigateur (`fetch` vers l'API unsigned `v1_1/{cloud}/upload`). L'action serveur `createRequest` accepte désormais des URLs (strings) ou des `File` pour le champ `photos` (`src/lib/actions/requests.ts`). `.env.local` documenté avec `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` et `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`.
 
 ### 🔒 Blocages et Points de Vigilance
 
