@@ -47,8 +47,6 @@ jobs:
           fi
 
       - name: Build Next.js app (static export)
-
-      - name: Build Next.js app (static export)
         env:
           NEXT_EXPORT: 'true'
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
