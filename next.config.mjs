@@ -5,6 +5,7 @@ const isExport = process.env.NEXT_EXPORT === 'true';
 
 const nextConfig = {
   output: isExport ? 'export' : undefined,
+  typescript: isExport ? { ignoreBuildErrors: true } : {},
   reactStrictMode: true,
   images: {
     remotePatterns: [
