@@ -39,7 +39,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential curl libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
-      - name: Temporarily disable API routes, admin, public group, client creer-piece and server actions for static export
+      - name: Temporarily disable API routes, admin, public group, client creer-piece, client demandes and server actions for static export
         shell: bash
         run: |
           if [ -d "src/app/api" ]; then
@@ -54,6 +54,9 @@ jobs:
           if [ -d "src/app/client/dashboard/creer-piece" ]; then
             mv src/app/client/dashboard/creer-piece creer-piece.disabled
           fi
+          if [ -d "src/app/client/dashboard/demandes" ]; then
+            mv src/app/client/dashboard/demandes demandes.disabled
+          fi
           if [ -d "src/lib/actions" ]; then
             mv src/lib/actions lib-actions.disabled
           fi
@@ -61,7 +64,7 @@ jobs:
           ls src/app
           echo "=== Contenu de src/lib après déplacement ==="
           ls src/lib
-          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)" ] || [ -d "src/app/client/dashboard/creer-piece" ] || [ -d "src/lib/actions" ]; then
+          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)" ] || [ -d "src/app/client/dashboard/creer-piece" ] || [ -d "src/app/client/dashboard/demandes" ] || [ -d "src/lib/actions" ]; then
             echo "ERREUR: un dossier n'a pas pu être déplacé"
             exit 1
           fi
@@ -75,7 +78,7 @@ jobs:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'static-build-dummy-secret-min-32-chars-long' }}
         run: npm run build
 
-      - name: Restore API routes, admin, public group, client creer-piece and server actions
+      - name: Restore API routes, admin, public group, client creer-piece, client demandes and server actions
         if: always()
         shell: bash
         run: |
@@ -90,6 +93,9 @@ jobs:
           fi
           if [ -d "creer-piece.disabled" ]; then
             mv creer-piece.disabled src/app/client/dashboard/creer-piece
+          fi
+          if [ -d "demandes.disabled" ]; then
+            mv demandes.disabled src/app/client/dashboard/demandes
           fi
           if [ -d "lib-actions.disabled" ]; then
             mv lib-actions.disabled src/lib/actions
