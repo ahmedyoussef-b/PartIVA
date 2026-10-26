@@ -1,0 +1,78 @@
+name: Release Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  push:
+    branches:
+      - release
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  build-and-upload:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install desktop dependencies
+        working-directory: ./desktop
+        run: npm ci
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential curl libssl-dev libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Build Next.js app (static export)
+        run: NEXT_EXPORT=true npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+      - name: Build desktop app with Tauri
+        working-directory: ./desktop/src-tauri
+        run: npx tauri build
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: Publish installers to Vercel Blob
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          RELEASE_API_SECRET: ${{ secrets.RELEASE_API_SECRET }}
+        run: |
+          version="${{ github.ref_name }}"
+          version="${version#v}"
+
+          case "${{ matrix.os }}" in
+            windows-latest) target_os="windows" ;;
+            macos-latest) target_os="macos" ;;
+            ubuntu-latest) target_os="linux" ;;
+          esac
+
+          node ../../scripts/publish-desktop.mjs \
+            ./target/release/bundle \
+            "$version" \
+            "$target_os" \
+            "${{ secrets.NEXT_PUBLIC_APP_URL }}" \
+            "$RELEASE_API_SECRET"
