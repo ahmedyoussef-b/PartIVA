@@ -40,8 +40,13 @@ jobs:
           sudo apt-get install -y build-essential curl libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
       - name: Temporarily disable API routes for static export
+        shell: bash
         run: |
-          if (Test-Path src/app/api) { Rename-Item src/app/api src/app/api.disabled }
+          if [ -d "src/app/api" ]; then
+            mv src/app/api src/app/api.bak
+          fi
+
+      - name: Build Next.js app (static export)
 
       - name: Build Next.js app (static export)
         env:
@@ -53,8 +58,11 @@ jobs:
 
       - name: Restore API routes
         if: always()
+        shell: bash
         run: |
-          if (Test-Path src/app/api.disabled) { Rename-Item src/app/api.disabled src/app/api }
+          if [ -d "src/app/api.bak" ]; then
+            mv src/app/api.bak src/app/api
+          fi
 
       - name: Build desktop app with Tauri
         working-directory: ./desktop/src-tauri
