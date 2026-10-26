@@ -51,7 +51,7 @@ export default function CreerPiecePage() {
   const [machineRef, setMachineRef] = React.useState('Convoyeur Ligne 3 - Remplisseuse');
   const [material, setMaterial] = React.useState('POM-C');
   const [quantity, setQuantity] = React.useState('4');
-  const [urgency, setUrgency] = React.useState('urgent');
+  const [urgency, setUrgency] = React.useState('normal');
   const [notes, setNotes] = React.useState(
     'Présence d’arrachement de matière sur 3 dents. Merci de respecter le diamètre d’arbre de 25mm avec tolérance H7.',
   );
@@ -404,8 +404,9 @@ export default function CreerPiecePage() {
                 onChange={(e) => setUrgency(e.target.value)}
                 className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
               >
+                <option value="low">Faible</option>
                 <option value="normal">Délai standard (4-6 jours)</option>
-                <option value="urgent">Urgent (48-72h)</option>
+                <option value="high">Urgent (48-72h)</option>
                 <option value="critical">Arrêt de production critique (24-48h)</option>
               </select>
             </div>
