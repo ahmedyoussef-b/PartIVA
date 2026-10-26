@@ -246,3 +246,6 @@ export default async function AdminPieceDetailPage({
     </div>
   );
 }
+
+export function generateStaticParams() { return []; }
+

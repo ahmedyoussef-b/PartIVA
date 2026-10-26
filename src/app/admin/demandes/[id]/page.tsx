@@ -21,3 +21,6 @@ export default async function AdminDemandeDetailPage({
 export async function generateStaticParams() {
   return [{ id: 'placeholder' }];
 }
+
+export function generateStaticParams() { return []; }
+

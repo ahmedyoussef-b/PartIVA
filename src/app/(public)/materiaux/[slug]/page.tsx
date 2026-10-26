@@ -169,3 +169,6 @@ export default async function MaterialDetailPage({
 export async function generateStaticParams() {
   return [{ slug: 'placeholder' }];
 }
+
+export function generateStaticParams() { return []; }
+
