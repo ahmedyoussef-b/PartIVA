@@ -61,6 +61,14 @@ export default function CreerPiecePage() {
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
 
+  type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+  const [uploadState, setUploadState] = React.useState<{
+    status: UploadStatus;
+    progress: number;
+    fileName: string;
+  }>({ status: 'idle', progress: 0, fileName: '' });
+
   const removePhoto = (url: string) => {
     console.log(`${DEBUG_PREFIX} removePhoto: url=${url}`);
     setPhotoUrls((prev) => prev.filter((u) => u !== url));
@@ -125,42 +133,72 @@ export default function CreerPiecePage() {
     }
   };
 
-  const uploadFileToCloudinary = async (file: File): Promise<string | null> => {
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
-    if (!uploadPreset || !cloudName) {
-      toast.error('Configuration Cloudinary manquante.');
-      return null;
-    }
+  const uploadFileToCloudinary = (file: File): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
+      if (!uploadPreset || !cloudName) {
+        toast.error('Configuration Cloudinary manquante.');
+        setUploadState({ status: 'idle', progress: 0, fileName: '' });
+        resolve(null);
+        return;
+      }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', uploadPreset);
+      setUploadState({ status: 'uploading', progress: 0, fileName: file.name });
 
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload Cloudinary échoué');
-      const data = await res.json();
-      return data.secure_url ?? null;
-    } catch (err) {
-      console.error(`${DEBUG_PREFIX} Erreur upload Cloudinary:`, err);
-      toast.error('Échec de l’upload de la photo.');
-      return null;
-    }
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round((event.loaded * 100) / event.total);
+          setUploadState((prev) => ({ ...prev, progress: percentCompleted }));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          const url = data.secure_url ?? null;
+          setUploadState({ status: 'success', progress: 100, fileName: file.name });
+          setTimeout(() => setUploadState({ status: 'idle', progress: 0, fileName: '' }), 2000);
+          resolve(url);
+        } else {
+          setUploadState({ status: 'error', progress: 0, fileName: file.name });
+          toast.error(`Échec de l'upload de ${file.name}`);
+          resolve(null);
+        }
+      };
+
+      xhr.onerror = () => {
+        setUploadState({ status: 'error', progress: 0, fileName: file.name });
+        toast.error(`Échec de l'upload de ${file.name}`);
+        resolve(null);
+      };
+
+      xhr.send(formData);
+    });
   };
 
   const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     for (const file of files) {
       if (!file.type.startsWith('image/')) continue;
+
+      const progressToast = toast.loading(`Envoi de ${file.name}...`);
+
       const url = await uploadFileToCloudinary(file);
+
+      toast.dismiss(progressToast);
+
       if (url) {
         setPhotoUrls((prev) => [...prev, url]);
         setPhotoTags((prev) => [...prev, { url, tag: 'Vue d’ensemble' }]);
-        toast.info('Photo envoyée sur Cloudinary.');
+        toast.success(`${file.name} envoyée avec succès`);
       }
     }
     e.target.value = '';
@@ -281,6 +319,27 @@ export default function CreerPiecePage() {
               <p className="text-muted-foreground text-xs">
                 {photoUrls.length} photo(s) prête(s) à être envoyée(s).
               </p>
+            )}
+
+            {uploadState.status === 'uploading' && (
+              <div className="space-y-3">
+                <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold tracking-wider uppercase">
+                  <span>Upload en cours</span>
+                  <span>{uploadState.fileName}</span>
+                </div>
+                <div className="bg-muted relative w-full overflow-hidden rounded-xl border">
+                  <div className="flex h-32 items-center justify-center bg-black/30">
+                    <div className="text-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span className="font-semibold">{uploadState.progress}%</span>
+                    </div>
+                  </div>
+                  <div
+                    className="bg-primary absolute top-0 left-0 h-full transition-all duration-100"
+                    style={{ width: `${uploadState.progress}%` }}
+                  />
+                </div>
+              </div>
             )}
 
             {photoTags.length > 0 && (
@@ -449,7 +508,9 @@ export default function CreerPiecePage() {
             </Link>
             <Button
               type="submit"
-              disabled={isSubmitting || photoUrls.length === 0}
+              disabled={
+                isSubmitting || photoUrls.length === 0 || uploadState.status === 'uploading'
+              }
               className="w-full gap-2 px-6 font-bold shadow-md sm:w-auto"
             >
               {isSubmitting ? (
