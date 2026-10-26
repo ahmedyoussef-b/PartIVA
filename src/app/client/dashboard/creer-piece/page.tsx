@@ -364,13 +364,13 @@ export default function CreerPiecePage() {
                       className="group bg-card hover:border-primary/40 relative flex flex-col overflow-hidden rounded-xl border shadow-xs transition-all"
                     >
                       <div className="bg-muted relative aspect-[4/3] w-full overflow-hidden">
-<Image
-  src={photo.url}
-  alt={`Photo ${photo.tag}`}
-  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-  fill
-  sizes="(max-width: 768px) 100vw, 50vw"
-/>
+                        <Image
+                          src={photo.url}
+                          alt={`Photo ${photo.tag}`}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
                         <button
                           type="button"
                           onClick={() => removePhoto(photo.url)}

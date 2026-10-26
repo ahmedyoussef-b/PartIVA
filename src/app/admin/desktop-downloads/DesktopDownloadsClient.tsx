@@ -16,7 +16,11 @@ type Installer = {
   createdAt: string;
 };
 
-export default function DesktopDownloadsClient({ initialInstallers }: { initialInstallers: Installer[] }) {
+export default function DesktopDownloadsClient({
+  initialInstallers,
+}: {
+  initialInstallers: Installer[];
+}) {
   const [installers, setInstallers] = useState(initialInstallers);
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
@@ -57,7 +61,7 @@ export default function DesktopDownloadsClient({ initialInstallers }: { initialI
       toast.success('Installateur déployé !', { id: toastId });
       router.refresh();
     } catch (error) {
-      toast.error('Erreur lors de l\'upload.', { id: toastId });
+      toast.error("Erreur lors de l'upload.", { id: toastId });
       console.error(error);
     } finally {
       setIsUploading(false);
@@ -65,28 +69,32 @@ export default function DesktopDownloadsClient({ initialInstallers }: { initialI
   };
 
   const formatSize = (bytes: number) =>
-    bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(0)} Ko` : `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+    bytes < 1024 * 1024
+      ? `${(bytes / 1024).toFixed(0)} Ko`
+      : `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 
   const osIcon = (os: string) => {
     switch (os) {
       case 'windows':
-        return <Monitor className="w-8 h-8 text-slate-700" />;
+        return <Monitor className="h-8 w-8 text-slate-700" />;
       case 'macos':
-        return <Apple className="w-8 h-8 text-slate-700" />;
+        return <Apple className="h-8 w-8 text-slate-700" />;
       case 'linux':
-        return <Terminal className="w-8 h-8 text-slate-700" />;
+        return <Terminal className="h-8 w-8 text-slate-700" />;
       default:
-        return <Monitor className="w-8 h-8 text-slate-700" />;
+        return <Monitor className="h-8 w-8 text-slate-700" />;
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Téléchargements Desktop</h1>
-          <p className="text-slate-500 mt-2">Gérez les installateurs PartIVA Desktop pour Windows, macOS et Linux.</p>
+          <p className="mt-2 text-slate-500">
+            Gérez les installateurs PartIVA Desktop pour Windows, macOS et Linux.
+          </p>
         </div>
         <div>
           <input
@@ -99,38 +107,54 @@ export default function DesktopDownloadsClient({ initialInstallers }: { initialI
           />
           <label
             htmlFor="installer-upload"
-            className={`inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition shadow-sm ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+            className={`inline-flex cursor-pointer items-center rounded-lg bg-blue-600 px-4 py-2 text-white shadow-sm transition hover:bg-blue-700 ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
           >
-            {isUploading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <UploadCloud className="w-5 h-5 mr-2" />}
+            {isUploading ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <UploadCloud className="mr-2 h-5 w-5" />
+            )}
             {isUploading ? 'Déploiement...' : 'Déployer un installateur'}
           </label>
         </div>
       </div>
 
       {/* Grid of cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {installers.length === 0 ? (
-          <div className="col-span-full bg-slate-50 border border-slate-200 rounded-xl p-12 text-center">
-            <Monitor className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <div className="col-span-full rounded-xl border border-slate-200 bg-slate-50 p-12 text-center">
+            <Monitor className="mx-auto mb-4 h-12 w-12 text-slate-400" />
             <h3 className="text-lg font-medium text-slate-900">Aucun installateur disponible</h3>
-            <p className="text-slate-500 mt-1">Utilisez le bouton ci-dessus pour déployer votre premier installateur.</p>
+            <p className="mt-1 text-slate-500">
+              Utilisez le bouton ci-dessus pour déployer votre premier installateur.
+            </p>
           </div>
         ) : (
           installers.map((inst) => (
-            <div key={inst.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{inst.version}</span>
+            <div
+              key={inst.id}
+              className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <span className="rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                  {inst.version}
+                </span>
                 <span className="text-sm text-slate-500">{formatSize(inst.fileSize)}</span>
               </div>
-              <div className="flex items-center mb-6">
+              <div className="mb-6 flex items-center">
                 <div className="mr-3">{osIcon(inst.os)}</div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 capitalize">PartIVA pour {inst.os}</h3>
+                  <h3 className="font-semibold text-slate-900 capitalize">
+                    PartIVA pour {inst.os}
+                  </h3>
                   <p className="text-sm text-slate-500">.{inst.fileType}</p>
                 </div>
               </div>
-              <a href={`${inst.fileUrl}?download=1`} className="mt-auto w-full flex items-center justify-center px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
-                <Download className="w-4 h-4 mr-2" /> Télécharger
+              <a
+                href={`${inst.fileUrl}?download=1`}
+                className="mt-auto flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-white transition hover:bg-slate-800"
+              >
+                <Download className="mr-2 h-4 w-4" /> Télécharger
               </a>
             </div>
           ))
@@ -138,12 +162,13 @@ export default function DesktopDownloadsClient({ initialInstallers }: { initialI
       </div>
 
       {/* Info box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 flex items-start">
-        <Info className="w-6 h-6 text-blue-600 mr-4 flex-shrink-0 mt-0.5" />
+      <div className="flex items-start rounded-xl border border-blue-200 bg-blue-50 p-6">
+        <Info className="mt-0.5 mr-4 h-6 w-6 flex-shrink-0 text-blue-600" />
         <div>
           <h3 className="text-sm font-semibold text-blue-900">Informations de sécurité</h3>
-          <p className="text-sm text-blue-800 mt-1">
-            Windows : un avertissement SmartScreen peut apparaître lors de la première exécution car l&apos;application n&apos;est pas encore signée avec un certificat de confiance.
+          <p className="mt-1 text-sm text-blue-800">
+            Windows : un avertissement SmartScreen peut apparaître lors de la première exécution car
+            l&apos;application n&apos;est pas encore signée avec un certificat de confiance.
           </p>
         </div>
       </div>
