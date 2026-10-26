@@ -20,7 +20,6 @@ import {
   PackageCheck,
   Tag,
   Loader2,
-  UploadCloud,
   X,
 } from 'lucide-react';
 
@@ -62,21 +61,6 @@ export default function CreerPiecePage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
-  const onUploadSuccess = React.useCallback(
-    (result: { info?: string | { secure_url?: string } | undefined }) => {
-      const url = result.info
-        ? typeof result.info === 'string'
-          ? result.info
-          : result.info.secure_url
-        : undefined;
-      if (!url) return;
-      console.log(`${DEBUG_PREFIX} Upload widget succès:`, url);
-      setPhotoUrls((prev) => [...prev, url]);
-      setPhotoTags((prev) => [...prev, { url, tag: 'Vue d’ensemble' }]);
-      toast.info('Photo envoyée sur Cloudinary.');
-    },
-    [],
-  );
 
   const removePhoto = (url: string) => {
     console.log(`${DEBUG_PREFIX} removePhoto: url=${url}`);
