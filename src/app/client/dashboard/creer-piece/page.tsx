@@ -43,7 +43,6 @@ const MATERIAL_OPTIONS = [
 
 const DEBUG_PREFIX = '[DEBUG-CREER-PIECE]';
 
-
 export default function CreerPiecePage() {
   const [photoUrls, setPhotoUrls] = React.useState<string[]>([]);
   const [photoTags, setPhotoTags] = React.useState<{ url: string; tag: string }[]>([]);
@@ -71,9 +70,7 @@ export default function CreerPiecePage() {
 
   const updateTag = (url: string, newTag: string) => {
     console.log(`${DEBUG_PREFIX} updateTag: url=${url}, newTag=${newTag}`);
-    setPhotoTags((prev) =>
-      prev.map((p) => (p.url === url ? { ...p, tag: newTag } : p)),
-    );
+    setPhotoTags((prev) => prev.map((p) => (p.url === url ? { ...p, tag: newTag } : p)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,10 +138,10 @@ export default function CreerPiecePage() {
     formData.append('upload_preset', uploadPreset);
 
     try {
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
-        { method: 'POST', body: formData },
-      );
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
       if (!res.ok) throw new Error('Upload Cloudinary échoué');
       const data = await res.json();
       return data.secure_url ?? null;
@@ -185,8 +182,8 @@ export default function CreerPiecePage() {
             Créer une nouvelle pièce à fabriquer
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Uploadez autant de photos que vous le souhaitez de la pièce cassée ou
-            usée. Nos régleurs se chargent de la rétro-ingénierie et de l’usinage.
+            Uploadez autant de photos que vous le souhaitez de la pièce cassée ou usée. Nos régleurs
+            se chargent de la rétro-ingénierie et de l’usinage.
           </p>
         </div>
 
@@ -246,13 +243,14 @@ export default function CreerPiecePage() {
                   1. Photographies de la pièce souhaitée
                 </CardTitle>
                 <CardDescription>
-                  Ajoutez autant de photos que nécessaire (face, profil, zone de rupture,
-                  macro sur cotes ou références). Les photos sont uploadées directement vers
-                  Cloudinary depuis votre navigateur.
+                  Ajoutez autant de photos que nécessaire (face, profil, zone de rupture, macro sur
+                  cotes ou références). Les photos sont uploadées directement vers Cloudinary depuis
+                  votre navigateur.
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="font-mono text-xs">
-                {photoUrls.length} photo{photoUrls.length > 1 ? 's' : ''} chargée{photoUrls.length > 1 ? 's' : ''}
+                {photoUrls.length} photo{photoUrls.length > 1 ? 's' : ''} chargée
+                {photoUrls.length > 1 ? 's' : ''}
               </Badge>
             </div>
           </CardHeader>
@@ -269,18 +267,18 @@ export default function CreerPiecePage() {
               />
               <label
                 htmlFor="photo-upload"
-                className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium transition-colors"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer rounded-md px-4 py-2 font-medium transition-colors"
               >
                 Ajouter des photos
               </label>
               {photoUrls.length > 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {photoUrls.length} photo(s) prête(s) à être envoyée(s).
                 </p>
               )}
             </div>
             {photoUrls.length > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {photoUrls.length} photo(s) prête(s) à être envoyée(s).
               </p>
             )}
@@ -294,7 +292,10 @@ export default function CreerPiecePage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {photoTags.map((photo) => (
-                    <div key={photo.url} className="group bg-card hover:border-primary/40 relative flex flex-col overflow-hidden rounded-xl border shadow-xs transition-all">
+                    <div
+                      key={photo.url}
+                      className="group bg-card hover:border-primary/40 relative flex flex-col overflow-hidden rounded-xl border shadow-xs transition-all"
+                    >
                       <div className="bg-muted relative aspect-[4/3] w-full overflow-hidden">
                         <img
                           src={photo.url}
@@ -321,7 +322,7 @@ export default function CreerPiecePage() {
                         <select
                           value={photo.tag}
                           onChange={(e) => updateTag(photo.url, e.target.value)}
-                          className="w-full text-xs border border-input rounded px-2 py-1 bg-background focus:ring-primary"
+                          className="border-input bg-background focus:ring-primary w-full rounded border px-2 py-1 text-xs"
                         >
                           {PHOTO_TAGS.map((t) => (
                             <option key={t} value={t}>
@@ -433,7 +434,8 @@ export default function CreerPiecePage() {
                 Engagement Atelier PartIVA pour les clients permanents
               </p>
               <p className="text-muted-foreground text-xs">
-                Prise en charge prioritaire • Rétro-conception CAO sous 4h • Validation avant usinage
+                Prise en charge prioritaire • Rétro-conception CAO sous 4h • Validation avant
+                usinage
               </p>
             </div>
           </div>
