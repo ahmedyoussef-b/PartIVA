@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           if [ -d "src/app/api" ]; then
-            mv src/app/api src/app/api.bak
+            mv src/app/api api.disabled
           fi
 
       - name: Build Next.js app (static export)
@@ -58,8 +58,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ -d "src/app/api.bak" ]; then
-            mv src/app/api.bak src/app/api
+          if [ -d "api.disabled" ]; then
+            mv api.disabled src/app/api
           fi
 
       - name: Build desktop app with Tauri
