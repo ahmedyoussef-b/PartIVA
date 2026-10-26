@@ -35,40 +35,72 @@ jobs:
         working-directory: ./desktop
         run: npm ci
 
-      - name: Temporarily disable API routes, admin, materiaux, reverse-engineering, lib/actions and other dynamic pages for static export
+      - name: Prepare static export (remove API routes entirely)
         shell: bash
         run: |
           mkdir -p .static-export-backup
-          if [ -d "src/app/api" ]; then mv src/app/api .static-export-backup/api; fi
-          if [ -d "src/app/admin" ]; then mv src/app/admin .static-export-backup/admin; fi
-          if [ -d "src/app/(public)" ]; then mv "src/app/(public)" ".static-export-backup/public"; fi
-          if [ -d "src/app/client/dashboard" ]; then mv src/app/client/dashboard .static-export-backup/dashboard; fi
-          if [ -d "src/lib/actions" ]; then mv src/lib/actions .static-export-backup/lib-actions; fi
-          echo "=== Contenu de src/app après déplacement ==="
+          if [ -d "src/app/api" ]; then
+            cp -r src/app/api .static-export-backup/api
+            rm -rf src/app/api
+            echo "? src/app/api supprimé pour le build statique"
+          fi
+          if [ -d "src/lib/actions" ]; then
+            cp -r src/lib/actions .static-export-backup/actions
+            rm -rf src/lib/actions
+            echo "? src/lib/actions supprimé pour le build statique"
+          fi
+          if [ -d "src/app/admin" ]; then
+            cp -r src/app/admin .static-export-backup/admin
+            rm -rf src/app/admin
+            echo "? src/app/admin supprimé pour le build statique"
+          fi
+          if [ -d "src/app/(public)" ]; then
+            cp -r "src/app/(public)" ".static-export-backup/public"
+            rm -rf "src/app/(public)"
+            echo "? src/app/(public) supprimé pour le build statique"
+          fi
+          if [ -d "src/app/client/dashboard" ]; then
+            cp -r src/app/client/dashboard .static-export-backup/dashboard
+            rm -rf src/app/client/dashboard
+            echo "? src/app/client/dashboard supprimé pour le build statique"
+          fi
+          echo "=== Contenu de src/app après suppression ==="
           ls src/app
-          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)" ] || [ -d "src/app/client/dashboard" ] || [ -d "src/lib/actions" ]; then
-            echo "ERREUR: un dossier n'a pas pu être déplacé"
+          echo "=== Contenu de src/lib après suppression ==="
+          ls src/lib
+          if [ -d "src/app/api" ]; then
+            echo "ERREUR: src/app/api n'a pas pu être supprimé"
             exit 1
           fi
 
       - name: Build Next.js app (static export)
         env:
+          BUILD_TARGET: 'desktop'
           NEXT_EXPORT: 'true'
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'static-build-dummy-secret-min-32-chars-long' }}
+          BETTER_AUTH_SECRET: 'static-build-dummy-secret-min-32-chars-long'
         run: npm run build
 
-      - name: Restore API routes, admin, materiaux, reverse-engineering, lib/actions and other dynamic pages
+      - name: Restore sources (always)
         if: always()
         shell: bash
         run: |
-          if [ -d ".static-export-backup/api" ]; then mv .static-export-backup/api src/app/api; fi
-          if [ -d ".static-export-backup/admin" ]; then mv .static-export-backup/admin src/app/admin; fi
-          if [ -d ".static-export-backup/public" ]; then mv .static-export-backup/public "src/app/(public)"; fi
-          if [ -d ".static-export-backup/dashboard" ]; then mkdir -p src/app/client && mv .static-export-backup/dashboard src/app/client/dashboard; fi
-          if [ -d ".static-export-backup/lib-actions" ]; then mv .static-export-backup/lib-actions src/lib/actions; fi
+          if [ -d ".static-export-backup/api" ]; then
+            cp -r .static-export-backup/api src/app/api
+          fi
+          if [ -d ".static-export-backup/actions" ]; then
+            cp -r .static-export-backup/actions src/lib/actions
+          fi
+          if [ -d ".static-export-backup/admin" ]; then
+            cp -r .static-export-backup/admin src/app/admin
+          fi
+          if [ -d ".static-export-backup/public" ]; then
+            cp -r ".static-export-backup/public" "src/app/(public)"
+          fi
+          if [ -d ".static-export-backup/dashboard" ]; then
+            mkdir -p src/app/client
+            cp -r .static-export-backup/dashboard src/app/client/dashboard
+          fi
+          rm -rf .static-export-backup
 
       - name: Build desktop app with Tauri
         working-directory: ./desktop/src-tauri
