@@ -23,4 +23,3 @@ export async function generateStaticParams() {
 }
 
 export function generateStaticParams() { return []; }
-
