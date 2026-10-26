@@ -39,12 +39,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p .static-export-backup
-          for dir in src/app/api src/app/admin src/app/(public)/materiaux src/app/(public) src/app/client/dashboard src/lib/actions; do
-            if [ -d "$dir" ]; then
-              base=$(basename "$dir")
-              mv "$dir" ".static-export-backup/$base" 2>/dev/null || true
-            fi
-          done
+          if [ -d "src/app/api" ]; then mv src/app/api .static-export-backup/api; fi
+          if [ -d "src/app/admin" ]; then mv src/app/admin .static-export-backup/admin; fi
+          if [ -d "src/app/(public)" ]; then mv "src/app/(public)" ".static-export-backup/public"; fi
+          if [ -d "src/app/client/dashboard" ]; then mv src/app/client/dashboard .static-export-backup/dashboard; fi
+          if [ -d "src/lib/actions" ]; then mv src/lib/actions .static-export-backup/lib-actions; fi
           echo "=== Contenu de src/app après déplacement ==="
           ls src/app
           if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)" ] || [ -d "src/app/client/dashboard" ] || [ -d "src/lib/actions" ]; then
@@ -65,22 +64,11 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ -d ".static-export-backup/api" ]; then
-            mv .static-export-backup/api src/app/api
-          fi
-          if [ -d ".static-export-backup/admin" ]; then
-            mv .static-export-backup/admin src/app/admin
-          fi
-          if [ -d ".static-export-backup/(public)" ]; then
-            mv ".static-export-backup/(public)" "src/app/(public)"
-          fi
-          if [ -d ".static-export-backup/client" ]; then
-            mkdir -p src/app/client
-            mv .static-export-backup/client/dashboard src/app/client/dashboard 2>/dev/null || true
-          fi
-          if [ -d ".static-export-backup/lib-actions" ]; then
-            mv .static-export-backup/lib-actions src/lib/actions
-          fi
+          if [ -d ".static-export-backup/api" ]; then mv .static-export-backup/api src/app/api; fi
+          if [ -d ".static-export-backup/admin" ]; then mv .static-export-backup/admin src/app/admin; fi
+          if [ -d ".static-export-backup/public" ]; then mv .static-export-backup/public "src/app/(public)"; fi
+          if [ -d ".static-export-backup/dashboard" ]; then mkdir -p src/app/client && mv .static-export-backup/dashboard src/app/client/dashboard; fi
+          if [ -d ".static-export-backup/lib-actions" ]; then mv .static-export-backup/lib-actions src/lib/actions; fi
 
       - name: Build desktop app with Tauri
         working-directory: ./desktop/src-tauri
