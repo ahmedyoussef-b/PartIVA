@@ -1,4 +1,6 @@
-﻿import { NextResponse } from 'next/server';
+﻿export const dynamic = 'force-static';
+
+import { NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 

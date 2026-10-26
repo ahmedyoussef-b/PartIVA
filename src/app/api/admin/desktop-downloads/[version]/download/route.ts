@@ -1,4 +1,6 @@
-﻿import { head } from '@vercel/blob';
+﻿export const dynamic = 'force-static';
+
+import { head } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
