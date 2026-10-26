@@ -1,56 +1,45 @@
+// New upload route using Vercel Blob – generates an upload token
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { resolve, join } from 'path';
-import crypto from 'crypto';
-import { requireAdmin } from '@/lib/auth-admin';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { auth } from '@/lib/auth';
 
-export async function POST(req: Request) {
-  try {
-    await requireAdmin();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unauthorized';
-    const status = message === 'Forbidden' ? 403 : 401;
-    return NextResponse.json({ error: message }, { status });
-  }
+export async function POST(request: Request) {
+  // Parse the JSON body as expected by @vercel/blob client
+  const body = (await request.json()) as HandleUploadBody;
 
   try {
-    const formData = await req.formData();
-    const file = formData.get('file');
-
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: 'Missing file' }, { status: 400 });
+    // Verify admin session via Better‑Auth API helper
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      throw new Error('Non autorisé');
     }
 
-    const allowedExt = ['.exe', '.msi', '.dmg', '.AppImage', '.zip'];
-    const filename = file.name;
-    if (!allowedExt.some((ext) => filename.toLowerCase().endsWith(ext))) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
-    }
-
-    const maxSize = 500 * 1024 * 1024; // 500MB
-    if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File too large' }, { status: 400 });
-    }
-
-    const buildsDir = resolve(process.cwd(), 'public', 'builds');
-    await mkdir(buildsDir, { recursive: true });
-    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const filePath = join(buildsDir, safeName);
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
-
-    const hash = crypto.createHash('sha256').update(buffer).digest('hex');
-
-    return NextResponse.json({
-      success: true,
-      filename: safeName,
-      size: buffer.length,
-      checksum: hash,
-      downloadUrl: `/builds/${encodeURIComponent(safeName)}`,
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async () => {
+        return {
+          allowedContentTypes: [
+            'application/x-msdownload', // .exe
+            'application/x-msi', // .msi
+            'application/octet-stream', // generic binaries (.dmg, .AppImage, .zip)
+          ],
+          maximumSizeInBytes: 500 * 1024 * 1024, // 500 MiB
+          addRandomSuffix: true,
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        // Optional: persist blob metadata (url, size, checksum) in Prisma later.
+        console.log('Blob uploaded:', blob.url);
+      },
     });
+
+    return NextResponse.json(jsonResponse);
   } catch (error) {
-    console.error('desktop-builds upload error:', error);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
+

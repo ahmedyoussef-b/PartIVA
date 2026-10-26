@@ -537,3 +537,16 @@ model DesktopBuild {
   @@index([publishedAt])
   @@map("desktop_builds")
 }
+
+model DesktopInstaller {
+  id        String   @id @default(cuid())
+  version   String
+  os        String   // "windows", "macos", "linux"
+  fileType  String   // "exe", "msi", "dmg", "deb"
+  fileUrl   String
+  fileSize  Int
+  createdAt DateTime @default(now())
+
+  @@map("desktop_installers")
+}
+

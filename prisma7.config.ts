@@ -3,6 +3,17 @@
 import 'dotenv/config';
 import { defineConfig } from 'prisma/config';
 
+function cleanPrismaUrl(url?: string) {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.delete('channel_binding');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
@@ -10,7 +21,7 @@ export default defineConfig({
     seed: 'tsx ./prisma/seed.ts',
   },
   datasource: {
-    url: process.env.DATABASE_URL_UNPOOLED,
-    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
+    url: cleanPrismaUrl(process.env.DATABASE_URL_UNPOOLED || process.env.DIRECT_URL || process.env.DATABASE_URL),
+    shadowDatabaseUrl: cleanPrismaUrl(process.env.SHADOW_DATABASE_URL),
   },
 });
