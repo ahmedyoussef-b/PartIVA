@@ -135,8 +135,8 @@ jobs:
             ubuntu-latest) target_os="linux" ;;
           esac
 
-          node ../../scripts/publish-desktop.mjs \
-            ./target/release/bundle \
+          node scripts/publish-desktop.mjs \
+            ./desktop/src-tauri/target/release/bundle \
             "$version" \
             "$target_os" \
             "${{ secrets.NEXT_PUBLIC_APP_URL }}" \
