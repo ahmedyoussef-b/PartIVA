@@ -39,11 +39,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential curl libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
-      - name: Temporarily disable API routes and server actions for static export
+      - name: Temporarily disable API routes, admin and server actions for static export
         shell: bash
         run: |
           if [ -d "src/app/api" ]; then
             mv src/app/api api.disabled
+          fi
+          if [ -d "src/app/admin" ]; then
+            mv src/app/admin admin.disabled
           fi
           if [ -d "src/lib/actions" ]; then
             mv src/lib/actions lib-actions.disabled
@@ -52,7 +55,7 @@ jobs:
           ls src/app
           echo "=== Contenu de src/lib après déplacement ==="
           ls src/lib
-          if [ -d "src/app/api" ] || [ -d "src/lib/actions" ]; then
+          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/lib/actions" ]; then
             echo "ERREUR: un dossier n'a pas pu être déplacé"
             exit 1
           fi
@@ -66,12 +69,15 @@ jobs:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'static-build-dummy-secret-min-32-chars-long' }}
         run: npm run build
 
-      - name: Restore API routes and server actions
+      - name: Restore API routes, admin and server actions
         if: always()
         shell: bash
         run: |
           if [ -d "api.disabled" ]; then
             mv api.disabled src/app/api
+          fi
+          if [ -d "admin.disabled" ]; then
+            mv admin.disabled src/app/admin
           fi
           if [ -d "lib-actions.disabled" ]; then
             mv lib-actions.disabled src/lib/actions
