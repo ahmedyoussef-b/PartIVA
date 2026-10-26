@@ -13,15 +13,17 @@ type Installer = {
   fileType: string;
   fileUrl: string;
   fileSize: number;
-  createdAt: string;
+  createdAt: Date | string;
 };
 
 export default function DesktopDownloadsClient({
   initialInstallers,
+  isAdmin,
 }: {
   initialInstallers: Installer[];
+  isAdmin: boolean;
 }) {
-  const [installers, setInstallers] = useState(initialInstallers);
+  const [installers, setInstallers] = useState<Installer[]>(initialInstallers);
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
 
@@ -39,7 +41,7 @@ export default function DesktopDownloadsClient({
     try {
       const blob = await upload(file.name, file, {
         access: 'public',
-        handleUploadUrl: '/api/upload-installer',
+        handleUploadUrl: '/api/desktop-builds/upload',
         multipart: file.size > 100 * 1024 * 1024,
       });
 
@@ -96,27 +98,29 @@ export default function DesktopDownloadsClient({
             Gérez les installateurs PartIVA Desktop pour Windows, macOS et Linux.
           </p>
         </div>
-        <div>
-          <input
-            type="file"
-            id="installer-upload"
-            className="hidden"
-            onChange={handleUpload}
-            accept=".exe,.msi,.dmg,.deb,.AppImage"
-            disabled={isUploading}
-          />
-          <label
-            htmlFor="installer-upload"
-            className={`inline-flex cursor-pointer items-center rounded-lg bg-blue-600 px-4 py-2 text-white shadow-sm transition hover:bg-blue-700 ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
-          >
-            {isUploading ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <UploadCloud className="mr-2 h-5 w-5" />
-            )}
-            {isUploading ? 'Déploiement...' : 'Déployer un installateur'}
-          </label>
-        </div>
+        {isAdmin && (
+          <div>
+            <input
+              type="file"
+              id="installer-upload"
+              className="hidden"
+              onChange={handleUpload}
+              accept=".exe,.msi,.dmg,.deb,.AppImage"
+              disabled={isUploading}
+            />
+            <label
+              htmlFor="installer-upload"
+              className={`inline-flex cursor-pointer items-center rounded-lg bg-blue-600 px-4 py-2 text-white shadow-sm transition hover:bg-blue-700 ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
+            >
+              {isUploading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <UploadCloud className="mr-2 h-5 w-5" />
+              )}
+              {isUploading ? 'Déploiement...' : 'Déployer un installateur'}
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Grid of cards */}
@@ -165,10 +169,10 @@ export default function DesktopDownloadsClient({
       <div className="flex items-start rounded-xl border border-blue-200 bg-blue-50 p-6">
         <Info className="mt-0.5 mr-4 h-6 w-6 flex-shrink-0 text-blue-600" />
         <div>
-          <h3 className="text-sm font-semibold text-blue-900">Informations de sécurité</h3>
+          <h3 className="text-sm font-semibold text-blue-900">Stockage des installateurs</h3>
           <p className="mt-1 text-sm text-blue-800">
-            Windows : un avertissement SmartScreen peut apparaître lors de la première exécution car
-            l&apos;application n&apos;est pas encore signée avec un certificat de confiance.
+            Les installateurs sont stockés de manière sécurisée sur le cloud (Vercel Blob). Utilisez
+            le bouton ci-dessus pour déployer une nouvelle version.
           </p>
         </div>
       </div>
