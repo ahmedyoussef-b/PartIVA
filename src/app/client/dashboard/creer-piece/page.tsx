@@ -101,6 +101,13 @@ export default function CreerPiecePage() {
         return;
       }
 
+      if (!notes || notes.trim().length < 10) {
+        console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: description trop courte`);
+        toast.error('La description doit contenir au moins 10 caractères.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const formData = new FormData();
 
       formData.append('clientName', clientName);
