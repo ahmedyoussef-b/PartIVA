@@ -45,6 +45,15 @@ jobs:
           if [ -d "src/app/api" ]; then
             mv src/app/api api.disabled
           fi
+          if [ -d "src/app/admin" ]; then
+            mv src/app/admin admin.disabled
+          fi
+          if [ -d "src/app/materiaux" ]; then
+            mv src/app/materiaux materiaux.disabled
+          fi
+          if [ -d "src/app/reverse-engineering" ]; then
+            mv src/app/reverse-engineering reverse-engineering.disabled
+          fi
 
       - name: Build Next.js app (static export)
         env:
@@ -60,6 +69,15 @@ jobs:
         run: |
           if [ -d "api.disabled" ]; then
             mv api.disabled src/app/api
+          fi
+          if [ -d "admin.disabled" ]; then
+            mv admin.disabled src/app/admin
+          fi
+          if [ -d "materiaux.disabled" ]; then
+            mv materiaux.disabled src/app/materiaux
+          fi
+          if [ -d "reverse-engineering.disabled" ]; then
+            mv reverse-engineering.disabled src/app/reverse-engineering
           fi
 
       - name: Build desktop app with Tauri
