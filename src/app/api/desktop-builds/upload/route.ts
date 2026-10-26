@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   try {
     // Verify admin session via Better‑Auth API helper
     const session = await auth.api.getSession({ headers: request.headers });
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session || (session.user as { role?: string })?.role !== 'ADMIN') {
       throw new Error('Non autorisé');
     }
 

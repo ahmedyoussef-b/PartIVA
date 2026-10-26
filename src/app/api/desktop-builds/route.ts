@@ -12,12 +12,12 @@ export async function GET(request?: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    const builds = installers.map((i: any) => ({
+    const builds = installers.map((i) => ({
       id: i.id,
       version: i.version,
-      os: i.os as any,
+      os: i.os,
       arch: "x86_64",
-      format: i.fileType as any,
+      format: i.fileType,
       filename: i.fileUrl.split("/").pop() ?? i.fileUrl,
       size: i.fileSize,
       downloadUrl: i.fileUrl,
