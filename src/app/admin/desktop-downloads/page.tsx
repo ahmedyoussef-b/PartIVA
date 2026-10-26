@@ -16,13 +16,29 @@ export default function DesktopDownloadsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/installers.json')
+    const apiUrl = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/desktop-builds`
+      : '/api/desktop-builds';
+
+    fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => {
-        setInstallers(data);
+        const builds = data.builds || [];
+        setInstallers(
+          builds.map((b: any) => ({
+            version: b.version,
+            os: b.os,
+            fileType: b.format,
+            fileUrl: b.downloadUrl,
+            fileSize: b.size,
+          }))
+        );
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Erreur chargement installateurs:', err);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) return <div>Chargement…</div>;
