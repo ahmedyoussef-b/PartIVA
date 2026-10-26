@@ -16,5 +16,11 @@ export default async function ClientDemandeDetailPage({
   return <DemandeDetailClient initialRequest={request} />;
 }
 
+
+
+
+
+
+
 export function generateStaticParams() { return []; }
 

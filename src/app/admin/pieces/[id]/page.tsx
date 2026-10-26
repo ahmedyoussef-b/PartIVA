@@ -247,5 +247,11 @@ export default async function AdminPieceDetailPage({
   );
 }
 
+
+
+
+
+
+
 export function generateStaticParams() { return []; }
 

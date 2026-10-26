@@ -16,3 +16,5 @@ export default async function PiecesPretesPage() {
 
   return <PiecesPretesClient initialParts={parts} actorRole={user.role as UserRole} />;
 }
+
+

@@ -8,3 +8,5 @@ export default async function MateriauxPage() {
 
   return <MateriauxPageClient initialMaterials={materials} />;
 }
+
+
