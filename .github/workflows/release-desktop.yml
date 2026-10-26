@@ -1,6 +1,6 @@
 name: Release Desktop
 
-'on':
+on:
   push:
     tags:
       - 'v*'
@@ -10,11 +10,8 @@ env:
 
 jobs:
   build-and-upload:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: windows-latest
+    name: Build Windows Installer
 
     steps:
       - name: Checkout repository
@@ -26,6 +23,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
       - name: Install root dependencies
         run: npm ci
 
@@ -33,45 +35,20 @@ jobs:
         working-directory: ./desktop
         run: npm ci
 
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential curl libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-
-      - name: Temporarily disable API routes, admin, public group, client creer-piece, client demandes, client dashboard main, client pieces-pretes and server actions for static export
+      - name: Temporarily disable API routes, admin, materiaux, reverse-engineering, lib/actions and other dynamic pages for static export
         shell: bash
         run: |
-          if [ -d "src/app/api" ]; then
-            mv src/app/api api.disabled
-          fi
-          if [ -d "src/app/admin" ]; then
-            mv src/app/admin admin.disabled
-          fi
-          if [ -d "src/app/(public)" ]; then
-            mv "src/app/(public)" public-group.disabled
-          fi
-          if [ -d "src/app/client/dashboard/creer-piece" ]; then
-            mv src/app/client/dashboard/creer-piece creer-piece.disabled
-          fi
-          if [ -d "src/app/client/dashboard/demandes" ]; then
-            mv src/app/client/dashboard/demandes demandes.disabled
-          fi
-          if [ -d "src/app/client/dashboard/pieces-pretes" ]; then
-            mv src/app/client/dashboard/pieces-pretes pieces-pretes.disabled
-          fi
-          if [ -f "src/app/client/dashboard/page.tsx" ]; then
-            mv src/app/client/dashboard/page.tsx client-dashboard-page.disabled
-          fi
-          if [ -d "src/lib/actions" ]; then
-            mv src/lib/actions lib-actions.disabled
-          fi
-          echo "=== Contenu de src/app aprÃ¨s dÃ©placement ==="
+          mkdir -p .static-export-backup
+          for dir in src/app/api src/app/admin src/app/(public)/materiaux src/app/(public) src/app/client/dashboard src/lib/actions; do
+            if [ -d "$dir" ]; then
+              base=$(basename "$dir")
+              mv "$dir" ".static-export-backup/$base" 2>/dev/null || true
+            fi
+          done
+          echo "=== Contenu de src/app après déplacement ==="
           ls src/app
-          echo "=== Contenu de src/lib aprÃ¨s dÃ©placement ==="
-          ls src/lib
-          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)" ] || [ -d "src/app/client/dashboard/creer-piece" ] || [ -d "src/app/client/dashboard/demandes" ] || [ -d "src/app/client/dashboard/pieces-pretes" ] || [ -f "src/app/client/dashboard/page.tsx" ] || [ -d "src/lib/actions" ]; then
-            echo "ERREUR: un dossier/fichier n'a pas pu Ãªtre dÃ©placÃ©"
+          if [ -d "src/app/api" ] || [ -d "src/app/admin" ] || [ -d "src/app/(public)" ] || [ -d "src/app/client/dashboard" ] || [ -d "src/lib/actions" ]; then
+            echo "ERREUR: un dossier n'a pas pu être déplacé"
             exit 1
           fi
 
@@ -84,33 +61,25 @@ jobs:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'static-build-dummy-secret-min-32-chars-long' }}
         run: npm run build
 
-      - name: Restore API routes, admin, public group, client creer-piece, client demandes, client dashboard main, client pieces-pretes and server actions
+      - name: Restore API routes, admin, materiaux, reverse-engineering, lib/actions and other dynamic pages
         if: always()
         shell: bash
         run: |
-          if [ -d "api.disabled" ]; then
-            mv api.disabled src/app/api
+          if [ -d ".static-export-backup/api" ]; then
+            mv .static-export-backup/api src/app/api
           fi
-          if [ -d "admin.disabled" ]; then
-            mv admin.disabled src/app/admin
+          if [ -d ".static-export-backup/admin" ]; then
+            mv .static-export-backup/admin src/app/admin
           fi
-          if [ -d "public-group.disabled" ]; then
-            mv public-group.disabled "src/app/(public)"
+          if [ -d ".static-export-backup/(public)" ]; then
+            mv ".static-export-backup/(public)" "src/app/(public)"
           fi
-          if [ -d "creer-piece.disabled" ]; then
-            mv creer-piece.disabled src/app/client/dashboard/creer-piece
+          if [ -d ".static-export-backup/client" ]; then
+            mkdir -p src/app/client
+            mv .static-export-backup/client/dashboard src/app/client/dashboard 2>/dev/null || true
           fi
-          if [ -d "demandes.disabled" ]; then
-            mv demandes.disabled src/app/client/dashboard/demandes
-          fi
-          if [ -d "pieces-pretes.disabled" ]; then
-            mv pieces-pretes.disabled src/app/client/dashboard/pieces-pretes
-          fi
-          if [ -f "client-dashboard-page.disabled" ]; then
-            mv client-dashboard-page.disabled src/app/client/dashboard/page.tsx
-          fi
-          if [ -d "lib-actions.disabled" ]; then
-            mv lib-actions.disabled src/lib/actions
+          if [ -d ".static-export-backup/lib-actions" ]; then
+            mv .static-export-backup/lib-actions src/lib/actions
           fi
 
       - name: Build desktop app with Tauri
@@ -129,11 +98,7 @@ jobs:
           version="${{ github.ref_name }}"
           version="${version#v}"
 
-          case "${{ matrix.os }}" in
-            windows-latest) target_os="windows" ;;
-            macos-latest) target_os="macos" ;;
-            ubuntu-latest) target_os="linux" ;;
-          esac
+          target_os="windows"
 
           node scripts/publish-desktop.mjs \
             ./desktop/src-tauri/target/release/bundle \
