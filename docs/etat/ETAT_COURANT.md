@@ -46,6 +46,8 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **E40-Fix7** (onglet Images, ✅ terminé) : intégration de l'onglet `Images` dans la page de détail `/admin/pieces/[id]` via `PartImageGallery`. La consultation des images est désormais possible quel que soit le point d'entrée. Fix nommé `D-E20-ADMIN-PART-IMAGES-DISPLAY`.
 - **E40-Fix8** (sémantique Client, ✅ terminé) : clarification de la sémantique entre `Request` et `Part`. Ajout du bouton "Convertir en Pièce (admin)" dans le détail des demandes (`/admin/demandes/[id]`) pour migrer automatiquement une demande validée (`candidate_found`) vers le catalogue de pièces avec ses photos. Fix nommé `D-E20-CLIENT-REQUEST-SEMANTICS`.
 
+- **CI (2026-10-26) :** job E2E désactivé sur push/PR, exécutable manuellement via `workflow_dispatch`. Motif : lenteur du cycle + `D-E27-E2E-RESIDUAL`.
+
 ## 4. Blocages
 
 - **D-E23-PRISMA-POOLER-TIMEOUT :** Résolue — 3 runs CI consécutifs verts sur le pooler Neon (session E34). Preuve : `docs/infrastructure/E34-POOLER-STABILITY-LOG.md`.

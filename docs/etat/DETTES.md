@@ -4,6 +4,14 @@
 **Source :** Scission de `DEBT.md` (E3-S2)
 **Statut :** Dettes non résolues uniquement
 
+- **Décision (2026-10-26) :** le job `E2E (Playwright)` est retiré des
+  déclencheurs automatiques (`push`, `pull_request`) et conditionné à un
+  lancement manuel (`workflow_dispatch`) jusqu'à résolution de
+  `D-E27-E2E-RESIDUAL` (4 tests pré-existants en échec). Les jobs
+  `ESLint + Prettier`, `TypeScript` et `Build` restent obligatoires.
+  Réactivation : retirer la ligne `if: github.event_name == 'workflow_dispatch'`
+  du job `e2e` dans `.github/workflows/ci.yml`.
+
 ## Moyenne (2)
 
 ### `D-E23-PRISMA-POOLER-TIMEOUT` — Timeout Prisma adapter-pg sur pooler Neon
