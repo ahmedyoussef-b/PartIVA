@@ -1,4 +1,4 @@
-﻿// Updated list route – returns installers stored in the database via Prisma
+// Updated list route – returns installers stored in the database via Prisma
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -8,7 +8,11 @@ export async function GET(request?: Request) {
     const session = await auth.api.getSession({ headers: request?.headers ?? {} });
     void session;
 
+    const url = request ? new URL(request.url) : null;
+    const latestOnly = url?.searchParams.get('latest') === 'true';
+
     const installers = await prisma.desktopInstaller.findMany({
+      where: latestOnly ? { isLatest: true } : undefined,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -23,6 +27,7 @@ export async function GET(request?: Request) {
       downloadUrl: i.fileUrl,
       checksum: undefined,
       publishedAt: i.createdAt?.toISOString(),
+      isLatest: i.isLatest,
     }));
 
     return NextResponse.json({ builds });

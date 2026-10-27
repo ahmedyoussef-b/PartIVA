@@ -54,6 +54,8 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
   - Page `/admin/desktop-downloads` en Client Component, fetch de l'API `/api/desktop-builds`.
   - Preuve : API `https://part-iva.vercel.app/api/desktop-builds` retourne l'installateur `0.1.0-win6` (Windows, `.exe`, 8.2 Mo) avec URL Blob.
   - Dette reportée : `D-E37-GITHUB-RELEASES` (migration Vercel Blob → GitHub Releases, optionnelle).
+- **E38 (gestion installateurs, ✅ terminé) :** ajout champ `isLatest` au modèle `DesktopInstaller` ; routes `DELETE /api/desktop-builds/[id]` et `PATCH /api/desktop-builds/[id]/publish` (admin) ; GET accepte `?latest=true` ; page `/admin/desktop-downloads` : boutons Supprimer + Définir comme officielle + badge Version Officielle. Validation : typecheck src EXIT 0, lint src EXIT 0.
+
 
 - **CI (2026-10-26) :** job E2E désactivé sur push/PR, exécutable manuellement via `workflow_dispatch`. Motif : lenteur du cycle + `D-E27-E2E-RESIDUAL`.
 

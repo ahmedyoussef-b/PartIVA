@@ -545,6 +545,7 @@ model DesktopInstaller {
   fileType  String   // "exe", "msi", "dmg", "deb"
   fileUrl   String
   fileSize  Int
+  isLatest  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@map("desktop_installers")
