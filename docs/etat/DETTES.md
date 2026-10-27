@@ -1,6 +1,6 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-10-24
+**Dernière mise à jour :** 2026-10-27
 **Source :** Scission de `DEBT.md` (E3-S2)
 **Statut :** Dettes non résolues uniquement
 
@@ -80,7 +80,7 @@
 - **Prochaine session :** Non planifiée (facteur externe).
 
 ### `D-E26-CI-BRANCH-MISMATCH` — CI configurée sur `main`, dépôt sur `master`
-- **Statut :** Résolue
+- **Statut :** Résolue (2026-10-27)
 - **Priorité :** Haute
 - **Cause :** `.github/workflows/ci.yml` déclare `on.push.branches: [main]`
   et `pull_request` sur `main`. La branche par défaut du dépôt distant
@@ -91,9 +91,17 @@
   `D-E24-E2E-TIMEOUT-SOURCES` ne peuvent pas être clôturées sans run CI.
 - **Condition de résolution :** au moins 2 runs CI consécutifs verts sur
   `master`, déclenchés par push.
-- **Prochaine session :** E26-bis-C (infrastructure CI).
+- **Preuve :** run `40417826824` (tag `v0.1.0-win6`) vert sur les 5 étapes,
+  pipeline Desktop opérationnel (build Tauri + Vercel Blob + Prisma).
 
-## Faible (0) - Résolues en session E40
+### `D-E37-GITHUB-RELEASES` — Migration Vercel Blob → GitHub Releases
+
+- **Statut :** Reportée (optionnelle)
+- **Cause :** Vercel Blob fonctionne correctement (`allowOverwrite: true` validé).
+  Le seul blocage était `RELEASE_API_SECRET` déjà configuré et fonctionnel.
+- **Périmètre :** `.github/workflows/release-desktop.yml`, `scripts/publish-desktop.mjs`.
+- **Effort estimé :** 1-2 sessions.
+- **Bloquant :** Non.
 
 ### D-E20-CLOUDINARY-UPLOAD-SILENT-FAIL - Upload Cloudinary silencieux sur l'admin
 

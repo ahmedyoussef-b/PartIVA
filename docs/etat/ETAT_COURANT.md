@@ -1,8 +1,8 @@
 # ÉTAT COURANT — PartIVA
 
-**Dernière mise à jour :** 2026-10-26
-**Commit HEAD :** 53b6ad1 (E40-Fix6/7/8 + documentation)
-**Phase en cours :** E40-Fix — Clôture administrative de la session
+**Dernière mise à jour :** 2026-10-27
+**Commit HEAD :** 7b84df7 (rapports Tauri + pipeline Desktop)
+**Phase en cours :** E37 — Pipeline Desktop Windows clôturé
 **Statut du projet :** CI-ready
 
 ## 1. Objectif actuel
@@ -45,6 +45,15 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - **E40-Fix6** (upload Cloudinary, ✅ terminé) : correction de `createPart` pour gérer les erreurs d'upload Cloudinary. Les échecs précédents étaient silencieux (blob URLs temporaires) ; le serveur renvoie maintenant `success: false` avec message d'erreur. Fix nommé `D-E20-CLOUDINARY-UPLOAD-SILENT-FAIL`.
 - **E40-Fix7** (onglet Images, ✅ terminé) : intégration de l'onglet `Images` dans la page de détail `/admin/pieces/[id]` via `PartImageGallery`. La consultation des images est désormais possible quel que soit le point d'entrée. Fix nommé `D-E20-ADMIN-PART-IMAGES-DISPLAY`.
 - **E40-Fix8** (sémantique Client, ✅ terminé) : clarification de la sémantique entre `Request` et `Part`. Ajout du bouton "Convertir en Pièce (admin)" dans le détail des demandes (`/admin/demandes/[id]`) pour migrer automatiquement une demande validée (`candidate_found`) vers le catalogue de pièces avec ses photos. Fix nommé `D-E20-CLIENT-REQUEST-SEMANTICS`.
+
+- **E37 (2026-10-27) — Pipeline Desktop Windows :** pipeline CI/CD de l'application Desktop (Tauri) opérationnel de bout en bout.
+  - Build Next.js statique (`output: 'export'`) avec suppression complète de `src/app/api` et `src/lib/actions` avant compilation.
+  - Build Tauri `.msi` (Windows) sur runner `windows-latest`.
+  - Upload vers Vercel Blob (`allowOverwrite: true`).
+  - Enregistrement des métadonnées dans Prisma (`DesktopInstaller`).
+  - Page `/admin/desktop-downloads` en Client Component, fetch de l'API `/api/desktop-builds`.
+  - Preuve : API `https://part-iva.vercel.app/api/desktop-builds` retourne l'installateur `0.1.0-win6` (Windows, `.exe`, 8.2 Mo) avec URL Blob.
+  - Dette reportée : `D-E37-GITHUB-RELEASES` (migration Vercel Blob → GitHub Releases, optionnelle).
 
 - **CI (2026-10-26) :** job E2E désactivé sur push/PR, exécutable manuellement via `workflow_dispatch`. Motif : lenteur du cycle + `D-E27-E2E-RESIDUAL`.
 
@@ -89,3 +98,4 @@ Voir le rapport : `docs/sessions/rapports/SESSION-2026-10-23-E29.md`.
 - `E2E (Playwright)` est désormais un check requis sur `master`.
 - **Point de vigilance CI :** le log du run ne doit **pas** contenir `⚠️ ADMIN_EMAIL/ADMIN_PASSWORD absents → utilisateurs mock`.
 - **Opérationnel :** la base Neon est partagée CI ↔ local. Après chaque run CI, rejouer `npm run db:seed` en local avant toute exécution E2E locale (les identifiants diffèrent).
+- **E37 (pipeline Desktop) :** le fichier `public/installers.json` a été supprimé ; la page `/admin/desktop-downloads` fetch désormais `${NEXT_PUBLIC_APP_URL}/api/desktop-builds` (URL absolue en production, relative en dev).
