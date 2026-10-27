@@ -56,6 +56,12 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** le composant est entièrement client ou entièrement serveur, sans import du namespace Prisma *browser* dans le bundle serveur. ✅ (E33 — `PartStatusBadge` refactorisé en composant purement Client 'use client', découplé de Prisma avec tokens tech E31).
 - **Résolue en :** session E33 (2026-10-24).
+### `D-E38-PRETTIER-TAILWIND` — Plugin Prettier Tailwind cassé avec Tailwind v4
+
+- **Statut :** Résolue (2026-10-27)
+- **Cause :** Tailwind v4 exige `tailwindStylesheet` dans la config Prettier.
+- **Résolution :** Ajout de `"tailwindStylesheet": "./src/app/globals.css"` dans `.prettierrc`.
+- **Preuve :** `npm run format:check` — plus d'erreur `loadTailwindCSS` (validation validée, 2026-10-27).
 
 ### `D-E26-LEGACY-KILOCODE` — Fichier hérité `.kilocode/rules.md`
 
