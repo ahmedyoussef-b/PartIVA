@@ -1,0 +1,147 @@
+﻿build-and-upload (windows-latest)	Build Next.js app (static export)	﻿2026-10-26T17:40:08.3425259Z ##[group]Run npm run build
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3425654Z ^[[36;1mnpm run build^[[0m
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3501776Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3502191Z env:
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3502406Z   NODE_VERSION: 22
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3502629Z   NEXT_EXPORT: true
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3503801Z   DATABASE_URL: ***
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3504089Z   BETTER_AUTH_URL: ***
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3504384Z   NEXT_PUBLIC_APP_URL: ***
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3504851Z   BETTER_AUTH_SECRET: ***
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:08.3505125Z ##[endgroup]
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:09.1550313Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:09.1551064Z > atelier-pieces-industrielles@0.1.0 build
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:09.1552179Z > prisma generate && next build
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:09.1552561Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.4397365Z Loaded Prisma config from prisma7.config.ts.
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.4397957Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.5892486Z Prisma schema loaded from prisma\schema.prisma.
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1522102Z ┌─────────────────────────────────────────────────────────┐
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1523142Z │  Update available 7.10.0 -> 8.0.0-rc.27                 │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1523928Z │                                                         │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1524756Z │  This is a major update - please follow the guide at    │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1525698Z │  https://pris.ly/d/major-version-upgrade                │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1526501Z │                                                         │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1527266Z │  Run the following to update                            │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1528107Z │    npm i --save-dev prisma@latest                       │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1528896Z │    npm i @prisma/client@latest                          │
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1529414Z └─────────────────────────────────────────────────────────┘
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1529663Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1530010Z ✔ Generated Prisma Client (7.10.0) to .\src\generated\prisma in 396ms
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.1530327Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8398349Z ▲ Next.js 16.4.1 (Turbopack)
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8700446Z ✓ Running next.config.mjs took 29ms
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8704880Z ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8765514Z Attention: Next.js now collects completely anonymous telemetry regarding usage.
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8766760Z This information is used to shape Next.js' roadmap and prioritize features.
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8768271Z You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8769426Z https://nextjs.org/telemetry
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.8769751Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.9168137Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.0082698Z   Creating an optimized production build ...
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:27.2156158Z ✓ Compiled successfully in 15.2s
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:27.2451663Z   Running TypeScript ...
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:42.7112688Z   Finished TypeScript in 15.5s ...
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:42.7169049Z   Collecting page data using 3 workers ...
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:44.3004832Z 
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:44.3006629Z > Server Actions are not supported with static export.
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:44.3008481Z Read more: https://nextjs.org/docs/app/building-your-application/deploying/static-exports#unsupported-features
+build-and-upload (windows-latest)	Build Next.js app (static export)	2026-10-26T17:40:44.3968805Z ##[error]Process completed with exit code 1.
+build-and-upload (macos-latest)	Build Next.js app (static export)	﻿2026-10-26T17:39:37.0113520Z ##[group]Run npm run build
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0113880Z ^[[36;1mnpm run build^[[0m
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0194200Z shell: /bin/bash -e {0}
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0194560Z env:
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0194770Z   NODE_VERSION: 22
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0195030Z   NEXT_EXPORT: true
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0197140Z   DATABASE_URL: ***
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0197600Z   BETTER_AUTH_URL: ***
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0197920Z   NEXT_PUBLIC_APP_URL: ***
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0199460Z   BETTER_AUTH_SECRET: ***
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.0200170Z ##[endgroup]
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.3895280Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.3898070Z > atelier-pieces-industrielles@0.1.0 build
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.3903490Z > prisma generate && next build
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:37.3903810Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:38.6408750Z Loaded Prisma config from prisma7.config.ts.
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:38.6510030Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:38.8379140Z Prisma schema loaded from prisma/schema.prisma.
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3630060Z ┌─────────────────────────────────────────────────────────┐
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3631410Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3669860Z │  Update available 7.10.0 -> 8.0.0-rc.27                 │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3671900Z ✔ Generated Prisma Client (7.10.0) to ./src/generated/prisma in 372ms
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3732450Z │                                                         │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3733390Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3737600Z │  This is a major update - please follow the guide at    │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3799240Z │  https://pris.ly/d/major-version-upgrade                │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3817320Z │                                                         │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3823820Z │  Run the following to update                            │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3851320Z │    npm i --save-dev prisma@latest                       │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3856350Z │    npm i @prisma/client@latest                          │
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:39.3857790Z └─────────────────────────────────────────────────────────┘
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.3901430Z ▲ Next.js 16.4.1 (Turbopack)
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4237990Z ✓ Running next.config.mjs took 32ms
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4241430Z ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4348310Z Attention: Next.js now collects completely anonymous telemetry regarding usage.
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4357520Z This information is used to shape Next.js' roadmap and prioritize features.
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4360900Z You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4362540Z https://nextjs.org/telemetry
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.4363430Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.5106220Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:40.6084790Z   Creating an optimized production build ...
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:57.6361470Z ✓ Compiled successfully in 17.0s
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:39:57.6471430Z   Running TypeScript ...
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:40:15.1128310Z   Finished TypeScript in 17.5s ...
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:40:15.1349660Z   Collecting page data using 2 workers ...
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:40:16.6849880Z 
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:40:16.6955230Z > Server Actions are not supported with static export.
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:40:16.7056610Z Read more: https://nextjs.org/docs/app/building-your-application/deploying/static-exports#unsupported-features
+build-and-upload (macos-latest)	Build Next.js app (static export)	2026-10-26T17:40:16.7852900Z ##[error]Process completed with exit code 1.
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	﻿2026-10-26T17:40:10.6830354Z ##[group]Run npm run build
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6830700Z ^[[36;1mnpm run build^[[0m
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6886825Z shell: /usr/bin/bash -e {0}
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6887124Z env:
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6887359Z   NODE_VERSION: 22
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6887617Z   NEXT_EXPORT: true
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6888829Z   DATABASE_URL: ***
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6889178Z   BETTER_AUTH_URL: ***
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6889519Z   NEXT_PUBLIC_APP_URL: ***
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6889942Z   BETTER_AUTH_SECRET: ***
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.6890219Z ##[endgroup]
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.7909999Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.7910879Z > atelier-pieces-industrielles@0.1.0 build
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.7912006Z > prisma generate && next build
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:10.7912406Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.5711970Z Loaded Prisma config from prisma7.config.ts.
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.5713236Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:11.6981167Z Prisma schema loaded from prisma/schema.prisma.
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1268860Z ┌─────────────────────────────────────────────────────────┐
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1269964Z │  Update available 7.10.0 -> 8.0.0-rc.27                 │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1271100Z │                                                         │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1272232Z │  This is a major update - please follow the guide at    │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1273510Z │  https://pris.ly/d/major-version-upgrade                │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1274449Z │                                                         │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1274965Z │  Run the following to update                            │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1275980Z │    npm i --save-dev prisma@latest                       │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1276852Z │    npm i @prisma/client@latest                          │
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1277398Z └─────────────────────────────────────────────────────────┘
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1277691Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1278087Z ✔ Generated Prisma Client (7.10.0) to ./src/generated/prisma in 305ms
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.1278423Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5329259Z ▲ Next.js 16.4.1 (Turbopack)
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5495611Z ✓ Running next.config.mjs took 16ms
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5499191Z ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5566957Z Attention: Next.js now collects completely anonymous telemetry regarding usage.
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5568173Z This information is used to shape Next.js' roadmap and prioritize features.
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5569310Z You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5570135Z https://nextjs.org/telemetry
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.5570371Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.6025418Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:12.6448861Z   Creating an optimized production build ...
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:23.3243396Z ✓ Compiled successfully in 10.7s
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:23.3322606Z   Running TypeScript ...
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:35.9368748Z   Finished TypeScript in 12.6s ...
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:35.9406557Z   Collecting page data using 3 workers ...
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:37.1104232Z 
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:37.1105530Z > Server Actions are not supported with static export.
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:37.1106681Z Read more: https://nextjs.org/docs/app/building-your-application/deploying/static-exports#unsupported-features
+build-and-upload (ubuntu-latest)	Build Next.js app (static export)	2026-10-26T17:40:37.1443461Z ##[error]Process completed with exit code 1.

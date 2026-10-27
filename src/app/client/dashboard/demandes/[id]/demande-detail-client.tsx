@@ -23,7 +23,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
       <div>
         <Link
           href="/client/dashboard/demandes"
-          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-xs transition-colors"
+          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Retour à la liste des demandes
@@ -32,7 +32,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <span className="text-primary font-mono text-xl font-bold sm:text-2xl">
+              <span className="font-mono text-xl font-bold text-primary sm:text-2xl">
                 {request.id.slice(0, 8)}
               </span>
               <Badge
@@ -45,14 +45,14 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 {FR.statuses[request.status]}
               </Badge>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               Demande enregistrée le {formatDate(request.createdAt)}
             </p>
           </div>
 
           <a href="tel:+21674123456">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
-              <Phone className="text-primary h-3.5 w-3.5" />
+              <Phone className="h-3.5 w-3.5 text-primary" />
               Contacter l&apos;atelier pour ce dossier
             </Button>
           </a>
@@ -61,7 +61,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
 
       {/* Stepper Card */}
       <Card className="border-border/60 bg-card/60 p-6 backdrop-blur">
-        <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase">
+        <h3 className="mb-4 text-xs font-semibold text-muted-foreground uppercase">
           Progression de fabrication en atelier
         </h3>
         <PipelineStepper currentStep={request.status} />
@@ -79,24 +79,24 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
 
               <div className="grid grid-cols-2 gap-4 border-t pt-4 text-xs">
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">MACHINE CONCERNÉE</span>
-                  <span className="text-foreground font-medium">{request.machineRef || '—'}</span>
+                  <span className="block text-[11px] text-muted-foreground">MACHINE CONCERNÉE</span>
+                  <span className="font-medium text-foreground">{request.machineRef || '—'}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">
+                  <span className="block text-[11px] text-muted-foreground">
                     FONCTION MÉCANIQUE
                   </span>
-                  <span className="text-foreground font-medium">{request.partFunction || '—'}</span>
+                  <span className="font-medium text-foreground">{request.partFunction || '—'}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">MATIÈRE ANALYSÉE</span>
-                  <span className="text-primary font-mono font-semibold">
+                  <span className="block text-[11px] text-muted-foreground">MATIÈRE ANALYSÉE</span>
+                  <span className="font-mono font-semibold text-primary">
                     {request.suspectedMaterial || "En cours d'analyse"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">QUANTITÉ COMMANDE</span>
-                  <span className="text-foreground font-mono font-bold">
+                  <span className="block text-[11px] text-muted-foreground">QUANTITÉ COMMANDE</span>
+                  <span className="font-mono font-bold text-foreground">
                     {request.quantity} unité(s)
                   </span>
                 </div>
@@ -135,7 +135,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                   return (
                     <div
                       key={i}
-                      className="bg-muted relative aspect-square overflow-hidden rounded-lg border"
+                      className="relative aspect-square overflow-hidden rounded-lg border bg-muted"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -164,26 +164,26 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <div className="text-foreground font-semibold">Demande tirée en local</div>
+                    <div className="font-semibold text-foreground">Demande tirée en local</div>
                     <p className="text-muted-foreground">Synchronisation atelier SQLite réussie.</p>
-                    <span className="text-muted-foreground font-mono text-[10px]">
+                    <span className="font-mono text-[10px] text-muted-foreground">
                       {formatDate(request.createdAt)}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="bg-primary/20 text-primary mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <div className="text-foreground font-semibold">
+                    <div className="font-semibold text-foreground">
                       Recherche multi-sources lancée
                     </div>
                     <p className="text-muted-foreground">
                       TraceParts, CADENAS et BDD locale interrogés.
                     </p>
-                    <span className="text-muted-foreground font-mono text-[10px]">
+                    <span className="font-mono text-[10px] text-muted-foreground">
                       {formatDate(request.updatedAt)}
                     </span>
                   </div>

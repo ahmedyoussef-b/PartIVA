@@ -69,7 +69,7 @@ function AdminDemandesPageContent() {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             File de fabrication
           </h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Demandes reçues → Recherche matériaux → Validation → Usinage CNC.
           </p>
         </div>
@@ -80,7 +80,7 @@ function AdminDemandesPageContent() {
       </div>
 
       <div className="relative w-full sm:w-80">
-        <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+        <Search className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Filtrer les demandes…"
           className="pl-9 text-xs"
@@ -99,10 +99,10 @@ function AdminDemandesPageContent() {
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="text-muted-foreground text-sm">Chargement...</div>
+              <div className="text-sm text-muted-foreground">Chargement...</div>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-muted-foreground py-8 text-center text-sm">Aucune demande</div>
+            <div className="py-8 text-center text-sm text-muted-foreground">Aucune demande</div>
           ) : (
             <div className="space-y-3">
               {filtered.map((d) => {
@@ -117,7 +117,7 @@ function AdminDemandesPageContent() {
                 return (
                   <div
                     key={d.id}
-                    className="border-border hover:bg-muted/30 flex items-start gap-3 rounded-lg border p-3 transition-colors"
+                    className="flex items-start gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/30"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -133,11 +133,11 @@ function AdminDemandesPageContent() {
                       </div>
                       <p className="truncate text-xs font-medium">{d.partDescription}</p>
                       {d.partFunction && (
-                        <p className="text-muted-foreground mt-0.5 truncate text-[10px]">
+                        <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
                           Fonction : {d.partFunction}
                         </p>
                       )}
-                      <p className="text-muted-foreground mt-1 flex items-center gap-1 text-[10px]">
+                      <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
                         {d.machineRef && (
                           <>
                             <span>Machine :</span>
@@ -172,5 +172,3 @@ export default function AdminDemandesPage() {
     </AuthGuard>
   );
 }
-
-

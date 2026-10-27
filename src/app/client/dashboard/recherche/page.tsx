@@ -10,7 +10,7 @@ export default function ClientRecherchePage() {
     <div className="mx-auto max-w-4xl space-y-6 pb-12">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Recherche</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
+        <p className="mt-1 text-sm text-muted-foreground">
           Recherche dans vos pièces (nom, description, références).
         </p>
       </div>
@@ -28,5 +28,3 @@ export default function ClientRecherchePage() {
     </div>
   );
 }
-
-

@@ -63,8 +63,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || !isAdmin) {
     return (
-      <div className="bg-muted/20 flex min-h-screen items-center justify-center p-4">
-        <Card className="border-border/80 w-full max-w-2xl shadow-2xl">
+      <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
+        <Card className="w-full max-w-2xl border-border/80 shadow-2xl">
           <CardHeader className="pb-2 text-center">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
               <ShieldAlert className="h-8 w-8" />
@@ -83,9 +83,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </CardHeader>
 
           <CardContent className="space-y-6 pt-2">
-            <div className="bg-card text-muted-foreground space-y-3 rounded-xl border p-4 text-xs">
-              <div className="text-foreground flex items-center gap-2 font-semibold">
-                <Lock className="text-primary h-4 w-4" />
+            <div className="space-y-3 rounded-xl border bg-card p-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <Lock className="h-4 w-4 text-primary" />
                 Règles d&rsquo;accès :
               </div>
               <ul className="list-inside list-disc space-y-2">
@@ -127,7 +127,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        <header className="shadow-tech-sm sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-tech-sm">
           <div className="flex items-center gap-3">
             <SidebarTrigger />
             <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </span>
               <Badge
                 variant="outline"
-                className="border-tech-primary/40 text-tech-primary font-mono text-[10px]"
+                className="border-tech-primary/40 font-mono text-[10px] text-tech-primary"
               >
                 {isTauri ? 'Hybride Tauri • Atelier Local' : 'Mode Web Admin'}
               </Badge>

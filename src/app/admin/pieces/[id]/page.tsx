@@ -31,8 +31,8 @@ export default async function AdminPieceDetailPage({
     return (
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="text-center">
-          <h1 className="text-destructive text-2xl font-bold">Pièce introuvable</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-bold text-destructive">Pièce introuvable</h1>
+          <p className="mt-2 text-muted-foreground">
             Aucune pièce ne correspond à l’identifiant <code>{id}</code>.
           </p>
           <Button asChild variant="outline" className="mt-6">
@@ -53,21 +53,21 @@ export default async function AdminPieceDetailPage({
         <div className="space-y-2">
           <Link
             href="/admin/pieces"
-            className="text-muted-foreground inline-flex items-center gap-1 text-xs font-medium hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline"
           >
             <ArrowLeft className="h-3 w-3" />
             Catalogue pièces
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">{part.name}</h1>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-primary font-mono text-sm font-bold">{reference}</span>
+            <span className="font-mono text-sm font-bold text-primary">{reference}</span>
             <PartStatusBadge status={part.status} />
             {part.material ? <Badge variant="outline">{part.material}</Badge> : null}
             {part.category ? <Badge variant="secondary">{part.category.name}</Badge> : null}
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="bg-secondary text-secondary-foreground rounded px-2 py-1">
+          <span className="rounded bg-secondary px-2 py-1 text-secondary-foreground">
             {actorRole}
           </span>
         </div>
@@ -77,7 +77,7 @@ export default async function AdminPieceDetailPage({
         {/* Colonne gauche : visualisation 3D */}
         <div className="space-y-4">
           <Card className="overflow-hidden">
-            <CardHeader className="bg-muted/50 border-b">
+            <CardHeader className="border-b bg-muted/50">
               <CardTitle className="text-sm font-medium">Visualiseur 3D</CardTitle>
               <CardDescription className="text-xs">
                 Orbitez, zoomez et déplacez la vue avec la souris. Boutons Reset / Plein écran en
@@ -93,7 +93,7 @@ export default async function AdminPieceDetailPage({
                   bare
                 />
               ) : (
-                <div className="text-muted-foreground flex aspect-video flex-col items-center justify-center gap-2 text-sm">
+                <div className="flex aspect-video flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Box className="h-8 w-8" />
                   <span>Aucun modèle 3D disponible</span>
                 </div>
@@ -111,7 +111,7 @@ export default async function AdminPieceDetailPage({
                   href={part.printableModelUrl!}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-primary inline-flex items-start gap-2 font-mono text-xs break-all hover:underline"
+                  className="inline-flex items-start gap-2 font-mono text-xs break-all text-primary hover:underline"
                 >
                   <Download className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {part.printableModelUrl}
@@ -140,27 +140,27 @@ export default async function AdminPieceDetailPage({
                 <CardContent>
                   <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <dt className="text-muted-foreground text-xs font-medium">Référence PTV</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">Référence PTV</dt>
                       <dd className="font-mono text-sm">{part.ptvReference ?? '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground text-xs font-medium">
+                      <dt className="text-xs font-medium text-muted-foreground">
                         N° pièce (legacy)
                       </dt>
                       <dd className="font-mono text-sm">{part.partNumber}</dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground text-xs font-medium">Statut</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">Statut</dt>
                       <dd>
                         <PartStatusBadge status={part.status} />
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground text-xs font-medium">Matière</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">Matière</dt>
                       <dd className="text-sm">{part.material ?? '—'}</dd>
                     </div>
                     <div className="sm:col-span-2">
-                      <dt className="text-muted-foreground text-xs font-medium">Description</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">Description</dt>
                       <dd className="text-sm">{part.description ?? '—'}</dd>
                     </div>
                   </dl>
@@ -171,23 +171,23 @@ export default async function AdminPieceDetailPage({
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                      <Ruler className="text-muted-foreground h-4 w-4" />
+                      <Ruler className="h-4 w-4 text-muted-foreground" />
                       Spécifications
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <dl className="divide-border divide-y">
+                    <dl className="divide-y divide-border">
                       {part.specifications.map((spec) => (
                         <div
                           key={spec.id}
                           className="flex items-baseline justify-between gap-4 py-2"
                         >
-                          <dt className="text-muted-foreground text-xs font-medium">{spec.key}</dt>
+                          <dt className="text-xs font-medium text-muted-foreground">{spec.key}</dt>
                           <dd className="text-right font-mono text-sm">
                             {spec.value}
                             {spec.unit ? ` ${spec.unit}` : ''}
                             {spec.toleranceMin !== null || spec.toleranceMax !== null ? (
-                              <span className="text-muted-foreground ml-1 text-[11px]">
+                              <span className="ml-1 text-[11px] text-muted-foreground">
                                 {spec.toleranceMin !== null ? `+${spec.toleranceMin}` : ''}
                                 {spec.toleranceMax !== null ? ` / ${spec.toleranceMax}` : ''}
                               </span>
@@ -206,7 +206,7 @@ export default async function AdminPieceDetailPage({
                     <CardTitle className="text-sm font-medium">Fournisseurs</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ul className="divide-border divide-y">
+                    <ul className="divide-y divide-border">
                       {part.suppliers.map((supplier) => (
                         <li
                           key={supplier.id}
@@ -214,7 +214,7 @@ export default async function AdminPieceDetailPage({
                         >
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium">{supplier.supplier.name}</p>
-                            <p className="text-muted-foreground font-mono text-[11px]">
+                            <p className="font-mono text-[11px] text-muted-foreground">
                               {supplier.supplier.code}
                               {supplier.supplierRef ? ` · ${supplier.supplierRef}` : ''}
                             </p>
@@ -224,7 +224,7 @@ export default async function AdminPieceDetailPage({
                               {supplier.price ?? '—'} {supplier.currency}
                             </p>
                             {supplier.leadTimeDays !== null ? (
-                              <p className="text-muted-foreground text-[11px]">
+                              <p className="text-[11px] text-muted-foreground">
                                 {supplier.leadTimeDays} j
                               </p>
                             ) : null}
@@ -247,12 +247,6 @@ export default async function AdminPieceDetailPage({
   );
 }
 
-
-
-
-
-
-
-export function generateStaticParams() { return [{ id: 'placeholder' }]; }
-
-
+export function generateStaticParams() {
+  return [{ id: 'placeholder' }];
+}

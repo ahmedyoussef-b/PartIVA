@@ -132,7 +132,7 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Photographies de vos pièces prêtes à vous être envoyées
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="mt-1 text-sm text-muted-foreground">
             Visualisez les pièces usinées avant expédition, vérifiez les photos de contrôle qualité
             et téléchargez les certificats matières.
           </p>
@@ -154,13 +154,13 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
               <PackageCheck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-muted-foreground text-xs font-medium">
+              <p className="text-xs font-medium text-muted-foreground">
                 Pièces prêtes pour expédition
               </p>
               <p className="font-mono text-2xl font-black text-emerald-500">
                 {readyParts.length} commandes
               </p>
-              <p className="text-muted-foreground text-[11px]">
+              <p className="text-[11px] text-muted-foreground">
                 {readyParts.reduce((acc, p) => acc + p.quantity, 0)} pièces contrôlées
               </p>
             </div>
@@ -169,15 +169,15 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
 
         <Card className="border-border">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="bg-primary/10 text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-muted-foreground text-xs font-medium">
+              <p className="text-xs font-medium text-muted-foreground">
                 Contrôle Métrologie Atelier
               </p>
-              <p className="text-primary font-mono text-2xl font-black">100%</p>
-              <p className="text-muted-foreground text-[11px]">Conforme ISO 2768-mK</p>
+              <p className="font-mono text-2xl font-black text-primary">100%</p>
+              <p className="text-[11px] text-muted-foreground">Conforme ISO 2768-mK</p>
             </div>
           </CardContent>
         </Card>
@@ -188,9 +188,9 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
               <Truck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-muted-foreground text-xs font-medium">Délai moyen d’expédition</p>
+              <p className="text-xs font-medium text-muted-foreground">Délai moyen d’expédition</p>
               <p className="font-mono text-2xl font-black text-blue-500">24 h</p>
-              <p className="text-muted-foreground text-[11px]">Livraison atelier directe</p>
+              <p className="text-[11px] text-muted-foreground">Livraison atelier directe</p>
             </div>
           </CardContent>
         </Card>
@@ -199,13 +199,13 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
       {/* LISTE DES PIECES AVEC GALERIE PHOTO */}
       <div className="space-y-8">
         {readyParts.map((part) => (
-          <Card key={part.id} className="border-border overflow-hidden shadow-sm">
+          <Card key={part.id} className="overflow-hidden border-border shadow-sm">
             {/* Header de la pièce */}
-            <CardHeader className="bg-muted/30 border-b p-5">
+            <CardHeader className="border-b bg-muted/30 p-5">
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 font-mono text-xs font-bold">
+                    <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
                       {part.reference}
                     </span>
                     <PartStatusBadge status={part.partStatus} />
@@ -267,18 +267,18 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
               {/* Détails logistiques & Métrologie */}
               <div className="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-2">
                 {/* Expédition */}
-                <div className="bg-muted/20 space-y-2.5 rounded-xl border p-4">
-                  <span className="text-foreground flex items-center gap-1.5 text-xs font-bold">
-                    <Truck className="text-primary h-4 w-4" />
+                <div className="space-y-2.5 rounded-xl border bg-muted/20 p-4">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Truck className="h-4 w-4 text-primary" />
                     Informations d’Expédition
                   </span>
-                  <div className="text-muted-foreground space-y-1.5 text-xs">
+                  <div className="space-y-1.5 text-xs text-muted-foreground">
                     <p>
                       <strong>Transporteur :</strong> {part.carrier}
                     </p>
                     <p>
                       <strong>N° de Suivi :</strong>{' '}
-                      <span className="text-primary font-mono font-bold">
+                      <span className="font-mono font-bold text-primary">
                         {part.trackingNumber}
                       </span>
                     </p>
@@ -292,12 +292,12 @@ export default function PiecesPretesClient({ initialParts, actorRole }: PiecesPr
                 </div>
 
                 {/* Métrologie */}
-                <div className="bg-muted/20 space-y-2.5 rounded-xl border p-4">
-                  <span className="text-foreground flex items-center gap-1.5 text-xs font-bold">
+                <div className="space-y-2.5 rounded-xl border bg-muted/20 p-4">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
                     Contrôle Qualité & Conformité ISO
                   </span>
-                  <div className="text-muted-foreground space-y-1.5 text-xs">
+                  <div className="space-y-1.5 text-xs text-muted-foreground">
                     {part.metrics.map((m, mIdx) => (
                       <p key={mIdx}>
                         <strong>{m.label} :</strong> {m.value}

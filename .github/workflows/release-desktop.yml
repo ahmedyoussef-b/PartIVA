@@ -42,34 +42,34 @@ jobs:
           if [ -d "src/app/api" ]; then
             cp -r src/app/api .static-export-backup/api
             rm -rf src/app/api
-            echo "? src/app/api supprimé pour le build statique"
+            echo "? src/app/api supprimï¿½ pour le build statique"
           fi
           if [ -d "src/lib/actions" ]; then
             cp -r src/lib/actions .static-export-backup/actions
             rm -rf src/lib/actions
-            echo "? src/lib/actions supprimé pour le build statique"
+            echo "? src/lib/actions supprimï¿½ pour le build statique"
           fi
           if [ -d "src/app/admin" ]; then
             cp -r src/app/admin .static-export-backup/admin
             rm -rf src/app/admin
-            echo "? src/app/admin supprimé pour le build statique"
+            echo "? src/app/admin supprimï¿½ pour le build statique"
           fi
           if [ -d "src/app/(public)" ]; then
             cp -r "src/app/(public)" ".static-export-backup/public"
             rm -rf "src/app/(public)"
-            echo "? src/app/(public) supprimé pour le build statique"
+            echo "? src/app/(public) supprimï¿½ pour le build statique"
           fi
           if [ -d "src/app/client/dashboard" ]; then
             cp -r src/app/client/dashboard .static-export-backup/dashboard
             rm -rf src/app/client/dashboard
-            echo "? src/app/client/dashboard supprimé pour le build statique"
+            echo "? src/app/client/dashboard supprimï¿½ pour le build statique"
           fi
-          echo "=== Contenu de src/app après suppression ==="
+          echo "=== Contenu de src/app aprï¿½s suppression ==="
           ls src/app
-          echo "=== Contenu de src/lib après suppression ==="
+          echo "=== Contenu de src/lib aprï¿½s suppression ==="
           ls src/lib
           if [ -d "src/app/api" ]; then
-            echo "ERREUR: src/app/api n'a pas pu être supprimé"
+            echo "ERREUR: src/app/api n'a pas pu ï¿½tre supprimï¿½"
             exit 1
           fi
 

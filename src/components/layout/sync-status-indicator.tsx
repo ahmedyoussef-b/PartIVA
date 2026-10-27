@@ -36,8 +36,8 @@ export function SyncStatusIndicator() {
             }`}
           />
         </span>
-        <span className="text-muted-foreground hidden sm:inline">Sync Cloud → Local :</span>
-        <span className="text-foreground font-mono text-[11px]">
+        <span className="hidden text-muted-foreground sm:inline">Sync Cloud → Local :</span>
+        <span className="font-mono text-[11px] text-foreground">
           {lastSyncAt ? formatDate(lastSyncAt) : 'En attente'}
         </span>
       </div>
@@ -56,7 +56,7 @@ export function SyncStatusIndicator() {
         onClick={handleSync}
         disabled={isSyncing}
       >
-        <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'text-primary animate-spin' : ''}`} />
+        <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin text-primary' : ''}`} />
         <span>{isSyncing ? 'Syncing...' : 'Tirer (Pull)'}</span>
       </Button>
     </div>

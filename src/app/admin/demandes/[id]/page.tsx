@@ -12,7 +12,7 @@ export default async function AdminDemandeDetailPage({
   const request = await getRequestById(id);
 
   if (!request) {
-    return <div className="text-muted-foreground p-8 text-center">Demande introuvable</div>;
+    return <div className="p-8 text-center text-muted-foreground">Demande introuvable</div>;
   }
 
   return <DemandeDetailClient initialRequest={request} />;
@@ -21,6 +21,3 @@ export default async function AdminDemandeDetailPage({
 export async function generateStaticParams() {
   return [{ id: 'placeholder' }];
 }
-
-
-

@@ -181,7 +181,7 @@ export default function DemandePage() {
     <div className="container max-w-3xl py-12">
       <div className="mb-8 space-y-1 text-center">
         <h1 className="text-3xl font-bold tracking-tight">Demande de devis</h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Remplissez le formulaire. Réponse sous 2h ouvrées.
         </p>
       </div>
@@ -206,12 +206,12 @@ export default function DemandePage() {
                   {isDone ? <CheckCircle2 className="h-4 w-4" /> : s.id}
                 </div>
                 <span
-                  className={`text-xs ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+                  className={`text-xs ${isActive ? 'font-medium text-foreground' : 'text-muted-foreground'}`}
                 >
                   {s.label}
                 </span>
               </div>
-              {idx < STEPS.length - 1 && <div className="bg-border mx-2 mb-5 h-px flex-1" />}
+              {idx < STEPS.length - 1 && <div className="mx-2 mb-5 h-px flex-1 bg-border" />}
             </React.Fragment>
           );
         })}
@@ -224,7 +224,7 @@ export default function DemandePage() {
             <div className="space-y-5 p-6">
               <div>
                 <h2 className="text-lg font-semibold">Vos coordonnées</h2>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Pour l&apos;envoi du devis et le suivi.
                 </p>
               </div>
@@ -279,7 +279,7 @@ export default function DemandePage() {
             <div className="space-y-5 p-6">
               <div>
                 <h2 className="text-lg font-semibold">Machine & contexte</h2>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Pour retrouver les plans constructeurs.
                 </p>
               </div>
@@ -309,7 +309,7 @@ export default function DemandePage() {
             <div className="space-y-5 p-6">
               <div>
                 <h2 className="text-lg font-semibold">Description & matière</h2>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Décrivez la pièce et sa défaillance.
                 </p>
               </div>
@@ -330,7 +330,7 @@ export default function DemandePage() {
                   <Label htmlFor="suspectedMaterial">Matière suspectée</Label>
                   <select
                     id="suspectedMaterial"
-                    className="border-input bg-background flex h-10 w-full rounded-md border px-3 py-2 text-sm"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     {...register('suspectedMaterial')}
                   >
                     <option value="">Laisser l&apos;atelier déterminer</option>
@@ -350,7 +350,7 @@ export default function DemandePage() {
             <div className="space-y-5 p-6">
               <div>
                 <h2 className="text-lg font-semibold">Photos</h2>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Jusqu&apos;à 10 photos (JPG, PNG, WEBP).
                 </p>
               </div>
@@ -363,11 +363,11 @@ export default function DemandePage() {
                 }`}
               >
                 <input {...getInputProps()} />
-                <UploadCloud className="text-primary mx-auto mb-2 h-8 w-8" />
+                <UploadCloud className="mx-auto mb-2 h-8 w-8 text-primary" />
                 <p className="text-sm font-medium">
                   {isDragActive ? 'Déposez les photos...' : 'Cliquez ou glissez vos photos'}
                 </p>
-                <p className="text-muted-foreground mt-1 text-xs">Max 10 Mo par fichier</p>
+                <p className="mt-1 text-xs text-muted-foreground">Max 10 Mo par fichier</p>
               </div>
               {photoPreviews.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
@@ -402,7 +402,7 @@ export default function DemandePage() {
             <div className="space-y-5 p-6">
               <div>
                 <h2 className="text-lg font-semibold">Quantité & urgence</h2>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Volume et délai de livraison souhaité.
                 </p>
               </div>
@@ -437,7 +437,7 @@ export default function DemandePage() {
                         />
                         <div>
                           <div className={`text-sm font-medium ${opt.color}`}>{opt.label}</div>
-                          <div className="text-muted-foreground text-xs">{opt.desc}</div>
+                          <div className="text-xs text-muted-foreground">{opt.desc}</div>
                         </div>
                       </label>
                     ))}
@@ -452,21 +452,21 @@ export default function DemandePage() {
             <div className="space-y-5 p-6">
               <div>
                 <h2 className="text-lg font-semibold">Récapitulatif</h2>
-                <p className="text-muted-foreground mt-1 text-xs">Vérifiez avant envoi.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Vérifiez avant envoi.</p>
               </div>
               <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                <div className="bg-muted/30 space-y-1 rounded-lg border p-4">
-                  <div className="text-muted-foreground text-xs tracking-wide uppercase">
+                <div className="space-y-1 rounded-lg border bg-muted/30 p-4">
+                  <div className="text-xs tracking-wide text-muted-foreground uppercase">
                     Contact
                   </div>
                   <div className="font-medium">{formValues.client?.name || '—'}</div>
-                  <div className="text-muted-foreground text-xs">
+                  <div className="text-xs text-muted-foreground">
                     {formValues.client?.email} • {formValues.client?.phone}
                   </div>
                   <div className="text-xs">{formValues.client?.company || 'Non spécifiée'}</div>
                 </div>
-                <div className="bg-muted/30 space-y-1 rounded-lg border p-4">
-                  <div className="text-muted-foreground text-xs tracking-wide uppercase">
+                <div className="space-y-1 rounded-lg border bg-muted/30 p-4">
+                  <div className="text-xs tracking-wide text-muted-foreground uppercase">
                     Commande
                   </div>
                   <div className="flex justify-between text-xs">
@@ -490,18 +490,18 @@ export default function DemandePage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-muted/30 space-y-1 rounded-lg border p-4 text-sm">
-                <div className="text-muted-foreground text-xs tracking-wide uppercase">
+              <div className="space-y-1 rounded-lg border bg-muted/30 p-4 text-sm">
+                <div className="text-xs tracking-wide text-muted-foreground uppercase">
                   Description
                 </div>
-                <div className="text-muted-foreground text-xs">
+                <div className="text-xs text-muted-foreground">
                   Machine : {formValues.machineRef || 'Non spécifiée'}
                 </div>
                 <p className="mt-1 text-xs">{formValues.partDescription}</p>
               </div>
               {photoPreviews.length > 0 && (
                 <div>
-                  <div className="text-muted-foreground mb-2 text-xs">
+                  <div className="mb-2 text-xs text-muted-foreground">
                     Photos ({photoPreviews.length})
                   </div>
                   <div className="flex gap-2 overflow-x-auto">
@@ -518,7 +518,7 @@ export default function DemandePage() {
           )}
 
           {/* Footer */}
-          <div className="bg-muted/10 flex items-center justify-between border-t p-4">
+          <div className="flex items-center justify-between border-t bg-muted/10 p-4">
             <Button
               type="button"
               variant="ghost"
@@ -545,5 +545,3 @@ export default function DemandePage() {
     </div>
   );
 }
-
-

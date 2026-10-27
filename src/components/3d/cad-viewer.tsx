@@ -255,7 +255,7 @@ export function CadViewer({
 
   return (
     <Card className="w-full overflow-hidden">
-      <CardHeader className="bg-muted/50 border-b">
+      <CardHeader className="border-b bg-muted/50">
         <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
       </CardHeader>
       <CardContent className="p-0">{viewport}</CardContent>

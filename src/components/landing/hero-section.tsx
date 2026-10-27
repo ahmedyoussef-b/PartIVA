@@ -37,15 +37,15 @@ export function HeroSection({
   secondaryCtaHref = '/services',
 }: HeroSectionProps) {
   return (
-    <section className="bg-tech-navy relative flex min-h-[85vh] items-center overflow-hidden py-16 text-white lg:py-24">
+    <section className="relative flex min-h-[85vh] items-center overflow-hidden bg-tech-navy py-16 text-white lg:py-24">
       {/* Background High-Tech Mesh & Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Radial top-right electric blue glow */}
-        <div className="bg-tech-accent/20 absolute -top-32 -right-32 h-96 w-96 rounded-full blur-[100px] lg:h-[32rem] lg:w-[32rem]" />
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-tech-accent/20 blur-[100px] lg:h-[32rem] lg:w-[32rem]" />
         {/* Radial bottom-left dark navy/primary glow */}
-        <div className="bg-tech-primary/25 absolute -bottom-40 -left-40 h-96 w-96 rounded-full blur-[120px] lg:h-[36rem] lg:w-[36rem]" />
+        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-tech-primary/25 blur-[120px] lg:h-[36rem] lg:w-[36rem]" />
         {/* Center subtle gradient beam */}
-        <div className="from-tech-primary/10 via-tech-accent/15 absolute top-1/4 left-1/2 h-64 w-[48rem] -translate-x-1/2 bg-gradient-to-r to-transparent blur-3xl" />
+        <div className="absolute top-1/4 left-1/2 h-64 w-[48rem] -translate-x-1/2 bg-gradient-to-r from-tech-primary/10 via-tech-accent/15 to-transparent blur-3xl" />
 
         {/* Isometric Digital Grid Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] bg-[size:4rem_4rem] opacity-[0.07]" />
@@ -56,8 +56,8 @@ export function HeroSection({
           {/* Left Column: Headline, Description & CTAs */}
           <div className="space-y-8 text-center lg:col-span-7 lg:text-left">
             {/* Top High-Tech Pill Badge */}
-            <div className="text-tech-primary-light inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-wide shadow-inner backdrop-blur-md">
-              <span className="bg-tech-accent flex h-2 w-2 animate-pulse rounded-full" />
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-wide text-tech-primary-light shadow-inner backdrop-blur-md">
+              <span className="flex h-2 w-2 animate-pulse rounded-full bg-tech-accent" />
               <span>{badgeText}</span>
               <ChevronRight className="h-3 w-3 opacity-60" />
             </div>
@@ -65,14 +65,14 @@ export function HeroSection({
             {/* Main H1 Title with Gradient */}
             <h1 className="font-heading text-4xl leading-[1.12] font-bold tracking-tight sm:text-5xl lg:text-6xl">
               <span className="block text-white sm:inline">{titlePrefix} </span>
-              <span className="from-tech-primary via-tech-accent to-tech-primary-light bg-gradient-to-r bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-tech-primary via-tech-accent to-tech-primary-light bg-clip-text text-transparent">
                 {titleHighlight}
               </span>{' '}
               <span className="block text-white sm:inline">{titleSuffix}</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-tech-text-body-dark mx-auto max-w-2xl font-sans text-base leading-relaxed font-normal sm:text-lg lg:mx-0 lg:text-xl">
+            <p className="mx-auto max-w-2xl font-sans text-base leading-relaxed font-normal text-tech-text-body-dark sm:text-lg lg:mx-0 lg:text-xl">
               {subtitle}
             </p>
 
@@ -81,7 +81,7 @@ export function HeroSection({
               {/* Primary Pill Button with Glow effect */}
               <Link
                 href={primaryCtaHref}
-                className="bg-tech-primary hover:bg-tech-accent hover:shadow-tech-glow group inline-flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 sm:w-auto"
+                className="group inline-flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-tech-primary px-8 py-4 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-tech-accent hover:shadow-tech-glow active:translate-y-0 sm:w-auto"
               >
                 <span>{primaryCtaText}</span>
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -90,7 +90,7 @@ export function HeroSection({
               {/* Secondary Contour Button */}
               <Link
                 href={secondaryCtaHref}
-                className="border-tech-border-dark hover:border-tech-primary inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border bg-white/5 px-7 py-4 text-base font-medium text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/10 sm:w-auto"
+                className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-tech-border-dark bg-white/5 px-7 py-4 text-base font-medium text-white backdrop-blur-sm transition-all duration-300 hover:border-tech-primary hover:bg-white/10 sm:w-auto"
               >
                 <span>{secondaryCtaText}</span>
               </Link>
@@ -102,18 +102,18 @@ export function HeroSection({
                 <div className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   24-48h
                 </div>
-                <div className="text-tech-text-body-dark flex items-center justify-center gap-1.5 font-sans text-xs sm:text-sm lg:justify-start">
-                  <Clock className="text-tech-accent hidden h-3.5 w-3.5 shrink-0 sm:inline" />
+                <div className="flex items-center justify-center gap-1.5 font-sans text-xs text-tech-text-body-dark sm:text-sm lg:justify-start">
+                  <Clock className="hidden h-3.5 w-3.5 shrink-0 text-tech-accent sm:inline" />
                   <span>Délai critique express</span>
                 </div>
               </div>
 
               <div className="space-y-1 border-x border-white/10 px-2 sm:px-4">
-                <div className="font-heading text-tech-primary-light text-2xl font-bold tracking-tight sm:text-3xl">
+                <div className="font-heading text-2xl font-bold tracking-tight text-tech-primary-light sm:text-3xl">
                   ±0.02 mm
                 </div>
-                <div className="text-tech-text-body-dark flex items-center justify-center gap-1.5 font-sans text-xs sm:text-sm lg:justify-start">
-                  <Cpu className="text-tech-accent hidden h-3.5 w-3.5 shrink-0 sm:inline" />
+                <div className="flex items-center justify-center gap-1.5 font-sans text-xs text-tech-text-body-dark sm:text-sm lg:justify-start">
+                  <Cpu className="hidden h-3.5 w-3.5 shrink-0 text-tech-accent sm:inline" />
                   <span>Tolérance CNC</span>
                 </div>
               </div>
@@ -122,7 +122,7 @@ export function HeroSection({
                 <div className="font-heading text-2xl font-bold tracking-tight text-emerald-400 sm:text-3xl">
                   100%
                 </div>
-                <div className="text-tech-text-body-dark flex items-center justify-center gap-1.5 font-sans text-xs sm:text-sm lg:justify-start">
+                <div className="flex items-center justify-center gap-1.5 font-sans text-xs text-tech-text-body-dark sm:text-sm lg:justify-start">
                   <ShieldCheck className="hidden h-3.5 w-3.5 shrink-0 text-emerald-400 sm:inline" />
                   <span>Matières certifiées</span>
                 </div>
@@ -135,7 +135,7 @@ export function HeroSection({
             {/* Ambient Backlight Frame */}
             <div className="relative flex aspect-square w-full max-w-md items-center justify-center sm:max-w-lg">
               {/* Spinning / Glowing Outer Rings */}
-              <div className="border-tech-primary/30 from-tech-primary/10 to-tech-accent/20 absolute inset-4 scale-95 rotate-1 rounded-3xl border bg-gradient-to-tr via-transparent backdrop-blur-xl transition-transform duration-700 hover:rotate-0" />
+              <div className="absolute inset-4 scale-95 rotate-1 rounded-3xl border border-tech-primary/30 bg-gradient-to-tr from-tech-primary/10 via-transparent to-tech-accent/20 backdrop-blur-xl transition-transform duration-700 hover:rotate-0" />
               <div className="absolute inset-0 rounded-3xl border border-white/10 bg-white/[0.03] shadow-2xl backdrop-blur-2xl" />
 
               {/* Central Isometric 3D CAD Component Blueprint */}
@@ -143,11 +143,11 @@ export function HeroSection({
                 {/* Header of Showcase Card */}
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div className="flex items-center gap-2.5">
-                    <div className="bg-tech-primary/20 border-tech-primary/40 text-tech-primary-light rounded-xl border p-2">
+                    <div className="rounded-xl border border-tech-primary/40 bg-tech-primary/20 p-2 text-tech-primary-light">
                       <Layers className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="text-tech-accent block font-mono text-xs font-semibold tracking-wider uppercase">
+                      <span className="block font-mono text-xs font-semibold tracking-wider text-tech-accent uppercase">
                         CAO / Modélisation 3D
                       </span>
                       <span className="text-sm font-semibold text-white">
@@ -166,13 +166,13 @@ export function HeroSection({
                 <div className="relative my-6 flex items-center justify-center py-6">
                   {/* Decorative Axis Lines */}
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-25">
-                    <div className="via-tech-primary-light h-px w-full bg-gradient-to-r from-transparent to-transparent" />
-                    <div className="via-tech-primary-light absolute h-full w-px bg-gradient-to-b from-transparent to-transparent" />
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-tech-primary-light to-transparent" />
+                    <div className="absolute h-full w-px bg-gradient-to-b from-transparent via-tech-primary-light to-transparent" />
                   </div>
 
                   {/* SVG Isometric Gear & Mechanical Core */}
                   <div className="group relative">
-                    <div className="bg-tech-primary/20 absolute -inset-4 rounded-full opacity-75 blur-xl transition-opacity group-hover:opacity-100" />
+                    <div className="absolute -inset-4 rounded-full bg-tech-primary/20 opacity-75 blur-xl transition-opacity group-hover:opacity-100" />
                     <svg
                       viewBox="0 0 200 200"
                       className="h-44 w-44 drop-shadow-[0_10px_25px_rgba(30,136,229,0.35)] transition-transform duration-500 hover:scale-105 sm:h-52 sm:w-52"
@@ -241,35 +241,35 @@ export function HeroSection({
                 {/* Floating Micro-specs Footer */}
                 <div className="grid grid-cols-2 gap-3 border-t border-white/10 pt-3 font-mono text-xs">
                   <div className="space-y-1 rounded-xl border border-white/5 bg-white/[0.04] p-2.5">
-                    <span className="text-tech-text-body-dark block text-[10px] uppercase">
+                    <span className="block text-[10px] text-tech-text-body-dark uppercase">
                       Matière Technique
                     </span>
                     <span className="flex items-center gap-1.5 font-semibold text-white">
-                      <Sparkles className="text-tech-accent h-3.5 w-3.5" />
+                      <Sparkles className="h-3.5 w-3.5 text-tech-accent" />
                       POM-C Polyacétal
                     </span>
                   </div>
 
                   <div className="space-y-1 rounded-xl border border-white/5 bg-white/[0.04] p-2.5">
-                    <span className="text-tech-text-body-dark block text-[10px] uppercase">
+                    <span className="block text-[10px] text-tech-text-body-dark uppercase">
                       Norme & Usinage
                     </span>
                     <span className="flex items-center gap-1.5 font-semibold text-white">
-                      <Cpu className="text-tech-primary-light h-3.5 w-3.5" />5 Axes ISO 2768-m
+                      <Cpu className="h-3.5 w-3.5 text-tech-primary-light" />5 Axes ISO 2768-m
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Floating Badge (Top Right) */}
-              <div className="bg-tech-navy/90 border-tech-accent/40 absolute -top-4 -right-4 hidden items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md sm:flex">
+              <div className="absolute -top-4 -right-4 hidden items-center gap-2 rounded-2xl border border-tech-accent/40 bg-tech-navy/90 px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md sm:flex">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
                 <span>Précision ±0.02mm</span>
               </div>
 
               {/* Floating Badge (Bottom Left) */}
-              <div className="bg-tech-navy/90 border-tech-primary/40 absolute -bottom-4 -left-4 hidden items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md sm:flex">
-                <Clock className="text-tech-primary-light h-3.5 w-3.5" />
+              <div className="absolute -bottom-4 -left-4 hidden items-center gap-2 rounded-2xl border border-tech-primary/40 bg-tech-navy/90 px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md sm:flex">
+                <Clock className="h-3.5 w-3.5 text-tech-primary-light" />
                 <span>Expédition 24/48h</span>
               </div>
             </div>

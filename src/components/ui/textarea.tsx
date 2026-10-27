@@ -13,7 +13,7 @@ function Textarea({
   return (
     <textarea
       className={cn(
-        'shadow-tech-sm focus-visible:ring-tech-primary/20 focus-visible:border-tech-primary flex min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+        'flex min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-tech-sm placeholder:text-gray-400 focus-visible:border-tech-primary focus-visible:ring-2 focus-visible:ring-tech-primary/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
       ref={ref}

@@ -20,7 +20,7 @@ export function Pagination({ total, limit, offset, onOffsetChange }: PaginationP
 
   return (
     <div className="flex items-center justify-between gap-2 pt-2">
-      <p className="text-muted-foreground text-[11px]">
+      <p className="text-[11px] text-muted-foreground">
         Page {page} / {totalPages} — {total} résultat{total > 1 ? 's' : ''}
       </p>
       <div className="flex gap-1">

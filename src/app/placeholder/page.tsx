@@ -16,9 +16,9 @@ export default function PlaceholderPage() {
   return (
     <div className="flex min-h-[70vh] items-center justify-center">
       <div className="container">
-        <Card className="border-border/60 mx-auto max-w-md">
+        <Card className="mx-auto max-w-md border-border/60">
           <CardContent className="flex flex-col items-center gap-6 p-10 text-center">
-            <div className="bg-primary/10 text-primary rounded-full p-4">
+            <div className="rounded-full bg-primary/10 p-4 text-primary">
               <Construction className="h-8 w-8" />
             </div>
 
@@ -27,7 +27,7 @@ export default function PlaceholderPage() {
               <CardTitle className="text-2xl font-bold tracking-tight">
                 En cours de développement
               </CardTitle>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Cette fonctionnalité sera bientôt disponible. Notre équipe finalise l&apos;espace de
                 gestion des pièces industrielles.
               </p>
@@ -45,5 +45,3 @@ export default function PlaceholderPage() {
     </div>
   );
 }
-
-

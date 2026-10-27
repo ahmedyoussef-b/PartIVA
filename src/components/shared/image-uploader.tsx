@@ -86,8 +86,8 @@ export function ImageUploader({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-heading text-tech-navy mb-2 text-lg font-semibold">{label}</h3>
-        <p className="text-muted-foreground mb-4 text-sm">{description}</p>
+        <h3 className="mb-2 font-heading text-lg font-semibold text-tech-navy">{label}</h3>
+        <p className="mb-4 text-sm text-muted-foreground">{description}</p>
       </div>
 
       {/* Zone de drop */}
@@ -101,13 +101,13 @@ export function ImageUploader({
         )}
       >
         <input {...getInputProps()} />
-        <Upload className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-        <p className="text-foreground mb-1 text-sm font-medium">
+        <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+        <p className="mb-1 text-sm font-medium text-foreground">
           {isDragActive
             ? 'Déposez les fichiers ici...'
             : 'Glissez-déposez vos photos ici, ou parcourez vos fichiers'}
         </p>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           Formats JPG, PNG, WEBP acceptés jusqu&agrave; 15 Mo par image
         </p>
       </div>
@@ -115,14 +115,14 @@ export function ImageUploader({
       {/* Previews */}
       {images.length > 0 && (
         <div className="space-y-4">
-          <h4 className="text-foreground text-sm font-medium">
+          <h4 className="text-sm font-medium text-foreground">
             {images.length} photo(s) chargée(s)
           </h4>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {images.map((image) => (
               <div
                 key={image.id}
-                className="group bg-card relative overflow-hidden rounded-lg border"
+                className="group relative overflow-hidden rounded-lg border bg-card"
               >
                 <Image
                   src={image.preview}
@@ -146,7 +146,7 @@ export function ImageUploader({
                   <select
                     value={image.tag}
                     onChange={(e) => updateTag(image.id, e.target.value)}
-                    className="bg-background w-full rounded border px-2 py-1 text-xs"
+                    className="w-full rounded border bg-background px-2 py-1 text-xs"
                   >
                     {PHOTO_TAGS.map((tag) => (
                       <option key={tag} value={tag}>
@@ -154,7 +154,7 @@ export function ImageUploader({
                       </option>
                     ))}
                   </select>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-xs text-muted-foreground">
                     {(image.file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>

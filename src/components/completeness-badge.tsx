@@ -31,7 +31,7 @@ export function CompletenessBadge({ score, missingFields = [] }: CompletenessBad
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`Complétude ${pct} %`}
-        className="bg-primary/20 relative h-2 w-32 overflow-hidden rounded-full"
+        className="relative h-2 w-32 overflow-hidden rounded-full bg-primary/20"
       >
         <div
           className={cn('h-full transition-all duration-300', tone)}

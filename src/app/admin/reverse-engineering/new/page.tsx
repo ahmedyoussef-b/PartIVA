@@ -37,12 +37,12 @@ export default function NewREProjectPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="bg-card border-border rounded-xl border p-6">
+        <div className="rounded-xl border border-border bg-card p-6">
           <div className="space-y-2">
-            <h1 className="font-heading text-tech-navy text-3xl font-bold">
+            <h1 className="font-heading text-3xl font-bold text-tech-navy">
               Nouveau projet Reverse Engineering
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               Créez un nouveau projet de rétro-ingénierie CAO pour démarrer l&apos;analyse
               d&apos;une pièce.
             </p>
@@ -51,14 +51,14 @@ export default function NewREProjectPage() {
 
         <form
           action={formAction}
-          className="bg-card border-border space-y-6 rounded-xl border p-6 shadow-sm"
+          className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm"
         >
           <Card>
             <CardHeader>
-              <CardTitle className="font-heading text-tech-navy text-lg font-bold">
+              <CardTitle className="font-heading text-lg font-bold text-tech-navy">
                 Informations du projet
               </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm">
+              <CardDescription className="text-sm text-muted-foreground">
                 Les champs marqués d&apos;une astérisque sont requis.
               </CardDescription>
             </CardHeader>
@@ -95,7 +95,7 @@ export default function NewREProjectPage() {
             </CardContent>
           </Card>
 
-          <CardFooter className="bg-card/50 border-border/50 flex flex-row items-center justify-between gap-4 border-t">
+          <CardFooter className="flex flex-row items-center justify-between gap-4 border-t border-border/50 bg-card/50">
             <Button
               variant="outline"
               type="button"
@@ -111,7 +111,7 @@ export default function NewREProjectPage() {
         </form>
 
         {state?.error && (
-          <div className="bg-destructive/10 border-destructive/20 text-destructive rounded-lg border p-4">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-destructive">
             <p className="text-sm">{state.error}</p>
           </div>
         )}
@@ -119,5 +119,3 @@ export default function NewREProjectPage() {
     </div>
   );
 }
-
-

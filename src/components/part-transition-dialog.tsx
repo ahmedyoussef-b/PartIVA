@@ -96,7 +96,7 @@ export function PartTransitionDialog({
             <Label htmlFor="target-status">Statut cible</Label>
             <select
               id="target-status"
-              className="border-input focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
               value={target}
               onChange={(e) => setTarget(e.target.value as PartStatus)}
             >
@@ -110,7 +110,7 @@ export function PartTransitionDialog({
               ))}
             </select>
             {allowedTargets.length === 0 && (
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 Aucune transition autorisée depuis cet état pour votre rôle.
               </p>
             )}

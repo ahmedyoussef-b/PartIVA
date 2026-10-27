@@ -53,7 +53,7 @@ export function ModelViewer({ src, alt, height, bare = false }: ModelViewerProps
 
   if (!isCad && !isMesh) {
     const fallback = (
-      <div className="text-muted-foreground flex flex-col items-center justify-center py-12 text-sm">
+      <div className="flex flex-col items-center justify-center py-12 text-sm text-muted-foreground">
         {alt ?? 'Format de modèle 3D non pris en charge'}
       </div>
     );

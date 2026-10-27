@@ -457,7 +457,7 @@ export function SearchBar() {
             className="w-24"
             aria-label="Valeur minimale"
           />
-          <span className="text-muted-foreground text-xs">à</span>
+          <span className="text-xs text-muted-foreground">à</span>
           <Input
             type="number"
             value={max}
@@ -469,7 +469,7 @@ export function SearchBar() {
           <select
             value={specKey}
             onChange={(e) => setSpecKey(e.target.value)}
-            className="border-input bg-background text-foreground rounded-md border px-2 py-1.5 text-xs"
+            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground"
             aria-label="Clé de spécification"
           >
             <option value="">Toutes les clés</option>
@@ -482,7 +482,7 @@ export function SearchBar() {
           <select
             value={matchMode}
             onChange={(e) => setMatchMode(e.target.value as 'nominal' | 'tolerance')}
-            className="border-input bg-background text-foreground rounded-md border px-2 py-1.5 text-xs"
+            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground"
             aria-label="Type de correspondance"
           >
             <option value="nominal">Nominal (valeur)</option>
@@ -514,7 +514,7 @@ export function SearchBar() {
               className="w-24"
               aria-label="Valeur minimale"
             />
-            <span className="text-muted-foreground text-xs">à</span>
+            <span className="text-xs text-muted-foreground">à</span>
             <Input
               type="number"
               value={max}
@@ -526,14 +526,14 @@ export function SearchBar() {
           </div>
           {/* E12-R1d — tri */}
           <div className="flex items-center gap-2">
-            <label className="text-muted-foreground text-[11px]" htmlFor="search-sort">
+            <label className="text-[11px] text-muted-foreground" htmlFor="search-sort">
               Tri :
             </label>
             <select
               id="search-sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as typeof sort)}
-              className="border-input bg-background text-foreground rounded-md border px-2 py-1.5 text-xs"
+              className="rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground"
               aria-label="Tri"
             >
               <option value="relevance">Pertinence</option>
@@ -579,28 +579,28 @@ export function SearchBar() {
             />
             <button
               type="button"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={handlePhotoSearch}
               disabled={!photoData || pending}
             >
               Rechercher
             </button>
-            <ImagePlus className="text-muted-foreground h-4 w-4" />
+            <ImagePlus className="h-4 w-4 text-muted-foreground" />
           </div>
           {photoFile && (
-            <p className="text-muted-foreground text-[11px]">
+            <p className="text-[11px] text-muted-foreground">
               {photoFile.name} — {(photoFile.size / 1024).toFixed(0)} Ko — {photoMime}
             </p>
           )}
           {photoError && (
-            <p className="text-destructive text-xs" role="alert">
+            <p className="text-xs text-destructive" role="alert">
               {photoError}
             </p>
           )}
         </div>
       ) : (
         <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -617,10 +617,10 @@ export function SearchBar() {
         </div>
       )}
 
-      {pending && <p className="text-muted-foreground text-sm">Recherche…</p>}
+      {pending && <p className="text-sm text-muted-foreground">Recherche…</p>}
 
       {showEmpty && (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           {isDimensions
             ? 'Aucun résultat pour cette plage dimensionnelle.'
             : `Aucun résultat pour « ${query.trim()} ».`}
@@ -635,7 +635,7 @@ export function SearchBar() {
                 <button
                   key={result.id}
                   type="button"
-                  className="hover:bg-muted/30 flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted/30"
                   onClick={() => {
                     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                     window.location.href = `/admin/pieces?part=${result.id}`;
@@ -643,25 +643,25 @@ export function SearchBar() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-primary font-mono text-xs font-bold">
+                      <span className="font-mono text-xs font-bold text-primary">
                         {result.ptvReference ?? result.partNumber}
                       </span>
                       <span className="truncate text-xs font-medium">{result.name}</span>
                     </div>
                     {result.description && (
-                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[11px]">
+                      <p className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground">
                         {result.description}
                       </p>
                     )}
                     {result.matchedSpecs && result.matchedSpecs.length > 0 && (
-                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[11px]">
+                      <p className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground">
                         {result.matchedSpecs
                           .map((spec) => `${spec.key} : ${spec.value}`)
                           .join(' · ')}
                       </p>
                     )}
                     {result.specKey && (
-                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[11px]">
+                      <p className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground">
                         {result.specKey} : {result.specValue}
                         {result.unit ? ` ${result.unit}` : ''}
                         {result.toleranceMin !== null &&
@@ -677,10 +677,10 @@ export function SearchBar() {
                     )}
                     {typeof result.score === 'number' && (
                       <details className="mt-0.5">
-                        <summary className="text-muted-foreground cursor-pointer text-[11px]">
+                        <summary className="cursor-pointer text-[11px] text-muted-foreground">
                           Détail du score
                         </summary>
-                        <ul className="text-muted-foreground mt-0.5 space-y-0.5 text-[11px]">
+                        <ul className="mt-0.5 space-y-0.5 text-[11px] text-muted-foreground">
                           {Object.entries(result.breakdown ?? {}).map(([key, value]) => (
                             <li key={key}>
                               {key} : {value.toFixed(2)}
@@ -734,7 +734,7 @@ export function SearchBar() {
         <Pagination total={total} limit={limit} offset={offset} onOffsetChange={setOffset} />
       )}
 
-      <p className="text-muted-foreground flex items-center gap-1 text-[11px]">
+      <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
         <MapPin className="h-3 w-3" />
         {mode === 'reference'
           ? 'Recherche par référence exacte ou préfixe (PTV, n° fournisseur).'

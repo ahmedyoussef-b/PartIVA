@@ -41,4 +41,3 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Download failed' }, { status: 500 });
   }
 }
-

@@ -48,7 +48,7 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="border-input bg-background hover:bg-muted/50 flex w-full items-center justify-between rounded-md border px-3 py-2 text-xs font-medium"
+        className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-muted/50"
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
@@ -68,11 +68,11 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-muted-foreground mb-1 block text-[11px]">Matériau</label>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">Matériau</label>
                   <select
                     value={filters.material}
                     onChange={(e) => update('material', e.target.value)}
-                    className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
+                    className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground"
                   >
                     <option value="">Tous les matériaux</option>
                     {availableMaterials.map((m) => (
@@ -83,11 +83,11 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
                   </select>
                 </div>
                 <div>
-                  <label className="text-muted-foreground mb-1 block text-[11px]">Machine</label>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">Machine</label>
                   <select
                     value={filters.machineId}
                     onChange={(e) => update('machineId', e.target.value)}
-                    className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
+                    className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground"
                   >
                     <option value="">Toutes les machines</option>
                     {availableMaterials.map((m) => (
@@ -99,11 +99,11 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
                 </div>
               </div>
               <div>
-                <label className="text-muted-foreground mb-1 block text-[11px]">Statut</label>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Statut</label>
                 <select
                   value={filters.status}
                   onChange={(e) => update('status', e.target.value)}
-                  className="border-input bg-background text-foreground w-full rounded-md border px-2 py-1.5 text-xs"
+                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs text-foreground"
                 >
                   <option value="">Tous les statuts</option>
                   {PART_STATUS_VALUES.map((s) => (
@@ -114,7 +114,7 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
                 </select>
               </div>
               <div>
-                <label className="text-muted-foreground mb-1 block text-[11px]">Créé après</label>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Créé après</label>
                 <Input
                   type="date"
                   value={filters.createdAfter}
@@ -123,7 +123,7 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
                 />
               </div>
               <div>
-                <label className="text-muted-foreground mb-1 block text-[11px]">Créé avant</label>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Créé avant</label>
                 <Input
                   type="date"
                   value={filters.createdBefore}
@@ -132,7 +132,7 @@ export function FiltersPanel({ filters, onChange, availableMaterials }: FiltersP
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-muted-foreground mb-1 block text-[11px]">
+                <label className="mb-1 block text-[11px] text-muted-foreground">
                   Score minimum ({filters.minScore || '0'})
                 </label>
                 <Input

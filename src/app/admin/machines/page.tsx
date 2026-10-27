@@ -8,5 +8,3 @@ export default async function AdminMachinesPage() {
 
   return <MachinesClient initialMachines={machines} />;
 }
-
-

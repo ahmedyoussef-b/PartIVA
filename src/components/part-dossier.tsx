@@ -70,7 +70,7 @@ export function PartDossier({ part }: PartDossierProps) {
           <TabsContent value="dossier" className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <p className="text-muted-foreground text-xs font-semibold">Identification</p>
+                <p className="text-xs font-semibold text-muted-foreground">Identification</p>
                 <Table>
                   <TableBody>
                     <TableRow>
@@ -97,8 +97,8 @@ export function PartDossier({ part }: PartDossierProps) {
                 </Table>
               </div>
               <div className="space-y-2">
-                <p className="text-muted-foreground text-xs font-semibold">Description</p>
-                <p className="text-muted-foreground text-xs">{part.description || '—'}</p>
+                <p className="text-xs font-semibold text-muted-foreground">Description</p>
+                <p className="text-xs text-muted-foreground">{part.description || '—'}</p>
                 <div className="flex flex-wrap gap-1">
                   <Badge variant="secondary" className="font-mono text-[10px]">
                     {part.images.length} image

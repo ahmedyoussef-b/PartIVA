@@ -54,7 +54,7 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        'hover:shadow-tech-lg rounded-xl border transition-all hover:-translate-y-0.5',
+        'rounded-xl border transition-all hover:-translate-y-0.5 hover:shadow-tech-lg',
         VARIANT_CLASSES[variant],
         className,
       )}
@@ -81,7 +81,7 @@ export function KpiCard({
               </span>
             ) : null}
           </div>
-          {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
+          {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
         </div>
       </CardContent>
     </Card>

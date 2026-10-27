@@ -26,8 +26,6 @@ type Build = {
   isLatest?: boolean;
 };
 
-
-
 export default function DesktopDownloadsPage() {
   const [installers, setInstallers] = useState<Installer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +49,7 @@ export default function DesktopDownloadsPage() {
             fileUrl: b.downloadUrl ?? b.fileUrl ?? '',
             fileSize: b.size ?? b.fileSize ?? 0,
             isLatest: Boolean(b.isLatest),
-          }))
+          })),
         );
         setLoading(false);
       })
@@ -86,9 +84,7 @@ export default function DesktopDownloadsPage() {
     try {
       const res = await fetch(`/api/desktop-builds/${id}/publish`, { method: 'PATCH' });
       if (!res.ok) throw new Error('Échec publication');
-      setInstallers((prev) =>
-        prev.map((i) => ({ ...i, isLatest: i.id === id }))
-      );
+      setInstallers((prev) => prev.map((i) => ({ ...i, isLatest: i.id === id })));
       toast.success('Version définie comme officielle');
     } catch (err) {
       console.error(err);
@@ -107,7 +103,7 @@ export default function DesktopDownloadsPage() {
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      <h1 className="text-3xl font-bold text-slate-900 mb-6">Téléchargements Desktop</h1>
+      <h1 className="mb-6 text-3xl font-bold text-slate-900">Téléchargements Desktop</h1>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {installers.length === 0 ? (
           <div className="col-span-full rounded-xl border border-slate-200 bg-slate-50 p-12 text-center">

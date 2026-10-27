@@ -132,7 +132,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             <h2 className="text-lg font-semibold">File d&apos;attente</h2>
             <Link
               href="/admin/demandes"
-              className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               Voir tout ({requests.length})
               <ArrowRight className="h-3 w-3" />
@@ -141,11 +141,11 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
 
           <div className="space-y-2">
             {requests.slice(0, 5).map((req) => (
-              <Card key={req.id} className="hover:border-primary/40 transition-colors">
+              <Card key={req.id} className="transition-colors hover:border-primary/40">
                 <CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-primary font-mono text-xs font-bold">
+                      <span className="font-mono text-xs font-bold text-primary">
                         {req.id.slice(0, 8)}
                       </span>
                       <Badge
@@ -159,7 +159,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
                       </Badge>
                     </div>
                     <p className="truncate text-sm font-medium">{req.partDescription}</p>
-                    <div className="text-muted-foreground flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="truncate">{req.client.company || req.client.name}</span>
                       <span className="text-border">•</span>
                       <span className="truncate">{req.suspectedMaterial || 'Non précisée'}</span>
@@ -199,7 +199,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
               </div>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
-              <div className="bg-muted/30 space-y-2 rounded-lg border p-3 font-mono">
+              <div className="space-y-2 rounded-lg border bg-muted/30 p-3 font-mono">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Dernier Pull :</span>
                   <span className="font-semibold">
@@ -227,7 +227,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold">Parc machines</CardTitle>
-                <Link href="/admin/machines" className="text-primary text-xs hover:underline">
+                <Link href="/admin/machines" className="text-xs text-primary hover:underline">
                   Gérer
                 </Link>
               </div>

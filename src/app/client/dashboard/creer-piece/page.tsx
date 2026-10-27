@@ -227,7 +227,7 @@ export default function CreerPiecePage() {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Créer une nouvelle pièce à fabriquer
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="mt-1 text-sm text-muted-foreground">
             Uploadez autant de photos que vous le souhaitez de la pièce cassée ou usée. Nos régleurs
             se chargent de la rétro-ingénierie et de l’usinage.
           </p>
@@ -245,7 +245,7 @@ export default function CreerPiecePage() {
         <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Tag className="text-primary h-5 w-5" />
+              <Tag className="h-5 w-5 text-primary" />
               0. Informations client
             </CardTitle>
             <CardDescription>
@@ -285,7 +285,7 @@ export default function CreerPiecePage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Camera className="text-primary h-5 w-5" />
+                  <Camera className="h-5 w-5 text-primary" />
                   1. Photographies de la pièce souhaitée
                 </CardTitle>
                 <CardDescription>
@@ -313,29 +313,29 @@ export default function CreerPiecePage() {
               />
               <label
                 htmlFor="photo-upload"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer rounded-md px-4 py-2 font-medium transition-colors"
+                className="cursor-pointer rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Ajouter des photos
               </label>
               {photoUrls.length > 0 && (
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                   {photoUrls.length} photo(s) prête(s) à être envoyée(s).
                 </p>
               )}
             </div>
             {photoUrls.length > 0 && (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 {photoUrls.length} photo(s) prête(s) à être envoyée(s).
               </p>
             )}
 
             {uploadState.status === 'uploading' && (
               <div className="space-y-3">
-                <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold tracking-wider uppercase">
+                <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   <span>Upload en cours</span>
                   <span>{uploadState.fileName}</span>
                 </div>
-                <div className="bg-muted relative w-full overflow-hidden rounded-xl border">
+                <div className="relative w-full overflow-hidden rounded-xl border bg-muted">
                   <div className="flex h-32 items-center justify-center bg-black/30">
                     <div className="text-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -343,7 +343,7 @@ export default function CreerPiecePage() {
                     </div>
                   </div>
                   <div
-                    className="bg-primary absolute top-0 left-0 h-full transition-all duration-100"
+                    className="absolute top-0 left-0 h-full bg-primary transition-all duration-100"
                     style={{ width: `${uploadState.progress}%` }}
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function CreerPiecePage() {
 
             {photoTags.length > 0 && (
               <div className="space-y-3">
-                <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold tracking-wider uppercase">
+                <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   <span>Photos prêtes pour l’analyse atelier</span>
                   <span>Précisez l’angle de prise de vue pour chaque photo</span>
                 </div>
@@ -361,9 +361,9 @@ export default function CreerPiecePage() {
                   {photoTags.map((photo) => (
                     <div
                       key={photo.url}
-                      className="group bg-card hover:border-primary/40 relative flex flex-col overflow-hidden rounded-xl border shadow-xs transition-all"
+                      className="group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:border-primary/40"
                     >
-                      <div className="bg-muted relative aspect-[4/3] w-full overflow-hidden">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                         <Image
                           src={photo.url}
                           alt={`Photo ${photo.tag}`}
@@ -391,7 +391,7 @@ export default function CreerPiecePage() {
                         <select
                           value={photo.tag}
                           onChange={(e) => updateTag(photo.url, e.target.value)}
-                          className="border-input bg-background focus:ring-primary w-full rounded border px-2 py-1 text-xs"
+                          className="w-full rounded border border-input bg-background px-2 py-1 text-xs focus:ring-primary"
                         >
                           {PHOTO_TAGS.map((t) => (
                             <option key={t} value={t}>
@@ -410,7 +410,7 @@ export default function CreerPiecePage() {
         <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Layers className="text-primary h-5 w-5" />
+              <Layers className="h-5 w-5 text-primary" />
               2. Informations de la pièce
             </CardTitle>
             <CardDescription>
@@ -425,7 +425,7 @@ export default function CreerPiecePage() {
                   id="partName"
                   value={partName}
                   onChange={(e) => setPartName(e.target.value)}
-                  className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -434,7 +434,7 @@ export default function CreerPiecePage() {
                   id="machineRef"
                   value={machineRef}
                   onChange={(e) => setMachineRef(e.target.value)}
-                  className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -443,7 +443,7 @@ export default function CreerPiecePage() {
                   id="material"
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                 >
                   {MATERIAL_OPTIONS.map((m) => (
                     <option key={m.value} value={m.value}>
@@ -460,7 +460,7 @@ export default function CreerPiecePage() {
                   min="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -471,7 +471,7 @@ export default function CreerPiecePage() {
                 id="urgency"
                 value={urgency}
                 onChange={(e) => setUrgency(e.target.value)}
-                className="border-input bg-background text-foreground focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
               >
                 <option value="low">Faible</option>
                 <option value="normal">Délai standard (4-6 jours)</option>
@@ -494,16 +494,16 @@ export default function CreerPiecePage() {
             </div>
           </CardContent>
         </Card>
-        <div className="border-primary/20 bg-primary/5 flex flex-col items-center justify-between gap-4 rounded-xl border p-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-semibold">
                 Engagement Atelier PartIVA pour les clients permanents
               </p>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 Prise en charge prioritaire • Rétro-conception CAO sous 4h • Validation avant
                 usinage
               </p>
@@ -547,5 +547,3 @@ export default function CreerPiecePage() {
     </div>
   );
 }
-
-

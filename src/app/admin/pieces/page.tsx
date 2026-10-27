@@ -17,5 +17,3 @@ export default async function AdminPiecesPage() {
 
   return <PiecesClient initialParts={parts} actorRole={actorRole} />;
 }
-
-

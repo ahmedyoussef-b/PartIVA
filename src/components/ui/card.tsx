@@ -11,7 +11,7 @@ function Card({
   return (
     <div
       ref={ref}
-      className={cn('bg-card text-card-foreground rounded-xl border shadow-sm', className)}
+      className={cn('rounded-xl border bg-card text-card-foreground shadow-sm', className)}
       {...props}
     />
   );
@@ -44,7 +44,7 @@ function CardDescription({
   ref,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement> & { ref?: React.Ref<HTMLParagraphElement> }) {
-  return <p ref={ref} className={cn('text-muted-foreground text-sm', className)} {...props} />;
+  return <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />;
 }
 
 function CardContent({

@@ -119,28 +119,28 @@ export function ServiceCardsGrid({
   services = DEFAULT_SERVICES,
 }: ServiceCardsGridProps) {
   return (
-    <section className="bg-tech-surface-subtle text-tech-text-heading border-tech-border/80 relative border-t py-20 lg:py-28">
+    <section className="relative border-t border-tech-border/80 bg-tech-surface-subtle py-20 text-tech-text-heading lg:py-28">
       {/* Decorative subtle background accents */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-40">
-        <div className="bg-tech-primary/5 absolute top-1/2 -left-64 h-96 w-96 rounded-full blur-3xl" />
-        <div className="bg-tech-accent/5 absolute -right-64 -bottom-32 h-96 w-96 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -left-64 h-96 w-96 rounded-full bg-tech-primary/5 blur-3xl" />
+        <div className="absolute -right-64 -bottom-32 h-96 w-96 rounded-full bg-tech-accent/5 blur-3xl" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto mb-16 max-w-3xl space-y-4 text-center">
-          <div className="bg-tech-primary/10 border-tech-primary/20 text-tech-primary inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold tracking-wider uppercase">
+          <div className="inline-flex items-center gap-2 rounded-full border border-tech-primary/20 bg-tech-primary/10 px-3.5 py-1.5 text-xs font-semibold tracking-wider text-tech-primary uppercase">
             <span>{badgeText}</span>
           </div>
 
-          <h2 className="font-heading text-tech-navy text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          <h2 className="font-heading text-3xl font-bold tracking-tight text-tech-navy sm:text-4xl lg:text-5xl">
             {title}{' '}
-            <span className="from-tech-primary via-tech-accent to-tech-navy bg-gradient-to-r bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-tech-primary via-tech-accent to-tech-navy bg-clip-text text-transparent">
               {titleHighlight}
             </span>
           </h2>
 
-          <p className="text-tech-text-body mx-auto max-w-2xl font-sans text-base leading-relaxed sm:text-lg">
+          <p className="mx-auto max-w-2xl font-sans text-base leading-relaxed text-tech-text-body sm:text-lg">
             {subtitle}
           </p>
         </div>
@@ -153,41 +153,41 @@ export function ServiceCardsGrid({
             return (
               <div
                 key={service.id}
-                className="group rounded-tech-card border-tech-border shadow-tech hover:shadow-tech-hover hover:border-tech-primary relative flex flex-col justify-between overflow-hidden border bg-white p-8 transition-all duration-300 hover:-translate-y-2"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-tech-card border border-tech-border bg-white p-8 shadow-tech transition-all duration-300 hover:-translate-y-2 hover:border-tech-primary hover:shadow-tech-hover"
               >
                 {/* Top Subtle Hover Accent Bar */}
-                <div className="from-tech-primary via-tech-accent to-tech-primary-light absolute top-0 right-0 left-0 h-1 bg-gradient-to-r opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-tech-primary via-tech-accent to-tech-primary-light opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                 <div className="space-y-6">
                   {/* Icon and Category Tag */}
                   <div className="flex items-center justify-between">
-                    <div className="bg-tech-primary/10 border-tech-primary/20 text-tech-primary group-hover:bg-tech-primary group-hover:shadow-tech-glow flex h-16 w-16 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:text-white">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-tech-primary/20 bg-tech-primary/10 text-tech-primary transition-all duration-300 group-hover:bg-tech-primary group-hover:text-white group-hover:shadow-tech-glow">
                       <IconComponent className="h-8 w-8 transition-transform duration-300 group-hover:scale-110" />
                     </div>
 
-                    <span className="bg-tech-surface-subtle border-tech-border text-tech-text-muted rounded-md border px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wider uppercase">
+                    <span className="rounded-md border border-tech-border bg-tech-surface-subtle px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wider text-tech-text-muted uppercase">
                       {service.category}
                     </span>
                   </div>
 
                   {/* Title & Description */}
                   <div className="space-y-2.5">
-                    <h3 className="font-heading text-tech-navy group-hover:text-tech-primary text-xl font-bold transition-colors duration-200">
+                    <h3 className="font-heading text-xl font-bold text-tech-navy transition-colors duration-200 group-hover:text-tech-primary">
                       {service.title}
                     </h3>
-                    <p className="text-tech-text-body font-sans text-sm leading-relaxed sm:text-base">
+                    <p className="font-sans text-sm leading-relaxed text-tech-text-body sm:text-base">
                       {service.description}
                     </p>
                   </div>
 
                   {/* Key Feature Bullets */}
-                  <ul className="border-tech-border/60 space-y-2 border-t pt-2">
+                  <ul className="space-y-2 border-t border-tech-border/60 pt-2">
                     {service.features.map((feat, idx) => (
                       <li
                         key={idx}
-                        className="text-tech-text-body/90 flex items-center gap-2 text-xs font-medium"
+                        className="flex items-center gap-2 text-xs font-medium text-tech-text-body/90"
                       >
-                        <span className="bg-tech-accent h-1.5 w-1.5 shrink-0 rounded-full transition-transform group-hover:scale-125" />
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-tech-accent transition-transform group-hover:scale-125" />
                         <span>{feat}</span>
                       </li>
                     ))}
@@ -195,10 +195,10 @@ export function ServiceCardsGrid({
                 </div>
 
                 {/* Card Footer Link */}
-                <div className="border-tech-border/60 mt-6 border-t pt-6">
+                <div className="mt-6 border-t border-tech-border/60 pt-6">
                   <Link
                     href={service.href}
-                    className="text-tech-primary group-hover:text-tech-accent inline-flex items-center gap-2 text-sm font-semibold transition-colors duration-200"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-tech-primary transition-colors duration-200 group-hover:text-tech-accent"
                   >
                     <span>En savoir plus</span>
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
@@ -210,12 +210,12 @@ export function ServiceCardsGrid({
         </div>
 
         {/* Bottom Banner CTA */}
-        <div className="rounded-tech-card bg-tech-navy shadow-tech-lg mt-16 flex flex-col items-center justify-between gap-6 border border-white/10 p-8 text-white md:flex-row">
+        <div className="mt-16 flex flex-col items-center justify-between gap-6 rounded-tech-card border border-white/10 bg-tech-navy p-8 text-white shadow-tech-lg md:flex-row">
           <div className="space-y-2 text-center md:text-left">
             <h4 className="font-heading text-xl font-bold sm:text-2xl">
               Vous avez un plan 2D, un fichier STEP ou une pièce modèle ?
             </h4>
-            <p className="text-tech-text-body-dark max-w-xl font-sans text-sm">
+            <p className="max-w-xl font-sans text-sm text-tech-text-body-dark">
               Transmettez-nous vos spécifications ou déposez votre pièce à l’atelier pour une étude
               de faisabilité immédiate et un devis sous 24h.
             </p>
@@ -223,7 +223,7 @@ export function ServiceCardsGrid({
 
           <Link
             href="/demande"
-            className="bg-tech-primary hover:bg-tech-accent hover:shadow-tech-glow inline-flex shrink-0 items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-tech-primary px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-tech-accent hover:shadow-tech-glow active:translate-y-0"
           >
             <span>Envoyer mes Spécifications</span>
             <ChevronRight className="h-4 w-4" />

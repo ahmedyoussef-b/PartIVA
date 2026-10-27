@@ -31,7 +31,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-extrabold">Connexion</CardTitle>
@@ -41,7 +41,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="border-destructive/50 bg-destructive/10 text-destructive mb-4 rounded-md border p-3 text-sm">
+            <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -52,7 +52,7 @@ export default function LoginPage() {
                 Email
               </label>
               <div className="relative">
-                <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -72,7 +72,7 @@ export default function LoginPage() {
                 Mot de passe
               </label>
               <div className="relative">
-                <Lock className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={showPassword ? 'Masquer' : 'Afficher'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -107,7 +107,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-muted-foreground mt-6 text-center text-xs">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
             Mode desktop : le token est stocké dans le keyring Windows.
           </p>
         </CardContent>
@@ -115,5 +115,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-

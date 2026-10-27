@@ -45,7 +45,7 @@ function TableFooter({
   return (
     <tfoot
       ref={ref}
-      className={cn('bg-muted/50 border-t font-medium [&>tr]:last:border-b-0', className)}
+      className={cn('border-t bg-muted/50 font-medium [&>tr]:last:border-b-0', className)}
       {...props}
     />
   );
@@ -77,7 +77,7 @@ function TableHead({
     <th
       ref={ref}
       className={cn(
-        'font-heading h-11 px-4 text-left align-middle text-xs font-semibold tracking-wider text-gray-500 uppercase [&:has([role=checkbox])]:pr-0',
+        'h-11 px-4 text-left align-middle font-heading text-xs font-semibold tracking-wider text-gray-500 uppercase [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}
@@ -105,7 +105,7 @@ function TableCaption({
   ...props
 }: React.HTMLAttributes<HTMLTableCaptionElement> & { ref?: React.Ref<HTMLTableCaptionElement> }) {
   return (
-    <caption ref={ref} className={cn('text-muted-foreground mt-4 text-sm', className)} {...props} />
+    <caption ref={ref} className={cn('mt-4 text-sm text-muted-foreground', className)} {...props} />
   );
 }
 

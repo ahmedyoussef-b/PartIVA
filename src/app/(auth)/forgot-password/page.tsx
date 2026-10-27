@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
         <div className="pt-2 text-center">
           <Link
             href="/login"
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Retour à la connexion
@@ -62,5 +62,3 @@ export default function ForgotPasswordPage() {
     </Card>
   );
 }
-
-

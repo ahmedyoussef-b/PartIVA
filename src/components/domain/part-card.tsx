@@ -18,7 +18,7 @@ export function PartCard({ part, onClick, thumbnailUrl }: PartCardProps) {
 
   return (
     <Card
-      className="group hover:border-primary/50 focus-visible:ring-ring cursor-pointer transition-all hover:shadow-md focus-visible:ring-2 focus-visible:outline-none"
+      className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -30,13 +30,13 @@ export function PartCard({ part, onClick, thumbnailUrl }: PartCardProps) {
       }}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <span className="text-muted-foreground group-hover:text-primary font-mono text-xs font-semibold transition-colors">
+        <span className="font-mono text-xs font-semibold text-muted-foreground transition-colors group-hover:text-primary">
           {part.reference}
         </span>
         <PartStatusBadge status={part.status} />
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="border-border/50 bg-muted/60 relative aspect-square overflow-hidden rounded-md border">
+        <div className="relative aspect-square overflow-hidden rounded-md border border-border/50 bg-muted/60">
           {displayThumb ? (
             <Image
               src={displayThumb}
@@ -46,20 +46,20 @@ export function PartCard({ part, onClick, thumbnailUrl }: PartCardProps) {
               unoptimized
             />
           ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
               Aucun aperçu
             </div>
           )}
         </div>
         <div>
-          <h3 className="group-hover:text-primary line-clamp-1 text-sm font-semibold transition-colors">
+          <h3 className="line-clamp-1 text-sm font-semibold transition-colors group-hover:text-primary">
             {part.name}
           </h3>
-          <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs">{part.description}</p>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{part.description}</p>
         </div>
-        <div className="border-border/40 flex items-center justify-between border-t pt-1">
+        <div className="flex items-center justify-between border-t border-border/40 pt-1">
           <MaterialBadge material={part.material} />
-          <span className="text-muted-foreground font-mono text-xs">{part.version}</span>
+          <span className="font-mono text-xs text-muted-foreground">{part.version}</span>
         </div>
       </CardContent>
     </Card>

@@ -86,7 +86,7 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Parc Machines CNC</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Supervision en temps réel des équipements d&apos;usinage plastiques techniques.
           </p>
         </div>
@@ -108,12 +108,12 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
           return (
             <Card key={s.label} className="bg-card/60">
               <CardContent className="flex items-center gap-3 p-4">
-                <div className={`bg-muted rounded-lg p-2 ${s.color}`}>
+                <div className={`rounded-lg bg-muted p-2 ${s.color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div>
                   <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
-                  <div className="text-muted-foreground text-[10px]">{s.label}</div>
+                  <div className="text-[10px] text-muted-foreground">{s.label}</div>
                 </div>
               </CardContent>
             </Card>
@@ -159,12 +159,12 @@ export default function MachinesClient({ initialMachines }: MachinesClientProps)
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="border-border text-muted-foreground border-l-2 py-1 pl-3 font-mono text-xs">
+                <div className="border-l-2 border-border py-1 pl-3 font-mono text-xs text-muted-foreground">
                   {capacity}
                 </div>
 
                 {machine.status === 'RUNNING' && (
-                  <div className="bg-muted/40 space-y-2 rounded-lg p-3">
+                  <div className="space-y-2 rounded-lg bg-muted/40 p-3">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5 font-medium">
                         <Zap className={`h-3.5 w-3.5 ${config.color}`} />

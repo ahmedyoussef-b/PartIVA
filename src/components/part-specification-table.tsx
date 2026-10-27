@@ -232,7 +232,7 @@ export function PartSpecificationTable({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               {suggestions.length === 0 ? (
-                <div className="text-muted-foreground px-2 py-1.5 text-xs">Chargement…</div>
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">Chargement…</div>
               ) : (
                 suggestions.map((suggestion) => (
                   <DropdownMenuItem
@@ -245,7 +245,7 @@ export function PartSpecificationTable({
                   >
                     {suggestion.key}
                     {suggestion.unit ? (
-                      <span className="text-muted-foreground ml-2">({suggestion.unit})</span>
+                      <span className="ml-2 text-muted-foreground">({suggestion.unit})</span>
                     ) : null}
                   </DropdownMenuItem>
                 ))
@@ -259,7 +259,7 @@ export function PartSpecificationTable({
         </div>
 
         {specs.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Aucune spécification pour cette pièce.</p>
+          <p className="text-sm text-muted-foreground">Aucune spécification pour cette pièce.</p>
         ) : (
           <div className="overflow-x-auto">
             {' '}
@@ -306,7 +306,7 @@ export function PartSpecificationTable({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-destructive h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 text-destructive"
                           onClick={() => handleDelete(spec)}
                           aria-label={`Supprimer ${spec.key}`}
                         >
@@ -322,7 +322,7 @@ export function PartSpecificationTable({
         )}
 
         {missingKeys && missingKeys.length > 0 && (
-          <p className="text-muted-foreground mt-2 text-xs">Il manque : {missingKeys.join(', ')}</p>
+          <p className="mt-2 text-xs text-muted-foreground">Il manque : {missingKeys.join(', ')}</p>
         )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -43,7 +43,7 @@ export function SimilarityScore({
       )}
       <div
         className={cn(
-          'bg-muted w-full overflow-hidden rounded-full',
+          'w-full overflow-hidden rounded-full bg-muted',
           size === 'sm' ? 'h-1.5' : size === 'md' ? 'h-2' : 'h-3',
         )}
       >

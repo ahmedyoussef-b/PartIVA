@@ -37,8 +37,8 @@ export default function PartImageGallery({
           <CardDescription>Aucune image disponible pour cette pièce.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-muted/50 flex h-40 items-center justify-center rounded-md border border-dashed border-gray-300">
-            <p className="text-muted-foreground text-sm">Aucune image téléchargée</p>
+          <div className="flex h-40 items-center justify-center rounded-md border border-dashed border-gray-300 bg-muted/50">
+            <p className="text-sm text-muted-foreground">Aucune image téléchargée</p>
           </div>
         </CardContent>
       </Card>
@@ -81,7 +81,7 @@ export default function PartImageGallery({
               key={img.id}
               className={`relative aspect-video overflow-hidden rounded-md border-2 transition-shadow ${
                 primaryImage === img.url
-                  ? 'border-primary ring-primary/20 ring-2'
+                  ? 'border-primary ring-2 ring-primary/20'
                   : 'border-transparent hover:border-gray-300'
               }`}
             >
@@ -114,10 +114,10 @@ export default function PartImageGallery({
           ))}
         </div>
         {images.length > 4 && (
-          <div className="text-muted-foreground mt-3 flex items-center justify-center gap-2 text-xs">
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <span className="font-medium">{images.length}</span> photos au total
             <button
-              className="hover:text-foreground underline underline-offset-2"
+              className="underline underline-offset-2 hover:text-foreground"
               onClick={() =>
                 document.getElementById('gallery-full')?.scrollIntoView({ behavior: 'smooth' })
               }

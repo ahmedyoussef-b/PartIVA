@@ -82,7 +82,7 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Catalogue pièces</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Pièces usinées, indexées et disponibles pour réutilisation.
           </p>
         </div>
@@ -148,12 +148,12 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
                       const hasPlan = (part.files?.plans?.length ?? 0) > 0;
                       return (
                         <TableRow key={part.id} className="hover:bg-muted/30">
-                          <TableCell className="text-primary font-mono text-xs font-bold">
+                          <TableCell className="font-mono text-xs font-bold text-primary">
                             {part.reference}
                           </TableCell>
                           <TableCell>
                             <div className="text-xs font-medium">{part.name}</div>
-                            <div className="text-muted-foreground line-clamp-1 text-[11px]">
+                            <div className="line-clamp-1 text-[11px] text-muted-foreground">
                               {part.description}
                             </div>
                           </TableCell>

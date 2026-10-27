@@ -156,7 +156,7 @@ export function StlViewer({ src, alt, height, bare = false }: StlViewerProps) {
 
   if (!src) {
     const fallback = (
-      <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 py-12 text-sm">
+      <div className="flex flex-col items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
         {alt ?? 'Aucun modèle 3D disponible'}
       </div>
     );
@@ -193,7 +193,7 @@ export function StlViewer({ src, alt, height, bare = false }: StlViewerProps) {
 
   return (
     <Card className="w-full overflow-hidden">
-      <CardHeader className="bg-muted/50 border-b">
+      <CardHeader className="border-b bg-muted/50">
         <CardTitle className="text-sm">Visualiseur 3D</CardTitle>
       </CardHeader>
       <CardContent className="p-0">{viewport}</CardContent>

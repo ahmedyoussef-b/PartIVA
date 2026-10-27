@@ -151,7 +151,7 @@ export function PartAttachmentList({ partId, initialAttachments }: PartAttachmen
         </div>
 
         {attachments.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Aucun document pour cette pièce.</p>
+          <p className="text-sm text-muted-foreground">Aucun document pour cette pièce.</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -201,7 +201,7 @@ export function PartAttachmentList({ partId, initialAttachments }: PartAttachmen
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-destructive h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 text-destructive"
                           onClick={() => handleDelete(attachment)}
                           aria-label={`Supprimer ${attachment.name}`}
                         >
@@ -240,7 +240,7 @@ export function PartAttachmentList({ partId, initialAttachments }: PartAttachmen
                   <Label htmlFor="att-filetype">Type de fichier</Label>
                   <select
                     id="att-filetype"
-                    className="border-input focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                     value={form.fileType}
                     onChange={(e) =>
                       setForm((f) => ({
@@ -260,7 +260,7 @@ export function PartAttachmentList({ partId, initialAttachments }: PartAttachmen
                   <Label htmlFor="att-kind">Catégorie</Label>
                   <select
                     id="att-kind"
-                    className="border-input focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                     value={form.kind}
                     onChange={(e) =>
                       setForm((f) => ({

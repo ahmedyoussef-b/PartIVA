@@ -26,7 +26,7 @@ export function FacetsPanel({
   onSelectStatus,
 }: FacetsPanelProps) {
   if (loading) {
-    return <p className="text-muted-foreground text-xs">Chargement des facettes…</p>;
+    return <p className="text-xs text-muted-foreground">Chargement des facettes…</p>;
   }
 
   if (!facets || (facets.materials.length === 0 && facets.statuses.length === 0)) {

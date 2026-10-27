@@ -39,7 +39,7 @@ export function FilterBar({
     <div className={cn('flex flex-col gap-3 sm:flex-row', className)}>
       {onSearchChange && (
         <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
             value={searchValue}
@@ -63,7 +63,7 @@ export function FilterBar({
               >
                 {filter.label}
                 {filter.count !== undefined && (
-                  <span className="text-muted-foreground ml-1.5">{filter.count}</span>
+                  <span className="ml-1.5 text-muted-foreground">{filter.count}</span>
                 )}
               </Button>
             );
@@ -76,7 +76,7 @@ export function FilterBar({
           variant="ghost"
           size="sm"
           onClick={onClearFilters}
-          className="text-muted-foreground h-8 text-xs"
+          className="h-8 text-xs text-muted-foreground"
         >
           <X className="mr-1 h-3.5 w-3.5" />
           Effacer

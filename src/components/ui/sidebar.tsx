@@ -34,7 +34,7 @@ export function SidebarProvider({
 
   return (
     <SidebarContext.Provider value={{ open, setOpen, toggleSidebar }}>
-      <div className={cn('bg-background flex min-h-screen w-full', className)}>{children}</div>
+      <div className={cn('flex min-h-screen w-full bg-background', className)}>{children}</div>
     </SidebarContext.Provider>
   );
 }
@@ -51,7 +51,7 @@ export function Sidebar({
     <aside
       ref={ref}
       className={cn(
-        'bg-card/60 text-card-foreground relative z-30 flex shrink-0 flex-col border-r backdrop-blur transition-all duration-300 ease-in-out',
+        'relative z-30 flex shrink-0 flex-col border-r bg-card/60 text-card-foreground backdrop-blur transition-all duration-300 ease-in-out',
         open ? 'w-64' : 'w-16',
         className,
       )}
@@ -132,9 +132,9 @@ export function SidebarMenuButton({
       ref={ref}
       href={href}
       className={cn(
-        'hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
         active
-          ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+          ? 'bg-accent font-semibold text-accent-foreground shadow-xs'
           : 'text-muted-foreground',
         className,
       )}
@@ -167,7 +167,7 @@ export function SidebarTrigger({
       type="button"
       onClick={toggleSidebar}
       className={cn(
-        'text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border transition-colors',
+        'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
         className,
       )}
       {...props}

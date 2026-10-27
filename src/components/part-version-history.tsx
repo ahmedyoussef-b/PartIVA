@@ -221,15 +221,15 @@ export function PartVersionHistory({ partId }: PartVersionHistoryProps) {
           </div>
         )}
 
-        {diffError && <p className="text-destructive text-xs">{diffError}</p>}
+        {diffError && <p className="text-xs text-destructive">{diffError}</p>}
 
         {diff && (
-          <div className="border-input rounded-md border p-3">
+          <div className="rounded-md border border-input p-3">
             <p className="mb-2 text-xs font-semibold">
               Diff v{diff.from} → v{diff.to}
             </p>
             {diff.diffs.length === 0 ? (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 Aucun changement entre ces deux versions.
               </p>
             ) : (
@@ -258,9 +258,9 @@ export function PartVersionHistory({ partId }: PartVersionHistoryProps) {
         )}
 
         {loading ? (
-          <p className="text-muted-foreground text-sm">Chargement…</p>
+          <p className="text-sm text-muted-foreground">Chargement…</p>
         ) : versions.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Aucune version enregistrée pour cette pièce.
           </p>
         ) : (
@@ -283,7 +283,7 @@ export function PartVersionHistory({ partId }: PartVersionHistoryProps) {
                     return (
                       <TableRow
                         key={version.id}
-                        className="hover:bg-muted/30 cursor-pointer"
+                        className="cursor-pointer hover:bg-muted/30"
                         data-selected={selected?.id === version.id}
                         onClick={() =>
                           setSelected((current) => (current?.id === version.id ? null : version))
@@ -342,7 +342,7 @@ export function PartVersionHistory({ partId }: PartVersionHistoryProps) {
 
             {totalPages > 1 && (
               <div className="flex items-center justify-between">
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                   Page {page} / {totalPages}
                 </p>
                 <div className="flex gap-1">
@@ -371,7 +371,7 @@ export function PartVersionHistory({ partId }: PartVersionHistoryProps) {
             )}
 
             {selected && (
-              <div className="border-input rounded-md border p-3">
+              <div className="rounded-md border border-input p-3">
                 <p className="mb-2 text-xs font-semibold">
                   Snapshot v{selected.versionNumber} — {formatDate(selected.createdAt)}
                 </p>

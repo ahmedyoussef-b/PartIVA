@@ -24,7 +24,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       <Button
         variant="ghost"
         size="icon"
-        className={`border-border/40 text-muted-foreground h-9 w-9 rounded-lg border ${className ?? ''}`}
+        className={`h-9 w-9 rounded-lg border border-border/40 text-muted-foreground ${className ?? ''}`}
         aria-label="Changer de thème"
       >
         <span className="h-4 w-4" />
@@ -38,7 +38,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         <Button
           variant="ghost"
           size="icon"
-          className={`border-border/40 bg-background/50 hover:bg-accent hover:text-accent-foreground relative h-9 w-9 rounded-lg border transition-all duration-200 ${className ?? ''}`}
+          className={`relative h-9 w-9 rounded-lg border border-border/40 bg-background/50 transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${className ?? ''}`}
           aria-label="Basculer le thème clair / sombre"
         >
           <Sun className="h-[1.15rem] w-[1.15rem] scale-100 rotate-0 text-amber-500 transition-all dark:scale-0 dark:-rotate-90" />
@@ -55,7 +55,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             <Sun className="h-4 w-4 text-amber-500" />
             Clair
           </span>
-          {theme === 'light' && <Check className="text-primary h-3.5 w-3.5" />}
+          {theme === 'light' && <Check className="h-3.5 w-3.5 text-primary" />}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme('dark')}
@@ -65,17 +65,17 @@ export function ThemeToggle({ className }: { className?: string }) {
             <Moon className="h-4 w-4 text-sky-400" />
             Sombre
           </span>
-          {theme === 'dark' && <Check className="text-primary h-3.5 w-3.5" />}
+          {theme === 'dark' && <Check className="h-3.5 w-3.5 text-primary" />}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme('system')}
           className="flex cursor-pointer items-center justify-between"
         >
           <span className="flex items-center gap-2">
-            <Monitor className="text-muted-foreground h-4 w-4" />
+            <Monitor className="h-4 w-4 text-muted-foreground" />
             Système
           </span>
-          {theme === 'system' && <Check className="text-primary h-3.5 w-3.5" />}
+          {theme === 'system' && <Check className="h-3.5 w-3.5 text-primary" />}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

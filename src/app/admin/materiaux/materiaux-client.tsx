@@ -49,7 +49,7 @@ function ResistanceBar({ label, value }: { label: string; value: string }) {
         <span className="text-muted-foreground">{label}</span>
         <span className="font-semibold">{value}</span>
       </div>
-      <div className="bg-muted h-1 overflow-hidden rounded-full">
+      <div className="h-1 overflow-hidden rounded-full bg-muted">
         <div
           className={`h-full rounded-full transition-all ${colors[idx] ?? 'bg-primary'}`}
           style={{ width: `${pct}%` }}
@@ -78,7 +78,7 @@ export default function AdminMateriauxPageClient({
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
           Plastiques Techniques
         </h1>
-        <p className="text-muted-foreground mt-0.5 text-sm">
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Catalogue complet des matières usinées dans l&apos;atelier — propriétés, applications et
           aide à la sélection.
         </p>
@@ -87,7 +87,7 @@ export default function AdminMateriauxPageClient({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         {/* Material grid */}
         <div className="space-y-3 lg:col-span-2">
-          <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+          <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             {materials.length} matières en stock
           </p>
           {materials.map((mat) => {
@@ -111,10 +111,10 @@ export default function AdminMateriauxPageClient({
                       {mat.code}
                     </div>
                     <div>
-                      <div className="text-foreground text-xs leading-tight font-bold">
+                      <div className="text-xs leading-tight font-bold text-foreground">
                         {mat.name.split(' (')[0]}
                       </div>
-                      <div className="text-muted-foreground text-[10px]">
+                      <div className="text-[10px] text-muted-foreground">
                         {getMaterialCategoryLabel(mat.category)}
                       </div>
                     </div>
@@ -125,15 +125,15 @@ export default function AdminMateriauxPageClient({
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-3 font-mono text-[10px]">
-                  <span className="text-muted-foreground flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <Thermometer className="h-3 w-3" />
                     {mat.maxTemp}°C max
                   </span>
-                  <span className="text-muted-foreground flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <Zap className="h-3 w-3" />
                     {mat.tensileStrength} MPa
                   </span>
-                  <span className="text-muted-foreground flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <Droplets className="h-3 w-3" />
                     μ={mat.frictionCoefficient}
                   </span>
@@ -152,11 +152,11 @@ export default function AdminMateriauxPageClient({
         {/* Detail panel */}
         <div className="lg:col-span-3">
           {!selectedMat ? (
-            <div className="bg-muted/20 flex h-full flex-col items-center justify-center gap-4 rounded-xl border border-dashed py-24 text-center">
-              <div className="bg-muted rounded-full p-4">
-                <Layers className="text-muted-foreground/40 h-8 w-8" />
+            <div className="flex h-full flex-col items-center justify-center gap-4 rounded-xl border border-dashed bg-muted/20 py-24 text-center">
+              <div className="rounded-full bg-muted p-4">
+                <Layers className="h-8 w-8 text-muted-foreground/40" />
               </div>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 Sélectionnez une matière pour afficher ses propriétés détaillées
               </p>
             </div>
@@ -167,7 +167,7 @@ export default function AdminMateriauxPageClient({
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`rounded-lg px-3 py-1 font-mono text-xl font-black ${getColor(selectedMat.code).accent} bg-card border ${getColor(selectedMat.code).border}`}
+                    className={`rounded-lg px-3 py-1 font-mono text-xl font-black ${getColor(selectedMat.code).accent} border bg-card ${getColor(selectedMat.code).border}`}
                   >
                     {selectedMat.code}
                   </span>
@@ -180,7 +180,7 @@ export default function AdminMateriauxPageClient({
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
-                <p className="text-muted-foreground text-xs leading-relaxed">
+                <p className="text-xs leading-relaxed text-muted-foreground">
                   {selectedMat.description}
                 </p>
 
@@ -201,12 +201,12 @@ export default function AdminMateriauxPageClient({
                   ].map((prop) => (
                     <div
                       key={prop.label}
-                      className="border-border/50 bg-background/60 rounded-lg border p-3"
+                      className="rounded-lg border border-border/50 bg-background/60 p-3"
                     >
-                      <div className="text-muted-foreground mb-0.5 text-[9px] font-semibold tracking-wider uppercase">
+                      <div className="mb-0.5 text-[9px] font-semibold tracking-wider text-muted-foreground uppercase">
                         {prop.label}
                       </div>
-                      <div className="text-foreground text-xs font-bold">{prop.value}</div>
+                      <div className="text-xs font-bold text-foreground">{prop.value}</div>
                     </div>
                   ))}
                 </div>
@@ -220,7 +220,7 @@ export default function AdminMateriauxPageClient({
 
                 {/* Advantages */}
                 <div>
-                  <h4 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">
+                  <h4 className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                     Avantages clés
                   </h4>
                   <ul className="space-y-1.5">
@@ -237,7 +237,7 @@ export default function AdminMateriauxPageClient({
 
                 {/* Applications */}
                 <div>
-                  <h4 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">
+                  <h4 className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                     Applications typiques atelier
                   </h4>
                   <div className="flex flex-wrap gap-2">

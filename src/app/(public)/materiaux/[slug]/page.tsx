@@ -27,7 +27,7 @@ export default async function MaterialDetailPage({
       <div>
         <Link
           href="/materiaux"
-          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-xs transition-colors"
+          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Retour au catalogue des plastiques
@@ -35,7 +35,7 @@ export default async function MaterialDetailPage({
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-primary font-mono text-3xl font-black tracking-tight sm:text-4xl">
+              <h1 className="font-mono text-3xl font-black tracking-tight text-primary sm:text-4xl">
                 {material.code}
               </h1>
               <Badge variant="outline" className="text-xs">
@@ -47,7 +47,7 @@ export default async function MaterialDetailPage({
                 </Badge>
               )}
             </div>
-            <p className="text-muted-foreground text-lg">{material.name}</p>
+            <p className="text-lg text-muted-foreground">{material.name}</p>
           </div>
 
           <Link href="/demande">
@@ -66,7 +66,7 @@ export default async function MaterialDetailPage({
             <CardHeader>
               <CardTitle className="text-lg">Description & Comportement Mécanique</CardTitle>
             </CardHeader>
-            <CardContent className="text-muted-foreground space-y-4 text-sm leading-relaxed">
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
               <p>{material.description}</p>
             </CardContent>
           </Card>
@@ -96,9 +96,9 @@ export default async function MaterialDetailPage({
                 {material.commonApplications.map((app, idx) => (
                   <div
                     key={idx}
-                    className="bg-muted/30 flex items-center gap-2.5 rounded-lg border p-3 font-medium"
+                    className="flex items-center gap-2.5 rounded-lg border bg-muted/30 p-3 font-medium"
                   >
-                    <Box className="text-primary h-4 w-4 shrink-0" />
+                    <Box className="h-4 w-4 shrink-0 text-primary" />
                     <span>{app}</span>
                   </div>
                 ))}
@@ -169,6 +169,3 @@ export default async function MaterialDetailPage({
 export async function generateStaticParams() {
   return [{ slug: 'placeholder' }];
 }
-
-
-

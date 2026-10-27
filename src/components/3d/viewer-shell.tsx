@@ -54,7 +54,7 @@ export function ViewerShell({ bridgeRef, height, className, children }: ViewerSh
       ref={containerRef}
       data-testid="viewer-shell"
       className={cn(
-        'border-border relative aspect-video min-h-[320px] w-full overflow-hidden rounded-lg border bg-slate-50',
+        'relative aspect-video min-h-[320px] w-full overflow-hidden rounded-lg border border-border bg-slate-50',
         className,
       )}
       style={height ? { height } : undefined}
@@ -115,9 +115,9 @@ export function ViewerError({
       data-testid={testId}
       className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 bg-slate-50/95 p-4 text-center"
     >
-      <AlertTriangle className="text-destructive h-6 w-6" />
-      <p className="text-destructive text-sm font-medium">Erreur de chargement du modèle 3D</p>
-      <p className="text-muted-foreground max-w-[80%] truncate text-xs">{message}</p>
+      <AlertTriangle className="h-6 w-6 text-destructive" />
+      <p className="text-sm font-medium text-destructive">Erreur de chargement du modèle 3D</p>
+      <p className="max-w-[80%] truncate text-xs text-muted-foreground">{message}</p>
     </div>
   );
 }

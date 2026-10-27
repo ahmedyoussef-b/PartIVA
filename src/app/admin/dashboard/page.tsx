@@ -35,7 +35,7 @@ function AdminDashboardPageContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground text-sm">Chargement...</div>
+        <div className="text-sm text-muted-foreground">Chargement...</div>
       </div>
     );
   }
@@ -50,5 +50,3 @@ export default function AdminDashboardPage() {
     </AuthGuard>
   );
 }
-
-

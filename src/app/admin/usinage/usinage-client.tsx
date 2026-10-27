@@ -50,7 +50,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Atelier Usinage</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Suivi temps réel des pièces plastiques en fabrication.
           </p>
         </div>
@@ -83,7 +83,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-primary font-mono text-xs font-bold">
+                      <span className="font-mono text-xs font-bold text-primary">
                         {job.cloudId ? `#REQ-${job.cloudId}` : job.requestId.slice(0, 8)}
                       </span>
                       <Badge
@@ -92,11 +92,11 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                       >
                         {FR.urgencies[job.urgency]}
                       </Badge>
-                      <span className="text-muted-foreground font-mono text-[10px]">
+                      <span className="font-mono text-[10px] text-muted-foreground">
                         {job.suspectedMaterial}
                       </span>
                     </div>
-                    <p className="text-muted-foreground mt-1 truncate text-xs">
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
                       {job.clientCompany} — {job.partDescription}
                     </p>
                   </div>
@@ -115,7 +115,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                   </div>
                 </div>
 
-                <div className="text-muted-foreground flex items-center gap-3 text-[11px]">
+                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                   <span>{job.machineName}</span>
                   <span>•</span>
                   <span>~{job.estimatedTime} min</span>
@@ -133,7 +133,7 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
 
                 {job.progressPercent > 0 ? (
                   <div className="space-y-1">
-                    <div className="text-muted-foreground flex items-center justify-between font-mono text-[10px]">
+                    <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
                       <span>Avancement</span>
                       <span className="font-bold">{job.progressPercent}%</span>
                     </div>
@@ -170,13 +170,13 @@ export default function AdminUsinageClient({ requests, machines }: AdminUsinageC
                   </Badge>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-muted-foreground flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
                     <span>Type</span>
                     <span className="font-bold">{m.type}</span>
                   </div>
                 </div>
                 {m.location ? (
-                  <p className="text-muted-foreground truncate text-[10px]">{m.location}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">{m.location}</p>
                 ) : null}
               </CardContent>
             </Card>

@@ -57,7 +57,7 @@ export function ScoringWeightsTable() {
         <Badge variant="outline" className="font-mono text-[10px]">
           Lecture seule
         </Badge>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           La modification des poids sera disponible dans une session dédiée.
         </p>
       </div>

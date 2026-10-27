@@ -87,7 +87,7 @@ function AdminAuditPageContent() {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Journal d&apos;Audit
           </h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Traçabilité complète de toutes les actions métier et opérations système.
           </p>
         </div>
@@ -99,7 +99,7 @@ function AdminAuditPageContent() {
 
       {/* Search */}
       <div className="relative w-full sm:w-80">
-        <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+        <Search className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Filtrer les événements…"
           className="pl-9 text-xs"
@@ -118,12 +118,12 @@ function AdminAuditPageContent() {
         <CardContent>
           <div className="relative">
             {/* Timeline line */}
-            <div className="bg-border absolute top-0 bottom-0 left-[18px] w-px" />
+            <div className="absolute top-0 bottom-0 left-[18px] w-px bg-border" />
 
             <div className="space-y-0">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="text-muted-foreground text-sm">Chargement...</div>
+                  <div className="text-sm text-muted-foreground">Chargement...</div>
                 </div>
               ) : (
                 filtered.map((entry, i) => {
@@ -133,7 +133,7 @@ function AdminAuditPageContent() {
                     <div key={entry.id} className="group relative flex gap-4">
                       {/* Dot */}
                       <div
-                        className={`border-background z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${
+                        className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-background ${
                           entry.severity === 'success'
                             ? 'bg-emerald-500/15'
                             : entry.severity === 'warning'
@@ -150,7 +150,7 @@ function AdminAuditPageContent() {
                           <Badge variant="outline" className="font-mono text-[9px]">
                             {cfg.label}
                           </Badge>
-                          <span className="text-muted-foreground text-[10px]">
+                          <span className="text-[10px] text-muted-foreground">
                             {new Date(entry.ts).toLocaleString('fr-FR', {
                               day: '2-digit',
                               month: '2-digit',
@@ -158,12 +158,12 @@ function AdminAuditPageContent() {
                               minute: '2-digit',
                             })}
                           </span>
-                          <span className="text-muted-foreground flex items-center gap-1 text-[10px]">
+                          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                             <User className="h-2.5 w-2.5" />
                             {entry.actor}
                           </span>
                         </div>
-                        <p className="text-foreground text-xs leading-snug">{entry.description}</p>
+                        <p className="text-xs leading-snug text-foreground">{entry.description}</p>
                       </div>
                     </div>
                   );
@@ -184,5 +184,3 @@ export default function AdminAuditPage() {
     </AuthGuard>
   );
 }
-
-

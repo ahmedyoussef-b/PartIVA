@@ -12,7 +12,7 @@ export default async function ReverseEngineeringProjectPage({
   const project = await getReverseEngineeringProjectById(id);
 
   if (!project) {
-    return <div className="text-muted-foreground p-8 text-center">Projet introuvable</div>;
+    return <div className="p-8 text-center text-muted-foreground">Projet introuvable</div>;
   }
 
   return <ReverseEngineeringContent project={project} />;
@@ -21,6 +21,3 @@ export default async function ReverseEngineeringProjectPage({
 export async function generateStaticParams() {
   return [{ id: 'placeholder' }];
 }
-
-
-

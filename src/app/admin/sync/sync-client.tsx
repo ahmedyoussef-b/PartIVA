@@ -77,7 +77,7 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Console Synchronisation Cloud
           </h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Pull unidirectionnel : Neon Postgres (cloud) → SQLite (local atelier)
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
       </div>
 
       {/* Architecture diagram card */}
-      <Card className="border-primary/20 from-primary/5 bg-gradient-to-r to-blue-500/5">
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5">
         <CardContent className="p-6">
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
             {/* Cloud side */}
@@ -106,7 +106,7 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
                 <Cloud className="h-8 w-8 text-blue-500" />
               </div>
               <span className="text-xs font-bold text-blue-500">Neon Postgres</span>
-              <span className="text-muted-foreground text-[10px]">Cloud • File temporaire</span>
+              <span className="text-[10px] text-muted-foreground">Cloud • File temporaire</span>
               <Badge variant="outline" className="border-blue-500/30 text-[9px] text-blue-500">
                 {requests.length} demandes
               </Badge>
@@ -114,13 +114,13 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
 
             {/* Arrow */}
             <div className="flex flex-col items-center gap-1">
-              <div className="text-muted-foreground flex items-center gap-2 font-mono text-xs">
+              <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
                 <span>Unidirectionnel</span>
               </div>
-              <div className="text-primary flex items-center gap-1">
+              <div className="flex items-center gap-1 text-primary">
                 <ArrowDownCircle className="h-6 w-6 sm:rotate-[-90deg]" />
               </div>
-              <span className="text-muted-foreground text-[10px]">Toutes 45 s</span>
+              <span className="text-[10px] text-muted-foreground">Toutes 45 s</span>
             </div>
 
             {/* Local side */}
@@ -129,7 +129,7 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
                 <Database className="h-8 w-8 text-emerald-500" />
               </div>
               <span className="text-xs font-bold text-emerald-500">SQLite Local</span>
-              <span className="text-muted-foreground text-[10px]">
+              <span className="text-[10px] text-muted-foreground">
                 Atelier • Hors-ligne possible
               </span>
               <Badge
@@ -147,7 +147,7 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
         {/* Status card */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase">
+            <CardTitle className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <Activity className="h-3.5 w-3.5" />
               Statut actuel
             </CardTitle>
@@ -173,16 +173,16 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
               )}
             </div>
             {isSyncing && syncProgress > 0 && <Progress value={syncProgress} className="h-1.5" />}
-            <div className="text-muted-foreground space-y-1 text-[10px]">
+            <div className="space-y-1 text-[10px] text-muted-foreground">
               <div className="flex justify-between">
                 <span>Dernière sync</span>
-                <span className="text-foreground font-mono font-semibold">
+                <span className="font-mono font-semibold text-foreground">
                   {lastSyncAt ? formatDate(lastSyncAt) : 'Jamais'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Intervalle auto</span>
-                <span className="text-foreground font-mono font-semibold">45 s</span>
+                <span className="font-mono font-semibold text-foreground">45 s</span>
               </div>
             </div>
           </CardContent>
@@ -191,14 +191,14 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
         {/* Pending card */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase">
+            <CardTitle className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <Clock className="h-3.5 w-3.5" />
               File d&apos;attente
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="text-primary py-2 text-center text-4xl font-black">{pendingCount}</div>
-            <p className="text-muted-foreground text-center text-[10px]">
+            <div className="py-2 text-center text-4xl font-black text-primary">{pendingCount}</div>
+            <p className="text-center text-[10px] text-muted-foreground">
               demande(s) en attente de pull depuis Neon
             </p>
             {pendingCount > 0 && (
@@ -216,21 +216,21 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
         {/* Config card */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase">
+            <CardTitle className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <Server className="h-3.5 w-3.5" />
               Configuration
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-muted-foreground space-y-2 text-[10px]">
+          <CardContent className="space-y-2 text-[10px] text-muted-foreground">
             {[
               { label: 'Endpoint', value: 'neon.tech/partiva-prod' },
               { label: 'Pull strategy', value: 'Unidirectionnel' },
               { label: 'Chiffrement', value: 'TLS 1.3' },
               { label: 'Rétention locale', value: '90 jours' },
             ].map((c) => (
-              <div key={c.label} className="border-border/50 flex justify-between border-b pb-1">
+              <div key={c.label} className="flex justify-between border-b border-border/50 pb-1">
                 <span>{c.label}</span>
-                <span className="text-foreground font-mono font-semibold">{c.value}</span>
+                <span className="font-mono font-semibold text-foreground">{c.value}</span>
               </div>
             ))}
           </CardContent>
@@ -265,12 +265,12 @@ export default function AdminSyncClient({ requests }: AdminSyncClientProps) {
                   {log.type === 'warning' && (
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                   )}
-                  {log.type === 'info' && <Info className="text-muted-foreground h-3.5 w-3.5" />}
+                  {log.type === 'info' && <Info className="h-3.5 w-3.5 text-muted-foreground" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="leading-snug">{log.msg}</p>
                 </div>
-                <span className="text-muted-foreground shrink-0 font-mono text-[10px]">
+                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                   {new Date(log.ts).toLocaleTimeString('fr-FR', {
                     hour: '2-digit',
                     minute: '2-digit',

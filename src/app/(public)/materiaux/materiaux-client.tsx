@@ -39,16 +39,16 @@ export default function MateriauxPageClient({ initialMaterials }: MateriauxPageC
         <h1 className="text-4xl font-extrabold tracking-tight">
           Guide des Plastiques Techniques Usinables
         </h1>
-        <p className="text-muted-foreground text-base leading-relaxed">
+        <p className="text-base leading-relaxed text-muted-foreground">
           Sélectionnez le polymère adapté aux contraintes réelles de fonctionnement de vos machines
           : température, frottement, chocs et agents corrosifs.
         </p>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-card/60 flex flex-col items-center justify-between gap-4 rounded-xl border p-4 backdrop-blur sm:flex-row">
+      <div className="flex flex-col items-center justify-between gap-4 rounded-xl border bg-card/60 p-4 backdrop-blur sm:flex-row">
         <div className="relative w-full sm:w-80">
-          <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+          <Search className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher POM-C, PTFE, PEEK, Delrin..."
             className="pl-9"
@@ -58,7 +58,7 @@ export default function MateriauxPageClient({ initialMaterials }: MateriauxPageC
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-muted-foreground mr-1">Filtre Température :</span>
+          <span className="mr-1 text-muted-foreground">Filtre Température :</span>
           <Button
             size="sm"
             variant={filterTemp === null ? 'default' : 'outline'}
@@ -91,41 +91,41 @@ export default function MateriauxPageClient({ initialMaterials }: MateriauxPageC
         {filtered.map((mat) => (
           <Card
             key={mat.id}
-            className="hover:border-primary/50 flex flex-col justify-between transition-all"
+            className="flex flex-col justify-between transition-all hover:border-primary/50"
           >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <span className="text-primary font-mono text-xl font-bold">{mat.code}</span>
+                <span className="font-mono text-xl font-bold text-primary">{mat.code}</span>
                 <Badge variant={mat.foodGrade ? 'success' : 'secondary'} className="text-[10px]">
                   {mat.foodGrade ? 'FDA Alimentaire' : 'Technique Industriel'}
                 </Badge>
               </div>
               <CardTitle className="mt-1 text-base leading-tight">{mat.name}</CardTitle>
-              <span className="text-muted-foreground font-mono text-xs">
+              <span className="font-mono text-xs text-muted-foreground">
                 {getMaterialCategoryLabel(mat.category)}
               </span>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col justify-between space-y-4 text-sm">
-              <p className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
+              <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                 {mat.description}
               </p>
 
-              <div className="bg-muted/40 grid grid-cols-2 gap-2 rounded-lg border p-3 font-mono text-xs">
+              <div className="grid grid-cols-2 gap-2 rounded-lg border bg-muted/40 p-3 font-mono text-xs">
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">DENSITÉ</span>
-                  <span className="text-foreground font-semibold">{mat.density} g/cm³</span>
+                  <span className="block text-[10px] text-muted-foreground">DENSITÉ</span>
+                  <span className="font-semibold text-foreground">{mat.density} g/cm³</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">T° MAX CONTINUE</span>
-                  <span className="text-foreground font-semibold">{mat.maxTemp} °C</span>
+                  <span className="block text-[10px] text-muted-foreground">T° MAX CONTINUE</span>
+                  <span className="font-semibold text-foreground">{mat.maxTemp} °C</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">FROTTEMENT (µ)</span>
-                  <span className="text-foreground font-semibold">{mat.frictionCoefficient}</span>
+                  <span className="block text-[10px] text-muted-foreground">FROTTEMENT (µ)</span>
+                  <span className="font-semibold text-foreground">{mat.frictionCoefficient}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">TRACTION</span>
-                  <span className="text-foreground font-semibold">{mat.tensileStrength} MPa</span>
+                  <span className="block text-[10px] text-muted-foreground">TRACTION</span>
+                  <span className="font-semibold text-foreground">{mat.tensileStrength} MPa</span>
                 </div>
               </div>
 

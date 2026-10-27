@@ -12,5 +12,3 @@ export default async function AdminUsinagePage() {
 
   return <AdminUsinageClient requests={mappedRequests} machines={machines} />;
 }
-
-
