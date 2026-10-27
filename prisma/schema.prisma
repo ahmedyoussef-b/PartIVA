@@ -13,17 +13,17 @@ model User {
   name          String?
   role          UserRole                    @default(USER)
   image         String?
-  emailVerified Boolean                     @default(false)
   createdAt     DateTime                    @default(now())
   updatedAt     DateTime                    @updatedAt
+  emailVerified Boolean                     @default(false)
   accounts      Account[]
   auditLogs     AuditLog[]
+  fitReports    FitReport[]
+  partVersions  PartVersion[]
+  parts         Part[]                      @relation("PartClient")
   requests      Request[]                   @relation("UserRequests")
   projects      ReverseEngineeringProject[]
   sessions      Session[]
-  parts         Part[]                      @relation("PartClient")
-  partVersions  PartVersion[]
-  fitReports    FitReport[]
 
   @@map("users")
 }
@@ -34,9 +34,9 @@ model Session {
   expiresAt DateTime
   ipAddress String?
   userAgent String?
-  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  token     String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
@@ -53,9 +53,9 @@ model Account {
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
   password              String?
-  scope                 String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  scope                 String?
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
@@ -75,32 +75,32 @@ model Verification {
 }
 
 model Part {
-  id             String                      @id @default(cuid())
-  partNumber     String                      @unique
-  ptvReference   String?                     @unique
-  name           String
-  description    String?
-  status         PartStatus                  @default(DRAFT)
-  categoryId     String?
-  clientId       String?
-  material       String?
-  machineId      String?
+  id                String                      @id @default(cuid())
+  partNumber        String                      @unique
+  name              String
+  description       String?
+  status            PartStatus                  @default(DRAFT)
+  categoryId        String?
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  clientId          String?
+  ptvReference      String?                     @unique
+  searchVector      Unsupported("tsvector")?    @map("search_vector")
+  autoCategory      String?
+  material          String?
+  machineId         String?
   printableModelUrl String?
-  machine        Machine?                    @relation(fields: [machineId], references: [id], onDelete: SetNull)
-  autoCategory   String?
-  searchVector   Unsupported("tsvector")?    @map("search_vector")
-  createdAt      DateTime                    @default(now())
-  updatedAt      DateTime                    @updatedAt
-  attachments    Attachment[]
-  images         PartImage[]
-  specifications PartSpecification[]
-  suppliers      PartSupplier[]
-  category       PartCategory?               @relation(fields: [categoryId], references: [id])
-  client         User?                       @relation("PartClient", fields: [clientId], references: [id], onDelete: SetNull)
-  projects       ReverseEngineeringProject[]
-  versions       PartVersion[]
-  vehicleFitments Fitment[]
-  fitReports     FitReport[]
+  attachments       Attachment[]
+  fitReports        FitReport[]
+  vehicleFitments   Fitment[]
+  images            PartImage[]
+  specifications    PartSpecification[]
+  suppliers         PartSupplier[]
+  versions          PartVersion[]
+  category          PartCategory?               @relation(fields: [categoryId], references: [id])
+  client            User?                       @relation("PartClient", fields: [clientId], references: [id])
+  machine           Machine?                    @relation(fields: [machineId], references: [id])
+  projects          ReverseEngineeringProject[]
 
   @@index([partNumber])
   @@index([status])
@@ -110,18 +110,17 @@ model Part {
 }
 
 model Vehicle {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   make      String
   model     String
   year      Int
   engine    String?
   /// Identifiant KType+ (standard TecDoc/TecAlliance) — aligné sur le format
   /// KType+ utilisé par les sources aftermarket. Unique si renseigné.
-  ktype     String?  @unique
-  vin       String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  ktype     String?   @unique
+  vin       String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   fitments  Fitment[]
 
   @@index([make, model, year])
@@ -135,7 +134,6 @@ model Fitment {
   vehicleId String
   notes     String?
   createdAt DateTime @default(now())
-
   part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
@@ -161,17 +159,17 @@ model PartCategory {
 }
 
 model PartImage {
-  id        String                      @id @default(cuid())
+  id        String                 @id @default(cuid())
   partId    String
   url       String
-  publicId  String?
   altText   String?
+  order     Int                    @default(0)
+  createdAt DateTime               @default(now())
   caption   String?
-  order     Int                         @default(0)
-  isPrimary Boolean                     @default(false)
-  embedding Unsupported("vector(768)")? @map("embedding")
-  createdAt DateTime                    @default(now())
-  part      Part                        @relation(fields: [partId], references: [id], onDelete: Cascade)
+  isPrimary Boolean                @default(false)
+  publicId  String?
+  embedding Unsupported("vector")? @map("embedding")
+  part      Part                   @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@index([partId])
   @@map("part_images")
@@ -183,10 +181,10 @@ model PartSpecification {
   key          String
   value        String
   unit         String?
-  toleranceMin Float?
-  toleranceMax Float?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  toleranceMax Float?
+  toleranceMin Float?
   part         Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@unique([partId, key])
@@ -282,12 +280,12 @@ model Attachment {
   partId    String?
   name      String
   url       String
-  publicId  String?
   fileType  FileType
-  mimeType  String
-  kind      AttachmentKind @default(DOCUMENT)
   sizeBytes Int?
   createdAt DateTime       @default(now())
+  kind      AttachmentKind @default(DOCUMENT)
+  mimeType  String
+  publicId  String?
   part      Part?          @relation(fields: [partId], references: [id])
 
   @@index([partId])
@@ -314,14 +312,14 @@ model AuditLog {
 model PartVersion {
   id            String    @id @default(cuid())
   partId        String
-  part          Part      @relation(fields: [partId], references: [id], onDelete: Cascade)
   versionNumber Int
   snapshot      Json
   auditLogId    String?
-  auditLog      AuditLog? @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
   createdById   String?
-  createdBy     User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt     DateTime  @default(now())
+  auditLog      AuditLog? @relation(fields: [auditLogId], references: [id])
+  createdBy     User?     @relation(fields: [createdById], references: [id])
+  part          Part      @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@unique([partId, versionNumber])
   @@index([partId])
@@ -386,6 +384,88 @@ model Material {
 
   @@index([category])
   @@map("materials")
+}
+
+model SearchCandidate {
+  id                 String   @id @default(cuid())
+  source             String
+  reference          String
+  name               String
+  manufacturer       String?
+  imageUrl           String?
+  cadAvailable       Boolean  @default(false)
+  datasheetAvailable Boolean  @default(false)
+  scores             Json
+  metadata           Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([source])
+  @@index([reference])
+  @@index([createdAt])
+  @@map("search_candidates")
+}
+
+model ScoringWeights {
+  id         String   @id @default(cuid())
+  name       String   @unique @default("default")
+  text       Float    @default(0.2)
+  reference  Float    @default(0.2)
+  specs      Float    @default(0.2)
+  dimensions Float    @default(0.2)
+  photo      Float    @default(0.2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("scoring_weights")
+}
+
+model FitReport {
+  id        String   @id @default(cuid())
+  partId    String
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([partId])
+  @@index([userId])
+  @@map("fit_reports")
+}
+
+model DesktopBuild {
+  id          String   @id @default(cuid())
+  version     String
+  os          String
+  arch        String   @default("x86_64")
+  format      String
+  filename    String
+  sizeBytes   Int      @map("size_bytes")
+  downloadUrl String   @map("download_url")
+  checksum    String?
+  notes       String?
+  publishedAt DateTime @default(now()) @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([version])
+  @@index([publishedAt])
+  @@map("desktop_builds")
+}
+
+model DesktopInstaller {
+  id        String   @id @default(cuid())
+  version   String
+  os        String
+  fileType  String
+  fileUrl   String
+  fileSize  Int
+  createdAt DateTime @default(now())
+  isLatest  Boolean  @default(false)
+
+  @@map("desktop_installers")
 }
 
 enum UserRole {
@@ -468,86 +548,3 @@ enum MaterialCategory {
   FLUOROPOLYMERE_HAUTE_TEMP
   POLYOLEFINE_POLYVALENTE
 }
-
-model SearchCandidate {
-  id                 String   @id @default(cuid())
-  source             String
-  reference          String
-  name               String
-  manufacturer       String?
-  imageUrl           String?
-  cadAvailable       Boolean  @default(false)
-  datasheetAvailable Boolean  @default(false)
-  scores             Json
-  metadata           Json?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@index([source])
-  @@index([reference])
-  @@index([createdAt])
-  @@map("search_candidates")
-}
-
-model ScoringWeights {
-  id         String   @id @default(cuid())
-  name       String   @unique @default("default")
-  text       Float    @default(0.2)
-  reference  Float    @default(0.2)
-  specs      Float    @default(0.2)
-  dimensions Float    @default(0.2)
-  photo      Float    @default(0.2)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@map("scoring_weights")
-}
-
-model FitReport {
-  id        String   @id @default(cuid())
-  partId    String
-  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5
-  comment   String?
-  createdAt DateTime @default(now())
-
-  @@index([partId])
-  @@index([userId])
-  @@map("fit_reports")
-}
-
-model DesktopBuild {
-  id          String   @id @default(cuid())
-  version     String
-  os          String
-  arch        String   @default("x86_64")
-  format      String
-  filename    String
-  sizeBytes   Int      @map("size_bytes")
-  downloadUrl String   @map("download_url")
-  checksum    String?
-  notes       String?
-  publishedAt DateTime @default(now()) @map("published_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@index([version])
-  @@index([publishedAt])
-  @@map("desktop_builds")
-}
-
-model DesktopInstaller {
-  id        String   @id @default(cuid())
-  version   String
-  os        String   // "windows", "macos", "linux"
-  fileType  String   // "exe", "msi", "dmg", "deb"
-  fileUrl   String
-  fileSize  Int
-  isLatest  Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("desktop_installers")
-}
-

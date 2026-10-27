@@ -70,7 +70,7 @@ async function partsWithNonEmptyVersions(playwright: any): Promise<boolean> {
     if (login.status() !== 200) return false;
     const partsResponse = await ctx.get('/api/parts');
     if (partsResponse.status() !== 200) return false;
-    const parts = (await partsResponse.json()) as Array<{ partNumber: string }>;
+    const parts = (await partsResponse.json()) as Array<{ id: string; partNumber: string }>;
     for (const part of parts) {
       if (part.partNumber.startsWith('E2E-')) continue;
       const versionsResponse = await ctx.get(`/api/parts/${part.id}/versions`);
@@ -131,7 +131,7 @@ test('api: GET /api/parts/[id]/versions with auth returns 200 and non-empty list
   // TD-001/TD-STEP-001. Si aucune part ne possède de versions, on saute le test.
   const hasVersions = await partsWithNonEmptyVersions(playwright);
   if (!hasVersions) {
-    test.skip('Aucune part du seed ne possède de versions E2E — résultat attendu.');
+    test.skip(true, 'Aucune part du seed ne possède de versions E2E — résultat attendu.');
     return;
   }
   const response = await request.get(`/api/parts/${partId}/versions`, { headers });

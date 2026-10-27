@@ -55,3 +55,5 @@ Noms canoniques des fonctionnalités traitées, avec les sessions correspondante
 - **Mise à jour :** L'index est mis à jour à chaque nouvelle session.
 - **Sessions antérieures :** Les sessions E0 à E16 ne sont pas listées ici. Leur trace est conservée dans `docs/archive/JOURNAL.md` et `docs/archive/ROADMAP.md` (archivage effectué en E6). Si le coordinateur souhaite un historique indexé E0 → E16, un ordre de rattrapage sera nécessaire.
 - **Noms canoniques :** toute fonctionnalité ajoutée à une session doit être reportée au §3 sous le même nom (charte §6).
+
+- E58-A � E58-E : Consolidation E2E du workspace (14 tests).

@@ -1,6 +1,8 @@
 import { getRequestById } from '@/lib/data/requests';
 import DemandeDetailClient from './demande-detail-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ClientDemandeDetailPage({
   params,
 }: {

@@ -92,3 +92,22 @@ dev.log
 *.tmp
 .vercel
 .env*
+
+# Temporary logs and scripts
+*.log
+*-out.txt
+test-editor.txt
+fix-regex.js
+fix-regex.py
+run-*.ps1
+typecheck*.txt
+typecheck*.log
+build*.log
+build*.txt
+lint.log
+eslint-out.txt
+manual-start.log
+playwright-*.log
+unit-tests.log
+docs/etat/ETAT_COURANT.new
+*.tmp

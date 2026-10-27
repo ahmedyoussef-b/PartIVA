@@ -67,6 +67,12 @@ export default defineConfig({
       dependencies: ['setup', 'ids-setup'],
       retries: 1,
     },
+    {
+      name: 'workspace',
+      testDir: './e2e/workspace',
+      use: { ...devices['Desktop Chrome'] },
+      retries: 1,
+    },
   ],
   webServer: {
     command: 'npm run build && npm run start',
