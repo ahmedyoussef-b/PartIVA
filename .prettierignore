@@ -38,3 +38,8 @@ next-env.d.ts
 # E16-R1 — artefacts WASM vendored (occt-import-js, LGPL-2.1).
 # Code tiers : le reformatting casserait le loader, les licences sont redistribuées telles quelles.
 public/wasm
+# E39 — Sous-projet hérité docs/app (NexaFlow) et artefacts
+docs/
+*.log
+desktop/~
+.static-export-backup/
