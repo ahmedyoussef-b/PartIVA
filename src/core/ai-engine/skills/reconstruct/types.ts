@@ -41,12 +41,13 @@ export const reconstructInputSchema = z.object({
 
 // --- Paramètres CAO générés par LLM / templates ---
 
-export type CadPartType = 'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone';
+export type CadPartType = 'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism';
 
 export type CadParams = {
   type: CadPartType;
   length?: number;
   width?: number;
+  depth?: number;
   height?: number;
   diameter?: number;
   radius?: number;
@@ -55,12 +56,13 @@ export type CadParams = {
   unit?: 'mm' | 'cm';
 };
 
-export const cadPartTypeSchema = z.enum(['cylinder', 'plate', 'disc', 'block', 'sphere', 'torus', 'cone']);
+export const cadPartTypeSchema = z.enum(['cylinder', 'plate', 'disc', 'block', 'sphere', 'torus', 'cone', 'prism']);
 
 export const cadParamsSchema = z.object({
   type: cadPartTypeSchema,
   length: z.number().positive().optional(),
   width: z.number().positive().optional(),
+  depth: z.number().positive().optional(),
   height: z.number().positive().optional(),
   diameter: z.number().positive().optional(),
   radius: z.number().positive().optional(),

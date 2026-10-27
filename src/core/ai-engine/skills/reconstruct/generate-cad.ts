@@ -75,6 +75,12 @@ function buildGeometry(params: CadParams): THREE.BufferGeometry {
       const height = toMm(params.height ?? DEFAULT_HEIGHT);
       return new THREE.ConeGeometry(radius, height, 32);
     }
+    case 'prism': {
+      const width = toMm(params.width ?? 50);
+      const depth = toMm(params.depth ?? 30);
+      const height = toMm(params.height ?? 20);
+      return new THREE.BoxGeometry(width, depth, height);
+    }
     default: {
       const diameter = params.diameter ?? DEFAULT_DIAMETER;
       const height = toMm(params.height ?? DEFAULT_HEIGHT);
