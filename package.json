@@ -15,7 +15,8 @@
     "typecheck": "node scripts/typecheck.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:backfill-embeddings": "tsx scripts/backfill-embeddings.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:unit": "npx vitest run"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.7.7",

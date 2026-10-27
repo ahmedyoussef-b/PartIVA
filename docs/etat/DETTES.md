@@ -141,3 +141,80 @@
 - **Condition de rÃ©solution :** Le bouton "Convertir en PiÃ¨ce (admin)" apparait uniquement si `request.status === 'candidate_found'`. âœ“ (E40-Fix8, 2026-10-24).
 - **RÃ©solu en :** session E40-Fix8 (2026-10-24).
 - **Preuve empirique :** Test Playwright `e2e/admin/request-to-part-conversion.spec.ts` exÃ©cutable.
+
+### D-E52-CAD-GENERATION - Génération CAO réelle
+- **Statut :** Partiellement résolu
+- **Cause :** Les skills `extract-params`, `generate-cad` et `select-candidates` n'étaient pas reliés pour produire un vrai fichier STL.
+- **Périmètre :** src/core/ai-engine/skills/reconstruct/
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+- **Preuves :** `npm run test:unit` EXIT 0 (7 fichiers, 20 tests).
+- **Actions :** ajout de `extractCadParams` (délégué à Groq), `generateCadFromParams` (three + STLExporter), et d'un appel `extractCadParams` -> `generateCadFromParams` dans `select-candidates.ts`.
+- **Limite :** cas de test uniquement ; les échos Groq réels et les formes complexes n'ont pas été validés.
+
+### D-E52-FILE-FORMAT-DETECTION - Détection format au-delà extension
+- **Statut :** Ouverte
+- **Cause :** Détection uniquement par extension
+- **Périmètre :** src/core/ai-engine/skills/reconstruct/select-candidates.ts
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+
+### D-E52-FILE-INTEGRITY - Validation intégrité fichiers 3D
+- **Statut :** Ouverte
+- **Cause :** Aucune validation du contenu
+- **Périmètre :** src/core/ai-engine/skills/reconstruct/
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+
+### D-E48-PGVECTOR-SEARCH - Remplacer scoring heuristique par pgvector
+- **Statut :** Résolue
+- **Cause :** Recherche locale heuristique remplacée par pgvector (avec fallback)
+- **Périmètre :** src/core/ai-engine/skills/search/local-search.ts
+- **Effort estimé :** Élevé
+- **Bloquant :** Non
+- **Condition de résolution :** Recherche vectorielle opérationnelle. ?
+
+### D-E48-WEB-SEARCH-RESILIENCE - Résilience route /api/search
+- **Statut :** Ouverte
+- **Cause :** Dépendance à route existante sans gestion avancée
+- **Périmètre :** src/core/ai-engine/skills/search/web-search.ts
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+
+### D-E57-WORKSPACE-E2E - Pas de tests E2E pour le workspace
+- **Statut :** Ouverte
+- **Cause :** Aucun test E2E du flux workspace
+- **Périmètre :** e2e/workspace/
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+
+### D-E57-CLOUDINARY-UPLOAD - Upload Cloudinary simulé
+- **Statut :** Résolue
+- **Cause :** URLs simulées dans IngestZone (remplacées par upload Cloudinary réel)
+- **Périmètre :** src/components/workspace/IngestZone.tsx
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+- **Condition de résolution :** Upload réel via Cloudinary. ?
+
+### D-E57-LLM-ENRICHMENT - Enrichissement LLM basique
+- **Statut :** Ouverte
+- **Cause :** Enrichissement LLM minimal en mode deep
+- **Périmètre :** src/lib/ai/
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+
+### D-E57-CADVIEWER-INTEGRATION - Visualisation 3D limitée à ModelViewer
+- **Statut :** Résolue
+- **Cause :** CadViewer non intégré (désormais intégré dans ViewerZone)
+- **Périmètre :** src/components/workspace/ViewerZone.tsx
+- **Effort estimé :** Moyen
+- **Bloquant :** Non
+- **Condition de résolution :** CadViewer pour STEP/IGES. ?
+
+### D-E58-DB-BUILD-BLOCKER - DB Neon injoignable bloque le build
+- **Statut :** Résolue
+- **Cause :** P1001 Can't reach database server (résolu, DB accessible)
+- **Périmètre :** Prisma / Neon
+- **Effort estimé :** Moyen
+- **Bloquant :** Non (résolu)
+- **Condition de résolution :** DB joignable et build EXIT 0 ?
