@@ -2,6 +2,8 @@
 'use client';
 
 import { useRef } from 'react';
+import { X } from 'lucide-react';
+import { FileUploadZone } from './FileUploadZone';
 
 interface IngestZoneProps {
   photos: string[];
@@ -39,7 +41,6 @@ export function IngestZone({
   loading,
 }: IngestZoneProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const cadInputRef = useRef<HTMLInputElement>(null);
 
   async function simulateUpload(files: FileList | null, type: 'photo' | 'cad') {
     if (!files) return;
@@ -74,36 +75,52 @@ export function IngestZone({
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
+    <div className="flex h-full flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm">
       <h2 className="text-lg font-semibold">Collecte</h2>
-      <div className="space-y-2">
-        <input
-          ref={photoInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => simulateUpload(e.target.files, 'photo')}
-          className="w-full text-sm"
-        />
-        <input
-          ref={cadInputRef}
-          type="file"
-          multiple
-          accept=".stl,.step,.stp,.iges,.igs,.dxf,.dwg,.obj,.3mf"
-          onChange={(e) => simulateUpload(e.target.files, 'cad')}
-          className="w-full text-sm"
-        />
-        <div className="text-xs text-muted-foreground">
-          Photos: {photos.length} | CAO: {cadFiles.length}
-        </div>
-        <div className="flex h-24 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Déposer photos ou fichiers CAO (STEP/STL)
-        </div>
+      <input
+        ref={photoInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        onChange={(e) => simulateUpload(e.target.files, 'photo')}
+        className="hidden"
+      />
+      <FileUploadZone
+        accept=".stl,.step,.stp,.iges,.igs,.dxf,.dwg,.obj,.3mf"
+        onFiles={(files) => simulateUpload(files, 'cad')}
+        label="Déposez vos fichiers CAO ici ou cliquez pour parcourir"
+        hint="STL, STEP, IGES, OBJ, 3MF"
+      />
+      <button
+        type="button"
+        onClick={() => photoInputRef.current?.click()}
+        className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+      >
+        Ajouter des photos
+      </button>
+      <div className="text-xs text-gray-500">
+        Photos: {photos.length} | CAO: {cadFiles.length}
       </div>
+      {cadFiles.length > 0 && (
+        <ul className="space-y-1 text-xs text-gray-600">
+          {cadFiles.map((url, i) => (
+            <li key={i} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1">
+              <span className="truncate">{url.split('/').pop()}</span>
+              <button
+                type="button"
+                onClick={() => onCadFilesChange(cadFiles.filter((_, idx) => idx !== i))}
+                className="text-gray-400 hover:text-red-500"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <input
-            placeholder="Longueur"
+            placeholder="Longueur (mm)"
             value={dimensions.length ?? ''}
             onChange={(e) =>
               onDimensionsChange({
@@ -111,11 +128,11 @@ export function IngestZone({
                 length: e.target.value ? Number(e.target.value) : undefined,
               })
             }
-            className="rounded border px-2 py-1 text-sm"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
             type="number"
           />
           <input
-            placeholder="Largeur"
+            placeholder="Largeur (mm)"
             value={dimensions.width ?? ''}
             onChange={(e) =>
               onDimensionsChange({
@@ -123,11 +140,11 @@ export function IngestZone({
                 width: e.target.value ? Number(e.target.value) : undefined,
               })
             }
-            className="rounded border px-2 py-1 text-sm"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
             type="number"
           />
           <input
-            placeholder="Hauteur"
+            placeholder="Hauteur (mm)"
             value={dimensions.height ?? ''}
             onChange={(e) =>
               onDimensionsChange({
@@ -135,11 +152,11 @@ export function IngestZone({
                 height: e.target.value ? Number(e.target.value) : undefined,
               })
             }
-            className="rounded border px-2 py-1 text-sm"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
             type="number"
           />
           <input
-            placeholder="Diamètre"
+            placeholder="Diamètre (mm)"
             value={dimensions.diameter ?? ''}
             onChange={(e) =>
               onDimensionsChange({
@@ -147,7 +164,7 @@ export function IngestZone({
                 diameter: e.target.value ? Number(e.target.value) : undefined,
               })
             }
-            className="rounded border px-2 py-1 text-sm"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
             type="number"
           />
         </div>
@@ -156,22 +173,22 @@ export function IngestZone({
           onChange={(e) =>
             onDimensionsChange({ ...dimensions, unit: e.target.value as 'mm' | 'cm' })
           }
-          className="w-full rounded border px-2 py-1 text-sm"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
         >
           <option value="mm">mm</option>
           <option value="cm">cm</option>
         </select>
         <textarea
-          placeholder="Description"
+          placeholder="Description de la pièce..."
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          className="w-full rounded border px-2 py-1 text-sm"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
           rows={3}
         />
         <select
           value={mode}
           onChange={(e) => onModeChange(e.target.value as 'quick' | 'deep')}
-          className="w-full rounded border px-2 py-1 text-sm"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
         >
           <option value="quick">Rapide (quick)</option>
           <option value="deep">Reconstruction (deep)</option>
@@ -179,7 +196,7 @@ export function IngestZone({
         <button
           onClick={onSubmit}
           disabled={loading}
-          className="w-full rounded bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
         >
           {loading ? 'Analyse en cours...' : 'Analyser'}
         </button>
