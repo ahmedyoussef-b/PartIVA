@@ -42,11 +42,12 @@ export function ViewerZone({ fileUrl, uploadedFileUrl }: ViewerZoneProps) {
       <button
         type="button"
         onClick={() => setMeasuring((v) => !v)}
-        className={`absolute top-2 right-2 z-10 rounded-md border px-2 py-1 text-xs ${
+        className={`absolute top-2 right-2 z-50 flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
           measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
         }`}
       >
         <Ruler className="h-4 w-4" />
+        Mesurer
       </button>
       {isCadFile ? (
         <CadViewer src={displayUrl} bare height={400} measureEnabled={measuring} />
