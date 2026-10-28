@@ -123,7 +123,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   }
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-white p-4 shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
       <div className="mb-2 flex items-center gap-2">
         <select
@@ -138,7 +138,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
           ))}
         </select>
       </div>
-      <div className="flex-1 overflow-auto rounded-lg border bg-gray-50 p-3 text-sm">
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-gray-400">
             Posez une question ou déposez un fichier pour commencer

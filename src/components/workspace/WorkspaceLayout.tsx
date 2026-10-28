@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 
 export function WorkspaceLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gray-50">
       <header className="border-b bg-white px-6 py-4 shadow-sm">
         <h1 className="text-xl font-bold text-gray-900">Workspace d&apos;Ingénierie Assistée</h1>
         <p className="text-sm text-gray-500">
@@ -12,7 +12,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
           candidats 3D.
         </p>
       </header>
-      <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-3">{children}</div>
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-3">{children}</div>
     </div>
   );
 }

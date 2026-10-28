@@ -80,7 +80,7 @@ export function WorkspaceClient() {
 
   return (
     <WorkspaceLayout>
-      <div className="overflow-auto rounded-lg border bg-background">
+      <div className="min-h-0 rounded-lg border bg-background">
         <IngestZone
           photos={photos}
           cadFiles={cadFiles}
@@ -97,14 +97,14 @@ export function WorkspaceClient() {
           loading={status === 'loading'}
         />
       </div>
-      <div className="overflow-auto rounded-lg border bg-background">
+      <div className="min-h-0 rounded-lg border bg-background">
         <ViewerZone
           fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
           uploadedFileUrl={cadFiles[0] ?? null}
           onDimensionsExtracted={handleDimensionsExtracted}
         />
       </div>
-      <div className="overflow-auto rounded-lg border bg-background">
+      <div className="min-h-0 rounded-lg border bg-background">
         <AssistantZone result={result} status={status} error={error} />
       </div>
     </WorkspaceLayout>

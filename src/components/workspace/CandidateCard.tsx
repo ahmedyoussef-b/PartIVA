@@ -40,7 +40,7 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
     }
   }
 
-  const canConvert = isAdmin && Boolean(candidate.fileUrl);
+  const canConvert = isAdmin;
 
   return (
     <Card className="mb-2">

@@ -84,3 +84,11 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run build` EXIT 0.
 - Aucun commit.
 
+## E74-A-FIX — Correction bouton + layout workspace
+- Bouton : condition d'affichage changée de `isAdmin && Boolean(candidate.fileUrl)` à `isAdmin` (`CandidateCard.tsx:43`) car `fileUrl` est optionnel sur `SearchCandidate` et masquait le bouton.
+- Layout `WorkspaceLayout.tsx` : conteneur racine `flex flex-col`, grille `flex-1 min-h-0` pour remplir l'espace sous le header et autoriser la réduction des items.
+- Layout `WorkspaceClient.tsx` : 3 enveloppes de zone passent de `overflow-auto` à `min-h-0` (scroll géré en interne par chaque zone).
+- Layout `AssistantZone.tsx` : conteneur ajoute `overflow-hidden` ; zone de messages passe de `overflow-auto` à `flex-1 min-h-0 overflow-y-auto` (scroll vertical interne uniquement, plus de scroll horizontal parasite ni de vide de colonne).
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+- Aucun commit.
+
