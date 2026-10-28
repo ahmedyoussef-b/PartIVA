@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 'use client';
 
+import { useState } from 'react';
 import type { EngineResult } from '@/core/ai-engine/engine';
+import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
@@ -13,6 +15,26 @@ interface AssistantZoneProps {
 
 export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   const messages = [];
+  const [chatMessages, setChatMessages] = useState<
+    { role: 'user' | 'assistant'; content: string }[]
+  >([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  async function handleSend(message: string) {
+    setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
+    setIsStreaming(true);
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, context: result }),
+      });
+      const data = await res.json();
+      setChatMessages((prev) => [...prev, { role: 'assistant', content: data.reply ?? '' }]);
+    } finally {
+      setIsStreaming(false);
+    }
+  }
 
   if (status === 'loading') {
     messages.push({
@@ -116,6 +138,12 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
             ))}
           </div>
         ) : null}
+        {chatMessages.map((m, i) => (
+          <div key={i} className="mb-2 whitespace-pre-wrap">
+            {m.content}
+          </div>
+        ))}
+        <ChatInput onSend={handleSend} isStreaming={isStreaming} />
       </div>
     </div>
   );

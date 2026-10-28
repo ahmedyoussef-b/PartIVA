@@ -68,3 +68,7 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 ## E71-A
 - Dimensions STEP extraites et pré-remplies.
 
+
+## E72-A
+- Chat interactif avec contexte.
+
