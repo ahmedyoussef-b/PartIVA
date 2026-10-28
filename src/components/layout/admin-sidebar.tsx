@@ -29,6 +29,7 @@ import {
   LogOut,
   ExternalLink,
   Search,
+  Sparkles,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -37,6 +38,7 @@ const ADMIN_NAV = [
   { href: '/admin/recherche', label: 'Recherche', icon: Search },
   { href: '/admin/demandes', label: 'File Demandes', icon: Inbox, badge: '4' },
   { href: '/admin/reverse-engineering', label: 'Reverse CAO', icon: Wrench },
+  { href: '/workspace', label: 'Workspace Ingénierie', icon: Sparkles },
   { href: '/admin/pieces', label: 'Catalogue Pièces BDD', icon: Boxes },
   { href: '/admin/materiaux', label: 'Plastiques Techniques', icon: Layers },
   { href: '/admin/machines', label: 'Parc Machines CNC', icon: Cpu },
