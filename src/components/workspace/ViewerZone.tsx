@@ -8,6 +8,7 @@ import { ModelViewer } from '@/components/3d/model-viewer';
 interface ViewerZoneProps {
   fileUrl?: string | null;
   uploadedFileUrl?: string | null;
+  onDimensionsExtracted?: (dimensions: { length: number; width: number; height: number; diameter: number }) => void;
 }
 
 function isCad(url: string) {
@@ -15,7 +16,7 @@ function isCad(url: string) {
   return ['.step', '.stp', '.iges', '.igs'].includes(ext);
 }
 
-export function ViewerZone({ fileUrl, uploadedFileUrl }: ViewerZoneProps) {
+export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: ViewerZoneProps) {
   const displayUrl = fileUrl || uploadedFileUrl || null;
   const [measuring, setMeasuring] = useState(false);
   if (!displayUrl) {
@@ -50,9 +51,9 @@ export function ViewerZone({ fileUrl, uploadedFileUrl }: ViewerZoneProps) {
         Mesurer
       </button>
       {isCadFile ? (
-        <CadViewer src={displayUrl} bare height={400} measureEnabled={measuring} />
+        <CadViewer src={displayUrl} bare height={400} measureEnabled={measuring} onDimensionsExtracted={onDimensionsExtracted} />
       ) : (
-        <ModelViewer src={displayUrl} bare height={400} measureEnabled={measuring} />
+        <ModelViewer src={displayUrl} bare height={400} measureEnabled={measuring} onDimensionsExtracted={onDimensionsExtracted} />
       )}
     </div>
   );

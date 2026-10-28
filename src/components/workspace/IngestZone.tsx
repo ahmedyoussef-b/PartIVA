@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 
@@ -18,6 +18,12 @@ interface IngestZoneProps {
     unit: 'mm' | 'cm';
   };
   onDimensionsChange: (dims: any) => void;
+  extractedDimensions?: {
+    length?: number;
+    width?: number;
+    height?: number;
+    diameter?: number;
+  } | null;
   description: string;
   onDescriptionChange: (desc: string) => void;
   mode: 'quick' | 'deep';
@@ -33,6 +39,7 @@ export function IngestZone({
   onCadFilesChange,
   dimensions,
   onDimensionsChange,
+  extractedDimensions,
   description,
   onDescriptionChange,
   mode,
@@ -41,6 +48,17 @@ export function IngestZone({
   loading,
 }: IngestZoneProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!extractedDimensions) return;
+    onDimensionsChange({
+      ...dimensions,
+      length: dimensions.length ?? extractedDimensions.length,
+      width: dimensions.width ?? extractedDimensions.width,
+      height: dimensions.height ?? extractedDimensions.height,
+      diameter: dimensions.diameter ?? extractedDimensions.diameter,
+    });
+  }, [extractedDimensions]);
 
   async function simulateUpload(files: FileList | null, type: 'photo' | 'cad') {
     if (!files) return;

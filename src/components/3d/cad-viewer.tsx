@@ -30,6 +30,8 @@ interface CadViewerProps {
   bare?: boolean;
   /** Active l'outil de mesure */
   measureEnabled?: boolean;
+  /** Callback dimensions extraites */
+  onDimensionsExtracted?: (dimensions: { length: number; width: number; height: number; diameter: number }) => void;
 }
 
 interface OcctMesh {
@@ -88,6 +90,7 @@ interface CadLoadState {
   src: string;
   geometry: THREE.BufferGeometry | null;
   error: string | null;
+  dimensions: { length: number; width: number; height: number; diameter: number } | null;
 }
 
 function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
@@ -95,6 +98,7 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
     src: '',
     geometry: null,
     error: null,
+    dimensions: null,
   });
 
   React.useEffect(() => {
@@ -124,7 +128,7 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
           if (!cancelled) {
             cancelled = true;
             worker?.terminate();
-            setState({ src, geometry: null, error: "Délai d'attente dépassé (parsing trop long)" });
+            setState({ src, geometry: null, error: "Délai d'attente dépassé (parsing trop long)", dimensions: null });
           }
         }, timeoutMs);
 
@@ -134,35 +138,62 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
           const result = e.data;
           const mesh = result.meshes?.[0];
           if (!result.success || !mesh) {
-            setState({
-              src,
-              geometry: null,
-              error: 'Échec du parsing (voir console pour le détail OCCT)',
-            });
+setState({
+            src,
+            geometry: null,
+            error: 'Échec du parsing (voir console pour le détail OCCT)',
+            dimensions: null,
+          });
             return;
           }
 
-          const geom = new THREE.BufferGeometry();
-          geom.setAttribute(
-            'position',
-            new THREE.Float32BufferAttribute(mesh.attributes.position.array, 3),
-          );
-          if (mesh.attributes.normal) {
-            geom.setAttribute(
-              'normal',
-              new THREE.Float32BufferAttribute(mesh.attributes.normal.array, 3),
-            );
-          }
-          geom.setIndex(mesh.index.array);
-          geom.computeBoundingSphere();
-          normalizeGeometry(geom);
-          setState({ src, geometry: geom, error: null });
+           const geom = new THREE.BufferGeometry();
+           geom.setAttribute(
+             'position',
+             new THREE.Float32BufferAttribute(mesh.attributes.position.array, 3),
+           );
+           if (mesh.attributes.normal) {
+             geom.setAttribute(
+               'normal',
+               new THREE.Float32BufferAttribute(mesh.attributes.normal.array, 3),
+             );
+           }
+           geom.setIndex(mesh.index.array);
+
+           const positions = mesh.attributes.position.array;
+           let minX = Infinity,
+             maxX = -Infinity,
+             minY = Infinity,
+             maxY = -Infinity,
+             minZ = Infinity,
+             maxZ = -Infinity;
+           for (let i = 0; i < positions.length; i += 3) {
+             const x = positions[i] ?? 0;
+             const y = positions[i + 1] ?? 0;
+             const z = positions[i + 2] ?? 0;
+             minX = Math.min(minX, x);
+             maxX = Math.max(maxX, x);
+             minY = Math.min(minY, y);
+             maxY = Math.max(maxY, y);
+             minZ = Math.min(minZ, z);
+             maxZ = Math.max(maxZ, z);
+           }
+           const dims = {
+             length: maxX - minX,
+             width: maxY - minY,
+             height: maxZ - minZ,
+             diameter: Math.max(maxX - minX, maxY - minY, maxZ - minZ),
+           };
+
+           geom.computeBoundingSphere();
+           normalizeGeometry(geom);
+           setState({ src, geometry: geom, error: null, dimensions: dims });
         };
 
         worker.onerror = (e) => {
           if (timeoutId) clearTimeout(timeoutId);
           if (!cancelled) {
-            setState({ src, geometry: null, error: `Erreur worker : ${e.message}` });
+            setState({ src, geometry: null, error: `Erreur worker : ${e.message}`, dimensions: null });
           }
         };
 
@@ -172,7 +203,7 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
         worker.postMessage({ format, buffer: new Uint8Array(buffer), params: null }, [buffer]);
       } catch (e) {
         if (timeoutId) clearTimeout(timeoutId);
-        if (!cancelled) setState({ src, geometry: null, error: String(e) });
+        if (!cancelled) setState({ src, geometry: null, error: String(e), dimensions: null });
       }
     }
 
@@ -185,11 +216,12 @@ function useStepGeometry(src: string, timeoutMs: number, maxSizeMb: number) {
     };
   }, [src, timeoutMs, maxSizeMb]);
 
-  return {
-    geometry: state.src === src ? state.geometry : null,
-    error: state.src === src ? state.error : null,
-    loading: state.src !== src,
-  };
+    return {
+      geometry: state.src === src ? state.geometry : null,
+      error: state.src === src ? state.error : null,
+      loading: state.src !== src,
+      dimensions: state.src === src ? state.dimensions : null,
+    };
 }
 
 export function CadViewer({
@@ -199,9 +231,17 @@ export function CadViewer({
   maxSizeMb = 50,
   bare = false,
   measureEnabled = false,
+  onDimensionsExtracted,
 }: CadViewerProps) {
   const bridgeRef = React.useRef<ViewerBridge>({});
-  const { geometry, error, loading } = useStepGeometry(src, timeoutMs, maxSizeMb);
+  const { geometry, error, loading, dimensions } = useStepGeometry(src, timeoutMs, maxSizeMb);
+  const cbRef = React.useRef(onDimensionsExtracted);
+  React.useEffect(() => {
+    cbRef.current = onDimensionsExtracted;
+  }, [onDimensionsExtracted]);
+  React.useEffect(() => {
+    if (dimensions && cbRef.current) cbRef.current(dimensions);
+  }, [dimensions]);
 
   const viewport = (
     <ViewerShell

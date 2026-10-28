@@ -16,6 +16,8 @@ interface ModelViewerProps {
   bare?: boolean;
   /** Active l'outil de mesure */
   measureEnabled?: boolean;
+  /** Callback dimensions extraites */
+  onDimensionsExtracted?: (dimensions: { length: number; width: number; height: number; diameter: number }) => void;
 }
 
 /* Extensions CAO solides/surfaces → parsed par occt-import-js (Web Worker) */
@@ -52,6 +54,7 @@ export function ModelViewer({
   height,
   bare = false,
   measureEnabled = false,
+  onDimensionsExtracted,
 }: ModelViewerProps) {
   const ext = extensionOf(src);
   const isCad = CAD_EXTENSIONS.includes(ext);
@@ -78,12 +81,13 @@ export function ModelViewer({
 
   if (isCad) {
     return (
-      <CadViewer
-        src={src}
-        height={heightToPx(height)}
-        bare={bare}
-        measureEnabled={measureEnabled}
-      />
+        <CadViewer
+          src={src}
+          height={heightToPx(height)}
+          bare={bare}
+          measureEnabled={measureEnabled}
+          onDimensionsExtracted={onDimensionsExtracted}
+        />
     );
   }
 

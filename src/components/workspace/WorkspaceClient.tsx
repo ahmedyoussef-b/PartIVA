@@ -19,10 +19,25 @@ export function WorkspaceClient() {
   }>({ unit: 'mm' });
   const [description, setDescription] = useState('');
   const [mode, setMode] = useState<'quick' | 'deep'>('quick');
+  const [extractedDimensions, setExtractedDimensions] = useState<{
+    length?: number;
+    width?: number;
+    height?: number;
+    diameter?: number;
+  } | null>(null);
   const [result, setResult] = useState<EngineResult | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  function handleDimensionsExtracted(dims: { length: number; width: number; height: number; diameter: number }) {
+    setExtractedDimensions(dims);
+    setDimensions((prev) => {
+      if (prev.length === undefined && prev.width === undefined && prev.height === undefined && prev.diameter === undefined) {
+        return { ...prev, ...dims };
+      }
+      return prev;
+    });
+  }
   async function handleSubmit() {
     setStatus('loading');
     setError(null);
@@ -63,6 +78,7 @@ export function WorkspaceClient() {
           onCadFilesChange={setCadFiles}
           dimensions={dimensions}
           onDimensionsChange={setDimensions}
+          extractedDimensions={extractedDimensions}
           description={description}
           onDescriptionChange={setDescription}
           mode={mode}
@@ -75,6 +91,7 @@ export function WorkspaceClient() {
         <ViewerZone
           fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
           uploadedFileUrl={cadFiles[0] ?? null}
+          onDimensionsExtracted={handleDimensionsExtracted}
         />
       </div>
       <div className="overflow-auto rounded-lg border bg-background">
