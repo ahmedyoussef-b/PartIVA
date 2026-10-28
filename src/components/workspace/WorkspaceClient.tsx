@@ -29,10 +29,20 @@ export function WorkspaceClient() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  function handleDimensionsExtracted(dims: { length: number; width: number; height: number; diameter: number }) {
+  function handleDimensionsExtracted(dims: {
+    length: number;
+    width: number;
+    height: number;
+    diameter: number;
+  }) {
     setExtractedDimensions(dims);
     setDimensions((prev) => {
-      if (prev.length === undefined && prev.width === undefined && prev.height === undefined && prev.diameter === undefined) {
+      if (
+        prev.length === undefined &&
+        prev.width === undefined &&
+        prev.height === undefined &&
+        prev.diameter === undefined
+      ) {
         return { ...prev, ...dims };
       }
       return prev;

@@ -17,7 +17,12 @@ interface ModelViewerProps {
   /** Active l'outil de mesure */
   measureEnabled?: boolean;
   /** Callback dimensions extraites */
-  onDimensionsExtracted?: (dimensions: { length: number; width: number; height: number; diameter: number }) => void;
+  onDimensionsExtracted?: (dimensions: {
+    length: number;
+    width: number;
+    height: number;
+    diameter: number;
+  }) => void;
 }
 
 /* Extensions CAO solides/surfaces → parsed par occt-import-js (Web Worker) */
@@ -81,13 +86,13 @@ export function ModelViewer({
 
   if (isCad) {
     return (
-        <CadViewer
-          src={src}
-          height={heightToPx(height)}
-          bare={bare}
-          measureEnabled={measureEnabled}
-          onDimensionsExtracted={onDimensionsExtracted}
-        />
+      <CadViewer
+        src={src}
+        height={heightToPx(height)}
+        bare={bare}
+        measureEnabled={measureEnabled}
+        onDimensionsExtracted={onDimensionsExtracted}
+      />
     );
   }
 
