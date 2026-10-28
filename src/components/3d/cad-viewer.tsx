@@ -5,6 +5,7 @@ import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MeasureTool } from '@/components/workspace/MeasureTool';
 import {
   CAMERA_HOME,
   ViewerBridge,
@@ -27,6 +28,8 @@ interface CadViewerProps {
   maxSizeMb?: number;
   /** Rend le viewer sans la Card (intégration dans une Card existante) */
   bare?: boolean;
+  /** Active l'outil de mesure */
+  measureEnabled?: boolean;
 }
 
 interface OcctMesh {
@@ -195,6 +198,7 @@ export function CadViewer({
   timeoutMs = 120_000,
   maxSizeMb = 50,
   bare = false,
+  measureEnabled = false,
 }: CadViewerProps) {
   const bridgeRef = React.useRef<ViewerBridge>({});
   const { geometry, error, loading } = useStepGeometry(src, timeoutMs, maxSizeMb);
@@ -244,6 +248,7 @@ export function CadViewer({
               />
             </mesh>
             <ViewerSceneBridge bridgeRef={bridgeRef} />
+            {measureEnabled && <MeasureTool enabled={measureEnabled} />}
             <OrbitControls enableZoom enablePan enableRotate makeDefault target={[0, 0, 0]} />
           </Canvas>
         </div>

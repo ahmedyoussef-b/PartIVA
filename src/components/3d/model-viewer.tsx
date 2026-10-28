@@ -14,6 +14,8 @@ interface ModelViewerProps {
   height?: string | number;
   /** Rend le viewer sans la Card (intégration dans une Card existante) */
   bare?: boolean;
+  /** Active l'outil de mesure */
+  measureEnabled?: boolean;
 }
 
 /* Extensions CAO solides/surfaces → parsed par occt-import-js (Web Worker) */
@@ -44,7 +46,13 @@ function heightToCss(height: string | number | undefined): string | undefined {
  * - `.stl` / `.gltf` / `.glb`                   → `StlViewer` (Three.js)
  * - autre / inconnu                              → carte de fallback explicite
  */
-export function ModelViewer({ src, alt, height, bare = false }: ModelViewerProps) {
+export function ModelViewer({
+  src,
+  alt,
+  height,
+  bare = false,
+  measureEnabled = false,
+}: ModelViewerProps) {
   const ext = extensionOf(src);
   const isCad = CAD_EXTENSIONS.includes(ext);
   const isMesh = MESH_EXTENSIONS.includes(ext);
@@ -69,7 +77,14 @@ export function ModelViewer({ src, alt, height, bare = false }: ModelViewerProps
   }
 
   if (isCad) {
-    return <CadViewer src={src} height={heightToPx(height)} bare={bare} />;
+    return (
+      <CadViewer
+        src={src}
+        height={heightToPx(height)}
+        bare={bare}
+        measureEnabled={measureEnabled}
+      />
+    );
   }
 
   return <StlViewer src={src} alt={alt} height={heightToCss(height)} bare={bare} />;
