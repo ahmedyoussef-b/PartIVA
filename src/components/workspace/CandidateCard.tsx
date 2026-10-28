@@ -76,7 +76,7 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
             type="button"
             onClick={handleConvert}
             disabled={isConverting}
-            className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             title={isAdmin ? 'Convertir en pièce' : 'Réservé aux administrateurs'}
           >
             {isConverting ? '…' : <Plus className="h-3 w-3" />}
