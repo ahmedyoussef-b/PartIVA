@@ -92,3 +92,10 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
+## E70-B — Mesure d'Angle et de Diamètre
+- `MeasureTool.tsx` : type `MeasureMode` (`distance` \| `angle` \| `diameter`) exporté, prop `mode` ajoutée. Mode angle (3 points, `Vector3.angleTo`, label °), mode diamètre (2 points, cercle + label Ø), mode distance conservé. Points réinitialisés au changement de mode.
+- `ViewerZone.tsx` : état `measureMode`, sélecteur `<select>` Distance/Angle/Diamètre dans la surcouche "Mesurer".
+- `cad-viewer.tsx` et `model-viewer.tsx` : prop `measureMode` propagée à `MeasureTool`.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+- Aucun commit.
+

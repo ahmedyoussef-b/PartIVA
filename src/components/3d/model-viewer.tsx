@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { CadViewer } from './cad-viewer';
 import { StlViewer } from './stl-viewer';
+import type { MeasureMode } from '@/components/workspace/MeasureTool';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ModelViewerProps {
@@ -16,6 +17,8 @@ interface ModelViewerProps {
   bare?: boolean;
   /** Active l'outil de mesure */
   measureEnabled?: boolean;
+  /** Mode de mesure : distance, angle ou diamètre */
+  measureMode?: MeasureMode;
   /** Callback dimensions extraites */
   onDimensionsExtracted?: (dimensions: {
     length: number;
@@ -59,6 +62,7 @@ export function ModelViewer({
   height,
   bare = false,
   measureEnabled = false,
+  measureMode = 'distance',
   onDimensionsExtracted,
 }: ModelViewerProps) {
   const ext = extensionOf(src);
@@ -91,6 +95,7 @@ export function ModelViewer({
         height={heightToPx(height)}
         bare={bare}
         measureEnabled={measureEnabled}
+        measureMode={measureMode}
         onDimensionsExtracted={onDimensionsExtracted}
       />
     );

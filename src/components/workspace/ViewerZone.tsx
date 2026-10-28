@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Ruler } from 'lucide-react';
 import { CadViewer } from '@/components/3d/cad-viewer';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import type { MeasureMode } from '@/components/workspace/MeasureTool';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -21,9 +22,17 @@ function isCad(url: string) {
   return ['.step', '.stp', '.iges', '.igs'].includes(ext);
 }
 
+const MODE_LABELS: Record<MeasureMode, string> = {
+  distance: 'Distance',
+  angle: 'Angle',
+  diameter: 'Diamètre',
+};
+
 export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: ViewerZoneProps) {
   const displayUrl = fileUrl || uploadedFileUrl || null;
   const [measuring, setMeasuring] = useState(false);
+  const [measureMode, setMeasureMode] = useState<MeasureMode>('distance');
+
   if (!displayUrl) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
@@ -45,22 +54,38 @@ export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: 
 
   return (
     <div className="relative flex h-full flex-col">
-      <button
-        type="button"
-        onClick={() => setMeasuring((v) => !v)}
-        className={`absolute top-2 right-2 z-50 flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-          measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-        }`}
-      >
-        <Ruler className="h-4 w-4" />
-        Mesurer
-      </button>
+      <div className="absolute top-2 right-2 z-50 flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={() => setMeasuring((v) => !v)}
+          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+            measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+          }`}
+        >
+          <Ruler className="h-4 w-4" />
+          Mesurer
+        </button>
+        {measuring && (
+          <select
+            value={measureMode}
+            onChange={(e) => setMeasureMode(e.target.value as MeasureMode)}
+            className="rounded border bg-white px-2 py-1 text-xs shadow"
+          >
+            {Object.entries(MODE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
       {isCadFile ? (
         <CadViewer
           src={displayUrl}
           bare
           height={400}
           measureEnabled={measuring}
+          measureMode={measureMode}
           onDimensionsExtracted={onDimensionsExtracted}
         />
       ) : (
@@ -69,6 +94,7 @@ export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: 
           bare
           height={400}
           measureEnabled={measuring}
+          measureMode={measureMode}
           onDimensionsExtracted={onDimensionsExtracted}
         />
       )}
