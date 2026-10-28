@@ -12,7 +12,13 @@ const FALLBACK_INGEST: IngestResult = {
 
 function isValid3DFile(url: string): boolean {
   const lower = url.toLowerCase();
-  return lower.endsWith('.stl') || lower.endsWith('.step') || lower.endsWith('.stp') || lower.endsWith('.iges') || lower.endsWith('.igs');
+  return (
+    lower.endsWith('.stl') ||
+    lower.endsWith('.step') ||
+    lower.endsWith('.stp') ||
+    lower.endsWith('.iges') ||
+    lower.endsWith('.igs')
+  );
 }
 
 function getFormat(url: string): string {
@@ -82,4 +88,3 @@ export async function selectCandidates(
   candidates.sort((a, b) => b.confidence - a.confidence);
   return candidates;
 }
-

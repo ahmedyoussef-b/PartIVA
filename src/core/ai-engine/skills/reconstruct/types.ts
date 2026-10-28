@@ -41,7 +41,16 @@ export const reconstructInputSchema = z.object({
 
 // --- Paramètres CAO générés par LLM / templates ---
 
-export type CadPartType = 'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism';
+export type CadPartType =
+  'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism' | 'composite';
+
+export type CadBooleanOperation = 'subtract' | 'union' | 'intersect';
+
+export interface CadComposite {
+  base: CadParams;
+  tool: CadParams;
+  operation: CadBooleanOperation;
+}
 
 export type CadParams = {
   type: CadPartType;
@@ -56,7 +65,16 @@ export type CadParams = {
   unit?: 'mm' | 'cm';
 };
 
-export const cadPartTypeSchema = z.enum(['cylinder', 'plate', 'disc', 'block', 'sphere', 'torus', 'cone', 'prism']);
+export const cadPartTypeSchema = z.enum([
+  'cylinder',
+  'plate',
+  'disc',
+  'block',
+  'sphere',
+  'torus',
+  'cone',
+  'prism',
+]);
 
 export const cadParamsSchema = z.object({
   type: cadPartTypeSchema,
@@ -70,4 +88,3 @@ export const cadParamsSchema = z.object({
   material: z.string().min(1).optional(),
   unit: z.enum(['mm', 'cm']).optional(),
 });
-
