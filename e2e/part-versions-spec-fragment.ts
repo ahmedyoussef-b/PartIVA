@@ -219,4 +219,3 @@ test('api: GET /api/parts/[id]/versions USER on another client part returns 403'
   });
   expect(response.status()).toBe(403);
 });
-

@@ -7,7 +7,7 @@ const GROQ_TIMEOUT_MS = 30_000;
 export async function callGroq(
   messages: GroqMessage[],
   apiKey: string,
-  options?: { model?: string; temperature?: number; maxTokens?: number; timeout?: number }
+  options?: { model?: string; temperature?: number; maxTokens?: number; timeout?: number },
 ): Promise<{ content: string; model: string }> {
   const timeoutMs = options?.timeout ?? GROQ_TIMEOUT_MS;
 
@@ -42,7 +42,7 @@ export async function callGroq(
     }
 
     return {
-      content: data.choices[0]?.message?.content ?? "",
+      content: data.choices[0]?.message?.content ?? '',
       model: data.model,
     };
   } catch (error) {

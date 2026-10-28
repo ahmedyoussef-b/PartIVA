@@ -8,7 +8,13 @@ interface IngestZoneProps {
   cadFiles: string[];
   onPhotosChange: (urls: string[]) => void;
   onCadFilesChange: (urls: string[]) => void;
-  dimensions: { length?: number; width?: number; height?: number; diameter?: number; unit: 'mm' | 'cm' };
+  dimensions: {
+    length?: number;
+    width?: number;
+    height?: number;
+    diameter?: number;
+    unit: 'mm' | 'cm';
+  };
   onDimensionsChange: (dims: any) => void;
   description: string;
   onDescriptionChange: (desc: string) => void;
@@ -99,35 +105,57 @@ export function IngestZone({
           <input
             placeholder="Longueur"
             value={dimensions.length ?? ''}
-            onChange={(e) => onDimensionsChange({ ...dimensions, length: e.target.value ? Number(e.target.value) : undefined })}
+            onChange={(e) =>
+              onDimensionsChange({
+                ...dimensions,
+                length: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
             className="rounded border px-2 py-1 text-sm"
             type="number"
           />
           <input
             placeholder="Largeur"
             value={dimensions.width ?? ''}
-            onChange={(e) => onDimensionsChange({ ...dimensions, width: e.target.value ? Number(e.target.value) : undefined })}
+            onChange={(e) =>
+              onDimensionsChange({
+                ...dimensions,
+                width: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
             className="rounded border px-2 py-1 text-sm"
             type="number"
           />
           <input
             placeholder="Hauteur"
             value={dimensions.height ?? ''}
-            onChange={(e) => onDimensionsChange({ ...dimensions, height: e.target.value ? Number(e.target.value) : undefined })}
+            onChange={(e) =>
+              onDimensionsChange({
+                ...dimensions,
+                height: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
             className="rounded border px-2 py-1 text-sm"
             type="number"
           />
           <input
             placeholder="Diamètre"
             value={dimensions.diameter ?? ''}
-            onChange={(e) => onDimensionsChange({ ...dimensions, diameter: e.target.value ? Number(e.target.value) : undefined })}
+            onChange={(e) =>
+              onDimensionsChange({
+                ...dimensions,
+                diameter: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
             className="rounded border px-2 py-1 text-sm"
             type="number"
           />
         </div>
         <select
           value={dimensions.unit}
-          onChange={(e) => onDimensionsChange({ ...dimensions, unit: e.target.value as 'mm' | 'cm' })}
+          onChange={(e) =>
+            onDimensionsChange({ ...dimensions, unit: e.target.value as 'mm' | 'cm' })
+          }
           className="w-full rounded border px-2 py-1 text-sm"
         >
           <option value="mm">mm</option>
@@ -159,5 +187,3 @@ export function IngestZone({
     </div>
   );
 }
-
-

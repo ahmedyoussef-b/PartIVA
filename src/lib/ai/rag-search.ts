@@ -38,7 +38,7 @@ interface RawChunk {
 async function searchVectorial(
   prisma: PrismaClient,
   embeddingStr: string,
-  limit: number
+  limit: number,
 ): Promise<RawChunk[]> {
   try {
     return await prisma.$queryRaw<RawChunk[]>`
@@ -66,7 +66,7 @@ async function searchVectorial(
 async function searchLexical(
   prisma: PrismaClient,
   question: string,
-  limit: number
+  limit: number,
 ): Promise<RawChunk[]> {
   try {
     return await prisma.$queryRaw<RawChunk[]>`
@@ -91,16 +91,15 @@ async function searchLexical(
 
 // ----- Fusion RRF -----
 
-function fuseRRF(
-  vectorial: RawChunk[],
-  lexical: RawChunk[],
-  topK: number
-): RagSearchResult[] {
-  const scores = new Map<string, {
-    chunk: RawChunk;
-    rrfScore: number;
-    similarity: number;
-  }>();
+function fuseRRF(vectorial: RawChunk[], lexical: RawChunk[], topK: number): RagSearchResult[] {
+  const scores = new Map<
+    string,
+    {
+      chunk: RawChunk;
+      rrfScore: number;
+      similarity: number;
+    }
+  >();
 
   vectorial.forEach((chunk, index) => {
     const rank = index + 1;
@@ -151,7 +150,7 @@ export async function searchHybrid(
   prisma: PrismaClient,
   question: string,
   embedding: number[],
-  topK: number
+  topK: number,
 ): Promise<RagSearchResult[]> {
   const limit = topK * LIST_MULTIPLIER;
   const embeddingStr = `[${embedding.join(',')}]`;
@@ -183,7 +182,7 @@ export async function searchHybrid(
 export async function searchLexicalOnly(
   prisma: PrismaClient,
   question: string,
-  topK: number
+  topK: number,
 ): Promise<RagSearchResult[]> {
   const limit = topK * LIST_MULTIPLIER;
   const lexical = await searchLexical(prisma, question, limit);

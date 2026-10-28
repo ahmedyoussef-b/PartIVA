@@ -35,4 +35,3 @@ export function ViewerZone({ fileUrl }: ViewerZoneProps) {
     </div>
   );
 }
-

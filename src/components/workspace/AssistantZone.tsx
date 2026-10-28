@@ -96,13 +96,16 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
     <div className="flex h-full flex-col p-4">
       <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
       <div className="flex-1 overflow-auto rounded-lg border p-3 text-sm">
-        {messages.length === 0 && <div className="text-muted-foreground">Aucun message pour l'instant</div>}
+        {messages.length === 0 && (
+          <div className="text-muted-foreground">Aucun message pour l'instant</div>
+        )}
         {messages.map((m: any) => (
-          <div key={m.id} className="mb-2 whitespace-pre-wrap">{m.content}{m.error ? ` (erreur: ${m.error})` : ''}</div>
+          <div key={m.id} className="mb-2 whitespace-pre-wrap">
+            {m.content}
+            {m.error ? ` (erreur: ${m.error})` : ''}
+          </div>
         ))}
       </div>
     </div>
   );
 }
-
-

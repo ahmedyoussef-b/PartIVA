@@ -18,7 +18,7 @@ export type EngineResult = {
 
 export async function runEngine(
   input: IngestInput,
-  options?: { mode?: 'quick' | 'deep' }
+  options?: { mode?: 'quick' | 'deep' },
 ): Promise<EngineResult> {
   try {
     const ingest = await ingestInput(input);
@@ -77,5 +77,3 @@ export async function runEngine(
     };
   }
 }
-
-

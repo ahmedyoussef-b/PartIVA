@@ -35,5 +35,3 @@ export async function searchWeb(input: SearchInput): Promise<SearchCandidate[]> 
     return [];
   }
 }
-
-

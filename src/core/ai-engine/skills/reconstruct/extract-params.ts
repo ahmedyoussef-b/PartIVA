@@ -13,7 +13,10 @@ const DEFAULT_PARAMS: CadParams = {
 };
 
 function stripCodeFence(json: string): string {
-  return json.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  return json
+    .replace(/^\s*```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
 }
 
 function parseJsonReply(content: string): unknown {
@@ -22,27 +25,39 @@ function parseJsonReply(content: string): unknown {
 
 function buildPrompt(ingestResult: IngestResult): string {
   const lines: string[] = [];
-  lines.push("Vous êtes un assistant spécialisé en CAO. À partir des informations d'une pièce, extrayez les paramètres CAO demandés.");
+  lines.push(
+    "Vous êtes un assistant spécialisé en CAO. À partir des informations d'une pièce, extrayez les paramètres CAO demandés.",
+  );
   lines.push('Répondez UNIQUEMENT avec un JSON valide, sans texte ni commentaire avant ou après.');
   lines.push('');
   lines.push('## Informations de la pièce');
   lines.push(`- type d'entrée: ${ingestResult.inputType}`);
-  lines.push(`- caractéristiques extraites: ${ingestResult.extractedFeatures.join(', ') || 'aucune'}`);
+  lines.push(
+    `- caractéristiques extraites: ${ingestResult.extractedFeatures.join(', ') || 'aucune'}`,
+  );
   const dimensions = ingestResult.metadata.dimensions;
   if (dimensions) {
-    lines.push(`- dimensions: longueur ${dimensions.length ?? 'non précisée'} mm, largeur ${dimensions.width ?? 'non précisée'} mm, hauteur ${dimensions.height ?? 'non précisée'} mm, diamètre ${dimensions.diameter ?? 'non précisée'} mm, unité ${dimensions.unit ?? 'mm'}`);
+    lines.push(
+      `- dimensions: longueur ${dimensions.length ?? 'non précisée'} mm, largeur ${dimensions.width ?? 'non précisée'} mm, hauteur ${dimensions.height ?? 'non précisée'} mm, diamètre ${dimensions.diameter ?? 'non précisée'} mm, unité ${dimensions.unit ?? 'mm'}`,
+    );
   } else {
     lines.push('- dimensions: non précisées');
   }
   lines.push('');
   lines.push('## Règles');
-  lines.push("- Le champ `type` est OBLIGATOIRE et doit être l'un de : cylinder, plate, disc, block, sphere.");
-  lines.push('- Les champs `length`, `width`, `height`, `diameter` sont OPTIONNELS et doivent être positifs en millimètres (ou cm si unité=cm).');
+  lines.push(
+    "- Le champ `type` est OBLIGATOIRE et doit être l'un de : cylinder, plate, disc, block, sphere.",
+  );
+  lines.push(
+    '- Les champs `length`, `width`, `height`, `diameter` sont OPTIONNELS et doivent être positifs en millimètres (ou cm si unité=cm).',
+  );
   lines.push('- `material` est optionnel.');
   lines.push('- `unit` est optionnel, par défaut mm.');
   lines.push('');
   lines.push('## Schéma de réponse');
-  lines.push('{ "type": "cylinder" | "plate" | "disc" | "block" | "sphere", "length"?: number, "width"?: number, "height"?: number, "diameter"?: number, "material"?: string, "unit"?: "mm" | "cm" }');
+  lines.push(
+    '{ "type": "cylinder" | "plate" | "disc" | "block" | "sphere", "length"?: number, "width"?: number, "height"?: number, "diameter"?: number, "material"?: string, "unit"?: "mm" | "cm" }',
+  );
   lines.push('');
   lines.push('## Réponse (JSON uniquement) :');
   return lines.join('\n');

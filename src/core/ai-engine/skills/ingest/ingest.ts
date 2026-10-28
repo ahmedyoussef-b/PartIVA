@@ -112,5 +112,3 @@ export async function ingestInput(input: IngestInput): Promise<IngestResult> {
     };
   }
 }
-
-

@@ -7,11 +7,8 @@ setup('extract dynamic request ids from API', async ({ request }) => {
   // E2E-R5 – if the API fails because the DB is unavailable,
   // use fallback IDs from environment or seed data so tests can still run
   if (!response.ok()) {
-    console.warn(
-      `[ids.setup] GET /api/requests returned ${response.status()}, using fallback IDs`
-    );
-    const fallbackRequestId =
-      process.env.E2E_FALLBACK_REQUEST_ID ?? 'req-fallback-001';
+    console.warn(`[ids.setup] GET /api/requests returned ${response.status()}, using fallback IDs`);
+    const fallbackRequestId = process.env.E2E_FALLBACK_REQUEST_ID ?? 'req-fallback-001';
     const ids: DynamicIds = {
       request: fallbackRequestId,
       requestSearch: fallbackRequestId,

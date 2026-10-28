@@ -13,7 +13,10 @@ describe('ingestInput', () => {
 
   it('photo + dimensions -> photo_dimensions, complete', async () => {
     const photo = { name: 'part.jpg', type: 'image/jpeg', size: 2048 } as File;
-    const result = await ingestInput({ photos: [photo], dimensions: { length: 10, width: 5, unit: 'cm' } });
+    const result = await ingestInput({
+      photos: [photo],
+      dimensions: { length: 10, width: 5, unit: 'cm' },
+    });
     expect(result.inputType).toBe('photo_dimensions');
     expect(result.analysisStatus).toBe('complete');
   });
@@ -30,5 +33,3 @@ describe('ingestInput', () => {
     expect(result.analysisStatus).toBe('failed');
   });
 });
-
-

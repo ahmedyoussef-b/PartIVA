@@ -29,5 +29,3 @@ describe('validateArchive', () => {
     expect(res.isValid).toBe(false);
   });
 });
-
-

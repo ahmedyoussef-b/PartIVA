@@ -22,7 +22,9 @@ describe('generate-cad', () => {
     });
 
     it('crée une géométrie de plaque valide', () => {
-      const geometry = createGeometry(makeParams({ type: 'plate', width: 50, height: 20, length: 10 }));
+      const geometry = createGeometry(
+        makeParams({ type: 'plate', width: 50, height: 20, length: 10 }),
+      );
       expect(geometry.attributes.position.count).toBeGreaterThan(10);
     });
 
@@ -37,25 +39,29 @@ describe('generate-cad', () => {
     });
   });
 
-it('crée une géométrie de prism valide', () => {
-      const geometry = createGeometry(makeParams({ type: 'prism', width: 50, depth: 30, height: 20 }));
-      expect(geometry.attributes.position.count).toBeGreaterThan(10);
-      const positions = geometry.attributes.position.array as Float32Array;
-      expect(positions.length).toBeGreaterThan(0);
-    });
-
-    it('crée une géométrie de prism avec defaults', () => {
-      const geometry = createGeometry(makeParams({ type: 'prism' }));
-      expect(geometry.attributes.position.count).toBeGreaterThan(10);
-      const positions = geometry.attributes.position.array as Float32Array;
-      expect(positions.length).toBeGreaterThan(0);
-    });
+  it('crée une géométrie de prism valide', () => {
+    const geometry = createGeometry(
+      makeParams({ type: 'prism', width: 50, depth: 30, height: 20 }),
+    );
+    expect(geometry.attributes.position.count).toBeGreaterThan(10);
+    const positions = geometry.attributes.position.array as Float32Array;
+    expect(positions.length).toBeGreaterThan(0);
   });
-  
-  describe('generateCadFromParams', () => {
+
+  it('crée une géométrie de prism avec defaults', () => {
+    const geometry = createGeometry(makeParams({ type: 'prism' }));
+    expect(geometry.attributes.position.count).toBeGreaterThan(10);
+    const positions = geometry.attributes.position.array as Float32Array;
+    expect(positions.length).toBeGreaterThan(0);
+  });
+});
+
+describe('generateCadFromParams', () => {
   describe('generateCadFromParams', () => {
     it('génère un STL valide pour un cylindre', async () => {
-      const candidate = await generateCadFromParams(makeParams({ type: 'cylinder', diameter: 10, height: 20 }));
+      const candidate = await generateCadFromParams(
+        makeParams({ type: 'cylinder', diameter: 10, height: 20 }),
+      );
       expect(candidate.method).toBe('generated');
       expect(candidate.format).toBe('stl');
       expect(candidate.fileUrl.startsWith('data:application/stl;base64,')).toBe(true);
@@ -67,7 +73,9 @@ it('crée une géométrie de prism valide', () => {
     });
 
     it('génère un STL valide pour une plaque', async () => {
-      const candidate = await generateCadFromParams(makeParams({ type: 'plate', width: 50, height: 20, length: 10 }));
+      const candidate = await generateCadFromParams(
+        makeParams({ type: 'plate', width: 50, height: 20, length: 10 }),
+      );
       expect(candidate.fileUrl.startsWith('data:application/stl;base64,')).toBe(true);
       const stl = Buffer.from(candidate.fileUrl.split(',')[1], 'base64').toString('utf8');
       expect(stl).toContain('solid');
@@ -138,36 +146,36 @@ it('crée une géométrie de prism valide', () => {
       expect(stl.length).toBeGreaterThan(100);
     });
   });
-it('génère un STL valide pour un prism', async () => {
-      const candidate = await generateCadFromParams({
-        type: 'prism',
-        width: 50,
-        depth: 30,
-        height: 20,
-        unit: 'mm',
-      });
-      expect(candidate.method).toBe('generated');
-      expect(candidate.format).toBe('stl');
-      expect(candidate.fileUrl.startsWith('data:application/stl;base64,')).toBe(true);
-      const stl = Buffer.from(candidate.fileUrl.split(',')[1], 'base64').toString('utf8');
-      expect(stl).toContain('solid');
-      expect(stl).toContain('facet');
-      expect(stl).toContain('endsolid');
-      expect(stl.length).toBeGreaterThan(100);
+  it('génère un STL valide pour un prism', async () => {
+    const candidate = await generateCadFromParams({
+      type: 'prism',
+      width: 50,
+      depth: 30,
+      height: 20,
+      unit: 'mm',
     });
-
-    it('utilise des paramètres par défaut pour prism', async () => {
-      const candidate = await generateCadFromParams({
-        type: 'prism',
-        unit: 'mm',
-      });
-      expect(candidate.method).toBe('generated');
-      expect(candidate.format).toBe('stl');
-      expect(candidate.fileUrl.startsWith('data:application/stl;base64,')).toBe(true);
-      const stl = Buffer.from(candidate.fileUrl.split(',')[1], 'base64').toString('utf8');
-      expect(stl).toContain('solid');
-      expect(stl).toContain('facet');
-      expect(stl).toContain('endsolid');
-      expect(stl.length).toBeGreaterThan(100);
-    });
+    expect(candidate.method).toBe('generated');
+    expect(candidate.format).toBe('stl');
+    expect(candidate.fileUrl.startsWith('data:application/stl;base64,')).toBe(true);
+    const stl = Buffer.from(candidate.fileUrl.split(',')[1], 'base64').toString('utf8');
+    expect(stl).toContain('solid');
+    expect(stl).toContain('facet');
+    expect(stl).toContain('endsolid');
+    expect(stl.length).toBeGreaterThan(100);
   });
+
+  it('utilise des paramètres par défaut pour prism', async () => {
+    const candidate = await generateCadFromParams({
+      type: 'prism',
+      unit: 'mm',
+    });
+    expect(candidate.method).toBe('generated');
+    expect(candidate.format).toBe('stl');
+    expect(candidate.fileUrl.startsWith('data:application/stl;base64,')).toBe(true);
+    const stl = Buffer.from(candidate.fileUrl.split(',')[1], 'base64').toString('utf8');
+    expect(stl).toContain('solid');
+    expect(stl).toContain('facet');
+    expect(stl).toContain('endsolid');
+    expect(stl.length).toBeGreaterThan(100);
+  });
+});

@@ -42,5 +42,3 @@ describe('searchParts', () => {
     expect(result.candidates.length).toBe(1);
   });
 });
-
-

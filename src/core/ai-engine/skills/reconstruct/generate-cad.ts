@@ -6,7 +6,8 @@ import { ReconstructCandidate } from './types';
 const DEFAULT_DIAMETER = 10;
 const DEFAULT_HEIGHT = 20;
 
-export type CadPartType = 'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism';
+export type CadPartType =
+  'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism' | 'composite';
 
 export type CadParams = {
   type: CadPartType;
@@ -25,7 +26,7 @@ function toMillimeters(value: number, unit: 'mm' | 'cm'): number {
   return unit === 'cm' ? value * 10 : value;
 }
 
-function buildGeometry(params: CadParams): THREE.BufferGeometry {
+export function buildGeometry(params: CadParams): THREE.BufferGeometry {
   const unit = params.unit ?? 'mm';
   const toMm = (value: number) => toMillimeters(value, unit);
 

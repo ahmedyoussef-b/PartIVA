@@ -45,7 +45,13 @@ describe('selectCandidates', () => {
   });
 
   it('génère un candidat generated avec fileUrl réel quand searchStatus est partial', async () => {
-    mockExtractCadParams.mockResolvedValue({ type: 'plate', width: 50, height: 20, length: 10, unit: 'mm' });
+    mockExtractCadParams.mockResolvedValue({
+      type: 'plate',
+      width: 50,
+      height: 20,
+      length: 10,
+      unit: 'mm',
+    });
     mockGenerateCadFromParams.mockResolvedValue(mockGeneratedCandidate);
 
     const searchResult = {

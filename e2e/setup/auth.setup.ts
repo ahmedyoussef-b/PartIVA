@@ -65,14 +65,14 @@ for (const role of roles) {
           response.status ?? 'NO_RESPONSE'
         } BODY: ${response.body ?? '<none>'} loginSuccessful: ${
           response.loginSuccessful ?? false
-        },`
+        },`,
       );
 
       await page.getByRole('button', { name: /connexion|se connecter|login/i }).click();
 
       // Attendre le redirection ou le timeout
       try {
-await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
+        await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
         loginSuccessful = true; // Page redirected away from /login = success
       } catch {
         // La page est toujours sur /login = l'authentification a échoué
@@ -100,12 +100,12 @@ await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
     try {
       await page.context().storageState({ path: user.storageStatePath });
       console.log(
-        `[auth.setup] ${user.role} : storageState saved (login may have failed, but state saved)`
+        `[auth.setup] ${user.role} : storageState saved (login may have failed, but state saved)`,
       );
     } catch (saveErr) {
       console.error(
         `[auth.setup] ${user.role} : failed to save storageState:`,
-        saveErr instanceof Error ? saveErr.message : String(saveErr)
+        saveErr instanceof Error ? saveErr.message : String(saveErr),
       );
     }
 

@@ -3,7 +3,7 @@ import { SearchCandidate } from './types';
 export function aggregateResults(
   local: SearchCandidate[],
   web: SearchCandidate[],
-  maxResults: number
+  maxResults: number,
 ): SearchCandidate[] {
   const all = [...local, ...web];
   const seen = new Set<string>();

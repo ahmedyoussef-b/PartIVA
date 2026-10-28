@@ -29,7 +29,9 @@ function makeIngestResult(): IngestResult {
 describe('reconstruct', () => {
   it('trouvé avec fichier -> success', async () => {
     const searchResult = makeSearchResult({
-      candidates: [{ id: '1', source: 'local', name: 'Part', score: 0.9, fileUrl: 'http://x/part.step' }],
+      candidates: [
+        { id: '1', source: 'local', name: 'Part', score: 0.9, fileUrl: 'http://x/part.step' },
+      ],
       searchStatus: 'found',
     });
     const result = await reconstructPart({ ingestResult: makeIngestResult(), searchResult });
@@ -58,4 +60,3 @@ describe('reconstruct', () => {
     expect(['failed', 'partial']).toContain(result.reconstructStatus);
   });
 });
-

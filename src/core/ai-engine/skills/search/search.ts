@@ -33,7 +33,7 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
     // deep mode
     const local = await searchLocal({ ...input, threshold, maxResults });
     const exploitable = local.filter((c) => c.score >= threshold);
-    
+
     if (exploitable.length >= 3) {
       return {
         candidates: local.slice(0, maxResults),
@@ -46,7 +46,7 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
     warnings.push('completing_with_web_search');
     const web = await searchWeb({ ...input, threshold, maxResults });
     const aggregated = aggregateResults(local, web, maxResults);
-    
+
     if (aggregated.length === 0) {
       return {
         candidates: [],
@@ -72,5 +72,3 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
     };
   }
 }
-
-

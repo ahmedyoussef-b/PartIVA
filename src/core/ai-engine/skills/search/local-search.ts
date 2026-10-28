@@ -102,5 +102,3 @@ export async function searchLocal(input: SearchInput): Promise<SearchCandidate[]
     return [];
   }
 }
-
-

@@ -10,7 +10,13 @@ import type { EngineResult } from '@/core/ai-engine/engine';
 export function WorkspaceClient() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [cadFiles, setCadFiles] = useState<string[]>([]);
-  const [dimensions, setDimensions] = useState<{ length?: number; width?: number; height?: number; diameter?: number; unit: 'mm' | 'cm' }>({ unit: 'mm' });
+  const [dimensions, setDimensions] = useState<{
+    length?: number;
+    width?: number;
+    height?: number;
+    diameter?: number;
+    unit: 'mm' | 'cm';
+  }>({ unit: 'mm' });
   const [description, setDescription] = useState('');
   const [mode, setMode] = useState<'quick' | 'deep'>('quick');
   const [result, setResult] = useState<EngineResult | null>(null);

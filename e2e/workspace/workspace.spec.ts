@@ -2,7 +2,12 @@ import { test, expect } from '@playwright/test';
 
 const baseResult = {
   success: true,
-  ingest: { inputType: 'photo', analysisStatus: 'success', warnings: [], metadata: { fileCount: 1 } },
+  ingest: {
+    inputType: 'photo',
+    analysisStatus: 'success',
+    warnings: [],
+    metadata: { fileCount: 1 },
+  },
   search: { searchStatus: 'success', candidates: [] },
   reconstruct: { reconstructStatus: 'failed', candidates: [], warnings: [] },
   archive: { archiveStatus: 'skipped' },
@@ -30,7 +35,11 @@ test.describe('Workspace page', () => {
 
   test('submit ingestion form triggers analyse', async ({ page }) => {
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(baseResult) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(baseResult),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -40,9 +49,16 @@ test.describe('Workspace page', () => {
   });
 
   test('assistant shows ingestion warnings', async ({ page }) => {
-    const result = { ...baseResult, ingest: { ...baseResult.ingest, warnings: ['Aucune dimension fournie'] } };
+    const result = {
+      ...baseResult,
+      ingest: { ...baseResult.ingest, warnings: ['Aucune dimension fournie'] },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -54,7 +70,11 @@ test.describe('Workspace page', () => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(baseResult) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(baseResult),
+      });
     });
     await page.goto('/workspace');
     await page.getByRole('combobox').nth(1).selectOption('deep');
@@ -63,9 +83,22 @@ test.describe('Workspace page', () => {
   });
 
   test('search results display two candidates', async ({ page }) => {
-    const result = { ...baseResult, search: { searchStatus: 'success', candidates: [{ partNumber: 'P1', score: 0.85 }, { partNumber: 'P2', score: 0.72 }] } };
+    const result = {
+      ...baseResult,
+      search: {
+        searchStatus: 'success',
+        candidates: [
+          { partNumber: 'P1', score: 0.85 },
+          { partNumber: 'P2', score: 0.72 },
+        ],
+      },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -78,7 +111,11 @@ test.describe('Workspace page', () => {
   test('empty search shows not found', async ({ page }) => {
     const result = { ...baseResult, search: { searchStatus: 'not_found', candidates: [] } };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -90,7 +127,11 @@ test.describe('Workspace page', () => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(baseResult) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(baseResult),
+      });
     });
     await page.goto('/workspace');
     await page.getByRole('combobox').nth(1).selectOption('quick');
@@ -102,7 +143,11 @@ test.describe('Workspace page', () => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(baseResult) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(baseResult),
+      });
     });
     await page.goto('/workspace');
     await page.getByRole('combobox').nth(1).selectOption('deep');
@@ -111,9 +156,20 @@ test.describe('Workspace page', () => {
   });
 
   test('reconstruct success shows 3d viewer', async ({ page }) => {
-    const result = { ...baseResult, reconstruct: { reconstructStatus: 'success', candidates: [{ fileUrl: 'https://example.com/model.stl' }], warnings: [] } };
+    const result = {
+      ...baseResult,
+      reconstruct: {
+        reconstructStatus: 'success',
+        candidates: [{ fileUrl: 'https://example.com/model.stl' }],
+        warnings: [],
+      },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -122,9 +178,16 @@ test.describe('Workspace page', () => {
   });
 
   test('reconstruct partial shows placeholder and warning', async ({ page }) => {
-    const result = { ...baseResult, reconstruct: { reconstructStatus: 'partial', candidates: [], warnings: [] } };
+    const result = {
+      ...baseResult,
+      reconstruct: { reconstructStatus: 'partial', candidates: [], warnings: [] },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -133,9 +196,16 @@ test.describe('Workspace page', () => {
   });
 
   test('archive success shows archived', async ({ page }) => {
-    const result = { ...baseResult, archive: { archiveStatus: 'success', archivedPartId: 'test-id' } };
+    const result = {
+      ...baseResult,
+      archive: { archiveStatus: 'success', archivedPartId: 'test-id' },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -146,7 +216,11 @@ test.describe('Workspace page', () => {
   test('archive partial shows draft', async ({ page }) => {
     const result = { ...baseResult, archive: { archiveStatus: 'partial' } };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -155,9 +229,20 @@ test.describe('Workspace page', () => {
   });
 
   test('cadviewer for step', async ({ page }) => {
-    const result = { ...baseResult, reconstruct: { reconstructStatus: 'success', candidates: [{ fileUrl: 'https://example.com/model.step' }], warnings: [] } };
+    const result = {
+      ...baseResult,
+      reconstruct: {
+        reconstructStatus: 'success',
+        candidates: [{ fileUrl: 'https://example.com/model.step' }],
+        warnings: [],
+      },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -166,9 +251,20 @@ test.describe('Workspace page', () => {
   });
 
   test('modelviewer for stl', async ({ page }) => {
-    const result = { ...baseResult, reconstruct: { reconstructStatus: 'success', candidates: [{ fileUrl: 'https://example.com/model.stl' }], warnings: [] } };
+    const result = {
+      ...baseResult,
+      reconstruct: {
+        reconstructStatus: 'success',
+        candidates: [{ fileUrl: 'https://example.com/model.stl' }],
+        warnings: [],
+      },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
@@ -177,9 +273,16 @@ test.describe('Workspace page', () => {
   });
 
   test('placeholder when no fileurl', async ({ page }) => {
-    const result = { ...baseResult, reconstruct: { reconstructStatus: 'partial', candidates: [], warnings: [] } };
+    const result = {
+      ...baseResult,
+      reconstruct: { reconstructStatus: 'partial', candidates: [], warnings: [] },
+    };
     await page.route('**/api/engine', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(result),
+      });
     });
     await page.goto('/workspace');
     await page.getByPlaceholder('Description').fill('test part');
