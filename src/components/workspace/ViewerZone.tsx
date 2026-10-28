@@ -14,7 +14,7 @@ function isCad(url: string) {
 }
 
 export function ViewerZone({ fileUrl, uploadedFileUrl }: ViewerZoneProps) {
-  const displayUrl = fileUrl ?? uploadedFileUrl ?? null;
+  const displayUrl = fileUrl || uploadedFileUrl || null;
   if (!displayUrl) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
