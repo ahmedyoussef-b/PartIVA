@@ -54,7 +54,7 @@ export function ViewerShell({ bridgeRef, height, className, children }: ViewerSh
       ref={containerRef}
       data-testid="viewer-shell"
       className={cn(
-        'relative aspect-video min-h-[320px] w-full overflow-hidden rounded-lg border border-border bg-slate-50',
+        'relative min-h-[320px] w-full overflow-hidden rounded-lg border border-border bg-slate-50',
         className,
       )}
       style={height ? { height } : undefined}

@@ -99,3 +99,10 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
+## E70-B-FIX — Correction régression visuelle workspace
+- `viewer-shell.tsx` : retrait de `aspect-video` (ratio 16:9 forcé) qui entrait en conflit avec la hauteur explicite (`height="400px"` du `Canvas`) et déformait le modèle 3D (étirement vertical). La hauteur est désormais contrôlée par la prop `height` ou `min-h-[320px]` par défaut.
+- `ViewerZone.tsx` : inchangé (layout `relative flex h-full flex-col` avec overlay `absolute` déjà correct).
+- `AssistantZone.tsx` : inchangé (scroll interne aux messages via `overflow-y-auto`, conteneur `overflow-hidden`, déjà en place depuis E74-A-FIX).
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+- Aucun commit.
+
