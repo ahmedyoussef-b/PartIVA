@@ -62,3 +62,5 @@ Dette E62-FIX clôturée, non-régression complète confirmée.
 E64-B-FIX-FINAL: 6 regex corrig�es. En attente validation Coordinateur.
 
 E64-B validation: test:unit 30/30 pass.
+
+E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.

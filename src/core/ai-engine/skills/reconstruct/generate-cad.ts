@@ -6,7 +6,7 @@ import { ReconstructCandidate } from './types';
 const DEFAULT_DIAMETER = 10;
 const DEFAULT_HEIGHT = 20;
 
-export type CadPartType = 'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone';
+export type CadPartType = 'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism';
 
 export type CadParams = {
   type: CadPartType;
@@ -14,6 +14,7 @@ export type CadParams = {
   width?: number;
   height?: number;
   diameter?: number;
+  depth?: number;
   radius?: number;
   tubeRadius?: number;
   material?: string;

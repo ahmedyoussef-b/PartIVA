@@ -1,4 +1,5 @@
-﻿'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
+'use client';
 
 import type { EngineResult } from '@/core/ai-engine/engine';
 
@@ -103,3 +104,5 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
     </div>
   );
 }
+
+

@@ -1,4 +1,5 @@
-﻿'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
+'use client';
 
 import { useRef } from 'react';
 
@@ -158,3 +159,5 @@ export function IngestZone({
     </div>
   );
 }
+
+

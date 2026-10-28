@@ -15,6 +15,7 @@ const roles: Role[] = ['ADMIN', 'USER', 'VIEWER'];
 
 for (const role of roles) {
   setup(`authenticate as ${role}`, async ({ page }) => {
+    const user = users[role];
     // E2E-R4: Si le storageState existe déjà, on saute l'étape login
     // qui timeout avec DB endormie, et on l'utilise directement.
     const storageStatePath = path.resolve(`./.auth/${role}.json`);
