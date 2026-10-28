@@ -72,3 +72,7 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 ## E72-A
 - Chat interactif avec contexte.
 
+
+## E72-B
+- Provider Claude inactif préparé.
+
