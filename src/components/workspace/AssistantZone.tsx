@@ -2,6 +2,8 @@
 'use client';
 
 import type { EngineResult } from '@/core/ai-engine/engine';
+import { CandidateCard } from './CandidateCard';
+import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
 interface AssistantZoneProps {
   result: EngineResult | null;
@@ -47,7 +49,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
       messages.push({
         id: 'search-candidates',
         role: 'assistant' as const,
-        content: `Résultats recherche (${result.search.candidates.length}):\n${result.search.candidates.map((c: any, i: number) => `${i + 1}. ${c.partNumber || c.name || 'Candidat'} (score: ${c.confidence || c.score || 'N/A'})`).join('\n')}`,
+        content: `Résultats recherche (${result.search.candidates.length})`,
       });
     } else {
       messages.push({
@@ -107,6 +109,13 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
             {m.error ? ` (erreur: ${m.error})` : ''}
           </div>
         ))}
+        {result?.search?.candidates?.length ? (
+          <div className="mt-2 space-y-2">
+            {result.search.candidates.map((c: SearchCandidate) => (
+              <CandidateCard key={c.id} candidate={c} />
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );
