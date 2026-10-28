@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { availableProviders } from '@/lib/ai/providers';
 import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
@@ -19,6 +20,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
     { role: 'user' | 'assistant'; content: string }[]
   >([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [providerId, setProviderId] = useState('groq');
 
   async function handleSend(message: string) {
     setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
@@ -27,7 +29,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, context: result }),
+        body: JSON.stringify({ message, providerId, context: result }),
       });
       const data = await res.json();
       setChatMessages((prev) => [...prev, { role: 'assistant', content: data.reply ?? '' }]);
@@ -119,6 +121,19 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-white p-4 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
+      <div className="mb-2 flex items-center gap-2">
+        <select
+          value={providerId}
+          onChange={(e) => setProviderId(e.target.value)}
+          className="rounded border px-2 py-1 text-xs"
+        >
+          {availableProviders.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} ({p.tier === 'free' ? 'Gratuit' : 'Payant'})
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="flex-1 overflow-auto rounded-lg border bg-gray-50 p-3 text-sm">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-gray-400">
