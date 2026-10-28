@@ -72,7 +72,7 @@ export function WorkspaceClient() {
         />
       </div>
       <div className="overflow-auto rounded-lg border bg-background">
-        <ViewerZone fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null} />
+        <ViewerZone fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null} uploadedFileUrl={cadFiles[0] ?? null} />
       </div>
       <div className="overflow-auto rounded-lg border bg-background">
         <AssistantZone result={result} status={status} error={error} />

@@ -5,6 +5,7 @@ import { ModelViewer } from '@/components/3d/model-viewer';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
+  uploadedFileUrl?: string | null;
 }
 
 function isCad(url: string) {
@@ -12,8 +13,9 @@ function isCad(url: string) {
   return ['.step', '.stp', '.iges', '.igs'].includes(ext);
 }
 
-export function ViewerZone({ fileUrl }: ViewerZoneProps) {
-  if (!fileUrl) {
+export function ViewerZone({ fileUrl, uploadedFileUrl }: ViewerZoneProps) {
+  const displayUrl = fileUrl ?? uploadedFileUrl ?? null;
+  if (!displayUrl) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
         <svg
@@ -30,17 +32,17 @@ export function ViewerZone({ fileUrl }: ViewerZoneProps) {
     );
   }
 
-  if (isCad(fileUrl)) {
+  if (isCad(displayUrl)) {
     return (
       <div className="flex h-full flex-col p-4">
-        <CadViewer src={fileUrl} bare height={400} />
+        <CadViewer src={displayUrl} bare height={400} />
       </div>
     );
   }
 
   return (
     <div className="flex h-full flex-col p-4">
-      <ModelViewer src={fileUrl} bare height={400} />
+      <ModelViewer src={displayUrl} bare height={400} />
     </div>
   );
 }
