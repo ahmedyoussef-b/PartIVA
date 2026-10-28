@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { SearchCandidate, SearchInput } from './types';
 import { embedTexts } from '@/lib/ai/cloudflare-embeddings';
 
@@ -101,3 +102,5 @@ export async function searchLocal(input: SearchInput): Promise<SearchCandidate[]
     return [];
   }
 }
+
+

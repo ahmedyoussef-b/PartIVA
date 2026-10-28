@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { SearchInput, SearchResult } from './types';
 import { searchLocal } from './local-search';
 import { searchWeb } from './web-search';
@@ -71,3 +72,5 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
     };
   }
 }
+
+

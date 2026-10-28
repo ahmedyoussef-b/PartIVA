@@ -111,3 +111,6 @@ playwright-*.log
 unit-tests.log
 docs/etat/ETAT_COURANT.new
 *.tmp
+
+# Temp scripts
+fix-two-regex.py

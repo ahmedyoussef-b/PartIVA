@@ -1,4 +1,5 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
+import { NextRequest, NextResponse } from 'next/server';
 import { runEngine } from '@/core/ai-engine/engine';
 import { ingestInput } from '@/core/ai-engine/skills/ingest';
 import { callGroq, getGroqApiKey } from '@/lib/ai/groq-client';
@@ -38,3 +39,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }
+
+

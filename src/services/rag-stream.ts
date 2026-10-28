@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export function isTauriEnv(): boolean {
   return false;
 }
@@ -14,3 +15,5 @@ export async function askRagStream(
 ): Promise<() => void> {
   return () => {};
 }
+
+

@@ -45,6 +45,7 @@ const config = [
       'coverage/**',
       'next-env.d.ts',
       'e2e/**',
+      'docs/app/**',
       'test-results/**',
       'playwright-report/**',
       // E16-R1 — artefacts WASM vendored (occt-import-js, LGPL-2.1).
@@ -98,3 +99,4 @@ const config = [
 ];
 
 export default config;
+

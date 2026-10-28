@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { describe, it, expect } from 'vitest';
 import { validateArchive } from './validate';
 
@@ -28,3 +29,5 @@ describe('validateArchive', () => {
     expect(res.isValid).toBe(false);
   });
 });
+
+

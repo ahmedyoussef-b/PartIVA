@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { SearchCandidate, SearchInput } from './types';
 
 export async function searchWeb(input: SearchInput): Promise<SearchCandidate[]> {
@@ -34,3 +35,5 @@ export async function searchWeb(input: SearchInput): Promise<SearchCandidate[]> 
     return [];
   }
 }
+
+

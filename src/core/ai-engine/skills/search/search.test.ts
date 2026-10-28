@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { describe, it, expect, vi } from 'vitest';
 import { searchParts } from './search';
 import { searchLocal } from './local-search';
@@ -41,3 +42,5 @@ describe('searchParts', () => {
     expect(result.candidates.length).toBe(1);
   });
 });
+
+

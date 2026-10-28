@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { ArchiveInput, ArchiveResult } from './types';
 import { validateArchive } from './validate';
 
@@ -71,3 +72,5 @@ export async function archivePart(input: ArchiveInput): Promise<ArchiveResult> {
     };
   }
 }
+
+

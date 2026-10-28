@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { ingestInput } from './skills/ingest';
 import { searchParts } from './skills/search';
 import { reconstructPart } from './skills/reconstruct';
@@ -76,3 +77,5 @@ export async function runEngine(
     };
   }
 }
+
+

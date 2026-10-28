@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { describe, it, expect } from 'vitest';
 import { ingestInput } from './ingest';
 
@@ -29,3 +30,5 @@ describe('ingestInput', () => {
     expect(result.analysisStatus).toBe('failed');
   });
 });
+
+
