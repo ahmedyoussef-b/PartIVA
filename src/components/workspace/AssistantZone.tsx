@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { availableProviders } from '@/lib/ai/providers';
+import { useSession } from '@/lib/auth-client';
 import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
@@ -21,6 +22,9 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   >([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [providerId, setProviderId] = useState('groq');
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string })?.role;
+  const isAdmin = role === 'ADMIN';
 
   async function handleSend(message: string) {
     setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
@@ -149,7 +153,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
         {result?.search?.candidates?.length ? (
           <div className="mt-2 space-y-2">
             {result.search.candidates.map((c: SearchCandidate) => (
-              <CandidateCard key={c.id} candidate={c} />
+              <CandidateCard key={c.id} candidate={c} isAdmin={isAdmin} />
             ))}
           </div>
         ) : null}

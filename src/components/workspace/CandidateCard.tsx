@@ -1,18 +1,46 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Box } from 'lucide-react';
+import { Box, Plus } from 'lucide-react';
+import { convertCandidateToPart } from '@/lib/actions/convert-candidate';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
 interface CandidateCardProps {
   candidate: SearchCandidate;
   onSelect?: (id: string) => void;
+  isAdmin?: boolean;
 }
 
-export function CandidateCard({ candidate, onSelect }: CandidateCardProps) {
+export function CandidateCard({ candidate, onSelect, isAdmin = false }: CandidateCardProps) {
   const scorePct = Math.round((candidate.score ?? 0) * 100);
   const barColor =
     scorePct >= 80 ? 'bg-green-500' : scorePct >= 60 ? 'bg-yellow-500' : 'bg-red-500';
+  const [isConverting, setIsConverting] = useState(false);
+  const [conversionStatus, setConversionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [conversionMessage, setConversionMessage] = useState('');
+
+  async function handleConvert() {
+    setIsConverting(true);
+    setConversionStatus('idle');
+    try {
+      const result = await convertCandidateToPart(candidate);
+      if (result.success) {
+        setConversionStatus('success');
+        setConversionMessage(`Pièce créée : ${result.partId}`);
+      } else {
+        setConversionStatus('error');
+        setConversionMessage(result.error || 'Échec de la conversion');
+      }
+    } catch (e) {
+      setConversionStatus('error');
+      setConversionMessage(e instanceof Error ? e.message : 'Erreur inconnue');
+    } finally {
+      setIsConverting(false);
+    }
+  }
+
+  const canConvert = isAdmin && Boolean(candidate.fileUrl);
 
   return (
     <Card className="mb-2">
@@ -43,6 +71,17 @@ export function CandidateCard({ candidate, onSelect }: CandidateCardProps) {
             Voir
           </button>
         )}
+        {canConvert && (
+          <button
+            type="button"
+            onClick={handleConvert}
+            disabled={isConverting}
+            className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isAdmin ? 'Convertir en pièce' : 'Réservé aux administrateurs'}
+          >
+            {isConverting ? '…' : <Plus className="h-3 w-3" />}
+          </button>
+        )}
       </CardHeader>
       <CardContent className="p-3 pt-0">
         <div className="flex items-center gap-2">
@@ -51,6 +90,15 @@ export function CandidateCard({ candidate, onSelect }: CandidateCardProps) {
           </div>
           <span className="text-xs font-medium text-gray-700">{scorePct}%</span>
         </div>
+        {conversionStatus !== 'idle' && (
+          <div className="mt-2 text-xs">
+            {conversionStatus === 'success' ? (
+              <span className="text-emerald-600">{conversionMessage}</span>
+            ) : (
+              <span className="text-red-600">{conversionMessage}</span>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

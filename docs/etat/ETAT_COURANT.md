@@ -76,3 +76,11 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 ## E72-B
 - Provider Claude inactif préparé.
 
+
+## E74-A — Conversion Candidat ? Pièce
+- Action serveur `convertCandidateToPart` créée dans `src/lib/actions/convert-candidate.ts` (vérifie rôle ADMIN, génère `partNumber` `CAND-{timestamp}`, crée `Part` en `DRAFT` avec `printableModelUrl`, crée `Attachment` de type CAO si extension `.stl/.step/.obj`).
+- Bouton "Convertir en pièce" ajouté dans `src/components/workspace/CandidateCard.tsx` (prop `isAdmin`, état de conversion, message succès/erreur).
+- `src/components/workspace/AssistantZone.tsx` passe `isAdmin` (via `useSession`) à chaque `CandidateCard`.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run build` EXIT 0.
+- Aucun commit.
+
