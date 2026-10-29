@@ -19,6 +19,7 @@ model User {
   accounts      Account[]
   auditLogs     AuditLog[]
   fitReports    FitReport[]
+  candidateFeedbacks CandidateFeedback[]
   partVersions  PartVersion[]
   parts         Part[]                      @relation("PartClient")
   requests      Request[]                   @relation("UserRequests")
@@ -433,6 +434,18 @@ model FitReport {
   @@index([partId])
   @@index([userId])
   @@map("fit_reports")
+}
+
+model CandidateFeedback {
+  id          String   @id @default(cuid())
+  candidateId String
+  userId      String
+  rating      Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, userId])
+  @@map("candidate_feedbacks")
 }
 
 model DesktopBuild {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Box, Plus, Download } from 'lucide-react';
+import { Box, Plus, Download, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { downloadStl } from '@/lib/export/stl-export';
 import { convertCandidateToPart } from '@/lib/actions/convert-candidate';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
@@ -20,6 +20,22 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
   const [isConverting, setIsConverting] = useState(false);
   const [conversionStatus, setConversionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [conversionMessage, setConversionMessage] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState<number | null>(null);
+  const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+
+  async function handleFeedback(rating: number) {
+    setIsFeedbackLoading(true);
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId: candidate.id, rating }),
+      });
+      setFeedbackRating(rating);
+    } finally {
+      setIsFeedbackLoading(false);
+    }
+  }
 
   async function handleConvert() {
     setIsConverting(true);
@@ -84,6 +100,24 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
               <Download className="h-3 w-3" />
             </button>
           )}
+        <button
+          type="button"
+          disabled={isFeedbackLoading}
+          onClick={() => handleFeedback(1)}
+          className={`rounded px-2 py-1 text-xs ${feedbackRating === 1 ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+          title="Pertinent"
+        >
+          <ThumbsUp className="h-3 w-3" />
+        </button>
+        <button
+          type="button"
+          disabled={isFeedbackLoading}
+          onClick={() => handleFeedback(-1)}
+          className={`rounded px-2 py-1 text-xs ${feedbackRating === -1 ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+          title="Non pertinent"
+        >
+          <ThumbsDown className="h-3 w-3" />
+        </button>
         {canConvert && (
           <button
             type="button"
