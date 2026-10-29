@@ -19,6 +19,7 @@ model User {
   accounts      Account[]
   auditLogs     AuditLog[]
   fitReports    FitReport[]
+  searchHistories SearchHistory[]
   candidateFeedbacks CandidateFeedback[]
   partVersions  PartVersion[]
   parts         Part[]                      @relation("PartClient")
@@ -434,6 +435,19 @@ model FitReport {
   @@index([partId])
   @@index([userId])
   @@map("fit_reports")
+}
+
+model SearchHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  query        String
+  filters      Json?
+  resultsCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("search_histories")
 }
 
 model CandidateFeedback {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 
@@ -50,6 +50,13 @@ export function IngestZone({
   onClearWorkspace,
 }: IngestZoneProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [recentSearches, setRecentSearches] = useState<any[]>([]);
+  useEffect(() => {
+    fetch('/api/search/history')
+      .then((r) => r.json())
+      .then((d) => setRecentSearches(d.items ?? []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!extractedDimensions) return;
@@ -138,6 +145,19 @@ export function IngestZone({
           {cadFiles.map((url, i) => (
             <li key={i} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1">
               <span className="truncate">{url.split('/').pop()}</span>
+              {recentSearches.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-gray-600">Recherches récentes</p>
+                  <ul className="mt-1 space-y-1">
+                    {recentSearches.map((s: any) => (
+                      <li key={s.id} className="text-xs text-gray-500">
+                        {s.query} — {new Date(s.createdAt).toLocaleDateString()} ({s.resultsCount}{' '}
+                        résultats)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => onCadFilesChange(cadFiles.filter((_, idx) => idx !== i))}

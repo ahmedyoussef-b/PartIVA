@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { NextRequest, NextResponse } from 'next/server';
 import { runEngine } from '@/core/ai-engine/engine';
-import { ingestInput } from '@/core/ai-engine/skills/ingest';
+import { getCurrentUser } from '@/lib/auth-server';
+import { prisma } from '@/lib/prisma';
 import { callGroq, getGroqApiKey } from '@/lib/ai/groq-client';
 import type { IngestInput } from '@/core/ai-engine/skills/ingest/types';
 
@@ -40,7 +41,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, ...result });
+    const resultPayload = { success: true, ...result };
+
+    // Enregistrement historique (best-effort)
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        await prisma.searchHistory.create({
+          data: {
+            userId: user.id,
+            query: body.description || '',
+            filters: body.dimensions ?? null,
+            resultsCount: result.search?.candidates?.length ?? 0,
+          },
+        });
+      }
+    } catch {
+      // ignore
+    }
+
+    return NextResponse.json(resultPayload);
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
