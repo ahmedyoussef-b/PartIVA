@@ -132,7 +132,11 @@ function useStlMesh(
 }
 
 function useMeshObject(src: string | undefined) {
-  const [state, setState] = React.useState<{ src: string; obj: Object3D | null; error: string | null }>({ src: '', obj: null, error: null });
+  const [state, setState] = React.useState<{
+    src: string;
+    obj: Object3D | null;
+    error: string | null;
+  }>({ src: '', obj: null, error: null });
   React.useEffect(() => {
     if (!src) return;
     let cancelled = false;
@@ -148,7 +152,9 @@ function useMeshObject(src: string | undefined) {
         if (cancelled) return;
         setState({ src, obj: null, error: err instanceof Error ? err.message : String(err) });
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [src]);
   return {
     obj: state.src === src ? state.obj : null,
@@ -200,7 +206,9 @@ function StlViewerCanvas({
         {isGltf ? (
           <GltfScene src={src} />
         ) : isObjOr3mf ? (
-          obj ? <primitive object={obj} dispose={null} /> : null
+          obj ? (
+            <primitive object={obj} dispose={null} />
+          ) : null
         ) : mesh ? (
           <primitive object={mesh} dispose={null} />
         ) : null}
@@ -222,7 +230,11 @@ export function StlViewer({
 }: StlViewerProps) {
   const isObjOr3mf = src ? /\.(obj|3mf)$/i.test(src) : false;
   const objMesh = useMeshObject(isObjOr3mf ? src : undefined);
-  const { mesh, error: stlError, loading: stlLoading } = useStlMesh(isObjOr3mf ? undefined : src, renderMode, sectionEnabled, sectionPosition);
+  const {
+    mesh,
+    error: stlError,
+    loading: stlLoading,
+  } = useStlMesh(isObjOr3mf ? undefined : src, renderMode, sectionEnabled, sectionPosition);
   const error = isObjOr3mf ? objMesh.error : stlError;
   const loading = isObjOr3mf ? objMesh.loading : stlLoading;
   const isGltf = src ? /\.(gltf|glb)$/i.test(src) : false;
@@ -259,7 +271,14 @@ export function StlViewer({
       ) : isLoading ? (
         <ViewerLoading />
       ) : (
-        <StlViewerCanvas mesh={mesh} src={src} isGltf={isGltf} isObjOr3mf={isObjOr3mf} obj={objMesh.obj} bridgeRef={bridgeRef} />
+        <StlViewerCanvas
+          mesh={mesh}
+          src={src}
+          isGltf={isGltf}
+          isObjOr3mf={isObjOr3mf}
+          obj={objMesh.obj}
+          bridgeRef={bridgeRef}
+        />
       )}
     </ViewerShell>
   );
