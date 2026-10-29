@@ -152,6 +152,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
           type="button"
           disabled={!result}
           onClick={handleExportPdf}
+          title="Exporter le rapport en PDF"
           className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
         >
           <Download className="h-4 w-4" />
@@ -161,7 +162,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
       <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-gray-400">
-            Posez une question ou déposez un fichier pour commencer
+            Posez une question à l'IA ou déposez un fichier pour lancer une analyse.
           </div>
         )}
         {messages.map((m: any) => (

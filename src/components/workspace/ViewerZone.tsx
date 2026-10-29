@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { Ruler, Scissors, Columns, Download } from 'lucide-react';
+import { Ruler, Scissors, Columns, Download, Box } from 'lucide-react';
 import { CadViewer } from '@/components/3d/cad-viewer';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { downloadStl } from '@/lib/export/stl-export';
@@ -82,6 +82,7 @@ export function ViewerZone({
         <button
           type="button"
           onClick={() => setMeasuring((v) => !v)}
+          title="Mesurer une distance, un angle ou un diamètre"
           className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
             measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
           }`}
@@ -117,6 +118,7 @@ export function ViewerZone({
         <button
           type="button"
           onClick={() => setSectionEnabled((v) => !v)}
+          title="Activer le plan de coupe"
           className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
             sectionEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
           }`}
@@ -141,6 +143,7 @@ export function ViewerZone({
             <button
               type="button"
               onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
+              title="Télécharger le fichier STL pour impression 3D"
               className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
             >
               <Download className="h-4 w-4" />
@@ -150,6 +153,7 @@ export function ViewerZone({
         <button
           type="button"
           onClick={() => setCompareEnabled((v) => !v)}
+          title="Comparer le fichier uploadé avec un candidat"
           className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
             compareEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
           }`}
@@ -228,7 +232,11 @@ export function ViewerZone({
         </div>
       ) : !displayUrl ? (
         <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
-          <p>Aucun modèle 3D chargé. Déposez un fichier STEP ou STL pour commencer.</p>
+          <Box className="h-10 w-10 text-gray-300" />
+          <p>
+            Déposez un fichier CAO (STEP, STL) ou sélectionnez un candidat pour visualiser le modèle
+            3D.
+          </p>
         </div>
       ) : isCadFile ? (
         <CadViewer
