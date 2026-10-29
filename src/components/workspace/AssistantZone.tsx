@@ -8,6 +8,8 @@ import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
 import { generateSuggestions } from '@/lib/ai/suggestions';
+import { Download } from 'lucide-react';
+import { exportWorkspaceToPdf } from '@/lib/export/pdf-export';
 import { SuggestionList } from './SuggestionList';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
@@ -23,6 +25,12 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
     { role: 'user' | 'assistant'; content: string }[]
   >([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  async function handleExportPdf() {
+    if (!result) return;
+    const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
+    const dataUrl = canvas ? canvas.toDataURL('image/png') : undefined;
+    exportWorkspaceToPdf(result, dataUrl);
+  }
   const [providerId, setProviderId] = useState('groq');
   const suggestions = result ? generateSuggestions(result) : [];
   const { data: session } = useSession();
@@ -140,6 +148,15 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
             </option>
           ))}
         </select>
+        <button
+          type="button"
+          disabled={!result}
+          onClick={handleExportPdf}
+          className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
+        >
+          <Download className="h-4 w-4" />
+          Exporter en PDF
+        </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
         {messages.length === 0 && (
