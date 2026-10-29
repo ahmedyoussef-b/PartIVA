@@ -8,7 +8,7 @@ import { BufferGeometry, Mesh, MeshStandardMaterial, Vector3, Plane } from 'thre
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
-import { Group, Object3D } from 'three';
+import { Object3D } from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CAMERA_HOME,
