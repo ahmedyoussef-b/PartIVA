@@ -6,26 +6,26 @@ import { IngestZone } from './IngestZone';
 import { ViewerZone } from './ViewerZone';
 import { AssistantZone } from './AssistantZone';
 import type { EngineResult } from '@/core/ai-engine/engine';
+import { useWorkspacePersistence } from '@/lib/hooks/use-workspace-persistence';
 
 export function WorkspaceClient() {
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [cadFiles, setCadFiles] = useState<string[]>([]);
-  const [dimensions, setDimensions] = useState<{
-    length?: number;
-    width?: number;
-    height?: number;
-    diameter?: number;
-    unit: 'mm' | 'cm';
-  }>({ unit: 'mm' });
-  const [description, setDescription] = useState('');
-  const [mode, setMode] = useState<'quick' | 'deep'>('quick');
+  const {
+    state: { photos, cadFiles, dimensions, description, mode, result },
+    setPhotos,
+    setCadFiles,
+    setDimensions,
+    setDescription,
+    setMode,
+    setResult,
+    clearWorkspace,
+  } = useWorkspacePersistence();
+
   const [extractedDimensions, setExtractedDimensions] = useState<{
     length?: number;
     width?: number;
     height?: number;
     diameter?: number;
   } | null>(null);
-  const [result, setResult] = useState<EngineResult | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +48,7 @@ export function WorkspaceClient() {
       return prev;
     });
   }
+
   async function handleSubmit() {
     setStatus('loading');
     setError(null);
@@ -78,6 +79,13 @@ export function WorkspaceClient() {
     }
   }
 
+  function handleClearWorkspace() {
+    clearWorkspace();
+    setExtractedDimensions(null);
+    setStatus('idle');
+    setError(null);
+  }
+
   return (
     <WorkspaceLayout>
       <div className="min-h-0 rounded-lg border bg-background">
@@ -95,6 +103,7 @@ export function WorkspaceClient() {
           onModeChange={setMode}
           onSubmit={handleSubmit}
           loading={status === 'loading'}
+          onClearWorkspace={handleClearWorkspace}
         />
       </div>
       <div className="min-h-0 rounded-lg border bg-background">

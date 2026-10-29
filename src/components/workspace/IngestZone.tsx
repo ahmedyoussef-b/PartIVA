@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 
 interface IngestZoneProps {
@@ -30,6 +30,7 @@ interface IngestZoneProps {
   onModeChange: (mode: 'quick' | 'deep') => void;
   onSubmit: () => void;
   loading: boolean;
+  onClearWorkspace: () => void;
 }
 
 export function IngestZone({
@@ -46,6 +47,7 @@ export function IngestZone({
   onModeChange,
   onSubmit,
   loading,
+  onClearWorkspace,
 }: IngestZoneProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,7 +96,19 @@ export function IngestZone({
 
   return (
     <div className="flex h-full flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold">Collecte</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-semibold">Collecte</h2>
+        <button
+          type="button"
+          onClick={onClearWorkspace}
+          className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 hover:text-red-600"
+          title="Effacer le workspace"
+        >
+          <Trash2 className="h-3 w-3" />
+          Effacer
+        </button>
+        <span className="ml-auto text-[10px] text-gray-400">Sauvegardé localement</span>
+      </div>
       <input
         ref={photoInputRef}
         type="file"

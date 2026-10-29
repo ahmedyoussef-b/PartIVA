@@ -106,3 +106,10 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
+## E73-A — Sauvegarde locale du workspace (localStorage)
+- `src/lib/hooks/use-workspace-persistence.ts` (nouveau) : hook `useWorkspacePersistence` qui persiste dans `localStorage` (clé `partiva-workspace-state`) : `photos`, `cadFiles`, `dimensions`, `description`, `mode`, `result`. Restaure au montage, sauvegarde à chaque changement, expose `clearWorkspace()`.
+- `src/components/workspace/WorkspaceClient.tsx` : remplace les `useState` individuels par le hook pour les états persistants. Garde `extractedDimensions`, `status`, `error` en état local. Ajoute `handleClearWorkspace`.
+- `src/components/workspace/IngestZone.tsx` : bouton "Effacer" (icône `Trash2`) dans l'en-tête de la zone Collecte + indicateur "Sauvegardé localement".
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+- Aucun commit.
+
