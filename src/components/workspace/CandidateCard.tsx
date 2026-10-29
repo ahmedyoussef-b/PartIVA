@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Box, Plus } from 'lucide-react';
+import { Box, Plus, Download } from 'lucide-react';
+import { downloadStl } from '@/lib/export/stl-export';
 import { convertCandidateToPart } from '@/lib/actions/convert-candidate';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
@@ -71,6 +72,18 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
             Voir
           </button>
         )}
+        {candidate.fileUrl &&
+          (candidate.fileUrl.endsWith('.stl') ||
+            candidate.fileUrl.startsWith('data:application/stl')) && (
+            <button
+              type="button"
+              onClick={() => downloadStl(candidate.fileUrl!, `piece-${candidate.id}-printable.stl`)}
+              className="rounded bg-gray-700 px-2 py-1 text-xs text-white hover:bg-gray-800"
+              title="Exporter en STL"
+            >
+              <Download className="h-3 w-3" />
+            </button>
+          )}
         {canConvert && (
           <button
             type="button"

@@ -1,9 +1,10 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { Ruler, Scissors, Columns } from 'lucide-react';
+import { Ruler, Scissors, Columns, Download } from 'lucide-react';
 import { CadViewer } from '@/components/3d/cad-viewer';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
 import type { MeasureMode } from '@/components/workspace/MeasureTool';
 
@@ -135,6 +136,17 @@ export function ViewerZone({
             aria-label="Position du plan de coupe"
           />
         )}
+        {displayUrl &&
+          (displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl')) && (
+            <button
+              type="button"
+              onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
+              className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
+            >
+              <Download className="h-4 w-4" />
+              Exporter STL
+            </button>
+          )}
         <button
           type="button"
           onClick={() => setCompareEnabled((v) => !v)}
