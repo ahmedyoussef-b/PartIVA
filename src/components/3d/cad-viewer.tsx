@@ -321,7 +321,10 @@ export function CadViewer({
                     ? [
                         new THREE.Plane(
                           new THREE.Vector3(1, 0, 0),
-                          -(sectionPosition * (geometry.boundingBox?.getSize(new THREE.Vector3()).x ?? MODEL_EXTENT)),
+                          -(
+                            sectionPosition *
+                            (geometry.boundingBox?.getSize(new THREE.Vector3()).x ?? MODEL_EXTENT)
+                          ),
                         ),
                       ]
                     : undefined

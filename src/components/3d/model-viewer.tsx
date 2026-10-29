@@ -113,5 +113,15 @@ export function ModelViewer({
     );
   }
 
-  return <StlViewer src={src} alt={alt} height={heightToCss(height)} bare={bare} renderMode={renderMode} sectionEnabled={sectionEnabled} sectionPosition={sectionPosition} />;
+  return (
+    <StlViewer
+      src={src}
+      alt={alt}
+      height={heightToCss(height)}
+      bare={bare}
+      renderMode={renderMode}
+      sectionEnabled={sectionEnabled}
+      sectionPosition={sectionPosition}
+    />
+  );
 }

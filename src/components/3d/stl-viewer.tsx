@@ -45,7 +45,12 @@ function GltfScene({ src }: { src: string }) {
  * Normalise le maillage : centré à l'origine et redimensionné pour tenir dans
  * le viewport quelle que soit l'unité du fichier source (mm, pouces, …).
  */
-function buildNormalizedMesh(geometry: BufferGeometry, renderMode: 'solid' | 'wireframe' | 'xray' = 'solid', sectionEnabled = false, sectionPosition = 0.5): Mesh {
+function buildNormalizedMesh(
+  geometry: BufferGeometry,
+  renderMode: 'solid' | 'wireframe' | 'xray' = 'solid',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+): Mesh {
   geometry.computeBoundingBox();
   const size = new Vector3();
   const center = new Vector3();
@@ -54,7 +59,11 @@ function buildNormalizedMesh(geometry: BufferGeometry, renderMode: 'solid' | 'wi
     geometry.boundingBox.getCenter(center);
   }
   const maxDimension = Math.max(size.x, size.y, size.z) || 1;
-  const material = new MeshStandardMaterial({ color: MODEL_COLOR, metalness: 0.15, roughness: 0.45 });
+  const material = new MeshStandardMaterial({
+    color: MODEL_COLOR,
+    metalness: 0.15,
+    roughness: 0.45,
+  });
   material.wireframe = renderMode === 'wireframe';
   material.transparent = renderMode === 'xray';
   material.opacity = renderMode === 'xray' ? 0.3 : 1;
@@ -78,7 +87,12 @@ interface StlLoadState {
  * Chargement STL hors du `<Canvas>` : l'état est indexé par `src` pour éviter
  * un rendu transitoire avec le maillage de la source précédente.
  */
-function useStlMesh(src: string | undefined, renderMode: 'solid' | 'wireframe' | 'xray' = 'solid', sectionEnabled = false, sectionPosition = 0.5) {
+function useStlMesh(
+  src: string | undefined,
+  renderMode: 'solid' | 'wireframe' | 'xray' = 'solid',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+) {
   const [state, setState] = React.useState<StlLoadState>({ src: '', mesh: null, error: null });
 
   React.useEffect(() => {
@@ -88,7 +102,11 @@ function useStlMesh(src: string | undefined, renderMode: 'solid' | 'wireframe' |
       .loadAsync(src)
       .then((geometry) => {
         if (cancelled) return;
-        setState({ src, mesh: buildNormalizedMesh(geometry, renderMode, sectionEnabled, sectionPosition), error: null });
+        setState({
+          src,
+          mesh: buildNormalizedMesh(geometry, renderMode, sectionEnabled, sectionPosition),
+          error: null,
+        });
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -159,7 +177,15 @@ function StlViewerCanvas({
   );
 }
 
-export function StlViewer({ src, alt, height, bare = false, renderMode = 'solid', sectionEnabled = false, sectionPosition = 0.5 }: StlViewerProps) {
+export function StlViewer({
+  src,
+  alt,
+  height,
+  bare = false,
+  renderMode = 'solid',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+}: StlViewerProps) {
   const bridgeRef = React.useRef<ViewerBridge>({});
   const { mesh, error, loading } = useStlMesh(src, renderMode, sectionEnabled, sectionPosition);
   const isGltf = src ? /\.(gltf|glb)$/i.test(src) : false;
