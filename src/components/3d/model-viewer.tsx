@@ -37,7 +37,7 @@ interface ModelViewerProps {
 /* Extensions CAO solides/surfaces → parsed par occt-import-js (Web Worker) */
 const CAD_EXTENSIONS = ['.step', '.stp', '.iges', '.igs', '.brep'];
 /* Maillages → rendu Three.js direct (STLLoader / useGLTF) */
-const MESH_EXTENSIONS = ['.stl', '.gltf', '.glb'];
+const MESH_EXTENSIONS = ['.stl', '.gltf', '.glb', '.obj', '.3mf'];
 
 function extensionOf(src: string): string {
   const idx = src.lastIndexOf('.');

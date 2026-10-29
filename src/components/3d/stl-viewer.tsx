@@ -6,6 +6,9 @@ import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls, useGLTF, useProgress } from '@react-three/drei';
 import { BufferGeometry, Mesh, MeshStandardMaterial, Vector3, Plane } from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
+import { Group, Object3D } from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CAMERA_HOME,
@@ -128,15 +131,44 @@ function useStlMesh(
   };
 }
 
+function useMeshObject(src: string | undefined) {
+  const [state, setState] = React.useState<{ src: string; obj: Object3D | null; error: string | null }>({ src: '', obj: null, error: null });
+  React.useEffect(() => {
+    if (!src) return;
+    let cancelled = false;
+    const ext = src.split('.').pop()?.toLowerCase();
+    const loader = ext === 'obj' ? new OBJLoader() : new ThreeMFLoader();
+    loader
+      .loadAsync(src)
+      .then((obj) => {
+        if (cancelled) return;
+        setState({ src, obj, error: null });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setState({ src, obj: null, error: err instanceof Error ? err.message : String(err) });
+      });
+    return () => { cancelled = true; };
+  }, [src]);
+  return {
+    obj: state.src === src ? state.obj : null,
+    error: state.src === src ? state.error : null,
+    loading: Boolean(src) && state.src !== src,
+  };
+}
 function StlViewerCanvas({
   mesh,
   src,
   isGltf,
+  isObjOr3mf,
+  obj,
   bridgeRef,
 }: {
   mesh: Mesh | null;
   src: string;
   isGltf: boolean;
+  isObjOr3mf: boolean;
+  obj: Object3D | null;
   bridgeRef: React.RefObject<ViewerBridge>;
 }) {
   return (
@@ -167,6 +199,8 @@ function StlViewerCanvas({
       <Suspense fallback={null}>
         {isGltf ? (
           <GltfScene src={src} />
+        ) : isObjOr3mf ? (
+          obj ? <primitive object={obj} dispose={null} /> : null
         ) : mesh ? (
           <primitive object={mesh} dispose={null} />
         ) : null}
@@ -186,10 +220,14 @@ export function StlViewer({
   sectionEnabled = false,
   sectionPosition = 0.5,
 }: StlViewerProps) {
-  const bridgeRef = React.useRef<ViewerBridge>({});
-  const { mesh, error, loading } = useStlMesh(src, renderMode, sectionEnabled, sectionPosition);
+  const isObjOr3mf = src ? /\.(obj|3mf)$/i.test(src) : false;
+  const objMesh = useMeshObject(isObjOr3mf ? src : undefined);
+  const { mesh, error: stlError, loading: stlLoading } = useStlMesh(isObjOr3mf ? undefined : src, renderMode, sectionEnabled, sectionPosition);
+  const error = isObjOr3mf ? objMesh.error : stlError;
+  const loading = isObjOr3mf ? objMesh.loading : stlLoading;
   const isGltf = src ? /\.(gltf|glb)$/i.test(src) : false;
   const { active: assetsLoading } = useProgress();
+  const bridgeRef = React.useRef<ViewerBridge>({});
 
   if (!src) {
     const fallback = (
@@ -221,7 +259,7 @@ export function StlViewer({
       ) : isLoading ? (
         <ViewerLoading />
       ) : (
-        <StlViewerCanvas mesh={mesh} src={src} isGltf={isGltf} bridgeRef={bridgeRef} />
+        <StlViewerCanvas mesh={mesh} src={src} isGltf={isGltf} isObjOr3mf={isObjOr3mf} obj={objMesh.obj} bridgeRef={bridgeRef} />
       )}
     </ViewerShell>
   );
