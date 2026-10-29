@@ -29,32 +29,32 @@ const DEFAULT_STATE: PersistedWorkspaceState = {
   result: null,
 };
 
+function loadState(): PersistedWorkspaceState {
+  if (typeof window === 'undefined') return DEFAULT_STATE;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_STATE;
+    const parsed = JSON.parse(raw) as Partial<PersistedWorkspaceState>;
+    return {
+      ...DEFAULT_STATE,
+      ...parsed,
+      dimensions: { ...DEFAULT_STATE.dimensions, ...(parsed.dimensions || {}) },
+      result: parsed.result ?? null,
+    };
+  } catch {
+    return DEFAULT_STATE;
+  }
+}
+
 export function useWorkspacePersistence() {
-  const [state, setState] = useState<PersistedWorkspaceState>(DEFAULT_STATE);
-  const isRestored = useRef(false);
+  const [state, setState] = useState<PersistedWorkspaceState>(loadState);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<PersistedWorkspaceState>;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setState((prev) => ({
-          ...prev,
-          ...parsed,
-          dimensions: { ...prev.dimensions, ...(parsed.dimensions || {}) },
-          result: parsed.result ?? null,
-        }));
-      }
-    } catch {
-      // Ignorer les erreurs de parsing
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-    isRestored.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (!isRestored.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
