@@ -77,30 +77,7 @@ export function ViewerZone({
 
   return (
     <div className="relative flex h-full flex-col">
-      <div className="absolute top-2 right-2 z-50 flex flex-col gap-1">
-        <button
-          type="button"
-          onClick={() => setMeasuring((v) => !v)}
-          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-            measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-          }`}
-        >
-          <Ruler className="h-4 w-4" />
-          Mesurer
-        </button>
-        {measuring && (
-          <select
-            value={measureMode}
-            onChange={(e) => setMeasureMode(e.target.value as MeasureMode)}
-            className="rounded border bg-white px-2 py-1 text-xs shadow"
-          >
-            {Object.entries(MODE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        )}
+      <div className="absolute top-2 right-2 z-50 flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => setMeasuring((v) => !v)}
