@@ -7,6 +7,8 @@ import { useSession } from '@/lib/auth-client';
 import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
+import { generateSuggestions } from '@/lib/ai/suggestions';
+import { SuggestionList } from './SuggestionList';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
 interface AssistantZoneProps {
@@ -22,6 +24,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   >([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [providerId, setProviderId] = useState('groq');
+  const suggestions = result ? generateSuggestions(result) : [];
   const { data: session } = useSession();
   const role = (session?.user as { role?: string })?.role;
   const isAdmin = role === 'ADMIN';
@@ -152,6 +155,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
         ))}
         {result?.search?.candidates?.length ? (
           <div className="mt-2 space-y-2">
+            <SuggestionList suggestions={suggestions} />
             {result.search.candidates.map((c: SearchCandidate) => (
               <CandidateCard key={c.id} candidate={c} isAdmin={isAdmin} />
             ))}
