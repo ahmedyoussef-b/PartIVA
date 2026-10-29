@@ -29,11 +29,11 @@ const DEFAULT_STATE: PersistedWorkspaceState = {
   result: null,
 };
 
-function loadState(): PersistedWorkspaceState {
-  if (typeof window === 'undefined') return DEFAULT_STATE;
+function loadState(): PersistedWorkspaceState | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_STATE;
+    if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PersistedWorkspaceState>;
     return {
       ...DEFAULT_STATE,
@@ -42,19 +42,28 @@ function loadState(): PersistedWorkspaceState {
       result: parsed.result ?? null,
     };
   } catch {
-    return DEFAULT_STATE;
+    return null;
   }
 }
 
 export function useWorkspacePersistence() {
-  const [state, setState] = useState<PersistedWorkspaceState>(loadState);
-  const isFirstRender = useRef(true);
+  const [state, setState] = useState<PersistedWorkspaceState>(DEFAULT_STATE);
+  const isRestored = useRef(false);
 
+  // Restaure l'état depuis localStorage au premier rendu côté client uniquement.
+  // Évite le mismatch d'hydratation Next.js (SSR rend DEFAULT_STATE, client restaure après).
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+    const saved = loadState();
+    if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setState(saved);
     }
+    isRestored.current = true;
+  }, []);
+
+  // Sauvegarde l'état à chaque changement, après la restauration initiale.
+  useEffect(() => {
+    if (!isRestored.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {

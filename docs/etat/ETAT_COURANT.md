@@ -107,14 +107,19 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Aucun commit.
 
 ## E73-A — Sauvegarde locale du workspace (localStorage)
-- `src/lib/hooks/use-workspace-persistence.ts` (nouveau) : hook `useWorkspacePersistence` qui persiste dans `localStorage` (clé `partiva-workspace-state`) : `photos`, `cadFiles`, `dimensions`, `description`, `mode`, `result`. Restaure au montage via `useState(loadState)`, sauvegarde à chaque changement, expose `clearWorkspace()`.
+- `src/lib/hooks/use-workspace-persistence.ts` (nouveau) : hook `useWorkspacePersistence` qui persiste dans `localStorage` (clé `partiva-workspace-state`) : `photos`, `cadFiles`, `dimensions`, `description`, `mode`, `result`. Restaure au montage via `useEffect` côté client, sauvegarde à chaque changement, expose `clearWorkspace()`.
 - `src/components/workspace/WorkspaceClient.tsx` : remplace les `useState` individuels par le hook pour les états persistants. Garde `extractedDimensions`, `status`, `error` en état local. Ajoute `handleClearWorkspace`.
 - `src/components/workspace/IngestZone.tsx` : bouton "Effacer" (icône `Trash2`) dans l'en-tête de la zone Collecte + indicateur "Sauvegardé localement".
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
-- Aucun commit.
+- Commit : `72c4761`.
 
-## E73-A-FIX — Correction de la restauration localStorage après F5
-- `src/lib/hooks/use-workspace-persistence.ts` : correction du bug où l'effet de sauvegarde écrasait `localStorage` avec `DEFAULT_STATE` avant que l'effet de restauration n'ait pu recharger les données. Corrigé en utilisant `useState(loadState)` pour que l'état initial soit directement l'état restauré, et en sautant la sauvegarde au premier rendu via un `isFirstRender` ref.
+## E73-A-FIX — Correction écrasement des données par l'effet de sauvegarde
+- `src/lib/hooks/use-workspace-persistence.ts` : l'effet de sauvegarde écrasait `localStorage` avec `DEFAULT_STATE` avant que l'effet de restauration n'ait pu recharger les données. Corrigé avec `isFirstRender` ref pour sauter la sauvegarde au premier rendu.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+- Commit : `2e490ce`.
+
+## E73-A-FIX2 — Correction hydratation SSR (React #418)
+- `src/lib/hooks/use-workspace-persistence.ts` : `useState(loadState)` lisait `localStorage` dans l'initialiseur, créant un mismatch d'hydratation Next.js (SSR rend `DEFAULT_STATE`, client rend l'état restauré). Corrigé en utilisant `useState(DEFAULT_STATE)` (identique serveur/client) et en restaurant l'état dans un `useEffect` côté client uniquement après le montage.
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
