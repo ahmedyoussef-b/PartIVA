@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { Ruler } from 'lucide-react';
+import { Ruler, Scissors } from 'lucide-react';
 import { CadViewer } from '@/components/3d/cad-viewer';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import type { MeasureMode } from '@/components/workspace/MeasureTool';
@@ -28,10 +28,21 @@ const MODE_LABELS: Record<MeasureMode, string> = {
   diameter: 'Diamètre',
 };
 
+type RenderMode = 'solid' | 'wireframe' | 'xray';
+
+const RENDER_MODE_LABELS: Record<RenderMode, string> = {
+  solid: 'Solide',
+  wireframe: 'Filaire',
+  xray: 'X-Ray',
+};
+
 export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: ViewerZoneProps) {
   const displayUrl = fileUrl || uploadedFileUrl || null;
   const [measuring, setMeasuring] = useState(false);
   const [measureMode, setMeasureMode] = useState<MeasureMode>('distance');
+  const [renderMode, setRenderMode] = useState<RenderMode>('solid');
+  const [sectionEnabled, setSectionEnabled] = useState(false);
+  const [sectionPosition, setSectionPosition] = useState(0.5);
 
   if (!displayUrl) {
     return (
@@ -78,6 +89,40 @@ export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: 
             ))}
           </select>
         )}
+        <select
+          value={renderMode}
+          onChange={(e) => setRenderMode(e.target.value as RenderMode)}
+          className="rounded border bg-white px-2 py-1 text-xs shadow"
+          aria-label="Mode de rendu"
+        >
+          {Object.entries(RENDER_MODE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => setSectionEnabled((v) => !v)}
+          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+            sectionEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+          }`}
+        >
+          <Scissors className="h-4 w-4" />
+          Section
+        </button>
+        {sectionEnabled && (
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={sectionPosition}
+            onChange={(e) => setSectionPosition(Number(e.target.value))}
+            className="w-24"
+            aria-label="Position du plan de coupe"
+          />
+        )}
       </div>
       {isCadFile ? (
         <CadViewer
@@ -86,6 +131,9 @@ export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: 
           height={400}
           measureEnabled={measuring}
           measureMode={measureMode}
+          renderMode={renderMode}
+          sectionEnabled={sectionEnabled}
+          sectionPosition={sectionPosition}
           onDimensionsExtracted={onDimensionsExtracted}
         />
       ) : (
@@ -95,6 +143,9 @@ export function ViewerZone({ fileUrl, uploadedFileUrl, onDimensionsExtracted }: 
           height={400}
           measureEnabled={measuring}
           measureMode={measureMode}
+          renderMode={renderMode}
+          sectionEnabled={sectionEnabled}
+          sectionPosition={sectionPosition}
           onDimensionsExtracted={onDimensionsExtracted}
         />
       )}

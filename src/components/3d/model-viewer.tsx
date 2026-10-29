@@ -19,6 +19,12 @@ interface ModelViewerProps {
   measureEnabled?: boolean;
   /** Mode de mesure : distance, angle ou diamètre */
   measureMode?: MeasureMode;
+  /** Mode de rendu */
+  renderMode?: 'solid' | 'wireframe' | 'xray';
+  /** Active le plan de coupe */
+  sectionEnabled?: boolean;
+  /** Position du plan de coupe (0-1) */
+  sectionPosition?: number;
   /** Callback dimensions extraites */
   onDimensionsExtracted?: (dimensions: {
     length: number;
@@ -63,6 +69,9 @@ export function ModelViewer({
   bare = false,
   measureEnabled = false,
   measureMode = 'distance',
+  renderMode = 'solid',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
   onDimensionsExtracted,
 }: ModelViewerProps) {
   const ext = extensionOf(src);
@@ -96,10 +105,13 @@ export function ModelViewer({
         bare={bare}
         measureEnabled={measureEnabled}
         measureMode={measureMode}
+        renderMode={renderMode}
+        sectionEnabled={sectionEnabled}
+        sectionPosition={sectionPosition}
         onDimensionsExtracted={onDimensionsExtracted}
       />
     );
   }
 
-  return <StlViewer src={src} alt={alt} height={heightToCss(height)} bare={bare} />;
+  return <StlViewer src={src} alt={alt} height={heightToCss(height)} bare={bare} renderMode={renderMode} sectionEnabled={sectionEnabled} sectionPosition={sectionPosition} />;
 }

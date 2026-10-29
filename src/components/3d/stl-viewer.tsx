@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls, useGLTF, useProgress } from '@react-three/drei';
-import { BufferGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { BufferGeometry, Mesh, MeshStandardMaterial, Vector3, Plane } from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -28,6 +28,12 @@ interface StlViewerProps {
   height?: string;
   /** Rend le viewer sans la Card (intégration dans une Card existante) */
   bare?: boolean;
+  /** Mode de rendu */
+  renderMode?: 'solid' | 'wireframe' | 'xray';
+  /** Active le plan de coupe */
+  sectionEnabled?: boolean;
+  /** Position du plan de coupe (0-1) */
+  sectionPosition?: number;
 }
 
 function GltfScene({ src }: { src: string }) {
@@ -39,7 +45,7 @@ function GltfScene({ src }: { src: string }) {
  * Normalise le maillage : centré à l'origine et redimensionné pour tenir dans
  * le viewport quelle que soit l'unité du fichier source (mm, pouces, …).
  */
-function buildNormalizedMesh(geometry: BufferGeometry): Mesh {
+function buildNormalizedMesh(geometry: BufferGeometry, renderMode: 'solid' | 'wireframe' | 'xray' = 'solid', sectionEnabled = false, sectionPosition = 0.5): Mesh {
   geometry.computeBoundingBox();
   const size = new Vector3();
   const center = new Vector3();
@@ -48,10 +54,15 @@ function buildNormalizedMesh(geometry: BufferGeometry): Mesh {
     geometry.boundingBox.getCenter(center);
   }
   const maxDimension = Math.max(size.x, size.y, size.z) || 1;
-  const mesh = new Mesh(
-    geometry,
-    new MeshStandardMaterial({ color: MODEL_COLOR, metalness: 0.15, roughness: 0.45 }),
-  );
+  const material = new MeshStandardMaterial({ color: MODEL_COLOR, metalness: 0.15, roughness: 0.45 });
+  material.wireframe = renderMode === 'wireframe';
+  material.transparent = renderMode === 'xray';
+  material.opacity = renderMode === 'xray' ? 0.3 : 1;
+  material.depthWrite = renderMode !== 'xray';
+  if (sectionEnabled) {
+    material.clippingPlanes = [new Plane(new Vector3(1, 0, 0), -(sectionPosition * size.x))];
+  }
+  const mesh = new Mesh(geometry, material);
   mesh.position.sub(center);
   mesh.scale.setScalar(MODEL_EXTENT / maxDimension);
   return mesh;
@@ -67,7 +78,7 @@ interface StlLoadState {
  * Chargement STL hors du `<Canvas>` : l'état est indexé par `src` pour éviter
  * un rendu transitoire avec le maillage de la source précédente.
  */
-function useStlMesh(src: string | undefined) {
+function useStlMesh(src: string | undefined, renderMode: 'solid' | 'wireframe' | 'xray' = 'solid', sectionEnabled = false, sectionPosition = 0.5) {
   const [state, setState] = React.useState<StlLoadState>({ src: '', mesh: null, error: null });
 
   React.useEffect(() => {
@@ -77,7 +88,7 @@ function useStlMesh(src: string | undefined) {
       .loadAsync(src)
       .then((geometry) => {
         if (cancelled) return;
-        setState({ src, mesh: buildNormalizedMesh(geometry), error: null });
+        setState({ src, mesh: buildNormalizedMesh(geometry, renderMode, sectionEnabled, sectionPosition), error: null });
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -90,7 +101,7 @@ function useStlMesh(src: string | undefined) {
     return () => {
       cancelled = true;
     };
-  }, [src]);
+  }, [src, renderMode, sectionEnabled, sectionPosition]);
 
   return {
     mesh: state.src === src ? state.mesh : null,
@@ -115,7 +126,7 @@ function StlViewerCanvas({
       shadows
       dpr={[1, 2]}
       camera={{ position: CAMERA_HOME, fov: 45 }}
-      gl={{ preserveDrawingBuffer: true, antialias: true }}
+      gl={{ preserveDrawingBuffer: true, antialias: true, localClippingEnabled: true }}
       className="h-full w-full"
     >
       <color attach="background" args={['#f8fafc']} />
@@ -148,9 +159,9 @@ function StlViewerCanvas({
   );
 }
 
-export function StlViewer({ src, alt, height, bare = false }: StlViewerProps) {
+export function StlViewer({ src, alt, height, bare = false, renderMode = 'solid', sectionEnabled = false, sectionPosition = 0.5 }: StlViewerProps) {
   const bridgeRef = React.useRef<ViewerBridge>({});
-  const { mesh, error, loading } = useStlMesh(src);
+  const { mesh, error, loading } = useStlMesh(src, renderMode, sectionEnabled, sectionPosition);
   const isGltf = src ? /\.(gltf|glb)$/i.test(src) : false;
   const { active: assetsLoading } = useProgress();
 

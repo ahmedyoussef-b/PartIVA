@@ -32,6 +32,12 @@ interface CadViewerProps {
   measureEnabled?: boolean;
   /** Mode de mesure : distance, angle ou diamètre */
   measureMode?: MeasureMode;
+  /** Mode de rendu */
+  renderMode?: 'solid' | 'wireframe' | 'xray';
+  /** Active le plan de coupe */
+  sectionEnabled?: boolean;
+  /** Position du plan de coupe (0-1) */
+  sectionPosition?: number;
   /** Callback dimensions extraites */
   onDimensionsExtracted?: (dimensions: {
     length: number;
@@ -249,6 +255,9 @@ export function CadViewer({
   bare = false,
   measureEnabled = false,
   measureMode = 'distance',
+  renderMode = 'solid',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
   onDimensionsExtracted,
 }: CadViewerProps) {
   const bridgeRef = React.useRef<ViewerBridge>({});
@@ -277,7 +286,7 @@ export function CadViewer({
             shadows
             dpr={[1, 2]}
             camera={{ position: CAMERA_HOME, fov: 50 }}
-            gl={{ preserveDrawingBuffer: true, antialias: true }}
+            gl={{ preserveDrawingBuffer: true, antialias: true, localClippingEnabled: true }}
             className="h-full w-full"
           >
             <color attach="background" args={['#f8fafc']} />
@@ -303,6 +312,20 @@ export function CadViewer({
                 side={THREE.DoubleSide}
                 metalness={0.15}
                 roughness={0.45}
+                wireframe={renderMode === 'wireframe'}
+                transparent={renderMode === 'xray'}
+                opacity={renderMode === 'xray' ? 0.3 : 1}
+                depthWrite={renderMode !== 'xray'}
+                clippingPlanes={
+                  sectionEnabled
+                    ? [
+                        new THREE.Plane(
+                          new THREE.Vector3(1, 0, 0),
+                          -(sectionPosition * (geometry.boundingBox?.getSize(new THREE.Vector3()).x ?? MODEL_EXTENT)),
+                        ),
+                      ]
+                    : undefined
+                }
               />
             </mesh>
             <ViewerSceneBridge bridgeRef={bridgeRef} />
