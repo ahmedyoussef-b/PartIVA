@@ -110,6 +110,7 @@ export function WorkspaceClient() {
         <ViewerZone
           fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
           uploadedFileUrl={cadFiles[0] ?? null}
+          candidates={result?.reconstruct?.candidates ?? []}
           onDimensionsExtracted={handleDimensionsExtracted}
         />
       </div>
