@@ -136,7 +136,7 @@ export function ViewerZone({
           Section
         </button>
           </TooltipTrigger>
-          <TooltipContent>Active un plan de coupe pour voir l'intérieur.</TooltipContent>
+          <TooltipContent>Active un plan de coupe pour voir l&apos;intérieur.</TooltipContent>
         </Tooltip>
         {sectionEnabled && (
           <input
