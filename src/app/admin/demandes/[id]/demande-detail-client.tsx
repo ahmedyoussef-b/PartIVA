@@ -19,6 +19,7 @@ import { FR } from '@/i18n/fr';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
 import { useTransition } from 'react';
 import type { RequestStatus, RequestUrgency } from '@/schemas/request';
+import { AnalyzeWorkspacePanel } from './analyze-workspace-panel';
 
 const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
   { value: 'new', label: 'Nouvelle demande' },
@@ -147,6 +148,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                 Bascule Reverse CAO
               </Button>
             </Link>
+            <AnalyzeWorkspacePanel requestId={request.id} />
           </div>
         </div>
       </div>
