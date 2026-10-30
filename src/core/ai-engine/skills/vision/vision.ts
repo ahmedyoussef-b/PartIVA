@@ -96,6 +96,11 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     }
     return { detectedType, confidence, rawResponse: raw, warnings };
   } catch (e) {
-    return { detectedType: null, confidence: 0, rawResponse: '', warnings: [...warnings, String(e)] };
+    return {
+      detectedType: null,
+      confidence: 0,
+      rawResponse: '',
+      warnings: [...warnings, String(e)],
+    };
   }
 }
