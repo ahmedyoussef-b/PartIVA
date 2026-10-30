@@ -3,8 +3,7 @@ import { GroqRequest, GroqResponse, GroqMessage } from './types';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const ACTIVE_FALLBACK_MODEL = 'openai/gpt-oss-120b';
 const envModel = process.env.GROQ_MODEL?.trim();
-const DEFAULT_MODEL =
-  envModel && !envModel.startsWith('llama-') ? envModel : ACTIVE_FALLBACK_MODEL;
+const DEFAULT_MODEL = envModel && !envModel.startsWith('llama-') ? envModel : ACTIVE_FALLBACK_MODEL;
 const GROQ_TIMEOUT_MS = 30_000;
 
 export async function callGroq(
