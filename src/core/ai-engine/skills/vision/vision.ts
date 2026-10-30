@@ -8,7 +8,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       detectedType: null,
       confidence: 0,
       rawResponse: '',
-      warnings: ['no api key or photos'],
+      warnings: [!apiKey ? 'Clé API Groq manquante' : 'Aucune photo transmise'],
     };
   }
   const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
