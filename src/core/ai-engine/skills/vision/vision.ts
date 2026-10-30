@@ -2,6 +2,7 @@ import { VisionInput, VisionResult } from './types';
 
 export async function detectPartType(input: VisionInput): Promise<VisionResult> {
   const apiKey = process.env.GROQ_API_KEY;
+  console.log('GROQ_API_KEY present:', !!apiKey);
   const warnings: string[] = [];
   if (!apiKey || input.photoUrls.length === 0) {
     return {
