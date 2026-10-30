@@ -55,7 +55,11 @@ export function ViewerZone({
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
 
-  if (displayUrl && !isCad(displayUrl) && !/\.(stl|gltf|glb|step|stp|iges|igs|obj|3mf)$/i.test(displayUrl)) {
+  if (
+    displayUrl &&
+    !isCad(displayUrl) &&
+    !/\.(stl|gltf|glb|step|stp|iges|igs|obj|3mf)$/i.test(displayUrl)
+  ) {
     return (
       <div className="flex h-full items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
