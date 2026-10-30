@@ -131,4 +131,17 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Regle ESLint no-restricted-imports ajoutee dans eslint.config.mjs pour interdire next/font/google a l'avenir.
 - Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX10.md.
+- Aucun commit.\
+
+
+## E86-A-FIX11 - Analyse Comparative avec docs/app et Correction Definitive Groq
+
+- Analyse comparative avec docs/app : identification du modele de reference openai/gpt-oss-120b pour Groq (groq-client.ts, config.rs, setup-form.tsx).
+- Cause identifiee de l'erreur 404 : .env contenait GROQ_MODEL=llama-3.3-70b-versatile (decommissionne par Groq le 16 aout 2026), et src/core/ai-engine/skills/vision/vision.ts ciblait qwen/qwen3.6-27b (egalement 404).
+- src/lib/ai/groq-client.ts : aligne sur openai/gpt-oss-120b avec fallback defensif contre les modeles decommissionnes llama-*.
+- src/core/ai-engine/skills/vision/vision.ts : modele de vision mis a jour vers le modele multimodal actif qwen/qwen3.8-27b.
+- .env et .env.example : mise a jour GROQ_MODEL=openai/gpt-oss-120b et GROQ_VISION_MODEL=qwen/qwen3.8-27b.
+- Tests API directs Groq : chat 200 OK, vision 200 OK.
+- Verifications : npm run typecheck EXIT 0, npm run lint -- src/lib/ai EXIT 0, npm run build EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX11.md.
 - Aucun commit.

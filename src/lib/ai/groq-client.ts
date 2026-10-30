@@ -1,7 +1,10 @@
 import { GroqRequest, GroqResponse, GroqMessage } from './types';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+const ACTIVE_FALLBACK_MODEL = 'openai/gpt-oss-120b';
+const envModel = process.env.GROQ_MODEL?.trim();
+const DEFAULT_MODEL =
+  envModel && !envModel.startsWith('llama-') ? envModel : ACTIVE_FALLBACK_MODEL;
 const GROQ_TIMEOUT_MS = 30_000;
 
 export async function callGroq(
@@ -11,9 +14,14 @@ export async function callGroq(
 ): Promise<{ content: string; model: string }> {
   const timeoutMs = options?.timeout ?? GROQ_TIMEOUT_MS;
 
+  const requestedModel = options?.model ?? DEFAULT_MODEL;
+  const effectiveModel = requestedModel.startsWith('llama-')
+    ? ACTIVE_FALLBACK_MODEL
+    : requestedModel;
+
   try {
     const requestBody: GroqRequest = {
-      model: options?.model ?? DEFAULT_MODEL,
+      model: effectiveModel,
       messages,
       temperature: options?.temperature ?? 0.2,
       max_tokens: options?.maxTokens ?? 2048,
