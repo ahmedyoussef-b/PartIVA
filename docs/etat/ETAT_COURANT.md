@@ -187,3 +187,9 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX16.md.
 - Aucun commit.
+## E86-A-FIX17 - Restauration de l upload de photos et CAO (regression E86-A-FIX15/16)
+
+- src/components/workspace/IngestZone.tsx : fallback URL.createObjectURL(file) retabli quand Cloudinary echoue ou est non configure. L utilisateur voit sa photo dans ViewerZone (URL blob locale resoute cote client). Le filtre blob: dans vision.ts empeche l envoi a Groq (pas de fetch failed). Etat de chargement isUploading conserve (bouton desactive pendant l upload).
+- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX17.md.
+- Aucun commit.

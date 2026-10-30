@@ -95,16 +95,15 @@ export function IngestZone({
               urls.push(secureUrl);
             } else {
               console.warn('Cloudinary upload succeeded but no secure_url returned', data);
+              urls.push(URL.createObjectURL(file));
             }
           } catch {
             console.warn('Cloudinary upload failed', file.name);
+            urls.push(URL.createObjectURL(file));
           }
         } else {
-          console.warn(
-            'Cloudinary not configured: cannot upload',
-            file.name,
-            '- image will be skipped for server-side analysis',
-          );
+          console.warn('Cloudinary not configured: using local blob URL fallback', file.name);
+          urls.push(URL.createObjectURL(file));
         }
       }
       if (type === 'photo') {
