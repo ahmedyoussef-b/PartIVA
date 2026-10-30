@@ -87,6 +87,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     });
     if (!res.ok) {
       const t = await res.text();
+      console.error('[Vision] Groq error:', res.status, t);
       return {
         detectedType: null,
         confidence: 0,
