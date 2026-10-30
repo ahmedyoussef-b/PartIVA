@@ -75,10 +75,10 @@ export function IngestZone({
     if (!files) return;
     setIsUploading(true);
     try {
-        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
-        console.log('[Cloudinary] cloudName:', cloudName);
-        console.log('[Cloudinary] uploadPreset:', uploadPreset);
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
+      console.log('[Cloudinary] cloudName:', cloudName);
+      console.log('[Cloudinary] uploadPreset:', uploadPreset);
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i]!;
