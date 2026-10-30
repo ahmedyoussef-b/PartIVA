@@ -4,10 +4,18 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
   const apiKey = process.env.GROQ_API_KEY;
   const warnings: string[] = [];
   if (!apiKey || input.photoUrls.length === 0) {
-    return { detectedType: null, confidence: 0, rawResponse: '', warnings: ['no api key or photos'] };
+    return {
+      detectedType: null,
+      confidence: 0,
+      rawResponse: '',
+      warnings: ['no api key or photos'],
+    };
   }
   const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
-    { type: 'text', text: 'Tu es un expert en pièces mécaniques. Analyse l\'image et identifie le type de pièce (vis, engrenage, roulement, plaque, etc.). Réponds en JSON : { "type": string, "confidence": number }.' },
+    {
+      type: 'text',
+      text: 'Tu es un expert en pièces mécaniques. Analyse l\'image et identifie le type de pièce (vis, engrenage, roulement, plaque, etc.). Réponds en JSON : { "type": string, "confidence": number }.',
+    },
   ];
   for (const url of input.photoUrls.slice(0, 3)) {
     content.push({ type: 'image_url', image_url: { url } });
@@ -26,7 +34,12 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     });
     if (!res.ok) {
       const t = await res.text();
-      return { detectedType: null, confidence: 0, rawResponse: t, warnings: [`groq error ${res.status}`] };
+      return {
+        detectedType: null,
+        confidence: 0,
+        rawResponse: t,
+        warnings: [`groq error ${res.status}`],
+      };
     }
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content ?? '';
