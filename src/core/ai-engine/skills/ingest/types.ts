@@ -22,6 +22,7 @@ export type IngestResult = {
     formats: string[];
     totalSize: number;
     dimensions?: Dimensions;
+    detectedType?: string | null;
   };
   extractedFeatures: string[];
   analysisStatus: 'complete' | 'partial' | 'failed';

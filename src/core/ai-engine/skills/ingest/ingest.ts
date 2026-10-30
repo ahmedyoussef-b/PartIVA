@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { ingestInputSchema, IngestInput, IngestResult } from './types';
+import { detectPartType } from '../vision/vision';
 
 export async function ingestInput(input: IngestInput): Promise<IngestResult> {
   try {
@@ -86,6 +87,18 @@ export async function ingestInput(input: IngestInput): Promise<IngestResult> {
       analysisStatus = 'complete';
     }
 
+    let detectedType: string | null = null;
+    const photoUrls = photos.filter((p): p is string => typeof p === 'string');
+    if (photoUrls.length > 0) {
+      try {
+        const v = await detectPartType({ photoUrls });
+        detectedType = v.detectedType;
+        if (v.warnings.length) warnings.push(...v.warnings);
+      } catch {
+        // fallback silencieux
+      }
+    }
+
     return {
       inputType,
       metadata: {
@@ -93,6 +106,7 @@ export async function ingestInput(input: IngestInput): Promise<IngestResult> {
         formats: uniqueFormats,
         totalSize,
         dimensions,
+        detectedType,
       },
       extractedFeatures,
       analysisStatus,
