@@ -8,7 +8,7 @@ import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
 import { generateSuggestions } from '@/lib/ai/suggestions';
-import { Download } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { exportWorkspaceToPdf } from '@/lib/export/pdf-export';
 import { SuggestionList } from './SuggestionList';
@@ -26,13 +26,15 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
     { role: 'user' | 'assistant'; content: string }[]
   >([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [providerId, setProviderId] = useState('groq');
   async function handleExportPdf() {
     if (!result) return;
     const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
     const dataUrl = canvas ? canvas.toDataURL('image/png') : undefined;
     exportWorkspaceToPdf(result, dataUrl);
   }
-  const [providerId, setProviderId] = useState('groq');
+  const [fiche, setFiche] = useState<string | null>(null);
+  const [ficheLoading, setFicheLoading] = useState(false);
   const suggestions = result ? generateSuggestions(result) : [];
   const { data: session } = useSession();
   const role = (session?.user as { role?: string })?.role;
@@ -134,6 +136,26 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
     });
   }
 
+  async function handleGenerateFiche() {
+    if (!result) return;
+    setFicheLoading(true);
+    setFiche(null);
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `À partir des données d'analyse suivantes, génère une fiche technique descriptive de la pièce (5-10 lignes) : matériau probable, usage, points de vigilance pour l'impression 3D, et suggestions de vérification.\n\nContexte : ${JSON.stringify(result)}`,
+          providerId,
+        }),
+      });
+      const data = await res.json();
+      setFiche(data.reply ?? '');
+    } finally {
+      setFicheLoading(false);
+    }
+  }
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
@@ -155,7 +177,6 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
               type="button"
               disabled={!result}
               onClick={handleExportPdf}
-              title="Exporter le rapport en PDF"
               className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
@@ -164,7 +185,26 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
           </TooltipTrigger>
           <TooltipContent>Génère un rapport PDF des résultats.</TooltipContent>
         </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              disabled={!result || ficheLoading}
+              onClick={handleGenerateFiche}
+              className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
+            >
+              <FileText className="h-4 w-4" />
+              {ficheLoading ? 'Génération...' : 'Fiche technique'}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Génère une fiche technique descriptive via l'IA.</TooltipContent>
+        </Tooltip>
       </div>
+      {fiche && (
+        <div className="mb-2 rounded border bg-blue-50 p-2 text-xs whitespace-pre-wrap">
+          {fiche}
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-gray-400">
