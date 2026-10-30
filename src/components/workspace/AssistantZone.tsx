@@ -136,64 +136,64 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
 
   return (
     <TooltipProvider>
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
-      <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
-      <div className="mb-2 flex items-center gap-2">
-        <select
-          value={providerId}
-          onChange={(e) => setProviderId(e.target.value)}
-          className="rounded border px-2 py-1 text-xs"
-        >
-          {availableProviders.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} ({p.tier === 'free' ? 'Gratuit' : 'Payant'})
-            </option>
-          ))}
-        </select>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              disabled={!result}
-              onClick={handleExportPdf}
-              title="Exporter le rapport en PDF"
-              className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              Exporter en PDF
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Génère un rapport PDF des résultats.</TooltipContent>
-        </Tooltip>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
-        {messages.length === 0 && (
-          <div className="flex h-full items-center justify-center text-gray-400">
-            Posez une question à l'IA ou déposez un fichier pour lancer une analyse.
-          </div>
-        )}
-        {messages.map((m: any) => (
-          <div key={m.id} className="mb-2 whitespace-pre-wrap">
-            {m.content}
-            {m.error ? ` (erreur: ${m.error})` : ''}
-          </div>
-        ))}
-        {result?.search?.candidates?.length ? (
-          <div className="mt-2 space-y-2">
-            <SuggestionList suggestions={suggestions} />
-            {result.search.candidates.map((c: SearchCandidate) => (
-              <CandidateCard key={c.id} candidate={c} isAdmin={isAdmin} />
+      <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
+        <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
+        <div className="mb-2 flex items-center gap-2">
+          <select
+            value={providerId}
+            onChange={(e) => setProviderId(e.target.value)}
+            className="rounded border px-2 py-1 text-xs"
+          >
+            {availableProviders.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.tier === 'free' ? 'Gratuit' : 'Payant'})
+              </option>
             ))}
-          </div>
-        ) : null}
-        {chatMessages.map((m, i) => (
-          <div key={i} className="mb-2 whitespace-pre-wrap">
-            {m.content}
-          </div>
-        ))}
-        <ChatInput onSend={handleSend} isStreaming={isStreaming} />
+          </select>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                disabled={!result}
+                onClick={handleExportPdf}
+                title="Exporter le rapport en PDF"
+                className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
+              >
+                <Download className="h-4 w-4" />
+                Exporter en PDF
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Génère un rapport PDF des résultats.</TooltipContent>
+          </Tooltip>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
+          {messages.length === 0 && (
+            <div className="flex h-full items-center justify-center text-gray-400">
+              Posez une question à l'IA ou déposez un fichier pour lancer une analyse.
+            </div>
+          )}
+          {messages.map((m: any) => (
+            <div key={m.id} className="mb-2 whitespace-pre-wrap">
+              {m.content}
+              {m.error ? ` (erreur: ${m.error})` : ''}
+            </div>
+          ))}
+          {result?.search?.candidates?.length ? (
+            <div className="mt-2 space-y-2">
+              <SuggestionList suggestions={suggestions} />
+              {result.search.candidates.map((c: SearchCandidate) => (
+                <CandidateCard key={c.id} candidate={c} isAdmin={isAdmin} />
+              ))}
+            </div>
+          ) : null}
+          {chatMessages.map((m, i) => (
+            <div key={i} className="mb-2 whitespace-pre-wrap">
+              {m.content}
+            </div>
+          ))}
+          <ChatInput onSend={handleSend} isStreaming={isStreaming} />
+        </div>
       </div>
-    </div>
     </TooltipProvider>
   );
 }

@@ -79,208 +79,208 @@ export function ViewerZone({
 
   return (
     <TooltipProvider>
-    <div className="relative flex h-full flex-col">
-      <div className="absolute top-2 right-2 z-50 flex flex-wrap items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={() => setMeasuring((v) => !v)}
-          title="Mesurer une distance, un angle ou un diamètre"
-          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-            measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-          }`}
-        >
-          <Ruler className="h-4 w-4" />
-          Mesurer
-        </button>
-          </TooltipTrigger>
-          <TooltipContent>Mesure une distance, un angle ou un diamètre.</TooltipContent>
-        </Tooltip>
-        {measuring && (
+      <div className="relative flex h-full flex-col">
+        <div className="absolute top-2 right-2 z-50 flex flex-wrap items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setMeasuring((v) => !v)}
+                title="Mesurer une distance, un angle ou un diamètre"
+                className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                  measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+                }`}
+              >
+                <Ruler className="h-4 w-4" />
+                Mesurer
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Mesure une distance, un angle ou un diamètre.</TooltipContent>
+          </Tooltip>
+          {measuring && (
+            <select
+              value={measureMode}
+              onChange={(e) => setMeasureMode(e.target.value as MeasureMode)}
+              className="rounded border bg-white px-2 py-1 text-xs shadow"
+            >
+              {Object.entries(MODE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          )}
           <select
-            value={measureMode}
-            onChange={(e) => setMeasureMode(e.target.value as MeasureMode)}
+            value={renderMode}
+            onChange={(e) => setRenderMode(e.target.value as RenderMode)}
             className="rounded border bg-white px-2 py-1 text-xs shadow"
+            aria-label="Mode de rendu"
           >
-            {Object.entries(MODE_LABELS).map(([value, label]) => (
+            {Object.entries(RENDER_MODE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
           </select>
-        )}
-        <select
-          value={renderMode}
-          onChange={(e) => setRenderMode(e.target.value as RenderMode)}
-          className="rounded border bg-white px-2 py-1 text-xs shadow"
-          aria-label="Mode de rendu"
-        >
-          {Object.entries(RENDER_MODE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <Tooltip>
-          <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={() => setSectionEnabled((v) => !v)}
-          title="Activer le plan de coupe"
-          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-            sectionEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-          }`}
-        >
-          <Scissors className="h-4 w-4" />
-          Section
-        </button>
-          </TooltipTrigger>
-          <TooltipContent>Active un plan de coupe pour voir l&apos;intérieur.</TooltipContent>
-        </Tooltip>
-        {sectionEnabled && (
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={sectionPosition}
-            onChange={(e) => setSectionPosition(Number(e.target.value))}
-            className="w-24"
-            aria-label="Position du plan de coupe"
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setSectionEnabled((v) => !v)}
+                title="Activer le plan de coupe"
+                className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                  sectionEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+                }`}
+              >
+                <Scissors className="h-4 w-4" />
+                Section
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Active un plan de coupe pour voir l&apos;intérieur.</TooltipContent>
+          </Tooltip>
+          {sectionEnabled && (
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={sectionPosition}
+              onChange={(e) => setSectionPosition(Number(e.target.value))}
+              className="w-24"
+              aria-label="Position du plan de coupe"
+            />
+          )}
+          {displayUrl &&
+            (displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl')) && (
+              <button
+                type="button"
+                onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
+                title="Télécharger le fichier STL pour impression 3D"
+                className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
+              >
+                <Download className="h-4 w-4" />
+                Exporter STL
+              </button>
+            )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setCompareEnabled((v) => !v)}
+                title="Comparer le fichier uploadé avec un candidat"
+                className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                  compareEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+                }`}
+              >
+                <Columns className="h-4 w-4" />
+                Comparer
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Compare le fichier uploadé avec un candidat.</TooltipContent>
+          </Tooltip>
+        </div>
+        {compareEnabled ? (
+          <div className="grid h-full grid-cols-2 gap-2 p-2">
+            <div className="min-h-0">
+              {uploadedFileUrl ? (
+                isCad(uploadedFileUrl) ? (
+                  <CadViewer
+                    src={uploadedFileUrl}
+                    bare
+                    height={400}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                ) : (
+                  <ModelViewer
+                    src={uploadedFileUrl}
+                    bare
+                    height={400}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                )
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                  Aucun fichier uploadé
+                </div>
+              )}
+            </div>
+            <div className="min-h-0">
+              <select
+                value={selectedCandidate?.id ?? ''}
+                onChange={(e) => setSelectedCandidateId(e.target.value)}
+                className="mb-1 w-full rounded border bg-white px-2 py-1 text-xs shadow"
+              >
+                {validCandidates.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.id}
+                  </option>
+                ))}
+              </select>
+              {selectedCandidate?.fileUrl ? (
+                isCad(selectedCandidate.fileUrl) ? (
+                  <CadViewer
+                    src={selectedCandidate.fileUrl}
+                    bare
+                    height={400}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                ) : (
+                  <ModelViewer
+                    src={selectedCandidate.fileUrl}
+                    bare
+                    height={400}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                )
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                  Aucun candidat
+                </div>
+              )}
+            </div>
+          </div>
+        ) : !displayUrl ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
+            <Box className="h-10 w-10 text-gray-300" />
+            <p>
+              Déposez un fichier CAO (STEP, STL) ou sélectionnez un candidat pour visualiser le
+              modèle 3D.
+            </p>
+          </div>
+        ) : isCadFile ? (
+          <CadViewer
+            src={displayUrl}
+            bare
+            height={400}
+            measureEnabled={measuring}
+            measureMode={measureMode}
+            renderMode={renderMode}
+            sectionEnabled={sectionEnabled}
+            sectionPosition={sectionPosition}
+            onDimensionsExtracted={onDimensionsExtracted}
+          />
+        ) : (
+          <ModelViewer
+            src={displayUrl}
+            bare
+            height={400}
+            measureEnabled={measuring}
+            measureMode={measureMode}
+            renderMode={renderMode}
+            sectionEnabled={sectionEnabled}
+            sectionPosition={sectionPosition}
+            onDimensionsExtracted={onDimensionsExtracted}
           />
         )}
-        {displayUrl &&
-          (displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl')) && (
-            <button
-              type="button"
-              onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
-              title="Télécharger le fichier STL pour impression 3D"
-              className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
-            >
-              <Download className="h-4 w-4" />
-              Exporter STL
-            </button>
-          )}
-        <Tooltip>
-          <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={() => setCompareEnabled((v) => !v)}
-          title="Comparer le fichier uploadé avec un candidat"
-          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-            compareEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-          }`}
-        >
-          <Columns className="h-4 w-4" />
-          Comparer
-        </button>
-          </TooltipTrigger>
-          <TooltipContent>Compare le fichier uploadé avec un candidat.</TooltipContent>
-        </Tooltip>
       </div>
-      {compareEnabled ? (
-        <div className="grid h-full grid-cols-2 gap-2 p-2">
-          <div className="min-h-0">
-            {uploadedFileUrl ? (
-              isCad(uploadedFileUrl) ? (
-                <CadViewer
-                  src={uploadedFileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              ) : (
-                <ModelViewer
-                  src={uploadedFileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              )
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                Aucun fichier uploadé
-              </div>
-            )}
-          </div>
-          <div className="min-h-0">
-            <select
-              value={selectedCandidate?.id ?? ''}
-              onChange={(e) => setSelectedCandidateId(e.target.value)}
-              className="mb-1 w-full rounded border bg-white px-2 py-1 text-xs shadow"
-            >
-              {validCandidates.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.id}
-                </option>
-              ))}
-            </select>
-            {selectedCandidate?.fileUrl ? (
-              isCad(selectedCandidate.fileUrl) ? (
-                <CadViewer
-                  src={selectedCandidate.fileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              ) : (
-                <ModelViewer
-                  src={selectedCandidate.fileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              )
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                Aucun candidat
-              </div>
-            )}
-          </div>
-        </div>
-      ) : !displayUrl ? (
-        <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
-          <Box className="h-10 w-10 text-gray-300" />
-          <p>
-            Déposez un fichier CAO (STEP, STL) ou sélectionnez un candidat pour visualiser le modèle
-            3D.
-          </p>
-        </div>
-      ) : isCadFile ? (
-        <CadViewer
-          src={displayUrl}
-          bare
-          height={400}
-          measureEnabled={measuring}
-          measureMode={measureMode}
-          renderMode={renderMode}
-          sectionEnabled={sectionEnabled}
-          sectionPosition={sectionPosition}
-          onDimensionsExtracted={onDimensionsExtracted}
-        />
-      ) : (
-        <ModelViewer
-          src={displayUrl}
-          bare
-          height={400}
-          measureEnabled={measuring}
-          measureMode={measureMode}
-          renderMode={renderMode}
-          sectionEnabled={sectionEnabled}
-          sectionPosition={sectionPosition}
-          onDimensionsExtracted={onDimensionsExtracted}
-        />
-      )}
-    </div>
     </TooltipProvider>
   );
 }
