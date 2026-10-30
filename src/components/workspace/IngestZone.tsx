@@ -51,6 +51,7 @@ export function IngestZone({
   onClearWorkspace,
 }: IngestZoneProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<any[]>([]);
   useEffect(() => {
     fetch('/api/search/history')
@@ -72,42 +73,47 @@ export function IngestZone({
 
   async function simulateUpload(files: FileList | null, type: 'photo' | 'cad') {
     if (!files) return;
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
-    const urls: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]!;
-      if (uploadPreset && cloudName) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', uploadPreset);
-        try {
-          const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-            method: 'POST',
-            body: formData,
-          });
-          const data = await res.json();
-          const secureUrl = data.secure_url;
-          if (secureUrl) {
-            urls.push(secureUrl);
-          } else {
-            console.warn('Cloudinary upload succeeded but no secure_url returned', data);
+    setIsUploading(true);
+    try {
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]!;
+        if (uploadPreset && cloudName) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', uploadPreset);
+          try {
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+              method: 'POST',
+              body: formData,
+            });
+            const data = await res.json();
+            const secureUrl = data.secure_url;
+            if (secureUrl) {
+              urls.push(secureUrl);
+            } else {
+              console.warn('Cloudinary upload succeeded but no secure_url returned', data);
+            }
+          } catch {
+            console.warn('Cloudinary upload failed', file.name);
           }
-        } catch {
-          console.warn('Cloudinary upload failed', file.name);
+        } else {
+          console.warn(
+            'Cloudinary not configured: cannot upload',
+            file.name,
+            '- image will be skipped for server-side analysis',
+          );
         }
-      } else {
-        console.warn(
-          'Cloudinary not configured: cannot upload',
-          file.name,
-          '- image will be skipped for server-side analysis',
-        );
       }
-    }
-    if (type === 'photo') {
-      onPhotosChange([...photos, ...urls]);
-    } else {
-      onCadFilesChange([...cadFiles, ...urls]);
+      if (type === 'photo') {
+        onPhotosChange([...photos, ...urls]);
+      } else {
+        onCadFilesChange([...cadFiles, ...urls]);
+      }
+    } finally {
+      setIsUploading(false);
     }
   }
 
@@ -149,6 +155,7 @@ export function IngestZone({
       />
       <button
         type="button"
+        disabled={isUploading}
         onClick={() => photoInputRef.current?.click()}
         className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
       >
