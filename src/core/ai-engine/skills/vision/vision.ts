@@ -26,7 +26,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: process.env.GROQ_VISION_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.6-27b',
         messages: [{ role: 'user', content }],
         temperature: 0.2,
         max_tokens: 256,
