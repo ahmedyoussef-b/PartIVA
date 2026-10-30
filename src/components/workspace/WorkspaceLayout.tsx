@@ -12,7 +12,9 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
           candidats 3D.
         </p>
       </header>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-3 overflow-hidden">{children}</div>
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-3">
+        {children}
+      </div>
     </div>
   );
 }
