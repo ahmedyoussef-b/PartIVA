@@ -111,7 +111,7 @@ export function WorkspaceClient() {
         <div className="min-h-0 rounded-lg border bg-background">
           <ViewerZone
             fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
-            uploadedFileUrl={cadFiles[0] ?? null}
+            uploadedFileUrl={cadFiles[0] ?? photos[0] ?? null}
             candidates={result?.reconstruct?.candidates ?? []}
             onDimensionsExtracted={handleDimensionsExtracted}
           />
