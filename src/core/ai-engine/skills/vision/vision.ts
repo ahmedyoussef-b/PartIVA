@@ -74,12 +74,14 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     };
   }
   try {
+    const messages = [{ role: 'user', content }];
+    console.log('[Vision] Messages envoyés:', JSON.stringify(messages, null, 2));
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: process.env.GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview',
-        messages: [{ role: 'user', content }],
+        model: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b',
+        messages,
         temperature: 0.2,
         max_tokens: 256,
       }),
