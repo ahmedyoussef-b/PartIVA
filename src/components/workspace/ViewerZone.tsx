@@ -7,6 +7,7 @@ import { ModelViewer } from '@/components/3d/model-viewer';
 import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
 import type { MeasureMode } from '@/components/workspace/MeasureTool';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -77,8 +78,11 @@ export function ViewerZone({
     validCandidates.find((c) => c.id === selectedCandidateId) ?? validCandidates[0] ?? null;
 
   return (
+    <TooltipProvider>
     <div className="relative flex h-full flex-col">
       <div className="absolute top-2 right-2 z-50 flex flex-wrap items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
         <button
           type="button"
           onClick={() => setMeasuring((v) => !v)}
@@ -90,6 +94,9 @@ export function ViewerZone({
           <Ruler className="h-4 w-4" />
           Mesurer
         </button>
+          </TooltipTrigger>
+          <TooltipContent>Mesure une distance, un angle ou un diamètre.</TooltipContent>
+        </Tooltip>
         {measuring && (
           <select
             value={measureMode}
@@ -115,6 +122,8 @@ export function ViewerZone({
             </option>
           ))}
         </select>
+        <Tooltip>
+          <TooltipTrigger asChild>
         <button
           type="button"
           onClick={() => setSectionEnabled((v) => !v)}
@@ -126,6 +135,9 @@ export function ViewerZone({
           <Scissors className="h-4 w-4" />
           Section
         </button>
+          </TooltipTrigger>
+          <TooltipContent>Active un plan de coupe pour voir l'intérieur.</TooltipContent>
+        </Tooltip>
         {sectionEnabled && (
           <input
             type="range"
@@ -150,6 +162,8 @@ export function ViewerZone({
               Exporter STL
             </button>
           )}
+        <Tooltip>
+          <TooltipTrigger asChild>
         <button
           type="button"
           onClick={() => setCompareEnabled((v) => !v)}
@@ -161,6 +175,9 @@ export function ViewerZone({
           <Columns className="h-4 w-4" />
           Comparer
         </button>
+          </TooltipTrigger>
+          <TooltipContent>Compare le fichier uploadé avec un candidat.</TooltipContent>
+        </Tooltip>
       </div>
       {compareEnabled ? (
         <div className="grid h-full grid-cols-2 gap-2 p-2">
@@ -264,5 +281,6 @@ export function ViewerZone({
         />
       )}
     </div>
+    </TooltipProvider>
   );
 }

@@ -9,6 +9,7 @@ import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
 import { generateSuggestions } from '@/lib/ai/suggestions';
 import { Download } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { exportWorkspaceToPdf } from '@/lib/export/pdf-export';
 import { SuggestionList } from './SuggestionList';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
@@ -134,6 +135,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   }
 
   return (
+    <TooltipProvider>
     <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
       <div className="mb-2 flex items-center gap-2">
@@ -148,16 +150,21 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          disabled={!result}
-          onClick={handleExportPdf}
-          title="Exporter le rapport en PDF"
-          className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
-        >
-          <Download className="h-4 w-4" />
-          Exporter en PDF
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              disabled={!result}
+              onClick={handleExportPdf}
+              title="Exporter le rapport en PDF"
+              className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              Exporter en PDF
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Génère un rapport PDF des résultats.</TooltipContent>
+        </Tooltip>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
         {messages.length === 0 && (
@@ -187,5 +194,6 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
         <ChatInput onSend={handleSend} isStreaming={isStreaming} />
       </div>
     </div>
+    </TooltipProvider>
   );
 }

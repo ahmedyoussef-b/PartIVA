@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IngestZoneProps {
   photos: string[];
@@ -102,18 +103,24 @@ export function IngestZone({
   }
 
   return (
+    <TooltipProvider>
     <div className="flex h-full flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-semibold">Collecte</h2>
-        <button
-          type="button"
-          onClick={onClearWorkspace}
-          className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 hover:text-red-600"
-          title="Effacer le workspace"
-        >
-          <Trash2 className="h-3 w-3" />
-          Effacer
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={onClearWorkspace}
+              className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 hover:text-red-600"
+              title="Effacer le workspace"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Réinitialise le workspace (fichiers, dimensions, résultats).</TooltipContent>
+        </Tooltip>
         <span className="ml-auto text-[10px] text-gray-400">Sauvegardé localement</span>
       </div>
       <input
@@ -245,14 +252,20 @@ export function IngestZone({
           <option value="quick">Rapide (quick)</option>
           <option value="deep">Reconstruction (deep)</option>
         </select>
-        <button
-          onClick={onSubmit}
-          disabled={loading}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Analyse en cours...' : 'Analyser'}
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loading ? 'Analyse en cours...' : 'Analyser'}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Lance l'analyse IA sur les fichiers et dimensions fournis.</TooltipContent>
+        </Tooltip>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
