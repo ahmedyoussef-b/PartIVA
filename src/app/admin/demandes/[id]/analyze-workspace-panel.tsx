@@ -12,10 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Loader2, AlertTriangle, Layers, Database } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  analyzeRequestWithEngine,
-  type AnalysisSummaryDTO,
-} from '@/lib/actions/analyze-request';
+import { analyzeRequestWithEngine, type AnalysisSummaryDTO } from '@/lib/actions/analyze-request';
 
 interface AnalyzeWorkspacePanelProps {
   requestId: string;
@@ -67,10 +64,7 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          className="max-w-xl"
-          data-testid="analyze-workspace-dialog"
-        >
+        <DialogContent className="max-w-xl" data-testid="analyze-workspace-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -105,7 +99,9 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
                     <Badge
-                      variant={analysisResult.reconstructStatus === 'success' ? 'default' : 'outline'}
+                      variant={
+                        analysisResult.reconstructStatus === 'success' ? 'default' : 'outline'
+                      }
                       className="text-xs"
                     >
                       {analysisResult.reconstructStatus}
@@ -127,7 +123,7 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
 
               {/* Candidats trouvés */}
               <div className="rounded-lg border p-4">
-                <div className="flex items-center justify-between pb-2 border-b">
+                <div className="flex items-center justify-between border-b pb-2">
                   <div className="flex items-center gap-2">
                     <Layers className="h-4 w-4 text-primary" />
                     <span className="font-semibold text-foreground">
@@ -135,7 +131,7 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
                     </span>
                   </div>
                   {analysisResult.bestCandidate && (
-                    <span className="font-mono text-xs text-primary font-bold">
+                    <span className="font-mono text-xs font-bold text-primary">
                       Score max: {analysisResult.bestCandidate.score}%
                     </span>
                   )}
@@ -170,12 +166,12 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
               </div>
 
               {/* Détails techniques */}
-              <div className="rounded-lg border bg-card p-4 space-y-2 text-xs">
+              <div className="space-y-2 rounded-lg border bg-card p-4 text-xs">
                 <div className="flex items-center gap-2 font-semibold text-foreground">
                   <Database className="h-4 w-4 text-primary" />
                   Détails du pipeline
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-muted-foreground pt-1">
+                <div className="grid grid-cols-2 gap-2 pt-1 text-muted-foreground">
                   <div>
                     Méthode reconstruction :{' '}
                     <span className="font-medium text-foreground">
@@ -185,7 +181,9 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
                   <div>
                     Pièce brouillon créée :{' '}
                     <span className="font-mono text-foreground">
-                      {analysisResult.archivedPartId ? analysisResult.archivedPartId.slice(0, 10) + '…' : 'Non'}
+                      {analysisResult.archivedPartId
+                        ? analysisResult.archivedPartId.slice(0, 10) + '…'
+                        : 'Non'}
                     </span>
                   </div>
                 </div>
@@ -194,11 +192,11 @@ export function AnalyzeWorkspacePanel({ requestId }: AnalyzeWorkspacePanelProps)
               {/* Avertissements éventuels */}
               {analysisResult.warnings.length > 0 && (
                 <div className="rounded-lg border border-amber-500/30 bg-amber-50/50 p-3 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
-                  <div className="flex items-center gap-1.5 font-semibold mb-1">
+                  <div className="mb-1 flex items-center gap-1.5 font-semibold">
                     <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     Avertissements ({analysisResult.warnings.length})
                   </div>
-                  <ul className="list-disc list-inside space-y-0.5 text-[11px] text-muted-foreground">
+                  <ul className="list-inside list-disc space-y-0.5 text-[11px] text-muted-foreground">
                     {analysisResult.warnings.map((w, idx) => (
                       <li key={idx}>{w}</li>
                     ))}

@@ -32,9 +32,7 @@ export type AnalyzeRequestResponse =
       warnings?: string[];
     };
 
-export async function analyzeRequestWithEngine(
-  requestId: string,
-): Promise<AnalyzeRequestResponse> {
+export async function analyzeRequestWithEngine(requestId: string): Promise<AnalyzeRequestResponse> {
   try {
     // 1. Contrôle d'authentification et permissions (ADMIN requis)
     const user = await getCurrentUser();
@@ -56,7 +54,10 @@ export async function analyzeRequestWithEngine(
     const normalizedPhotoUrls: string[] = [];
     if (Array.isArray(request.photos)) {
       for (const item of request.photos) {
-        if (typeof item === 'string' && (item.startsWith('http://') || item.startsWith('https://'))) {
+        if (
+          typeof item === 'string' &&
+          (item.startsWith('http://') || item.startsWith('https://'))
+        ) {
           normalizedPhotoUrls.push(item);
         } else if (
           item &&
@@ -95,8 +96,7 @@ export async function analyzeRequestWithEngine(
         }
       : null;
 
-    const reconstructMethod =
-      engineResult.reconstruct?.candidates?.[0]?.method ?? null;
+    const reconstructMethod = engineResult.reconstruct?.candidates?.[0]?.method ?? null;
 
     const allWarnings: string[] = [
       ...(engineResult.ingest?.warnings || []),

@@ -17,7 +17,10 @@ test.describe('E89-D — Analyse avec le Workspace (Admin)', () => {
       return;
     }
 
-    const isNotFound = await page.getByText('Demande introuvable').isVisible().catch(() => false);
+    const isNotFound = await page
+      .getByText('Demande introuvable')
+      .isVisible()
+      .catch(() => false);
     if (isNotFound) {
       console.warn('[E89-D] Demande introuvable en base distante (fallback actif)');
       await expect(page.getByText('Demande introuvable')).toBeVisible();
@@ -43,7 +46,10 @@ test.describe('E89-D — Analyse avec le Workspace (Admin)', () => {
       return;
     }
 
-    const isNotFound = await page.getByText('Demande introuvable').isVisible().catch(() => false);
+    const isNotFound = await page
+      .getByText('Demande introuvable')
+      .isVisible()
+      .catch(() => false);
     if (isNotFound) {
       console.warn('[E89-D] Demande introuvable en base distante (fallback actif)');
       await expect(page.getByText('Demande introuvable')).toBeVisible();
