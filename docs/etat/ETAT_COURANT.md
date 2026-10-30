@@ -123,3 +123,12 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
+
+## E86-A-FIX10 - Correction du build (polices locales)
+
+- src/app/layout.tsx : remplacement des imports next/font/google (Inter, Poppins, Fira_Code) par next/font/local via src/app/fonts/index.
+- Polices telechargees et hebergees localement dans src/app/fonts/ : 10 fichiers .woff2 (Inter 300/400/500/600/700, Poppins 400/500/600/700, Fira Code 400 couvrant 400/500/600), tous magic wOF2 valides.
+- Regle ESLint no-restricted-imports ajoutee dans eslint.config.mjs pour interdire next/font/google a l'avenir.
+- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX10.md.
+- Aucun commit.

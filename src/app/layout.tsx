@@ -1,30 +1,9 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter, Poppins, Fira_Code } from 'next/font/google';
+import { inter, poppins, firaCode } from '@/app/fonts/index';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/sonner';
 import { RegisterSW } from '@/components/pwa/register-sw';
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-heading',
-  display: 'swap',
-});
-
-const firaCode = Fira_Code({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'Atelier Pièces Industrielles — Fabrication Plastique à la demande',

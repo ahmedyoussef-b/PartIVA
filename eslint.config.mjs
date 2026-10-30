@@ -96,6 +96,25 @@ const config = [
       'react-hooks/set-state-in-effect': 'off',
     },
   },
+
+  // E86-A-FIX10 — interdit l'import de next/font/google : il télécharge les
+  // polices depuis Google au moment du build, instable avec Turbopack.
+  // Les polices doivent être importées depuis '@/app/fonts/index' (next/font/local).
+  {
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['next/font/google'],
+              message: "L'import 'next/font/google' est interdit : il télécharge les polices depuis Google au moment du build (instable avec Turbopack). Utilisez 'next/font/local' via '@/app/fonts/index'.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 export default config;
