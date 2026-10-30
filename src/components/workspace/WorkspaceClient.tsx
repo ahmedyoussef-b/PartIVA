@@ -90,8 +90,8 @@ export function WorkspaceClient() {
   return (
     <TooltipProvider>
       <WorkspaceLayout>
-        <div className="min-h-0 rounded-lg border bg-background">
-          <IngestZone
+      <div className="min-h-0 overflow-y-auto rounded-lg border bg-background">
+        <IngestZone
             photos={photos}
             cadFiles={cadFiles}
             onPhotosChange={setPhotos}
@@ -108,16 +108,16 @@ export function WorkspaceClient() {
             onClearWorkspace={handleClearWorkspace}
           />
         </div>
-        <div className="min-h-0 rounded-lg border bg-background">
-          <ViewerZone
+      <div className="min-h-0 flex flex-col rounded-lg border bg-background">
+        <ViewerZone
             fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
             uploadedFileUrl={cadFiles[0] ?? photos[0] ?? null}
             candidates={result?.reconstruct?.candidates ?? []}
             onDimensionsExtracted={handleDimensionsExtracted}
           />
         </div>
-        <div className="min-h-0 rounded-lg border bg-background">
-          <AssistantZone result={result} status={status} error={error} />
+      <div className="min-h-0 flex flex-col rounded-lg border bg-background">
+        <AssistantZone result={result} status={status} error={error} />
         </div>
       </WorkspaceLayout>
     </TooltipProvider>
