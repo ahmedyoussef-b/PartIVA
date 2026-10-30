@@ -11,6 +11,7 @@ import { generateSuggestions } from '@/lib/ai/suggestions';
 import { Download, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { exportWorkspaceToPdf } from '@/lib/export/pdf-export';
+import { recommendMaterial } from '@/lib/ai/material-recommendation';
 import { SuggestionList } from './SuggestionList';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
 
@@ -35,6 +36,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   }
   const [fiche, setFiche] = useState<string | null>(null);
   const [ficheLoading, setFicheLoading] = useState(false);
+  const materialRecs = result ? recommendMaterial(result.ingest) : [];
   const suggestions = result ? generateSuggestions(result) : [];
   const { data: session } = useSession();
   const role = (session?.user as { role?: string })?.role;
@@ -220,6 +222,18 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
         {result?.search?.candidates?.length ? (
           <div className="mt-2 space-y-2">
             <SuggestionList suggestions={suggestions} />
+            {materialRecs.length > 0 && (
+              <div className="rounded border bg-emerald-50 p-2 text-xs">
+                <p className="font-semibold text-emerald-800">Matériaux recommandés</p>
+                <ul className="mt-1 space-y-1">
+                  {materialRecs.map((m) => (
+                    <li key={m.name} className="text-emerald-900">
+                      {m.name} — {m.reason} ({Math.round(m.confidence * 100)}%)
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {result.search.candidates.map((c: SearchCandidate) => (
               <CandidateCard key={c.id} candidate={c} isAdmin={isAdmin} />
             ))}
