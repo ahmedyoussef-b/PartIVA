@@ -55,6 +55,14 @@ export function ViewerZone({
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
 
+  if (displayUrl && /\.(png|jpe?g|gif|webp)$/i.test(displayUrl)) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={displayUrl} alt="preview" className="max-h-full max-w-full object-contain" />
+      </div>
+    );
+  }
   if (!displayUrl) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
