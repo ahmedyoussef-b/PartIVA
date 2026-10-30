@@ -1,4 +1,4 @@
-ï»¿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Ruler, Scissors, Columns, Download, Box } from 'lucide-react';
@@ -7,7 +7,7 @@ import { ModelViewer } from '@/components/3d/model-viewer';
 import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
 import type { MeasureMode } from '@/components/workspace/MeasureTool';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -29,7 +29,7 @@ function isCad(url: string) {
 const MODE_LABELS: Record<MeasureMode, string> = {
   distance: 'Distance',
   angle: 'Angle',
-  diameter: 'DiamÃ¨tre',
+  diameter: 'Diamètre',
 };
 
 type RenderMode = 'solid' | 'wireframe' | 'xray';
@@ -67,7 +67,7 @@ export function ViewerZone({
         >
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
         </svg>
-        <p>Aucun modÃ¨le 3D chargÃ©. DÃ©posez un fichier STEP ou STL pour commencer.</p>
+        <p>Aucun modèle 3D chargé. Déposez un fichier STEP ou STL pour commencer.</p>
       </div>
     );
   }
@@ -78,15 +78,14 @@ export function ViewerZone({
     validCandidates.find((c) => c.id === selectedCandidateId) ?? validCandidates[0] ?? null;
 
   return (
-    <TooltipProvider>
-      <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
         <div className="absolute top-2 right-2 z-50 flex flex-wrap items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 type="button"
                 onClick={() => setMeasuring((v) => !v)}
-                title="Mesurer une distance, un angle ou un diamÃ¨tre"
+                title="Mesurer une distance, un angle ou un diamètre"
                 className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
                   measuring ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
                 }`}
@@ -95,7 +94,7 @@ export function ViewerZone({
                 Mesurer
               </button>
             </TooltipTrigger>
-            <TooltipContent>Mesure une distance, un angle ou un diamÃ¨tre.</TooltipContent>
+            <TooltipContent>Mesure une distance, un angle ou un diamètre.</TooltipContent>
           </Tooltip>
           {measuring && (
             <select
@@ -136,7 +135,7 @@ export function ViewerZone({
                 Section
               </button>
             </TooltipTrigger>
-            <TooltipContent>Active un plan de coupe pour voir l&apos;intÃ©rieur.</TooltipContent>
+            <TooltipContent>Active un plan de coupe pour voir l&apos;intérieur.</TooltipContent>
           </Tooltip>
           {sectionEnabled && (
             <input
@@ -155,7 +154,7 @@ export function ViewerZone({
               <button
                 type="button"
                 onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
-                title="TÃ©lÃ©charger le fichier STL pour impression 3D"
+                title="Télécharger le fichier STL pour impression 3D"
                 className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
               >
                 <Download className="h-4 w-4" />
@@ -167,7 +166,7 @@ export function ViewerZone({
               <button
                 type="button"
                 onClick={() => setCompareEnabled((v) => !v)}
-                title="Comparer le fichier uploadÃ© avec un candidat"
+                title="Comparer le fichier uploadé avec un candidat"
                 className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
                   compareEnabled ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
                 }`}
@@ -176,7 +175,7 @@ export function ViewerZone({
                 Comparer
               </button>
             </TooltipTrigger>
-            <TooltipContent>Compare le fichier uploadÃ© avec un candidat.</TooltipContent>
+            <TooltipContent>Compare le fichier uploadé avec un candidat.</TooltipContent>
           </Tooltip>
         </div>
         {compareEnabled ? (
@@ -204,7 +203,7 @@ export function ViewerZone({
                 )
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                  Aucun fichier uploadÃ©
+                  Aucun fichier uploadé
                 </div>
               )}
             </div>
@@ -251,8 +250,8 @@ export function ViewerZone({
           <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
             <Box className="h-10 w-10 text-gray-300" />
             <p>
-              DÃ©posez un fichier CAO (STEP, STL) ou sÃ©lectionnez un candidat pour visualiser le
-              modÃ¨le 3D.
+              Déposez un fichier CAO (STEP, STL) ou sélectionnez un candidat pour visualiser le
+              modèle 3D.
             </p>
           </div>
         ) : isCadFile ? (
@@ -281,6 +280,5 @@ export function ViewerZone({
           />
         )}
       </div>
-    </TooltipProvider>
   );
 }

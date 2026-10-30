@@ -9,7 +9,7 @@ import { ChatInput } from './ChatInput';
 import { CandidateCard } from './CandidateCard';
 import { generateSuggestions } from '@/lib/ai/suggestions';
 import { Download } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { exportWorkspaceToPdf } from '@/lib/export/pdf-export';
 import { SuggestionList } from './SuggestionList';
 import type { SearchCandidate } from '@/core/ai-engine/skills/search/types';
@@ -135,8 +135,7 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   }
 
   return (
-    <TooltipProvider>
-      <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm">
         <h2 className="mb-2 text-lg font-semibold">Assistant IA</h2>
         <div className="mb-2 flex items-center gap-2">
           <select
@@ -194,6 +193,5 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
           <ChatInput onSend={handleSend} isStreaming={isStreaming} />
         </div>
       </div>
-    </TooltipProvider>
   );
 }

@@ -7,6 +7,7 @@ import { ViewerZone } from './ViewerZone';
 import { AssistantZone } from './AssistantZone';
 import type { EngineResult } from '@/core/ai-engine/engine';
 import { useWorkspacePersistence } from '@/lib/hooks/use-workspace-persistence';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export function WorkspaceClient() {
   const {
@@ -87,6 +88,7 @@ export function WorkspaceClient() {
   }
 
   return (
+    <TooltipProvider>
     <WorkspaceLayout>
       <div className="min-h-0 rounded-lg border bg-background">
         <IngestZone
@@ -118,5 +120,6 @@ export function WorkspaceClient() {
         <AssistantZone result={result} status={status} error={error} />
       </div>
     </WorkspaceLayout>
+    </TooltipProvider>
   );
 }

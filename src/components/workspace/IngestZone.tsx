@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IngestZoneProps {
   photos: string[];
@@ -103,8 +103,7 @@ export function IngestZone({
   }
 
   return (
-    <TooltipProvider>
-      <div className="flex h-full flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm">
+    <div className="flex h-full flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Collecte</h2>
           <Tooltip>
@@ -273,6 +272,5 @@ export function IngestZone({
           </Tooltip>
         </div>
       </div>
-    </TooltipProvider>
   );
 }
