@@ -145,3 +145,12 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Verifications : npm run typecheck EXIT 0, npm run lint -- src/lib/ai EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX11.md.
 - Aucun commit.
+
+## E86-A-FIX12 - Correction de l'erreur 400 vision (analyse d'image Groq)
+
+- src/core/ai-engine/skills/vision/vision.ts : modele de vision passe de qwen/qwen3.8-27b (erreur 400 sur les images) a meta-llama/llama-4-scout-17b-16e-instruct (modele vision confirme sur Groq).
+- .env.example : GROQ_VISION_MODEL mis a jour vers meta-llama/llama-4-scout-17b-16e-instruct.
+- Format de requete OpenAI-compatible { type: 'image_url', image_url: { url } } conserve (conforme).
+- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX12.md.
+- Aucun commit.
