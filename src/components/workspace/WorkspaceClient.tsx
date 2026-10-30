@@ -89,37 +89,37 @@ export function WorkspaceClient() {
 
   return (
     <TooltipProvider>
-    <WorkspaceLayout>
-      <div className="min-h-0 rounded-lg border bg-background">
-        <IngestZone
-          photos={photos}
-          cadFiles={cadFiles}
-          onPhotosChange={setPhotos}
-          onCadFilesChange={setCadFiles}
-          dimensions={dimensions}
-          onDimensionsChange={setDimensions}
-          extractedDimensions={extractedDimensions}
-          description={description}
-          onDescriptionChange={setDescription}
-          mode={mode}
-          onModeChange={setMode}
-          onSubmit={handleSubmit}
-          loading={status === 'loading'}
-          onClearWorkspace={handleClearWorkspace}
-        />
-      </div>
-      <div className="min-h-0 rounded-lg border bg-background">
-        <ViewerZone
-          fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
-          uploadedFileUrl={cadFiles[0] ?? null}
-          candidates={result?.reconstruct?.candidates ?? []}
-          onDimensionsExtracted={handleDimensionsExtracted}
-        />
-      </div>
-      <div className="min-h-0 rounded-lg border bg-background">
-        <AssistantZone result={result} status={status} error={error} />
-      </div>
-    </WorkspaceLayout>
+      <WorkspaceLayout>
+        <div className="min-h-0 rounded-lg border bg-background">
+          <IngestZone
+            photos={photos}
+            cadFiles={cadFiles}
+            onPhotosChange={setPhotos}
+            onCadFilesChange={setCadFiles}
+            dimensions={dimensions}
+            onDimensionsChange={setDimensions}
+            extractedDimensions={extractedDimensions}
+            description={description}
+            onDescriptionChange={setDescription}
+            mode={mode}
+            onModeChange={setMode}
+            onSubmit={handleSubmit}
+            loading={status === 'loading'}
+            onClearWorkspace={handleClearWorkspace}
+          />
+        </div>
+        <div className="min-h-0 rounded-lg border bg-background">
+          <ViewerZone
+            fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
+            uploadedFileUrl={cadFiles[0] ?? null}
+            candidates={result?.reconstruct?.candidates ?? []}
+            onDimensionsExtracted={handleDimensionsExtracted}
+          />
+        </div>
+        <div className="min-h-0 rounded-lg border bg-background">
+          <AssistantZone result={result} status={status} error={error} />
+        </div>
+      </WorkspaceLayout>
     </TooltipProvider>
   );
 }
