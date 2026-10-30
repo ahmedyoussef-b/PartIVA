@@ -193,3 +193,4 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX17.md.
 - Aucun commit.
+- E86-A-FIX18: upload Cloudinary photos implémenté (IngestZone.tsx).

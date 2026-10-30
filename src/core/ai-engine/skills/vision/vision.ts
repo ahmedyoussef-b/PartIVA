@@ -35,6 +35,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       warnings: [!apiKey ? 'Clé API Groq manquante' : 'Aucune photo transmise'],
     };
   }
+  console.log('URLs reçues par vision:', input.photoUrls);
   const validUrls = input.photoUrls.filter((u) => u.startsWith('https://'));
   const blobUrls = input.photoUrls.filter((u) => u.startsWith('blob:'));
   if (blobUrls.length) {

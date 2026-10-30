@@ -92,6 +92,7 @@ export function IngestZone({
             const data = await res.json();
             const secureUrl = data.secure_url;
             if (secureUrl) {
+              console.log('URL uploadée:', secureUrl);
               urls.push(secureUrl);
             } else {
               console.warn('Cloudinary upload succeeded but no secure_url returned', data);
