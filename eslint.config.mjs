@@ -108,7 +108,8 @@ const config = [
           patterns: [
             {
               group: ['next/font/google'],
-              message: "L'import 'next/font/google' est interdit : il télécharge les polices depuis Google au moment du build (instable avec Turbopack). Utilisez 'next/font/local' via '@/app/fonts/index'.",
+              message:
+                "L'import 'next/font/google' est interdit : il télécharge les polices depuis Google au moment du build (instable avec Turbopack). Utilisez 'next/font/local' via '@/app/fonts/index'.",
             },
           ],
         },
