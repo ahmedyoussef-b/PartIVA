@@ -172,3 +172,10 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX14.md.
 - Aucun commit.
+## E86-A-FIX15 - Upload Cloudinary des photos avant analyse (erreur fetch failed sur URL blob)
+
+- src/components/workspace/IngestZone.tsx : simulateUpload ne pousse plus d'URL blob: (URL.createObjectURL). Seule l'URL Cloudinary publique (secure_url) est ajoutee a l'etat photos. En cas d'echec d'upload ou d'absence de config Cloudinary, un console.warn est emis et l'image est ignoree (pas d'URL locale temporaire inaccessible cote serveur).
+- src/core/ai-engine/skills/vision/vision.ts : filtre des URLs photo (https:// uniquement, ignore les URLs blob: avec warning explicite). Si aucune image publique valide : detectedType: null + warning.
+- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX15.md.
+- Aucun commit.

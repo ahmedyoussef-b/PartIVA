@@ -87,12 +87,21 @@ export function IngestZone({
             body: formData,
           });
           const data = await res.json();
-          urls.push(data.secure_url ?? URL.createObjectURL(file));
+          const secureUrl = data.secure_url;
+          if (secureUrl) {
+            urls.push(secureUrl);
+          } else {
+            console.warn('Cloudinary upload succeeded but no secure_url returned', data);
+          }
         } catch {
-          urls.push(URL.createObjectURL(file));
+          console.warn('Cloudinary upload failed', file.name);
         }
       } else {
-        urls.push(URL.createObjectURL(file));
+        console.warn(
+          'Cloudinary not configured: cannot upload',
+          file.name,
+          '- image will be skipped for server-side analysis',
+        );
       }
     }
     if (type === 'photo') {

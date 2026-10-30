@@ -35,13 +35,26 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       warnings: [!apiKey ? 'Clé API Groq manquante' : 'Aucune photo transmise'],
     };
   }
+  const validUrls = input.photoUrls.filter((u) => u.startsWith('https://'));
+  const blobUrls = input.photoUrls.filter((u) => u.startsWith('blob:'));
+  if (blobUrls.length) {
+    warnings.push(`${blobUrls.length} image(s) ignoree(s): URL blob non accessible cote serveur`);
+  }
+  if (validUrls.length === 0) {
+    return {
+      detectedType: null,
+      confidence: 0,
+      rawResponse: '',
+      warnings: [...warnings, 'Aucune image publique valide pour l analyse'],
+    };
+  }
   const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
     {
       type: 'text',
       text: 'Tu es un expert en pièces mécaniques. Analyse l\'image et identifie le type de pièce (vis, engrenage, roulement, plaque, etc.). Réponds en JSON : { "type": string, "confidence": number }.',
     },
   ];
-  for (const url of input.photoUrls.slice(0, 3)) {
+  for (const url of validUrls.slice(0, 3)) {
     const loaded = await loadImageAsBase64(url);
     if (loaded?.warning) {
       warnings.push(loaded.warning);
