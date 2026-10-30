@@ -1,5 +1,28 @@
 import { VisionInput, VisionResult } from './types';
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+async function loadImageAsBase64(url: string): Promise<{ url: string; warning?: string } | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) {
+      return { url, warning: `Image inaccessible (${res.status}): ${url}` };
+    }
+    const contentType = res.headers.get('content-type') ?? 'image/jpeg';
+    const arrayBuffer = await res.arrayBuffer();
+    if (arrayBuffer.byteLength > MAX_IMAGE_BYTES) {
+      return {
+        url,
+        warning: `Image trop volumineuse (${Math.round(arrayBuffer.byteLength / 1024 / 1024)} Mo > 5 Mo): ${url}`,
+      };
+    }
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    return { url: `data:${contentType};base64,${base64}` };
+  } catch (e) {
+    return { url, warning: `Echec de chargement de l'image: ${url} (${String(e)})` };
+  }
+}
+
 export async function detectPartType(input: VisionInput): Promise<VisionResult> {
   const apiKey = process.env.GROQ_API_KEY;
   console.log('GROQ_API_KEY present:', !!apiKey);
@@ -19,7 +42,22 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     },
   ];
   for (const url of input.photoUrls.slice(0, 3)) {
-    content.push({ type: 'image_url', image_url: { url } });
+    const loaded = await loadImageAsBase64(url);
+    if (loaded?.warning) {
+      warnings.push(loaded.warning);
+      continue;
+    }
+    if (loaded) {
+      content.push({ type: 'image_url', image_url: { url: loaded.url } });
+    }
+  }
+  if (content.length === 1) {
+    return {
+      detectedType: null,
+      confidence: 0,
+      rawResponse: '',
+      warnings: [...warnings, 'Aucune image valide pour l analyse'],
+    };
   }
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -39,7 +77,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
         detectedType: null,
         confidence: 0,
         rawResponse: t,
-        warnings: [`groq error ${res.status}`],
+        warnings: [...warnings, `groq error ${res.status}`],
       };
     }
     const data = await res.json();
@@ -58,6 +96,6 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     }
     return { detectedType, confidence, rawResponse: raw, warnings };
   } catch (e) {
-    return { detectedType: null, confidence: 0, rawResponse: '', warnings: [String(e)] };
+    return { detectedType: null, confidence: 0, rawResponse: '', warnings: [...warnings, String(e)] };
   }
 }

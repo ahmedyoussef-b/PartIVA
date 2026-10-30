@@ -154,3 +154,21 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX12.md.
 - Aucun commit.
+## E86-A-FIX13 - Verification du format vision Groq
+
+- src/core/ai-engine/skills/vision/vision.ts : aucun message system envoye (pas de tableau a convertir en chaine), message user bien forme (tableau de blocs text + image_url, format OpenAI-compatible).
+- Nombre d'images limite a 3 (slice(0, 3)) sous la limite Groq de 5 images par requete.
+- Modele vision deja corrige en E86-A-FIX12 : meta-llama/llama-4-scout-17b-16e-instruct.
+- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX13.md.
+- Aucun commit.
+## E86-A-FIX14 - Passage des images en base64 pour Groq Vision
+
+- src/core/ai-engine/skills/vision/vision.ts : les URLs Cloudinary ne sont plus passees directement a Groq (timeout cote Groq sur les images volumineuses -> erreur 400). Chaque image est telechargee cote serveur, convertie en base64 (data:image/...;base64,...) et envoyee en inline.
+- Limite de taille : 5 Mo max par image (MAX_IMAGE_BYTES).
+- Gestion d'erreur par image : les images inaccessibles/trop grosses/erreurs de telechargement sont ignorees avec un warning explicite, sans bloquer les autres.
+- Si aucune image valide : VisionResult avec detectedType: null et warning explicite.
+- Modele vision : meta-llama/llama-4-scout-17b-16e-instruct (E86-A-FIX12).
+- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX14.md.
+- Aucun commit.
