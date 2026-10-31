@@ -10,6 +10,7 @@ export type ArchiveInput = {
   searchResult: SearchResult;
   reconstructResult: ReconstructResult;
   userId?: string;
+  analysisData?: unknown;
 };
 
 export type ArchiveResult = {
@@ -23,4 +24,5 @@ export const archiveInputSchema = z.object({
   searchResult: z.any(),
   reconstructResult: z.any(),
   userId: z.string().optional(),
+  analysisData: z.any().optional(),
 });

@@ -2,34 +2,18 @@
 import { ArchiveInput, ArchiveResult } from './types';
 import { validateArchive } from './validate';
 
-const getPrisma = async () => {
-  try {
-    const mod = await import('@/lib/prisma');
-    return mod.prisma;
-  } catch {
-    return null;
-  }
-};
+import { prisma } from '@/lib/prisma';
 
 export async function archivePart(input: ArchiveInput): Promise<ArchiveResult> {
   try {
     const validation = validateArchive(input);
     const warnings = [...validation.warnings];
 
-    const prisma = await getPrisma();
-    if (!prisma) {
-      return {
-        archivedPartId: null,
-        archiveStatus: 'failed',
-        warnings: ['prisma_unavailable'],
-      };
-    }
-
     const candidate = input.reconstructResult.candidates[0];
     const partNumber = `AUTO-${Date.now()}`;
 
     try {
-      const part = await (prisma as any).part.create({
+      const part = await prisma.part.create({
         data: {
           partNumber,
           name: input.ingestResult.extractedFeatures.includes('description_provided')
@@ -38,8 +22,9 @@ export async function archivePart(input: ArchiveInput): Promise<ArchiveResult> {
           description: input.ingestResult.metadata.dimensions
             ? `Dimensions: ${JSON.stringify(input.ingestResult.metadata.dimensions)}`
             : undefined,
-          status: validation.isValid ? 'DRAFT' : 'DRAFT',
+          status: 'DRAFT',
           clientId: input.userId || null,
+          analysisData: input.analysisData as any,
         },
       });
 

@@ -65,6 +65,7 @@ export function PartDossier({ part }: PartDossierProps) {
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="historique">Historique</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="analyse">Analyse</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dossier" className="space-y-4">
@@ -139,6 +140,16 @@ export function PartDossier({ part }: PartDossierProps) {
 
           <TabsContent value="images">
             <PartImageGallery images={part.images} partName={part.name} />
+          </TabsContent>
+
+          <TabsContent value="analyse">
+            {part.analysisData ? (
+              <pre className="overflow-auto rounded-md bg-muted p-4 text-xs">
+                {JSON.stringify(part.analysisData, null, 2)}
+              </pre>
+            ) : (
+              <p className="text-sm text-muted-foreground">Aucune analyse disponible pour cette pièce.</p>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

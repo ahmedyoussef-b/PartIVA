@@ -194,3 +194,15 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX17.md.
 - Aucun commit.
 - E86-A-FIX18: upload Cloudinary photos implémenté (IngestZone.tsx).
+
+- E90-0: audit préalable (rapport docs/sessions/rapports/SESSION-2026-10-31-E90-0.md).
+
+- E90-A: schema + types (migration DB échouée P1000, generate OK).
+
+- E90-A1: migration P1000 (DB auth), client généré OK.
+
+- E90-A: db push OK (analysisData column), generate OK, tsc EXIT 0.
+
+- E90-B: persistance archivePart + engine analysisData; tsc/unit OK.
+
+- E90-C: onglet Analyse dans PartDossier; tsc EXIT 0.

@@ -39,6 +39,7 @@ export async function runEngine(
       ingestResult: ingest,
       searchResult: search,
       reconstructResult: reconstruct,
+      analysisData: JSON.parse(JSON.stringify({ ingest, search, reconstruct })),
     });
 
     return {

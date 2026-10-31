@@ -92,6 +92,7 @@ model Part {
   material          String?
   machineId         String?
   printableModelUrl String?
+  analysisData      Json?
   attachments       Attachment[]
   fitReports        FitReport[]
   vehicleFitments   Fitment[]
