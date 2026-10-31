@@ -173,7 +173,7 @@ export function SearchBar() {
     const timer = setTimeout(async () => {
       setPending(true);
       try {
-        const res = await fetch(`/api/search?${params.toString()}`);
+        const res = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
         if (!res.ok) {
           throw new Error(`Erreur ${res.status}`);
         }
@@ -211,6 +211,7 @@ export function SearchBar() {
     isDimensions,
     isMulti,
     hasDimensionBounds,
+    engineMode,
   ]);
 
   // E12-R1d — remise à zéro de la page dès que les critères changent
