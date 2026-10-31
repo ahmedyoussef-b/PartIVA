@@ -165,10 +165,10 @@ export function SearchBar() {
       if (filters.minScore) params.set('minScore', filters.minScore);
       if (sort !== 'relevance') params.set('sort', sort);
       if (offset > 0) params.set('offset', String(offset));
-    if (engineMode) params.set('engine', 'true');
     } else {
       params.set('q', query.trim());
     }
+    if (engineMode) params.set('engine', 'true');
 
     const timer = setTimeout(async () => {
       setPending(true);
