@@ -1,3 +1,4 @@
+import { multiSearch } from '@/lib/data/multi-search';
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
@@ -10,7 +11,9 @@ import {
 } from '@/lib/data/search';
 import { PartSearchQuerySchema, MultiSearchQuerySchema } from '@/schemas/search';
 import { PART_STATUS_VALUES } from '@/lib/search-constants';
-import { multiSearch } from '@/lib/data/multi-search';
+import { searchParts as searchEngineParts } from '@/core/ai-engine/skills/search';
+import { mapEngineResultToSearchResults } from '@/lib/utils/search-mapper';
+import type { IngestResult } from '@/core/ai-engine/skills/ingest/types';
 import { aggregateSearch } from '@/lib/connectors/aggregator';
 import { localDbConnector } from '@/lib/connectors/local-db';
 import { wikidataConnector } from '@/lib/connectors/wikidata';
@@ -84,6 +87,25 @@ export async function GET(req: Request) {
 
     const isUser = session.user.role === 'USER';
     const clientId = isUser ? session.user.id : undefined;
+
+    const engineFlag = searchParams.get('engine');
+    if (engineFlag === 'true') {
+      try {
+        const q = searchParams.get('q') ?? '';
+        const ingestResult: IngestResult = {
+          inputType: 'photo_only',
+          metadata: { fileCount: 0, formats: [], totalSize: 0 },
+          extractedFeatures: q ? [q] : [],
+          analysisStatus: 'partial',
+          warnings: [],
+        };
+        const engineResult = await searchEngineParts({ ingestResult, mode: 'quick', maxResults: 20 });
+        const results = mapEngineResultToSearchResults(engineResult);
+        return NextResponse.json({ mode: 'engine', count: results.length, total: results.length, results });
+      } catch {
+        return NextResponse.json({ error: 'ENGINE_SEARCH_FAILED' }, { status: 500 });
+      }
+    }
 
     if (modeParam === 'multi') {
       const validatedMulti = MultiSearchQuerySchema.parse({
