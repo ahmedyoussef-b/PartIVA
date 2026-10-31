@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, Box, Download, Ruler, Image as ImageIcon } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { getPartById } from '@/lib/data/parts';
+import { getMachines } from '@/lib/data/machines';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import PartImageGallery from '@/components/part-image-gallery';
@@ -10,7 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { MachineRecommendationPanel } from '@/app/admin/pieces/[id]/machine-recommendation-panel';
 import type { UserRole } from '@/generated/prisma/client';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function AdminPieceDetailPage({
   params,
@@ -26,6 +31,7 @@ export default async function AdminPieceDetailPage({
     'VIEWER') as UserRole;
 
   const part = await getPartById(id);
+  const machines = await getMachines();
 
   if (!part) {
     return (
@@ -198,9 +204,12 @@ export default async function AdminPieceDetailPage({
                     </dl>
                   </CardContent>
                 </Card>
-              ) : null}
+               ) : null}
 
-              {part.suppliers.length > 0 ? (
+               <h3 className="text-sm font-semibold">Recommandation de machine</h3>
+               <MachineRecommendationPanel part={part} machines={machines} />
+
+               {part.suppliers.length > 0 ? (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-medium">Fournisseurs</CardTitle>
