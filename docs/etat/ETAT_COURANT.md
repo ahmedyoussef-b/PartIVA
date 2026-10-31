@@ -214,3 +214,7 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - E91-B: route /api/search flag engine; tsc/unit OK.
 
 - E91-C: toggle engine dans SearchBar; tsc/unit OK.
+
+- E92-0: audit reverse engineering (rapport SESSION-2026-10-31-E92-0.md).
+
+- E92-A: Server Action analyzeReverseEngineeringProject; tsc/unit OK.

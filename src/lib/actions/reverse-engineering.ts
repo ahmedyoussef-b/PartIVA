@@ -223,3 +223,41 @@ export async function addCadFile(
     return { success: false, error: "Erreur lors de l'ajout du fichier CAO" };
   }
 }
+
+import { getCurrentUser } from '@/lib/auth-server';
+import { runEngine } from '@/core/ai-engine/engine';
+import type { IngestInput } from '@/core/ai-engine/skills/ingest/types';
+import { getReverseEngineeringProjectById } from '@/lib/data/reverse-engineering';
+export async function analyzeReverseEngineeringProject(projectId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user || (user as any).role !== 'ADMIN') {
+      return { ok: false as const, error: 'UNAUTHORIZED' };
+    }
+    const project = await getReverseEngineeringProjectById(projectId);
+    if (!project) {
+      return { ok: false as const, error: 'PROJECT_NOT_FOUND' };
+    }
+    const cadFiles = (project as any).cadFiles ?? [];
+    const input: IngestInput = {
+      cadFiles: cadFiles.map((f: any) => f.url),
+      description: project.description || project.name,
+    };
+    const result = await runEngine(input, { mode: 'deep' });
+    return {
+      ok: true as const,
+      result: {
+        candidatesCount: result.search.candidates.length,
+        bestCandidate: result.search.candidates[0] ?? null,
+        searchStatus: result.search.searchStatus,
+        reconstructStatus: result.reconstruct.reconstructStatus,
+        reconstructMethod: result.reconstruct.candidates[0]?.method ?? 'unknown',
+        archiveStatus: result.archive.archiveStatus,
+        archivedPartId: result.archive.archivedPartId,
+        warnings: result.archive.warnings,
+      },
+    };
+  } catch (e) {
+    return { ok: false as const, error: String(e) };
+  }
+}
