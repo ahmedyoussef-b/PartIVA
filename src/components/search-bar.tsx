@@ -14,7 +14,7 @@ import { Pagination } from '@/components/search/pagination';
 
 type SearchMode = 'text' | 'reference' | 'specs' | 'dimensions' | 'multi' | 'photo';
 
-interface SearchResultItem {
+export interface SearchResultItem {
   id: string;
   ptvReference: string | null;
   partNumber: string | null;
@@ -22,7 +22,7 @@ interface SearchResultItem {
   description?: string | null;
   status: string;
   rank?: number;
-  matchType?: 'exact' | 'prefix';
+  matchType?: 'exact' | 'prefix' | 'engine';
   matchedSpecs?: { key: string; value: string }[];
   specKey?: string;
   specValue?: string;

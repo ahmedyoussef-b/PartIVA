@@ -206,3 +206,7 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - E90-B: persistance archivePart + engine analysisData; tsc/unit OK.
 
 - E90-C: onglet Analyse dans PartDossier; tsc EXIT 0.
+
+- E91-0: audit recherche (rapport SESSION-2026-10-31-E91-0.md).
+
+- E91-A: mapper search-mapper.ts + type SearchResultItem exporté; tsc OK.
