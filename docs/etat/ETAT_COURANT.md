@@ -212,3 +212,5 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - E91-A: mapper search-mapper.ts + type SearchResultItem exporté; tsc OK.
 
 - E91-B: route /api/search flag engine; tsc/unit OK.
+
+- E91-C: toggle engine dans SearchBar; tsc/unit OK.

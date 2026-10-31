@@ -94,6 +94,7 @@ export function SearchBar() {
   const [facets, setFacets] = React.useState<FacetsResult | null>(null);
   const [facetsLoading, setFacetsLoading] = React.useState(false);
   const [total, setTotal] = React.useState(0);
+  const [engineMode, setEngineMode] = React.useState(false);
   const limit = 20;
 
   // E13-R1 — Sauvegarde de l'état de recherche (sessionStorage)
@@ -164,6 +165,7 @@ export function SearchBar() {
       if (filters.minScore) params.set('minScore', filters.minScore);
       if (sort !== 'relevance') params.set('sort', sort);
       if (offset > 0) params.set('offset', String(offset));
+    if (engineMode) params.set('engine', 'true');
     } else {
       params.set('q', query.trim());
     }
@@ -366,6 +368,14 @@ export function SearchBar() {
 
   return (
     <div className="space-y-4">
+      <label className="flex items-center gap-2 text-xs">
+        <input
+          type="checkbox"
+          checked={engineMode}
+          onChange={(e) => setEngineMode(e.target.checked)}
+        />
+        Moteur d&apos;ingénierie
+      </label>
       <div className="flex gap-2" role="tablist" aria-label="Mode de recherche">
         <button
           type="button"
