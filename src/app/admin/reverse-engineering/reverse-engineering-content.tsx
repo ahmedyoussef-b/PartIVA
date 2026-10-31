@@ -9,6 +9,7 @@ import {
   addREStep,
   updateREStep,
   addCadFile,
+  analyzeReverseEngineeringProject,
 } from '@/lib/actions/reverse-engineering';
 import { toast } from 'sonner';
 import { useTransition } from 'react';
@@ -100,6 +101,9 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
 
   const [stepDialogOpen, setStepDialogOpen] = React.useState(false);
   const [cadDialogOpen, setCadDialogOpen] = React.useState(false);
+  const [analysisOpen, setAnalysisOpen] = React.useState(false);
+  const [analysisResult, setAnalysisResult] = React.useState<any>(null);
+  const [isAnalyzing, startAnalyzing] = React.useTransition();
   const [newStep, setNewStep] = React.useState(EMPTY_STEP);
   const [newCad, setNewCad] = React.useState(EMPTY_CAD);
 
@@ -726,6 +730,25 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
                     Ajouter un fichier CAO
                   </Button>
 
+                  <Button
+                    size="sm"
+                    className="gap-2 text-xs"
+                    disabled={isAnalyzing}
+                    onClick={() => {
+                      startAnalyzing(async () => {
+                        const res = await analyzeReverseEngineeringProject(project.id);
+                        if (res.ok) {
+                          setAnalysisResult(res.result);
+                          setAnalysisOpen(true);
+                        } else {
+                          toast.error(res.error);
+                        }
+                      });
+                    }}
+                  >
+                    {isAnalyzing ? 'Analyse en cours...' : '✨ Analyser avec le Workspace'}
+                  </Button>
+
                   <div className="flex items-center gap-2 rounded-lg border bg-muted/20 p-3 text-xs">
                     <Layers className="h-4 w-4 text-primary" />
                     <div>
@@ -875,6 +898,18 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Résultat de l'analyse</DialogTitle>
+          </DialogHeader>
+          <pre className="max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">
+            {analysisResult ? JSON.stringify(analysisResult, null, 2) : 'Aucun résultat'}
+          </pre>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

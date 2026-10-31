@@ -218,3 +218,5 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - E92-0: audit reverse engineering (rapport SESSION-2026-10-31-E92-0.md).
 
 - E92-A: Server Action analyzeReverseEngineeringProject; tsc/unit OK.
+
+- E92-B: bouton+modale Analyser dans onglet CAD RE; tsc/unit OK.
