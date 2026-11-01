@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, FileText, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import AuthGuard from '@/lib/auth-guard';
 
 function AdminDemandesPageContent() {
@@ -115,11 +116,9 @@ function AdminDemandesPageContent() {
                   color: 'text-muted-foreground',
                 };
                 return (
-                  <div
-                    key={d.id}
-                    className="flex items-start gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/30"
-                  >
-                    <div className="min-w-0 flex-1">
+                  <Link key={d.id} href={`/admin/demandes/${d.id}`} className="block">
+                    <div className="flex items-start gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/30 cursor-pointer">
+                      <div className="min-w-0 flex-1">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="font-mono text-[9px]">
                           {d.id.slice(0, 8)}
@@ -155,6 +154,7 @@ function AdminDemandesPageContent() {
                       </p>
                     </div>
                   </div>
+                  </Link>
                 );
               })}
             </div>

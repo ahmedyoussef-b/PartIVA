@@ -1,5 +1,5 @@
-const CACHE_NAME = 'partiva-v1';
-const PRECACHE = ['/', '/workspace'];
+const CACHE_NAME = 'partiva-v2';
+const PRECACHE = ['/'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -22,28 +22,53 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+function offlineFallback(req) {
+  if (req.mode === 'navigate') {
+    return new Response('<h1>Hors-ligne</h1>', {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' },
+    });
+  }
+  return new Response('', { status: 503, statusText: 'Offline' });
+}
+
+function networkFirst(event) {
+  const req = event.request;
+  event.respondWith(
+    fetch(req).catch(() => caches.match(req).then((r) => r || offlineFallback(req))),
+  );
+}
+
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  if (event.request.method !== 'GET') return;
+  const req = event.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET') return;
+  if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
+
   if (
-    !url.pathname.startsWith('/_next/static/') &&
-    !url.pathname.startsWith('/fonts/') &&
-    !url.pathname.startsWith('/images/')
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/fonts/') ||
+    url.pathname.startsWith('/images/')
   ) {
-    // network-first for pages
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+        return fetch(req)
+          .then((res) => {
+            if (res.ok) {
+              const clone = res.clone();
+              event.waitUntil(
+                caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)),
+              );
+            }
+            return res;
+          })
+          .catch(() => new Response('', { status: 504 }));
+      }),
+    );
     return;
   }
-  event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request).then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return res;
-        }),
-    ),
-  );
+
+  networkFirst(event);
 });

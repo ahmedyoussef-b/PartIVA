@@ -25,6 +25,7 @@ import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-m
 import { FR } from '@/i18n/fr';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import type { RequestStatus, RequestUrgency } from '@/schemas/request';
 
 const STATUS_FILTERS = [
@@ -59,6 +60,7 @@ interface DemandesClientProps {
 }
 
 export default function DemandesClient({ initialRequests }: DemandesClientProps) {
+  const router = useRouter();
   const [search, setSearch] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [isPending, startTransition] = useTransition();
@@ -133,7 +135,18 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
               </TableHeader>
               <TableBody>
                 {filtered.map((req) => (
-                  <TableRow key={req.id} className="hover:bg-muted/30">
+<TableRow
+                  key={req.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  tabIndex={0}
+                  role="link"
+                  onClick={(e) => {
+                    router.push(`/admin/demandes/${req.id}`);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') router.push(`/admin/demandes/${req.id}`);
+                  }}
+                >
                     <TableCell className="font-mono text-xs font-bold text-primary">
                       {req.id.slice(0, 8)}
                     </TableCell>
@@ -148,7 +161,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                          <Button variant="ghost" className="h-8 gap-1 p-2 text-xs" onClick={(e) => e.stopPropagation()}>
                             <Badge
                               variant={req.urgency === 'critical' ? 'critical' : 'outline'}
                               className="text-[10px]"
@@ -176,7 +189,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                          <Button variant="ghost" className="h-8 gap-1 p-2 text-xs" onClick={(e) => e.stopPropagation()}>
                             <Badge variant="secondary" className="text-[10px]">
                               {FR.statuses[req.status]}
                             </Badge>
@@ -200,13 +213,13 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Link href={`/admin/demandes/${req.id}/recherche`}>
+                        <Link href={`/admin/demandes/${req.id}/recherche`} onClick={(e) => e.stopPropagation()}>
                           <Button size="sm" className="h-8 gap-1 text-xs">
                             <Search className="h-3.5 w-3.5" />
                             Recherche
                           </Button>
                         </Link>
-                        <Link href={`/admin/demandes/${req.id}`}>
+                        <Link href={`/admin/demandes/${req.id}`} onClick={(e) => e.stopPropagation()}>
                           <Button size="sm" variant="ghost" className="h-8 text-xs">
                             Détails
                           </Button>

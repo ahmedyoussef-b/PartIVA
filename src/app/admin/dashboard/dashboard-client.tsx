@@ -5,6 +5,7 @@ import { useSyncStore } from '@/lib/stores/sync-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Package, RefreshCw, Search, Activity, Wrench, TrendingUp } from 'lucide-react';
 import { FR } from '@/i18n/fr';
 import { cn, formatDate } from '@/lib/utils';
@@ -50,6 +51,7 @@ interface KpiData {
 }
 
 export default function AdminDashboardClient({ requests, machines }: AdminDashboardClientProps) {
+  const router = useRouter();
   const { lastSyncAt, pendingCount, isSyncing, triggerSync } = useSyncStore();
   const pendingRequests = requests.filter((r) => r.status === 'new' || r.status === 'searching');
 
@@ -163,49 +165,67 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             </Link>
           </div>
 
-          <div className="space-y-2">
+<div className="space-y-2">
             {requests.slice(0, 5).map((req) => (
-              <Card key={req.id} className="transition-colors hover:border-primary/40">
-                <CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-primary">
-                        {req.id.slice(0, 8)}
-                      </span>
-                      <Badge
-                        variant={req.urgency === 'critical' ? 'critical' : 'outline'}
-                        className="text-[10px]"
+              <Link key={req.id} href={`/admin/demandes/${req.id}`} className="block">
+                <Card className="cursor-pointer transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary">
+                  <CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-primary">
+                          {req.id.slice(0, 8)}
+                        </span>
+                        <Badge
+                          variant={req.urgency === 'critical' ? 'critical' : 'outline'}
+                          className="text-[10px]"
+                        >
+                          {FR.urgencies[req.urgency]}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {FR.statuses[req.status]}
+                        </Badge>
+                      </div>
+                      <p className="truncate text-sm font-medium">{req.partDescription}</p>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="truncate">{req.client.company || req.client.name}</span>
+                        <span className="text-border">•</span>
+                        <span className="truncate">{req.suspectedMaterial || 'Non précisée'}</span>
+                        <span className="text-border">•</span>
+                        <span>Qté: {req.quantity}</span>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push(`/admin/demandes/${req.id}/recherche`);
+                        }}
+                        className="inline-flex items-center"
                       >
-                        {FR.urgencies[req.urgency]}
-                      </Badge>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {FR.statuses[req.status]}
-                      </Badge>
+                        <Badge variant="default" className="text-[10px]">
+                          <Search className="h-3.5 w-3.5" />
+                          Recherche
+                        </Badge>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push(`/admin/demandes/${req.id}`);
+                        }}
+                        className="inline-flex items-center"
+                      >
+                        <Badge variant="outline" className="text-[10px]">
+                          Détails
+                        </Badge>
+                      </button>
                     </div>
-                    <p className="truncate text-sm font-medium">{req.partDescription}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="truncate">{req.client.company || req.client.name}</span>
-                      <span className="text-border">•</span>
-                      <span className="truncate">{req.suspectedMaterial || 'Non précisée'}</span>
-                      <span className="text-border">•</span>
-                      <span>Qté: {req.quantity}</span>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Link href={`/admin/demandes/${req.id}/recherche`}>
-                      <Badge variant="default" className="text-[10px]">
-                        <Search className="h-3.5 w-3.5" />
-                        Recherche
-                      </Badge>
-                    </Link>
-                    <Link href={`/admin/demandes/${req.id}`}>
-                      <Badge variant="outline" className="text-[10px]">
-                        Détails
-                      </Badge>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>

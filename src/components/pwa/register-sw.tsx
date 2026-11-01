@@ -7,7 +7,8 @@ export function RegisterSW() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-    // navigator.serviceWorker.register('/sw.js').catch(() => {});
+    if (process.env.NODE_ENV !== 'production') return;
+    navigator.serviceWorker.register('/sw.js').catch((e) => console.warn('[SW] registration failed', e));
     const update = () => setOffline(!navigator.onLine);
     update();
     window.addEventListener('online', update);
