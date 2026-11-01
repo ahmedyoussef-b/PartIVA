@@ -15,27 +15,18 @@ export async function GET() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [pendingCount, qualifyingCount, totalParts, completedLast30, totalClosedLast30] =
+    const [pendingCount, qualifyingCount, totalParts, completedLast30, totalClosedLast30, allParts] =
       await Promise.all([
-        prisma.request.count({
-          where: { status: 'PENDING' },
-        }),
-        prisma.request.count({
-          where: { status: 'REVIEW' },
-        }),
+        prisma.request.count({ where: { status: 'PENDING' } }),
+        prisma.request.count({ where: { status: 'REVIEW' } }),
         prisma.part.count(),
         prisma.request.count({
-          where: {
-            status: 'COMPLETED',
-            updatedAt: { gte: thirtyDaysAgo },
-          },
+          where: { status: 'COMPLETED', updatedAt: { gte: thirtyDaysAgo } },
         }),
         prisma.request.count({
-          where: {
-            status: { in: ['COMPLETED', 'REJECTED'] },
-            updatedAt: { gte: thirtyDaysAgo },
-          },
+          where: { status: { in: ['COMPLETED', 'REJECTED'] }, updatedAt: { gte: thirtyDaysAgo } },
         }),
+        prisma.part.findMany({ select: { partNumber: true, analysisData: true } }),
       ]);
 
     const demandesEnAttente = pendingCount + qualifyingCount;
@@ -47,11 +38,29 @@ export async function GET() {
       tauxSucces = 100;
     }
 
+    const engineAnalysesCount = allParts.filter((p) => p.analysisData != null).length;
+    const engineGeneratedPartsCount = engineAnalysesCount;
+    const totalEngineParts = allParts.filter(
+      (p) => p.partNumber.startsWith('AUTO-') || p.partNumber.startsWith('CAND-'),
+    ).length;
+
+    let engineSuccessRate = 0;
+    if (totalEngineParts > 0) {
+      engineSuccessRate = Number(
+        ((engineGeneratedPartsCount / totalEngineParts) * 100).toFixed(1),
+      );
+    } else if (engineGeneratedPartsCount > 0) {
+      engineSuccessRate = 100;
+    }
+
     return NextResponse.json(
       {
         demandesEnAttente,
         piecesEnBdd: totalParts,
         tauxSucces,
+        engineAnalysesCount,
+        engineGeneratedPartsCount,
+        engineSuccessRate,
         lastUpdated: new Date().toISOString(),
       },
       {
