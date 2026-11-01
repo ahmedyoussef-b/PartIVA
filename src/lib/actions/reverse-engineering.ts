@@ -231,16 +231,16 @@ import { getReverseEngineeringProjectById } from '@/lib/data/reverse-engineering
 export async function analyzeReverseEngineeringProject(projectId: string) {
   try {
     const user = await getCurrentUser();
-    if (!user || (user as any).role !== 'ADMIN') {
+    if (!user || (user as unknown as { role: string }).role !== 'ADMIN') {
       return { ok: false as const, error: 'UNAUTHORIZED' };
     }
     const project = await getReverseEngineeringProjectById(projectId);
     if (!project) {
       return { ok: false as const, error: 'PROJECT_NOT_FOUND' };
     }
-    const cadFiles = (project as any).cadFiles ?? [];
+    const cadFiles = (project as unknown as { cadFiles: any[] }).cadFiles ?? [];
     const input: IngestInput = {
-      cadFiles: cadFiles.map((f: any) => f.url),
+      cadFiles: cadFiles.map((f: { url: string }) => f.url),
       description: project.description || project.name,
     };
     const result = await runEngine(input, { mode: 'deep' });

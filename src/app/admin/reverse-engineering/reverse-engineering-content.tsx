@@ -102,7 +102,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
   const [stepDialogOpen, setStepDialogOpen] = React.useState(false);
   const [cadDialogOpen, setCadDialogOpen] = React.useState(false);
   const [analysisOpen, setAnalysisOpen] = React.useState(false);
-  const [analysisResult, setAnalysisResult] = React.useState<any>(null);
+  const [analysisResult, setAnalysisResult] = React.useState<EMPTY_ANALYSIS_RESULT | null>(null);
   const [isAnalyzing, startAnalyzing] = React.useTransition();
   const [newStep, setNewStep] = React.useState(EMPTY_STEP);
   const [newCad, setNewCad] = React.useState(EMPTY_CAD);
@@ -902,7 +902,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
       <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Résultat de l'analyse</DialogTitle>
+            <DialogTitle>Résultat de lanalyse</DialogTitle>
           </DialogHeader>
           <pre className="max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">
             {analysisResult ? JSON.stringify(analysisResult, null, 2) : 'Aucun résultat'}

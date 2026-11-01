@@ -41,7 +41,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
     );
   }
 
-  const scoreColor = result.score === 'haute' ? 'bg-green-100 text-green-800' : result.score === 'moyenne' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800';
+  
 
   return (
     <div className="mt-4">
