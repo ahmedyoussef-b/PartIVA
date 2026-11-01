@@ -143,7 +143,13 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
         />
         <KpiCard
           title="Taux de succès moteur"
-          value={kpiLoading ? '—' : kpi && (kpi.engineSuccessRate ?? 0) > 0 ? `${kpi.engineSuccessRate}%` : 'N/A'}
+          value={
+            kpiLoading
+              ? '—'
+              : kpi && (kpi.engineSuccessRate ?? 0) > 0
+                ? `${kpi.engineSuccessRate}%`
+                : 'N/A'
+          }
           description="Pièces analysées / générées"
           variant="success"
           icon={TrendingUp}
@@ -165,7 +171,7 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
             </Link>
           </div>
 
-<div className="space-y-2">
+          <div className="space-y-2">
             {requests.slice(0, 5).map((req) => (
               <Link key={req.id} href={`/admin/demandes/${req.id}`} className="block">
                 <Card className="cursor-pointer transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary">
