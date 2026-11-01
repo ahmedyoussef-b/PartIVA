@@ -102,7 +102,7 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
   const [stepDialogOpen, setStepDialogOpen] = React.useState(false);
   const [cadDialogOpen, setCadDialogOpen] = React.useState(false);
   const [analysisOpen, setAnalysisOpen] = React.useState(false);
-  const [analysisResult, setAnalysisResult] = React.useState<EMPTY_ANALYSIS_RESULT | null>(null);
+  const [analysisResult, setAnalysisResult] = React.useState<unknown | null>(null);
   const [isAnalyzing, startAnalyzing] = React.useTransition();
   const [newStep, setNewStep] = React.useState(EMPTY_STEP);
   const [newCad, setNewCad] = React.useState(EMPTY_CAD);

@@ -240,7 +240,7 @@ export async function analyzeReverseEngineeringProject(projectId: string) {
     }
     const cadFiles = (project as unknown as { cadFiles: unknown[] }).cadFiles ?? [];
     const input: IngestInput = {
-      cadFiles: cadFiles.map((f: { url: string }) => f.url),
+      cadFiles: cadFiles.map((f) => (f as { url: string }).url),
       description: project.description || project.name,
     };
     const result = await runEngine(input, { mode: 'deep' });
