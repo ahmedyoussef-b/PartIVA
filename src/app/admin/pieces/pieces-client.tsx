@@ -21,11 +21,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, FileDown, Package } from 'lucide-react';
 import Link from 'next/link';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
+import type { Machine } from '@/generated/prisma/client';
 import type { UserRole } from '@/generated/prisma/browser';
 
 interface PiecesClientProps {
   initialParts: PartWithSerializedSuppliers[];
   actorRole: UserRole;
+  machines: Machine[];
 }
 
 function mapPartToUi(part: PartWithSerializedSuppliers) {
@@ -44,7 +46,7 @@ function mapPartToUi(part: PartWithSerializedSuppliers) {
   };
 }
 
-export default function PiecesClient({ initialParts, actorRole }: PiecesClientProps) {
+export default function PiecesClient({ initialParts, actorRole, machines }: PiecesClientProps) {
   const [search, setSearch] = React.useState('');
   const [matFilter, setMatFilter] = React.useState('all');
 
@@ -220,7 +222,7 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
         </TabsContent>
         {selectedPartId && (
           <TabsContent value={selectedPartId}>
-            <PartDossier part={parts.find((p) => p.id === selectedPartId)!} />
+            <PartDossier part={parts.find((p) => p.id === selectedPartId)!} machines={machines} />
           </TabsContent>
         )}
       </Tabs>

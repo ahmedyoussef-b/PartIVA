@@ -15,14 +15,17 @@ import PartImageGallery from '@/components/part-image-gallery';
 import { getMaterialCategoryLabel } from '@/lib/enum-labels';
 import type { MaterialCategory } from '@/generated/prisma/browser';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
+import type { Machine } from '@/generated/prisma/client';
+import { MachineRecommendationPanel } from '@/app/admin/pieces/[id]/machine-recommendation-panel';
 
 interface PartDossierProps {
   part: Omit<PartWithSerializedSuppliers, 'attachments'> & {
     attachments: PartAttachmentItem[];
   };
+  machines?: Machine[];
 }
 
-export function PartDossier({ part }: PartDossierProps) {
+export function PartDossier({ part, machines = [] }: PartDossierProps) {
   const [tab, setTab] = React.useState('dossier');
   const [completeness, setCompleteness] = React.useState<{
     score: number;
@@ -124,6 +127,8 @@ export function PartDossier({ part }: PartDossierProps) {
                 </div>
               </div>
             </div>
+            <h3 className="text-sm font-semibold">Recommandation de machine</h3>
+            <MachineRecommendationPanel part={part} machines={machines} />
           </TabsContent>
 
           <TabsContent value="mesures">
