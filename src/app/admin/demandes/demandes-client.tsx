@@ -140,7 +140,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                   className="cursor-pointer hover:bg-muted/50"
                   tabIndex={0}
                   role="link"
-                  onClick={(e) => {
+                  onClick={() => {
                     router.push(`/admin/demandes/${req.id}`);
                   }}
                   onKeyDown={(e) => {
