@@ -5,7 +5,7 @@ import { useSyncStore } from '@/lib/stores/sync-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ArrowRight, Package, RefreshCw, Search } from 'lucide-react';
+import { ArrowRight, Package, RefreshCw, Search, Activity, Wrench, TrendingUp } from 'lucide-react';
 import { FR } from '@/i18n/fr';
 import { cn, formatDate } from '@/lib/utils';
 import { KpiCard } from '@/components/shared/kpi-card';
@@ -43,6 +43,9 @@ interface KpiData {
   demandesEnAttente: number;
   piecesEnBdd: number;
   tauxSucces: number;
+  engineAnalysesCount?: number;
+  engineGeneratedPartsCount?: number;
+  engineSuccessRate?: number;
   lastUpdated?: string;
 }
 
@@ -121,6 +124,27 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
           value={kpiLoading ? '—' : kpi && kpi.tauxSucces > 0 ? `${kpi.tauxSucces}%` : 'N/A'}
           description="30 derniers jours (clôturées)"
           variant="success"
+        />
+        <KpiCard
+          title="Analyses lancées"
+          value={kpiLoading ? '—' : (kpi?.engineAnalysesCount ?? 0)}
+          description="Moteur workspace"
+          variant="default"
+          icon={Activity}
+        />
+        <KpiCard
+          title="Pièces générées"
+          value={kpiLoading ? '—' : (kpi?.engineGeneratedPartsCount ?? 0)}
+          description="Par le moteur"
+          variant="default"
+          icon={Wrench}
+        />
+        <KpiCard
+          title="Taux de succès moteur"
+          value={kpiLoading ? '—' : kpi && (kpi.engineSuccessRate ?? 0) > 0 ? `${kpi.engineSuccessRate}%` : 'N/A'}
+          description="Pièces analysées / générées"
+          variant="success"
+          icon={TrendingUp}
         />
       </div>
 
