@@ -238,7 +238,7 @@ export async function analyzeReverseEngineeringProject(projectId: string) {
     if (!project) {
       return { ok: false as const, error: 'PROJECT_NOT_FOUND' };
     }
-    const cadFiles = (project as unknown as { cadFiles: any[] }).cadFiles ?? [];
+    const cadFiles = (project as unknown as { cadFiles: unknown[] }).cadFiles ?? [];
     const input: IngestInput = {
       cadFiles: cadFiles.map((f: { url: string }) => f.url),
       description: project.description || project.name,
