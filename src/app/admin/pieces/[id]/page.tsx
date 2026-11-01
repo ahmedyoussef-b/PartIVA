@@ -204,12 +204,12 @@ export default async function AdminPieceDetailPage({
                     </dl>
                   </CardContent>
                 </Card>
-               ) : null}
+              ) : null}
 
-               <h3 className="text-sm font-semibold">Recommandation de machine</h3>
-               <MachineRecommendationPanel part={part} machines={machines} />
+              <h3 className="text-sm font-semibold">Recommandation de machine</h3>
+              <MachineRecommendationPanel part={part} machines={machines} />
 
-               {part.suppliers.length > 0 ? (
+              {part.suppliers.length > 0 ? (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-medium">Fournisseurs</CardTitle>

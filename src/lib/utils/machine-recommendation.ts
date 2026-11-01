@@ -22,13 +22,15 @@ const METALS = ['ACIER', 'ALU', 'INOX', 'TITANE', 'LAITON'];
 
 export function recommendMachine(input: RecommendationInput): RecommendationResult {
   const { part, machines } = input;
-  
+
   // 1. Filtrer les machines indisponibles
-  const availableMachines = machines.filter(m => m.status !== 'MAINTENANCE' && m.status !== 'OFFLINE');
-  
+  const availableMachines = machines.filter(
+    (m) => m.status !== 'MAINTENANCE' && m.status !== 'OFFLINE',
+  );
+
   // 2. Si la pièce a déjà une machine assignée
   if (part.machineId) {
-    const assigned = machines.find(m => m.id === part.machineId);
+    const assigned = machines.find((m) => m.id === part.machineId);
     if (assigned) {
       return {
         machine: assigned,
@@ -51,11 +53,11 @@ export function recommendMachine(input: RecommendationInput): RecommendationResu
   }
 
   const materialUpper = (part.material || '').toUpperCase();
-  const isPlastic = PLASTICS.some(p => materialUpper.includes(p));
-  const isMetal = METALS.some(m => materialUpper.includes(m));
+  const isPlastic = PLASTICS.some((p) => materialUpper.includes(p));
+  const isMetal = METALS.some((m) => materialUpper.includes(m));
   const autoCatLower = (part.autoCategory || '').toLowerCase();
-  const hasDiameter = part.specifications?.some(s => s.key.toLowerCase().includes('diameter'));
-  const hasAngle = part.specifications?.some(s => s.key.toLowerCase().includes('angle'));
+  const hasDiameter = part.specifications?.some((s) => s.key.toLowerCase().includes('diameter'));
+  const hasAngle = part.specifications?.some((s) => s.key.toLowerCase().includes('angle'));
 
   let recommendedType: string | null = null;
   const reasons: string[] = [];
@@ -88,8 +90,8 @@ export function recommendMachine(input: RecommendationInput): RecommendationResu
   }
 
   // 4. Chercher la machine correspondante
-  const candidate = availableMachines.find(m => m.type === recommendedType);
-  
+  const candidate = availableMachines.find((m) => m.type === recommendedType);
+
   if (!candidate) {
     return {
       machine: null,

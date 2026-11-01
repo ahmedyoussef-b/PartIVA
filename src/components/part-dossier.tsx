@@ -148,7 +148,9 @@ export function PartDossier({ part }: PartDossierProps) {
                 {JSON.stringify(part.analysisData, null, 2)}
               </pre>
             ) : (
-              <p className="text-sm text-muted-foreground">Aucune analyse disponible pour cette pièce.</p>
+              <p className="text-sm text-muted-foreground">
+                Aucune analyse disponible pour cette pièce.
+              </p>
             )}
           </TabsContent>
         </Tabs>

@@ -16,7 +16,9 @@ export function mapEngineCandidateToSearchResult(
     rank,
     matchType: 'engine',
     score: candidate.score,
-    matchedSpecs: Array.isArray(metadata.matchedSpecs) ? (metadata.matchedSpecs as SearchResultItem['matchedSpecs']) : [],
+    matchedSpecs: Array.isArray(metadata.matchedSpecs)
+      ? (metadata.matchedSpecs as SearchResultItem['matchedSpecs'])
+      : [],
     specKey: undefined,
     specValue: undefined,
     toleranceMin: undefined,

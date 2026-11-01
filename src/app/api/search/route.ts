@@ -99,9 +99,18 @@ export async function GET(req: Request) {
           analysisStatus: 'partial',
           warnings: [],
         };
-        const engineResult = await searchEngineParts({ ingestResult, mode: 'quick', maxResults: 20 });
+        const engineResult = await searchEngineParts({
+          ingestResult,
+          mode: 'quick',
+          maxResults: 20,
+        });
         const results = mapEngineResultToSearchResults(engineResult);
-        return NextResponse.json({ mode: 'engine', count: results.length, total: results.length, results });
+        return NextResponse.json({
+          mode: 'engine',
+          count: results.length,
+          total: results.length,
+          results,
+        });
       } catch {
         return NextResponse.json({ error: 'ENGINE_SEARCH_FAILED' }, { status: 500 });
       }

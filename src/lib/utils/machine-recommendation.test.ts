@@ -3,11 +3,56 @@ import { recommendMachine } from './machine-recommendation';
 import type { Machine } from '@/generated/prisma/client';
 
 const mockMachines: Machine[] = [
-  { id: '1', code: 'CNC-01', name: 'Fraiseuse 1', type: 'CNC', status: 'IDLE', location: 'Atelier A', createdAt: new Date(), updatedAt: new Date() },
-  { id: '2', code: 'CNC-02', name: 'Fraiseuse 2', type: 'CNC', status: 'MAINTENANCE', location: 'Atelier A', createdAt: new Date(), updatedAt: new Date() },
-  { id: '3', code: 'LATHE-01', name: 'Tour 1', type: 'LATHE', status: 'IDLE', location: 'Atelier B', createdAt: new Date(), updatedAt: new Date() },
-  { id: '4', code: 'PRINTER-01', name: 'Imprimante 1', type: 'PRINTER_3D', status: 'IDLE', location: 'Atelier C', createdAt: new Date(), updatedAt: new Date() },
-  { id: '5', code: 'OFFLINE-01', name: 'Hors ligne', type: 'CNC', status: 'OFFLINE', location: 'Atelier Z', createdAt: new Date(), updatedAt: new Date() },
+  {
+    id: '1',
+    code: 'CNC-01',
+    name: 'Fraiseuse 1',
+    type: 'CNC',
+    status: 'IDLE',
+    location: 'Atelier A',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    code: 'CNC-02',
+    name: 'Fraiseuse 2',
+    type: 'CNC',
+    status: 'MAINTENANCE',
+    location: 'Atelier A',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    code: 'LATHE-01',
+    name: 'Tour 1',
+    type: 'LATHE',
+    status: 'IDLE',
+    location: 'Atelier B',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '4',
+    code: 'PRINTER-01',
+    name: 'Imprimante 1',
+    type: 'PRINTER_3D',
+    status: 'IDLE',
+    location: 'Atelier C',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '5',
+    code: 'OFFLINE-01',
+    name: 'Hors ligne',
+    type: 'CNC',
+    status: 'OFFLINE',
+    location: 'Atelier Z',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ];
 
 describe('recommendMachine', () => {
@@ -63,7 +108,9 @@ describe('recommendMachine', () => {
   });
 
   it('retourne null si toutes les machines sont en MAINTENANCE ou OFFLINE', () => {
-    const maintenanceMachines = mockMachines.filter(m => m.status === 'MAINTENANCE' || m.status === 'OFFLINE');
+    const maintenanceMachines = mockMachines.filter(
+      (m) => m.status === 'MAINTENANCE' || m.status === 'OFFLINE',
+    );
     const result = recommendMachine({
       part: { material: 'POM-C' },
       machines: maintenanceMachines,

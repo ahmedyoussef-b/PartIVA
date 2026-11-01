@@ -25,7 +25,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
         <Button
           variant="ghost"
           className="mt-2 text-sm"
-          onClick={() => window.location.href = `/admin/machines/${result.machine?.id}`}
+          onClick={() => (window.location.href = `/admin/machines/${result.machine?.id}`)}
         >
           Voir la machine
         </Button>
@@ -40,8 +40,6 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
       </div>
     );
   }
-
-  
 
   return (
     <div className="mt-4">
@@ -69,9 +67,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
             <div className="flex items-baseline justify-between gap-4 py-2">
               <dt className="text-xs font-medium text-muted-foreground">Statut</dt>
               <dd>
-                <Badge
-                  variant={result.machine?.status === 'IDLE' ? 'outline' : 'secondary'}
-                >
+                <Badge variant={result.machine?.status === 'IDLE' ? 'outline' : 'secondary'}>
                   {result.machine?.status}
                 </Badge>
               </dd>
@@ -84,7 +80,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
           variant="secondary"
           size="sm"
           className="w-full"
-          onClick={() => window.location.href = `/admin/machines/${result.machine?.id}`}
+          onClick={() => (window.location.href = `/admin/machines/${result.machine?.id}`)}
         >
           Voir la machine détaillée
         </Button>
