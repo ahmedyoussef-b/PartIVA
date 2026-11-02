@@ -64,26 +64,34 @@ function buildPrompt(ingestResult: IngestResult): string {
 }
 
 export async function extractCadParams(ingestResult: IngestResult): Promise<CadParams> {
+  let content: string;
   try {
-    const { content } = await callGroq(
+    const res = await callGroq(
       [{ role: 'user', content: buildPrompt(ingestResult) }],
       getGroqApiKey() ?? '',
       { maxTokens: 512, temperature: 0 },
     );
-    const parsed = cadParamsSchema.safeParse(parseJsonReply(content));
-    if (parsed.success) {
-      const { type, unit, material, length, width, height, diameter } = parsed.data;
-      const params: CadParams = { type };
-      if (unit) params.unit = unit;
-      if (material) params.material = material;
-      if (length !== undefined) params.length = length;
-      if (width !== undefined) params.width = width;
-      if (height !== undefined) params.height = height;
-      if (diameter !== undefined) params.diameter = diameter;
-      return params;
-    }
+    content = res.content;
+  } catch (e) {
+    console.error('[RECONSTRUCT][EXTRACT_PARAMS_FAILED]', e);
+    throw { code: 'EXTRACT_PARAMS_FAILED', message: 'Extraction params failed', stage: 'reconstruct' };
+  }
+  let parsed;
+  try {
+    parsed = cadParamsSchema.safeParse(parseJsonReply(content));
   } catch {
-    // Groq indisponible ou réponse invalide → fallback par défaut.
+    parsed = { success: false } as any;
+  }
+  if (parsed.success) {
+    const { type, unit, material, length, width, height, diameter } = parsed.data;
+    const params: CadParams = { type };
+    if (unit) params.unit = unit;
+    if (material) params.material = material;
+    if (length !== undefined) params.length = length;
+    if (width !== undefined) params.width = width;
+    if (height !== undefined) params.height = height;
+    if (diameter !== undefined) params.diameter = diameter;
+    return params;
   }
   return { ...DEFAULT_PARAMS };
 }

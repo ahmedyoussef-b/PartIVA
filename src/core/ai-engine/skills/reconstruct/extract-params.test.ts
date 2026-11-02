@@ -42,13 +42,7 @@ describe('extractCadParams', () => {
 
   it('retourne des paramètres par défaut si Groq échoue', async () => {
     mockCallGroq.mockRejectedValue(new Error('Network error'));
-    const params = await extractCadParams(baseIngest);
-    expect(params).toEqual({
-      type: 'cylinder',
-      unit: 'mm',
-      diameter: 10,
-      height: 20,
-    });
+    await expect(extractCadParams(baseIngest)).rejects.toMatchObject({ code: 'EXTRACT_PARAMS_FAILED' });
   });
 
   it('retourne des paramètres par défaut si la réponse est invalide', async () => {
