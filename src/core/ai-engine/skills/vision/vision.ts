@@ -109,7 +109,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       warnings.push('VISION_PARSE_FAILED');
     }
     return { detectedType, confidence, rawResponse: raw, warnings, structuredWarnings: structuredWarnings as never };
-  } catch (e) {
+  } catch (e: any) {
     const code = e?.code ?? 'GROQ_HTTP_ERROR';
     warnings.push(code);
     return {
