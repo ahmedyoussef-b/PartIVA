@@ -153,11 +153,14 @@
 - **Limite :** cas de test uniquement ; les échos Groq réels et les formes complexes n'ont pas été validés.
 
 ### D-E52-FILE-FORMAT-DETECTION - Détection format au-delà extension
-- **Statut :** Ouverte
+- **Statut :** Résolue (E98-B)
 - **Cause :** Détection uniquement par extension
-- **Périmètre :** src/core/ai-engine/skills/reconstruct/select-candidates.ts
+- **Périmètre :** src/core/ai-engine/skills/reconstruct/select-candidates.ts, src/lib/utils/file-formats.ts (nouveau), src/components/workspace/IngestZone.tsx, src/core/ai-engine/skills/reconstruct/types.ts, src/core/ai-engine/skills/reconstruct/select-candidates.test.ts (nouveau)
 - **Effort estimé :** Moyen
 - **Bloquant :** Non
+- **Condition de résolution :** Whitelist d'extensions centralisée dans `file-formats.ts`, garde-fou `isCadFile` dans `selectCandidates` avec fallback, validation + toast dans `IngestZone`, 3 tests unitaires verts. âœ… (E98-B)
+- **Résolue en :** session E98-B (2026-11-02)
+- **Note :** Correctif minimal combinant extension whitelist + garde-fou `selectCandidates` + validation `IngestZone`. Magic bytes reportés à une phase ultérieure si faux positifs persistent.
 
 ### D-E52-FILE-INTEGRITY - Validation intégrité fichiers 3D
 - **Statut :** Ouverte

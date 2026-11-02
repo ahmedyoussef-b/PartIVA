@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { IngestResult } from '../ingest/types';
+import type { SearchResult } from '../search/types';
 import type { ReconstructCandidate } from './types';
 import { selectCandidates } from './select-candidates';
 
@@ -38,6 +39,26 @@ const baseIngest: IngestResult = {
   analysisStatus: 'complete',
   warnings: [],
 };
+
+function makeSearchCandidate(fileUrl: string, score = 0.9): import('./search/types').SearchCandidate {
+  return {
+    id: 'cand-1',
+    source: 'web',
+    name: 'test',
+    score,
+    fileUrl,
+    metadata: {},
+  };
+}
+
+function makeSearchResult(candidates: import('./search/types').SearchCandidate[], searchStatus: 'found' | 'not_found' | 'partial' = 'found'): SearchResult {
+  return {
+    candidates,
+    searchStatus,
+    mode: 'deep',
+    warnings: [],
+  };
+}
 
 describe('selectCandidates', () => {
   beforeEach(() => {
@@ -85,5 +106,44 @@ describe('selectCandidates', () => {
     expect(result[0].fileUrl).toBe('');
     expect(result[0].method).toBe('generated');
     expect(result[0].confidence).toBe(0.3);
+  });
+
+  it('retourne un candidat SKILL_RECONSTRUCT pour un fichier CAO valide', async () => {
+    const searchResult = makeSearchResult([makeSearchCandidate('https://x.com/part.stl')]);
+
+    const result = await selectCandidates(searchResult);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].method).toBe('web_found');
+    expect(result[0].fileUrl).toBe('https://x.com/part.stl');
+    expect(result[0].format).toBe('stl');
+  });
+
+  it('ne retourne pas de candidat CAO pour une extension invalide, fallback généré', async () => {
+    const searchResult = makeSearchResult([makeSearchCandidate('https://x.com/fake.txt')]);
+
+    const result = await selectCandidates(searchResult);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].method).toBe('generated');
+    expect(result[0].fileUrl).toBe('');
+    expect(result[0].warnings[0]).toContain('Aucun fichier 3D trouvé');
+  });
+
+  it('retourne le candidat valide et un fileWarning pour le fichier invalide dans un mélange', async () => {
+    const searchResult = makeSearchResult([
+      makeSearchCandidate('https://x.com/part.step', 0.9),
+      makeSearchCandidate('https://x.com/fake.txt', 0.8),
+    ]);
+
+    const result = await selectCandidates(searchResult);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].method).toBe('web_found');
+    expect(result[0].fileUrl).toBe('https://x.com/part.step');
+    expect(result[0].format).toBe('step');
+    expect(result[0].fileWarnings).toEqual([
+      { code: 'INVALID_CAD_FORMAT', files: ['https://x.com/fake.txt'] },
+    ]);
   });
 });

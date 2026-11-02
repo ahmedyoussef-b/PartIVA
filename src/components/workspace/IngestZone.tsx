@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import { isCadFile, isPhotoFile, CAD_EXTENSIONS, PHOTO_EXTENSIONS } from '@/lib/utils/file-formats';
 
 interface IngestZoneProps {
   photos: string[];
@@ -73,6 +75,26 @@ export function IngestZone({
 
   async function simulateUpload(files: FileList | null, type: 'photo' | 'cad') {
     if (!files) return;
+    const fileArray = Array.from(files);
+    const isCad = type === 'cad';
+    const isValid = isCad ? isCadFile : isPhotoFile;
+    const extensions = isCad ? CAD_EXTENSIONS : PHOTO_EXTENSIONS;
+
+    const validFiles = fileArray.filter((f) => isValid(f.name));
+    const rejected = fileArray.filter((f) => !isValid(f.name));
+
+    if (rejected.length > 0) {
+      toast.error(
+        `Format non supporté : ${rejected.map((f) => f.name).join(', ')}. ` +
+          `Formats acceptés : ${extensions.join(', ').toUpperCase()}.`,
+      );
+    }
+
+    if (validFiles.length === 0) {
+      setIsUploading(false);
+      return;
+    }
+
     setIsUploading(true);
     try {
       const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '';
@@ -80,8 +102,8 @@ export function IngestZone({
       console.log('[Cloudinary] cloudName:', cloudName);
       console.log('[Cloudinary] uploadPreset:', uploadPreset);
       const urls: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]!;
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i]!;
         if (uploadPreset && cloudName) {
           const formData = new FormData();
           formData.append('file', file);
@@ -264,6 +286,7 @@ export function IngestZone({
           rows={3}
         />
         <select
+          data-testid="ingest-mode-select"
           value={mode}
           onChange={(e) => onModeChange(e.target.value as 'quick' | 'deep')}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"

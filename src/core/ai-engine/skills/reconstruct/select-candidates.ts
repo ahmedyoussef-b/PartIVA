@@ -1,6 +1,7 @@
 import { ReconstructCandidate, ReconstructInput, SearchResult, IngestResult } from './types';
 import { extractCadParams } from './extract-params';
 import { generateCadFromParams } from './generate-cad';
+import { isCadFile } from '@/lib/utils/file-formats';
 
 const FALLBACK_INGEST: IngestResult = {
   inputType: 'photo_dimensions',
@@ -9,17 +10,6 @@ const FALLBACK_INGEST: IngestResult = {
   analysisStatus: 'complete',
   warnings: [],
 };
-
-function isValid3DFile(url: string): boolean {
-  const lower = url.toLowerCase();
-  return (
-    lower.endsWith('.stl') ||
-    lower.endsWith('.step') ||
-    lower.endsWith('.stp') ||
-    lower.endsWith('.iges') ||
-    lower.endsWith('.igs')
-  );
-}
 
 function getFormat(url: string): string {
   const lower = url.toLowerCase();
@@ -56,8 +46,9 @@ export async function selectCandidates(
   const candidates: ReconstructCandidate[] = [];
 
   if (searchResult.searchStatus === 'found') {
+    const rejectedFiles: string[] = [];
     for (const item of searchResult.candidates) {
-      if (item.fileUrl && isValid3DFile(item.fileUrl)) {
+      if (item.fileUrl && isCadFile(item.fileUrl)) {
         candidates.push({
           id: item.id,
           method: item.source === 'local' ? 'local_found' : 'web_found',
@@ -66,6 +57,16 @@ export async function selectCandidates(
           confidence: Math.min(1, item.score + 0.1),
           warnings: [],
         });
+      } else if (item.fileUrl) {
+        rejectedFiles.push(item.fileUrl);
+      }
+    }
+    if (candidates.length > 0 && rejectedFiles.length > 0) {
+      const last = candidates[candidates.length - 1];
+      if (last) {
+        last.fileWarnings = [
+          { code: 'INVALID_CAD_FORMAT', files: rejectedFiles },
+        ];
       }
     }
   }

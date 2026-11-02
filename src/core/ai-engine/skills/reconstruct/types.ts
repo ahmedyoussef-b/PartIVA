@@ -20,6 +20,7 @@ export type ReconstructCandidate = {
   format: string;
   confidence: number;
   warnings: string[];
+  fileWarnings?: Array<{ code: string; files: string[] }>;
 };
 
 export type ReconstructResult = {
