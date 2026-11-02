@@ -162,7 +162,9 @@
 - **Résolue en :** session E98-B (2026-11-02)
 - **Note :** Correctif minimal combinant extension whitelist + garde-fou `selectCandidates` + validation `IngestZone`. Magic bytes reportés à une phase ultérieure si faux positifs persistent.
 
-### D-E52-FILE-INTEGRITY - Validation intégrité fichiers 3D
+### D-E56-GESTION-ERREURS-MOTEUR — Gestion d'erreurs moteur minimale
+- **Statut :** Résolue (E99-B).
+- **Note :** Normalisation des erreurs par étape dans `engine.ts`, codes explicites dans `groq-client.ts` et skills, map de messages FR dans `engine-error-messages.ts`, affichage UI actionnable.
 - **Statut :** Ouverte
 - **Cause :** Aucune validation du contenu
 - **Périmètre :** src/core/ai-engine/skills/reconstruct/
