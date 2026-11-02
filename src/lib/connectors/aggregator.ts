@@ -3,40 +3,63 @@ import type { SourceConnector } from './types';
 import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
 import { mergeAbortSignals } from '@/lib/data/external-signal';
 
-/**
- * Timeout global d'agrégation (D-E3-21).
- * Les sources lentes n'attendent pas : le signal
- * d'annulation est propagé à chaque connecteur.
- */
 const AGGREGATION_TIMEOUT_MS =
   process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 60_000 : 10_000;
 
-/**
- * Résultat d'une agrégation multi-sources (D-E3-21).
- *
- * `sourceDurationsMs` (D-E4-4) : temps réel par source
- * (mesure performance E4-S05) — permet d'identifier
- * les sources lentes sans instrumenter chaque connecteur.
- */
+const MAX_RETRIES = 2;
+const BASE_DELAY_MS = 250;
+const FAILURE_THRESHOLD = 3;
+const OPEN_DURATION_MS = 30000;
+
+export interface EngineWarning { code: string; message: string; stage?: string; }
+
 export interface AggregationResult {
   candidates: SearchCandidate[];
   sourcesQueried: string[];
   sourcesFailed: string[];
   sourceDurationsMs: Record<string, number>;
   totalDurationMs: number;
+  structuredWarnings?: EngineWarning[];
 }
 
-/**
- * Agrège les résultats de plusieurs sources en parallèle (D-E3-21).
- *
- * Stratégie : Promise.allSettled + timeout global 5s (D4).
- * Les résultats partiels sont acceptés — les sources
- * en échec sont listées dans sourcesFailed.
- *
- * @param connectors - Connecteurs à interroger
- * @param query - Terme de recherche
- * @param options - Limite de résultats
- */
+type CBState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+interface CircuitBreaker {
+  state: CBState;
+  failures: number;
+  openedAt: number;
+  halfOpenInFlight: boolean;
+}
+
+const circuitBreakers = new Map<string, CircuitBreaker>();
+
+export function resetCircuitBreakers(): void {
+  circuitBreakers.clear();
+}
+
+function getCircuitBreaker(name: string): CircuitBreaker {
+  let cb = circuitBreakers.get(name);
+  if (!cb) {
+    cb = { state: 'CLOSED', failures: 0, openedAt: 0, halfOpenInFlight: false };
+    circuitBreakers.set(name, cb);
+  }
+  return cb;
+}
+
+function isTransient(err: unknown): boolean {
+  const status = (err as { status?: number; response?: { status?: number } })?.status
+    ?? (err as { response?: { status?: number } })?.response?.status;
+  if (typeof status === 'number' && status >= 500) return true;
+  const msg = String((err as { message?: string })?.message ?? err).toLowerCase();
+  if (msg.includes('timeout') || msg.includes('network') || msg.includes('fetch failed') || msg.includes('econnreset') || msg.includes('aborted')) return true;
+  const name = (err as { name?: string })?.name;
+  if (name === 'AbortError') return true;
+  return false;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function aggregateSearch(
   connectors: SourceConnector[],
   query: string,
@@ -45,52 +68,101 @@ export async function aggregateSearch(
   const { limit = 20 } = options;
   const startTime = Date.now();
 
-  // Timeout global (borne supérieure) — D-E3-31
   const globalController = new AbortController();
   const globalTimeout = setTimeout(() => globalController.abort(), AGGREGATION_TIMEOUT_MS);
 
   const available = connectors.filter((c) => c.isAvailable());
   const sourcesFailed: string[] = [];
   const sourceDurationsMs: Record<string, number> = {};
+  const structuredWarnings: EngineWarning[] = [];
 
   const results = await Promise.allSettled(
     available.map(async (connector) => {
-      // Timeout spécifique à la source (D-E3-31), plafonné par le timeout
-      // global : une source ne peut pas dépasser la borne globale de 5 s.
       const sourceTimeout = Math.min(
         connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS,
         AGGREGATION_TIMEOUT_MS,
       );
-      const sourceController = new AbortController();
-      const sourceTimer = setTimeout(() => sourceController.abort(), sourceTimeout);
       const sourceStart = Date.now();
+      const cb = getCircuitBreaker(connector.source);
 
-      try {
-        // Combiner les signaux : global + source (D-E3-31)
-        const combinedSignal = mergeAbortSignals(globalController.signal, sourceController.signal);
-
-        // E25-R1 — le timeout est appliqué *ici* et pas seulement via le signal :
-        // les connecteurs qui ignoraient `options.signal` bloquaient la réponse
-        // le temps total de leurs retries (~31 s sur TecDoc en mode réel).
-        const candidates = await withTimeout(
-          connector.search(query, {
-            limit,
-            signal: combinedSignal,
-          }),
-          sourceTimeout,
-        );
-        sourceDurationsMs[connector.source] = Date.now() - sourceStart;
-        return {
-          source: connector.source,
-          candidates,
-        };
-      } catch {
-        sourceDurationsMs[connector.source] = Date.now() - sourceStart;
-        sourcesFailed.push(connector.source);
-        return { source: connector.source, candidates: [] };
-      } finally {
-        clearTimeout(sourceTimer);
+      // Circuit breaker check
+      if (cb.state === 'OPEN') {
+        if (Date.now() - cb.openedAt >= OPEN_DURATION_MS) {
+          cb.state = 'HALF_OPEN';
+          cb.halfOpenInFlight = false;
+        } else {
+          sourceDurationsMs[connector.source] = 0;
+          sourcesFailed.push(connector.source);
+          structuredWarnings.push({ code: 'CIRCUIT_OPEN', message: 'Une source externe est temporairement indisponible (circuit ouvert).', stage: connector.source });
+          return { source: connector.source, candidates: [] };
+        }
       }
+
+      if (cb.state === 'HALF_OPEN' && cb.halfOpenInFlight) {
+        sourceDurationsMs[connector.source] = 0;
+        sourcesFailed.push(connector.source);
+        structuredWarnings.push({ code: 'CIRCUIT_OPEN', message: 'Une source externe est temporairement indisponible (circuit ouvert).', stage: connector.source });
+        return { source: connector.source, candidates: [] };
+      }
+
+      if (cb.state === 'HALF_OPEN') cb.halfOpenInFlight = true;
+
+      let lastErr: unknown = null;
+      let candidates: SearchCandidate[] | null = null;
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+          const backoff = Math.pow(2, attempt) * BASE_DELAY_MS;
+          await delay(backoff + Math.floor(Math.random() * 50));
+        }
+        const sourceController = new AbortController();
+        const sourceTimer = setTimeout(() => sourceController.abort(), sourceTimeout);
+        try {
+          const combinedSignal = mergeAbortSignals(globalController.signal, sourceController.signal);
+          const res = await withTimeout(
+            connector.search(query, { limit, signal: combinedSignal }),
+            sourceTimeout,
+          );
+          clearTimeout(sourceTimer);
+          candidates = res;
+          lastErr = null;
+          break;
+        } catch (e) {
+          clearTimeout(sourceTimer);
+          lastErr = e;
+          if (!isTransient(e) || attempt === MAX_RETRIES) break;
+        }
+      }
+
+      sourceDurationsMs[connector.source] = Date.now() - sourceStart;
+
+      if (candidates !== null) {
+        // success
+        cb.failures = 0;
+        cb.state = 'CLOSED';
+        cb.halfOpenInFlight = false;
+        return { source: connector.source, candidates };
+      }
+
+      // failure
+      cb.failures += 1;
+      if (cb.failures >= FAILURE_THRESHOLD) {
+        cb.state = 'OPEN';
+        cb.openedAt = Date.now();
+      }
+      if (cb.state === 'HALF_OPEN') {
+        cb.state = 'OPEN';
+        cb.openedAt = Date.now();
+      }
+      cb.halfOpenInFlight = false;
+
+      sourcesFailed.push(connector.source);
+      const timeout = isTransient(lastErr) && String((lastErr as { message?: string })?.message ?? lastErr).toLowerCase().includes('timeout');
+      const code = timeout ? 'SOURCE_TIMEOUT' : 'SOURCE_FAILED';
+      const msg = code === 'SOURCE_TIMEOUT'
+        ? 'Une source externe a mis trop de temps à répondre.'
+        : 'Une source externe a échoué.';
+      structuredWarnings.push({ code, message: msg, stage: connector.source });
+      return { source: connector.source, candidates: [] };
     }),
   );
 
@@ -106,10 +178,8 @@ export async function aggregateSearch(
     }
   }
 
-  // Déduplication (D-E3-24) — priorité ordre d'apparition
   const deduped = deduplicateCandidates(allCandidates);
 
-  // Score d'agrégation + tri décroissant (D-E3-32)
   const scored = deduped.map((c) => {
     const connector = available.find((conn) => c.source === conn.source);
     const score = connector ? computeAggregationScore(c, connector) : (c.scores?.global ?? 0.5);
@@ -126,14 +196,10 @@ export async function aggregateSearch(
     sourcesFailed,
     sourceDurationsMs,
     totalDurationMs: Date.now() - startTime,
+    structuredWarnings: structuredWarnings.length ? structuredWarnings : undefined,
   };
 }
 
-/**
- * Déduplication par `name` normalisé (lowercase + trim) (D-E3-24).
- * Priorité : ordre d'apparition (les sources sont déjà
- * ordonnées par poids décroissant dans ALL_CONNECTORS).
- */
 function deduplicateCandidates(candidates: SearchCandidate[]): SearchCandidate[] {
   const seen = new Set<string>();
   const result: SearchCandidate[] = [];
@@ -149,15 +215,6 @@ function deduplicateCandidates(candidates: SearchCandidate[]): SearchCandidate[]
   return result;
 }
 
-/**
- * Recherche enrichie par VIN (VIN2OE — innovation #1 E6-S08).
- *
- * Décodage VIN (TecDoc) → véhicule → fitments → candidats.
- * Retourne les candidats + le véhicule décodé.
- *
- * @param vin - Numéro VIN (11-17 caractères)
- * @param options - Limite
- */
 export async function aggregateSearchByVIN(
   vin: string,
   options: { limit?: number } = {},
@@ -176,15 +233,6 @@ export async function aggregateSearchByVIN(
   return searchTecDocByVIN(vin, options);
 }
 
-/**
- * Recherche enrichie par véhicule (innovation #4 E6-S08).
- *
- * make/model/year/engine → fitments → candidats.
- * Filtrage optionnel sur autoCategory / material (focus plastique).
- *
- * @param params - Critères véhicule
- * @param options - Limite, filtres
- */
 export async function aggregateSearchByVehicle(
   params: {
     make: string;
@@ -201,17 +249,6 @@ export async function aggregateSearchByVehicle(
   return searchTecDocByVehicle(params, options);
 }
 
-/**
- * Recherche enrichie par photo + véhicule (innovation #4 E6-S08).
- *
- * Photo (base64) + véhicule → fitment → candidats.
- * En mode mock, la photo est ignorée (pas d'embedding mock) —
- * le fitment véhicule est le filtre principal.
- *
- * @param photo - Photo base64 (JPEG/PNG)
- * @param vehicle - Critères véhicule
- * @param options - Limite
- */
 export async function aggregateSearchByPhotoAndVehicle(
   photo: string,
   vehicle: {
@@ -225,18 +262,6 @@ export async function aggregateSearchByPhotoAndVehicle(
   return searchTecDocByPhotoAndVehicle(photo, vehicle, options);
 }
 
-/**
- * Recherche avec fallback séquentiel (D-E3-22).
- *
- * Ordre de priorité : Wikidata → TraceParts → local_db (D6).
- * Si une source échoue OU retourne 0 résultat,
- * passe à la suivante.
- *
- * @param connectors - Connecteurs disponibles
- * @param query - Terme de recherche
- * @param options - Limite de résultats
- * @returns Candidats, source utilisée, chaîne de fallback
- */
 export async function searchWithFallback(
   connectors: SourceConnector[],
   query: string,
@@ -249,7 +274,6 @@ export async function searchWithFallback(
   const { limit = 20 } = options;
   const fallbackChain: string[] = [];
 
-  // Ordre de priorité (D-E3-22 / D6)
   const priority = [
     'wikidata',
     'traceparts',
@@ -285,13 +309,6 @@ export async function searchWithFallback(
   };
 }
 
-/**
- * Impose une borne temporelle sur une promesse, même si la promesse sous
- * jacente ignore le signal d'annulation (E25-R1).
- *
- * La promesse d'origine reste gérée (handlers attachés) : une rejection
- * tardive ne produit donc pas d'unhandled rejection.
- */
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
@@ -311,24 +328,13 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
-/**
- * Calcule le score d'agrégation d'un candidat (D-E3-32).
- *
- * Formule : sourceWeight × sourceScore + freshnessBonus
- * - sourceWeight : priorité de la source (local_db 1.0 > wikidata 0.8 > traceparts 0.6)
- * - sourceScore : score interne du candidat (scores.global)
- * - freshnessBonus : bonus si metadata.updatedAt est récent (optionnel)
- *
- * Le score final est stocké dans candidate.scores.global.
- */
 export function computeAggregationScore(
   candidate: SearchCandidate,
   connector: SourceConnector,
 ): number {
   const sourceWeight = connector.weight;
-  const sourceScore = candidate.scores?.global ?? 0.5; // défaut 0.5
+  const sourceScore = candidate.scores?.global ?? 0.5;
 
-  // freshnessBonus : +0.1 si mis à jour dans les 30 derniers jours
   let freshnessBonus = 0;
   const updatedAt = candidate.metadata?.updatedAt;
   if (typeof updatedAt === 'string') {
