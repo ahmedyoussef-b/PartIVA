@@ -16,7 +16,7 @@ describe('vision', () => {
       ok: true,
       headers: new Map([['content-type', 'image/jpeg']]),
       arrayBuffer: async () => new ArrayBuffer(8),
-    }) as any;
+    }) as unknown as typeof fetch;
   });
 
   it('succes JSON valide', async () => {
