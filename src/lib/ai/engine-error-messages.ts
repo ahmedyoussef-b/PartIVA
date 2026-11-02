@@ -19,8 +19,11 @@ export const ENGINE_ERROR_MESSAGES: Record<string, string> = {
   'VISION_TOO_MANY_IMAGES': "Trop d'images transmises (maximum 3).",
   'VISION_IMAGE_TOO_LARGE': "Image trop volumineuse (maximum 5 Mo).",
   'VISION_PARSE_FAILED': "RÃ©ponse du modÃ¨le IA non exploitable.",
+  'SOURCE_MOCK': 'Ce connecteur utilise des données de démonstration (non réelles).',
 };
 
 export function getErrorMessage(code: string): string {
   return ENGINE_ERROR_MESSAGES[code] ?? 'Une erreur est survenue. RÃ©essayez ou contactez le support.';
 }
+
+

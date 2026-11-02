@@ -14,6 +14,7 @@ import { getSearchCandidates } from '@/lib/data/search-candidates';
  */
 export const localDbConnector: SourceConnector = {
   source: 'local_db',
+  mode: 'real',
   weight: SOURCE_WEIGHTS.local_db.weight,
   timeoutMs: SOURCE_WEIGHTS.local_db.timeoutMs, // PostgreSQL local rapide (D-E3-31)
 
@@ -32,3 +33,4 @@ export const localDbConnector: SourceConnector = {
     return filtered.slice(0, limit);
   },
 };
+

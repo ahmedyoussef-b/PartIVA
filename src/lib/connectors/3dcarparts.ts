@@ -12,6 +12,7 @@ import { search3DCarParts, map3DCarPartsToCandidate } from '@/lib/data/3dcarpart
  */
 export const threeDCarPartsConnector: SourceConnector = {
   source: '3dcarparts',
+  mode: 'mock',
   weight: SOURCE_WEIGHTS['3dcarparts']?.weight ?? 0.45,
   timeoutMs: SOURCE_WEIGHTS['3dcarparts']?.timeoutMs ?? 5000,
 
@@ -48,3 +49,7 @@ export const threeDCarPartsConnector: SourceConnector = {
     });
   },
 };
+
+
+
+

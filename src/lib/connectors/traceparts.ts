@@ -19,6 +19,7 @@ import { searchTraceParts, mapTracePartsToCandidate } from '@/lib/data/tracepart
  */
 export const tracePartsConnector: SourceConnector = {
   source: 'traceparts',
+  mode: 'mock',
   weight: SOURCE_WEIGHTS.traceparts.weight,
   timeoutMs: SOURCE_WEIGHTS.traceparts.timeoutMs, // mock rapide, réel à ajuster (D-E3-31)
 
@@ -57,3 +58,6 @@ export const tracePartsConnector: SourceConnector = {
     });
   },
 };
+
+
+

@@ -32,6 +32,7 @@ import {
  */
 export const tecDocConnector: SourceConnector = {
   source: 'tecdoc',
+  mode: 'mock',
   weight: SOURCE_WEIGHTS.tecdoc.weight,
   timeoutMs: SOURCE_WEIGHTS.tecdoc.timeoutMs, // mock rapide, réel à ajuster
 
@@ -273,3 +274,6 @@ export async function searchTecDocByPhotoAndVehicle(
     } satisfies SearchCandidate;
   });
 }
+
+
+

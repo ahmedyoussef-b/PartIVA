@@ -224,3 +224,5 @@
 - **Bloquant :** Non (r�solu)
 - **Condition de r�solution :** DB joignable et build EXIT 0 ?
 
+
+- **D-E105-CONNECTORS-MOCK** — Connecteurs externes en mode mock (tecdoc, traceparts, 3dcarparts) désactivés par défaut; activer via ENABLE_MOCK_CONNECTORS=true.

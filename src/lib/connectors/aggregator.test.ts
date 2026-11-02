@@ -6,6 +6,7 @@ import type { SearchCandidate } from '@/schemas/search';
 function makeConnector(name: string, impl: () => Promise<SearchCandidate[]>): SourceConnector {
   return {
     source: name as SourceConnector['source'],
+    mode: 'real',
     weight: 1,
     isAvailable: () => true,
     search: async () => impl(),

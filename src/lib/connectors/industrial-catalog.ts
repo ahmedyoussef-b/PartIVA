@@ -28,6 +28,7 @@ import {
  */
 export const industrialCatalogConnector: SourceConnector = {
   source: 'industrial_catalog',
+  mode: 'real',
   weight: SOURCE_WEIGHTS.industrial_catalog.weight,
   timeoutMs: SOURCE_WEIGHTS.industrial_catalog.timeoutMs,
 
@@ -63,3 +64,5 @@ export const industrialCatalogConnector: SourceConnector = {
     });
   },
 };
+
+

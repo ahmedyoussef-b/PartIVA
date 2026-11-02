@@ -19,6 +19,7 @@ import { searchWikidata, searchWikidataPartial, mapWikidataToCandidate } from '@
  */
 export const wikidataConnector: SourceConnector = {
   source: 'wikidata',
+  mode: 'real',
   weight: SOURCE_WEIGHTS.wikidata.weight,
   timeoutMs: SOURCE_WEIGHTS.wikidata.timeoutMs, // SPARQL peut être lent (D-E3-31)
 
@@ -54,3 +55,6 @@ export const wikidataConnector: SourceConnector = {
     });
   },
 };
+
+
+

@@ -78,6 +78,10 @@ export async function aggregateSearch(
 
   const results = await Promise.allSettled(
     available.map(async (connector) => {
+      if (connector.mode === 'mock') {
+        console.warn(`Connecteur ${connector.source} en mode démo (données factices).`);
+        structuredWarnings.push({ code: 'SOURCE_MOCK', message: `Le connecteur ${connector.source} est en mode démo (données factices).`, stage: connector.source });
+      }
       const sourceTimeout = Math.min(
         connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS,
         AGGREGATION_TIMEOUT_MS,
