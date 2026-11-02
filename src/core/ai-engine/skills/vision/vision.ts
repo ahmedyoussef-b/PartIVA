@@ -1,41 +1,46 @@
+import { z } from 'zod';
+import { callGroq } from '@/lib/ai/groq-client';
 import { VisionInput, VisionResult } from './types';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGES = 3;
+
+const visionResponseSchema = z.object({
+  type: z.string().nullable(),
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string().optional(),
+});
 
 async function loadImageAsBase64(url: string): Promise<{ url: string; warning?: string } | null> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!res.ok) {
-      return { url, warning: `Image inaccessible (${res.status}): ${url}` };
+      return { url, warning: 'Image inaccessible' };
     }
     const contentType = res.headers.get('content-type') ?? 'image/jpeg';
     const arrayBuffer = await res.arrayBuffer();
     if (arrayBuffer.byteLength > MAX_IMAGE_BYTES) {
-      return {
-        url,
-        warning: `Image trop volumineuse (${Math.round(arrayBuffer.byteLength / 1024 / 1024)} Mo > 5 Mo): ${url}`,
-      };
+      return { url, warning: 'Image trop volumineuse' };
     }
     const base64 = Buffer.from(arrayBuffer).toString('base64');
     return { url: `data:${contentType};base64,${base64}` };
-  } catch (e) {
-    return { url, warning: `Echec de chargement de l'image: ${url} (${String(e)})` };
+  } catch {
+    return { url, warning: 'Echec de chargement de l image' };
   }
 }
 
 export async function detectPartType(input: VisionInput): Promise<VisionResult> {
   const apiKey = process.env.GROQ_API_KEY;
-  console.log('GROQ_API_KEY present:', !!apiKey);
   const warnings: string[] = [];
+  const structuredWarnings: { code: string; message: string; stage?: string }[] = [];
   if (!apiKey || input.photoUrls.length === 0) {
     return {
       detectedType: null,
       confidence: 0,
       rawResponse: '',
-      warnings: [!apiKey ? 'Clé API Groq manquante' : 'Aucune photo transmise'],
+      warnings: [!apiKey ? 'Cle API Groq manquante' : 'Aucune photo transmise'],
     };
   }
-  console.log('URLs reçues par vision:', input.photoUrls);
   const validUrls = input.photoUrls.filter((u) => u.startsWith('https://'));
   const blobUrls = input.photoUrls.filter((u) => u.startsWith('blob:'));
   if (blobUrls.length) {
@@ -49,16 +54,22 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       warnings: [...warnings, 'Aucune image publique valide pour l analyse'],
     };
   }
+  if (validUrls.length > MAX_IMAGES) {
+    structuredWarnings.push({ code: 'VISION_TOO_MANY_IMAGES', message: 'Trop d images transmises (maximum 3).', stage: 'vision' });
+    warnings.push('VISION_TOO_MANY_IMAGES');
+    return { detectedType: null, confidence: 0, rawResponse: '', warnings, structuredWarnings: structuredWarnings as never };
+  }
   const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
     {
       type: 'text',
-      text: 'Tu es un expert en pièces mécaniques. Analyse l\'image et identifie le type de pièce (vis, engrenage, roulement, plaque, etc.). Réponds en JSON : { "type": string, "confidence": number }.',
+      text: 'Tu es un expert en pieces mecaniques. Analyse l image et identifie le type de piece. Reponds en JSON : { "type": string, "confidence": number }.',
     },
   ];
   for (const url of validUrls.slice(0, 3)) {
     const loaded = await loadImageAsBase64(url);
     if (loaded?.warning) {
       warnings.push(loaded.warning);
+      structuredWarnings.push({ code: 'VISION_DOWNLOAD_FAILED', message: 'Echec du telechargement de l image.', stage: 'vision' });
       continue;
     }
     if (loaded) {
@@ -71,53 +82,42 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       confidence: 0,
       rawResponse: '',
       warnings: [...warnings, 'Aucune image valide pour l analyse'],
+      structuredWarnings: structuredWarnings as never,
     };
   }
   try {
-    const messages = [{ role: 'user', content }];
-    console.log('[Vision] Messages envoyés:', JSON.stringify(messages, null, 2));
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b',
-        messages,
-        temperature: 0.2,
-        max_tokens: 256,
-      }),
-      signal: AbortSignal.timeout(30000),
+    const messages = [{ role: 'user', content }] as never;
+    const { content: raw } = await callGroq(messages, apiKey, {
+      model: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b',
+      temperature: 0.2,
+      maxTokens: 256,
     });
-    if (!res.ok) {
-      const t = await res.text();
-      console.error('[Vision] Groq error:', res.status, t);
-      return {
-        detectedType: null,
-        confidence: 0,
-        rawResponse: t,
-        warnings: [...warnings, `groq error ${res.status}`],
-      };
-    }
-    const data = await res.json();
-    const raw = data?.choices?.[0]?.message?.content ?? '';
     let detectedType: string | null = null;
     let confidence = 0;
     try {
-      const m = raw.match(/\{[\s\S]*\}/);
+      const cleaned = raw.replace(/```json|```/g, '').trim();
+      const m = cleaned.match(/\{[\s\S]*\}/);
       if (m) {
-        const j = JSON.parse(m[0]);
-        detectedType = j.type ?? null;
-        confidence = typeof j.confidence === 'number' ? j.confidence : 0;
+        const parsed = visionResponseSchema.parse(JSON.parse(m[0]));
+        detectedType = parsed.type;
+        confidence = parsed.confidence;
+      } else {
+        throw new Error('no json');
       }
     } catch {
-      warnings.push('parse error');
+      structuredWarnings.push({ code: 'VISION_PARSE_FAILED', message: 'Reponse du modele IA non exploitable.', stage: 'vision' });
+      warnings.push('VISION_PARSE_FAILED');
     }
-    return { detectedType, confidence, rawResponse: raw, warnings };
+    return { detectedType, confidence, rawResponse: raw, warnings, structuredWarnings: structuredWarnings as never };
   } catch (e) {
+    const code = e?.code ?? 'GROQ_HTTP_ERROR';
+    warnings.push(code);
     return {
       detectedType: null,
       confidence: 0,
       rawResponse: '',
-      warnings: [...warnings, String(e)],
+      warnings,
+      structuredWarnings: [...structuredWarnings, { code, message: code, stage: 'vision' }] as never,
     };
   }
 }
