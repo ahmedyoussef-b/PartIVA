@@ -220,3 +220,19 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - E92-A: Server Action analyzeReverseEngineeringProject; tsc/unit OK.
 
 - E92-B: bouton+modale Analyser dans onglet CAD RE; tsc/unit OK.
+
+
+## E104 — Fiabilisation moteur de recherche (CLÔTURÉE)
+- **Date** : 2026-11-02
+- **Statut** : Clôturée (B1+B2)
+
+**Livré :**
+- src/lib/connectors/aggregator.ts : retry avec backoff exponentiel, circuit-breaker par connecteur, propagation sourcesFailed/sourceDurationsMs + structuredWarnings (SOURCE_FAILED, SOURCE_TIMEOUT, CIRCUIT_OPEN)
+- src/lib/connectors/aggregator.test.ts : 4 tests (succès, timeout, retry, circuit-breaker)
+- src/core/ai-engine/skills/search/search.ts : mode quick avec fallback web si local vide, warnings structurés
+- src/core/ai-engine/skills/search/local-search.ts, web-search.ts, aggregate.ts : warnings structurés (SEARCH_*)
+- src/lib/ai/engine-error-messages.ts : messages FR actionnables (SEARCH_LOCAL_EMPTY, SEARCH_WEB_FALLBACK_USED, SEARCH_WEB_FAILED, SEARCH_EMBEDDING_FAILED)
+- src/core/ai-engine/skills/search/search.test.ts : tests adaptés + nouveaux tests fallback
+- docs/etat/DETTES.md : D-E48-WEB-SEARCH-RESILIENCE passée en Résolue (E104-B1+B2)
+
+**Commits** : aa50156 (B1), 141f4e8 (B2)

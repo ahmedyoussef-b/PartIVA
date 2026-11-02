@@ -1,4 +1,4 @@
-# DETTES ACTIVES â€” PartIVA
+ï»¿# DETTES ACTIVES â€” PartIVA
 
 **DerniÃ¨re mise Ã  jour :** 2026-10-27
 **Source :** Scission de `DEBT.md` (E3-S2)
@@ -142,84 +142,85 @@
 - **RÃ©solu en :** session E40-Fix8 (2026-10-24).
 - **Preuve empirique :** Test Playwright `e2e/admin/request-to-part-conversion.spec.ts` exÃ©cutable.
 
-### D-E52-CAD-GENERATION - Génération CAO réelle
-- **Statut :** Partiellement résolu
-- **Cause :** Les skills `extract-params`, `generate-cad` et `select-candidates` n'étaient pas reliés pour produire un vrai fichier STL.
-- **Périmètre :** src/core/ai-engine/skills/reconstruct/
-- **Effort estimé :** Moyen
+### D-E52-CAD-GENERATION - Gï¿½nï¿½ration CAO rï¿½elle
+- **Statut :** Partiellement rï¿½solu
+- **Cause :** Les skills `extract-params`, `generate-cad` et `select-candidates` n'ï¿½taient pas reliï¿½s pour produire un vrai fichier STL.
+- **Pï¿½rimï¿½tre :** src/core/ai-engine/skills/reconstruct/
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
 - **Preuves :** `npm run test:unit` EXIT 0 (7 fichiers, 20 tests).
-- **Actions :** ajout de `extractCadParams` (délégué à Groq), `generateCadFromParams` (three + STLExporter), et d'un appel `extractCadParams` -> `generateCadFromParams` dans `select-candidates.ts`.
-- **Limite :** cas de test uniquement ; les échos Groq réels et les formes complexes n'ont pas été validés.
+- **Actions :** ajout de `extractCadParams` (dï¿½lï¿½guï¿½ ï¿½ Groq), `generateCadFromParams` (three + STLExporter), et d'un appel `extractCadParams` -> `generateCadFromParams` dans `select-candidates.ts`.
+- **Limite :** cas de test uniquement ; les ï¿½chos Groq rï¿½els et les formes complexes n'ont pas ï¿½tï¿½ validï¿½s.
 
-### D-E52-FILE-FORMAT-DETECTION - Détection format au-delà extension
-- **Statut :** Résolue (E98-B)
-- **Cause :** Détection uniquement par extension
-- **Périmètre :** src/core/ai-engine/skills/reconstruct/select-candidates.ts, src/lib/utils/file-formats.ts (nouveau), src/components/workspace/IngestZone.tsx, src/core/ai-engine/skills/reconstruct/types.ts, src/core/ai-engine/skills/reconstruct/select-candidates.test.ts (nouveau)
-- **Effort estimé :** Moyen
+### D-E52-FILE-FORMAT-DETECTION - Dï¿½tection format au-delï¿½ extension
+- **Statut :** Rï¿½solue (E98-B)
+- **Cause :** Dï¿½tection uniquement par extension
+- **Pï¿½rimï¿½tre :** src/core/ai-engine/skills/reconstruct/select-candidates.ts, src/lib/utils/file-formats.ts (nouveau), src/components/workspace/IngestZone.tsx, src/core/ai-engine/skills/reconstruct/types.ts, src/core/ai-engine/skills/reconstruct/select-candidates.test.ts (nouveau)
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
-- **Condition de résolution :** Whitelist d'extensions centralisée dans `file-formats.ts`, garde-fou `isCadFile` dans `selectCandidates` avec fallback, validation + toast dans `IngestZone`, 3 tests unitaires verts. âœ… (E98-B)
-- **Résolue en :** session E98-B (2026-11-02)
-- **Note :** Correctif minimal combinant extension whitelist + garde-fou `selectCandidates` + validation `IngestZone`. Magic bytes reportés à une phase ultérieure si faux positifs persistent.
+- **Condition de rï¿½solution :** Whitelist d'extensions centralisï¿½e dans `file-formats.ts`, garde-fou `isCadFile` dans `selectCandidates` avec fallback, validation + toast dans `IngestZone`, 3 tests unitaires verts. âœ… (E98-B)
+- **Rï¿½solue en :** session E98-B (2026-11-02)
+- **Note :** Correctif minimal combinant extension whitelist + garde-fou `selectCandidates` + validation `IngestZone`. Magic bytes reportï¿½s ï¿½ une phase ultï¿½rieure si faux positifs persistent.
 
-### D-E56-GESTION-ERREURS-MOTEUR — Gestion d'erreurs moteur minimale
-- **Statut :** Résolue (E99-B).
-- **Note :** Normalisation des erreurs par étape dans `engine.ts`, codes explicites dans `groq-client.ts` et skills, map de messages FR dans `engine-error-messages.ts`, affichage UI actionnable.
+### D-E56-GESTION-ERREURS-MOTEUR ï¿½ Gestion d'erreurs moteur minimale
+- **Statut :** Rï¿½solue (E99-B).
+- **Note :** Normalisation des erreurs par ï¿½tape dans `engine.ts`, codes explicites dans `groq-client.ts` et skills, map de messages FR dans `engine-error-messages.ts`, affichage UI actionnable.
 - **Statut :** Ouverte
 - **Cause :** Aucune validation du contenu
-- **Périmètre :** src/core/ai-engine/skills/reconstruct/
-- **Effort estimé :** Moyen
+- **Pï¿½rimï¿½tre :** src/core/ai-engine/skills/reconstruct/
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
 
 ### D-E48-PGVECTOR-SEARCH - Remplacer scoring heuristique par pgvector
-- **Statut :** Résolue
-- **Cause :** Recherche locale heuristique remplacée par pgvector (avec fallback)
-- **Périmètre :** src/core/ai-engine/skills/search/local-search.ts
-- **Effort estimé :** Élevé
+- **Statut :** Rï¿½solue
+- **Cause :** Recherche locale heuristique remplacï¿½e par pgvector (avec fallback)
+- **Pï¿½rimï¿½tre :** src/core/ai-engine/skills/search/local-search.ts
+- **Effort estimï¿½ :** ï¿½levï¿½
 - **Bloquant :** Non
-- **Condition de résolution :** Recherche vectorielle opérationnelle. ?
+- **Condition de rï¿½solution :** Recherche vectorielle opï¿½rationnelle. ?
 
-### D-E48-WEB-SEARCH-RESILIENCE - Résilience route /api/search
-- **Statut :** Résolue (E104-B2)
-- **Cause :** Dépendance à route existante sans gestion avancée
-- **Périmètre :** src/core/ai-engine/skills/search/web-search.ts
-- **Effort estimé :** Moyen
+### D-E48-WEB-SEARCH-RESILIENCE - Rï¿½silience route /api/search
+- **Statut :** Rï¿½solue (E104-B2)
+- **Cause :** Dï¿½pendance ï¿½ route existante sans gestion avancï¿½e
+- **Pï¿½rimï¿½tre :** src/core/ai-engine/skills/search/web-search.ts
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
 
 ### D-E57-WORKSPACE-E2E - Pas de tests E2E pour le workspace
 - **Statut :** Ouverte
 - **Cause :** Aucun test E2E du flux workspace
-- **Périmètre :** e2e/workspace/
-- **Effort estimé :** Moyen
+- **Pï¿½rimï¿½tre :** e2e/workspace/
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
 
-### D-E57-CLOUDINARY-UPLOAD - Upload Cloudinary simulé
-- **Statut :** Résolue
-- **Cause :** URLs simulées dans IngestZone (remplacées par upload Cloudinary réel)
-- **Périmètre :** src/components/workspace/IngestZone.tsx
-- **Effort estimé :** Moyen
+### D-E57-CLOUDINARY-UPLOAD - Upload Cloudinary simulï¿½
+- **Statut :** Rï¿½solue
+- **Cause :** URLs simulï¿½es dans IngestZone (remplacï¿½es par upload Cloudinary rï¿½el)
+- **Pï¿½rimï¿½tre :** src/components/workspace/IngestZone.tsx
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
-- **Condition de résolution :** Upload réel via Cloudinary. ?
+- **Condition de rï¿½solution :** Upload rï¿½el via Cloudinary. ?
 
 ### D-E57-LLM-ENRICHMENT - Enrichissement LLM basique
 - **Statut :** Ouverte
 - **Cause :** Enrichissement LLM minimal en mode deep
-- **Périmètre :** src/lib/ai/
-- **Effort estimé :** Moyen
+- **Pï¿½rimï¿½tre :** src/lib/ai/
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
 
-### D-E57-CADVIEWER-INTEGRATION - Visualisation 3D limitée à ModelViewer
-- **Statut :** Résolue
-- **Cause :** CadViewer non intégré (désormais intégré dans ViewerZone)
-- **Périmètre :** src/components/workspace/ViewerZone.tsx
-- **Effort estimé :** Moyen
+### D-E57-CADVIEWER-INTEGRATION - Visualisation 3D limitï¿½e ï¿½ ModelViewer
+- **Statut :** Rï¿½solue
+- **Cause :** CadViewer non intï¿½grï¿½ (dï¿½sormais intï¿½grï¿½ dans ViewerZone)
+- **Pï¿½rimï¿½tre :** src/components/workspace/ViewerZone.tsx
+- **Effort estimï¿½ :** Moyen
 - **Bloquant :** Non
-- **Condition de résolution :** CadViewer pour STEP/IGES. ?
+- **Condition de rï¿½solution :** CadViewer pour STEP/IGES. ?
 
 ### D-E58-DB-BUILD-BLOCKER - DB Neon injoignable bloque le build
-- **Statut :** Résolue
-- **Cause :** P1001 Can't reach database server (résolu, DB accessible)
-- **Périmètre :** Prisma / Neon
-- **Effort estimé :** Moyen
-- **Bloquant :** Non (résolu)
-- **Condition de résolution :** DB joignable et build EXIT 0 ?
+- **Statut :** Rï¿½solue
+- **Cause :** P1001 Can't reach database server (rï¿½solu, DB accessible)
+- **Pï¿½rimï¿½tre :** Prisma / Neon
+- **Effort estimï¿½ :** Moyen
+- **Bloquant :** Non (rï¿½solu)
+- **Condition de rï¿½solution :** DB joignable et build EXIT 0 ?
+
