@@ -5,8 +5,19 @@
 import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
+import { config as dotenvConfig } from 'dotenv';
+
+// E101 — chargement conditionnel de .env.test (jamais .env.local en CI)
+if (process.env.CI !== 'true') {
+  dotenvConfig({ path: '.env.test', override: true });
+  if (!process.env.DATABASE_URL || !process.env.E101_STAGING_ACK) {
+    throw new Error('.env.test manquant ou invalide (DATABASE_URL / E101_STAGING_ACK).');
+  }
+}
+
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
@@ -84,6 +95,10 @@ export default defineConfig({
     env: {
       E2E_DISABLE_RATE_LIMIT: 'true',
       BETTER_AUTH_URL: 'http://localhost:3000',
+      DATABASE_URL: process.env.DATABASE_URL ?? '',
+      DATABASE_URL_UNPOOLED: process.env.DATABASE_URL ?? '',
+      DIRECT_URL: process.env.DATABASE_URL ?? '',
+      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? '',
     },
   },
 });

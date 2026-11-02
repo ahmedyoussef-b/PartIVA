@@ -21,7 +21,11 @@ export default defineConfig({
     seed: 'tsx ./prisma/seed.ts',
   },
   datasource: {
-    url: cleanPrismaUrl(process.env.DATABASE_URL_UNPOOLED || process.env.DIRECT_URL || process.env.DATABASE_URL),
+    url: cleanPrismaUrl(
+      process.env.DATABASE_URL ||
+      process.env.DATABASE_URL_UNPOOLED ||
+      process.env.DIRECT_URL
+    ),
     shadowDatabaseUrl: cleanPrismaUrl(process.env.SHADOW_DATABASE_URL),
   },
 });

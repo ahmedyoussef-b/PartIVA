@@ -116,3 +116,5 @@ docs/etat/ETAT_COURANT.new
 fix-two-regex.py
 
 docs/app/
+
+.env.test
