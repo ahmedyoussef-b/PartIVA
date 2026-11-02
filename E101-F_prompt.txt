@@ -1,0 +1,149 @@
+E101-F — Reprise après incident `.env` (avec preuves brutes, commandes atomiques)
+
+Contexte :
+- Un incident a eu lieu : l'IA Interne a modifié `.env` (commente les URLs Neon), violant le garde-fou. `.env` a été restauré par le Coordinateur.
+- Le correctif de `prisma7.config.ts` (priorité `DATABASE_URL` en premier) est en place.
+- `run_migrate.cmd` doit être supprimé.
+- Le shell de l'IA Interne a des problèmes d'exécution : **chaque commande doit être exécutée UNE PAR UNE, sans `&&`, sans `;`, sans multi-lignes.**
+
+Garde-fou absolu (rappel) :
+- **Interdiction** de modifier `.env`, `.env.local`, ou les variables `DATABASE_URL_UNPOOLED` / `DIRECT_URL`.
+- **Interdiction** de créer des fichiers hors périmètre (`run_migrate.cmd`, scripts, etc.).
+- Si une commande échoue ou si tu ne peux pas l'exécuter : **STOP immédiat**, signaler, ne rien tenter d'autre. **Aucun contournement.**
+
+---
+
+### Étape 1 — Preuves d'état (commandes atomiques)
+
+**Bloc 1.1** :
+```
+git diff prisma7.config.ts
+```
+→ coller la sortie brute intégrale (doit montrer uniquement l'inversion de priorité sur `DATABASE_URL || DATABASE_URL_UNPOOLED || DIRECT_URL`).
+
+**Bloc 1.2** :
+```
+git status --porcelain
+```
+→ coller la sortie brute intégrale. Vérifier que :
+- `prisma7.config.ts` apparaît en `M` (modifié),
+- `.env.test` **n'apparaît pas** (non commité),
+- `run_migrate.cmd` **n'apparaît pas** (supprimé).
+
+**Bloc 1.3** :
+```
+Test-Path run_migrate.cmd
+```
+→ coller la sortie (`False` attendu). Si `True` → supprimer et re-tester.
+
+---
+
+### Étape 2 — Vérifier la cible Prisma (point de contrôle CRITIQUE)
+
+**Bloc 2.1** (une seule ligne) :
+```
+$env:DATABASE_URL="postgresql://postgres:66023@localhost:5432/partiva_test?schema=public"
+```
+→ coller la sortie (doit être vide, pas d'erreur).
+
+**Bloc 2.2** (une seule ligne) :
+```
+npx prisma migrate status
+```
+→ coller la sortie brute intégrale.
+
+**Point de contrôle OBLIGATOIRE** : la ligne `Datasource "db"` doit afficher :
+```
+PostgreSQL database "partiva_test", schema "public" at "localhost:5432"
+```
+
+**Si `neondb` ou `neon.tech` apparaît → STOP IMMÉDIAT.** Signale l'échec, colle la sortie, et **ne lance AUCUNE autre commande**.
+
+---
+
+### Étape 3 — Migrations (seulement si Étape 2 OK)
+
+**Bloc 3.1** (une seule ligne) :
+```
+npx prisma migrate deploy
+```
+→ coller la sortie brute intégrale. Vérifier que `20261101173317_add_analysis_data_to_part` est appliquée. **19 migrations** attendues.
+
+---
+
+### Étape 4 — Vérifier la colonne `analysisData` (seulement si Étape 3 OK)
+
+**Bloc 4.1** (une seule ligne) :
+```
+npx prisma db execute --url "postgresql://postgres:66023@localhost:5432/partiva_test?schema=public" --stdin
+```
+Puis taper (sur l'entrée standard) :
+```sql
+SELECT column_name FROM information_schema.columns WHERE table_name='Part' AND column_name='analysisData';
+```
+→ coller la sortie. **1 ligne `analysisData` attendue.** Si 0 ligne → STOP et signaler.
+
+---
+
+### Étape 5 — Seed (seulement si Étape 4 OK)
+
+**Bloc 5.1** (une seule ligne) :
+```
+npx prisma db seed
+```
+→ coller la sortie brute intégrale.
+
+---
+
+### Étape 6 — Tests Playwright (seulement si Étape 5 OK)
+
+**Bloc 6.1** (une seule ligne) :
+```
+npx playwright test --project=setup --reporter=list
+```
+→ coller la sortie brute intégrale.
+
+**Bloc 6.2** (une seule ligne) :
+```
+Get-Item .auth/admin.json | Select-Object Length
+```
+→ coller la sortie. **Taille > 100 octets attendue.** Si < 100 → STOP et signaler.
+
+**Bloc 6.3** (une seule ligne) :
+```
+npx playwright test e2e/admin/machine-recommendation.spec.ts --project=admin --reporter=list
+```
+→ coller la sortie brute. **2 passed attendus.**
+
+**Bloc 6.4** (une seule ligne) :
+```
+npx playwright test e2e/admin/dashboard-kpi.spec.ts --project=admin --reporter=list
+```
+→ coller la sortie brute. **2 passed attendus.**
+
+**Bloc 6.5** (une seule ligne) :
+```
+npx playwright test e2e/workspace/workspace.spec.ts --project=workspace --reporter=list
+```
+→ coller la sortie brute. **15 passed, 2 skipped attendus.**
+
+---
+
+### Étape 7 — Rapport final
+
+Format **strict** :
+- **Section 1** — `git diff prisma7.config.ts` (brut).
+- **Section 2** — `git status --porcelain` (brut).
+- **Section 3** — `Test-Path run_migrate.cmd` (brut).
+- **Section 4** — `$env:DATABASE_URL=...` + `migrate status` (brut, ligne `Datasource "db"` **visible**).
+- **Section 5** — `migrate deploy` (brut, 19 migrations).
+- **Section 6** — `SELECT analysisData` (brut, 1 ligne).
+- **Section 7** — `db seed` (brut).
+- **Section 8** — `--project=setup` + `Get-Item .auth/admin.json` (brut, taille).
+- **Section 9** — E93 (brut, 2 passed) + E94 (brut, 2 passed) + workspace (brut, 15/2).
+- **Section 10** — Confirmations finales : `.env` non modifié, `.env.test` non commité, migration `20261101173317...` à commiter.
+
+**Règles finales** :
+- **Une commande par bloc**, pas de `&&`, pas de `;`, pas de multi-lignes.
+- **Si une étape échoue → STOP**, signaler, ne rien tenter d'autre.
+- **Ne touche à AUCUN fichier** hors périmètre. Ne modifie pas `.env`, ne crée pas de script.
