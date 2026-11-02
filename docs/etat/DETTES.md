@@ -180,7 +180,7 @@
 - **Condition de résolution :** Recherche vectorielle opérationnelle. ?
 
 ### D-E48-WEB-SEARCH-RESILIENCE - Résilience route /api/search
-- **Statut :** Ouverte
+- **Statut :** Résolue (E104-B2)
 - **Cause :** Dépendance à route existante sans gestion avancée
 - **Périmètre :** src/core/ai-engine/skills/search/web-search.ts
 - **Effort estimé :** Moyen

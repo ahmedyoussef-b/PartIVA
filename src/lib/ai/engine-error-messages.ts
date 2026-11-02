@@ -1,6 +1,10 @@
 export const ENGINE_ERROR_MESSAGES: Record<string, string> = {
   'INGEST_FAILED': 'Impossible de lire les fichiers fournis. Vérifiez le format et réessayez.',
   'SEARCH_FAILED': 'La recherche a échoué. Vous pouvez réessayer ou choisir un autre mode.',
+  'SEARCH_LOCAL_EMPTY': 'Aucun résultat dans la base locale. Recherche étendue en cours.',
+  'SEARCH_WEB_FALLBACK_USED': 'Résultats complétés via recherche étendue.',
+  'SEARCH_WEB_FAILED': 'La recherche étendue a échoué.',
+  'SEARCH_EMBEDDING_FAILED': 'Le service d\'embedding est indisponible. Recherche locale heuristique utilisée.',
   'RECONSTRUCT_FAILED': 'La reconstruction a échoué. Un candidat généré est proposé en fallback.',
   'ARCHIVE_FAILED': 'L\'archivage a échoué, mais votre résultat est disponible.',
   'GROQ_TIMEOUT': 'Le service IA met trop de temps à répondre. Réessayez dans quelques instants.',

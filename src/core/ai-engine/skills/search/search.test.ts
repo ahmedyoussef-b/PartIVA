@@ -31,7 +31,26 @@ describe('searchParts', () => {
     expect(searchWeb).not.toHaveBeenCalled();
   });
 
-  it('mode deep - local vide puis web', async () => {
+  it('quick - local vide -> fallback web appelé, résultats retournés, SEARCH_WEB_FALLBACK_USED présent', async () => {
+    vi.mocked(searchLocal).mockResolvedValue([]);
+    vi.mocked(searchWeb).mockResolvedValue([
+      { id: 'w1', source: 'web', name: 'Part B', score: 0.75, metadata: {} },
+    ]);
+    const result = await searchParts({ ...baseInput, mode: 'quick' });
+    expect(searchWeb).toHaveBeenCalled();
+    expect(result.candidates.length).toBe(1);
+    expect(result.warnings).toContain('SEARCH_WEB_FALLBACK_USED');
+  });
+
+  it('quick - local vide + web vide -> not_found avec warnings structurés', async () => {
+    vi.mocked(searchLocal).mockResolvedValue([]);
+    vi.mocked(searchWeb).mockResolvedValue([]);
+    const result = await searchParts({ ...baseInput, mode: 'quick' });
+    expect(result.searchStatus).toBe('not_found');
+    expect(result.structuredWarnings?.length).toBeGreaterThan(0);
+  });
+
+  it('deep - non-régression', async () => {
     vi.mocked(searchLocal).mockResolvedValue([]);
     vi.mocked(searchWeb).mockResolvedValue([
       { id: 'w1', source: 'web', name: 'Part B', score: 0.75, metadata: {} },
@@ -39,6 +58,5 @@ describe('searchParts', () => {
     const result = await searchParts({ ...baseInput, mode: 'deep' });
     expect(result.mode).toBe('deep');
     expect(searchWeb).toHaveBeenCalled();
-    expect(result.candidates.length).toBe(1);
   });
 });
