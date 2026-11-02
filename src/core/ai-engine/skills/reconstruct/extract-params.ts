@@ -74,7 +74,11 @@ export async function extractCadParams(ingestResult: IngestResult): Promise<CadP
     content = res.content;
   } catch (e) {
     console.error('[RECONSTRUCT][EXTRACT_PARAMS_FAILED]', e);
-    throw { code: 'EXTRACT_PARAMS_FAILED', message: 'Extraction params failed', stage: 'reconstruct' };
+    throw {
+      code: 'EXTRACT_PARAMS_FAILED',
+      message: 'Extraction params failed',
+      stage: 'reconstruct',
+    };
   }
   let parsed: { success: boolean; data?: CadParams } = { success: false };
   try {

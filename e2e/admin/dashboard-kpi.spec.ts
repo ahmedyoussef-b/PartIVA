@@ -8,7 +8,8 @@ import { execSync } from 'node:child_process';
 
 test.use({ storageState: '.auth/admin.json' });
 
-test.describe.skip('E97-B2 — Dashboard KPI', () => { // Couverture E93/E94 — DB staging Neon (E101).
+test.describe.skip('E97-B2 — Dashboard KPI', () => {
+  // Couverture E93/E94 — DB staging Neon (E101).
   test('6 cartes KPI visibles avec titres attendus', async ({ page }) => {
     await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dashboard-content')).toBeVisible({ timeout: 30_000 });
@@ -21,7 +22,9 @@ test.describe.skip('E97-B2 — Dashboard KPI', () => { // Couverture E93/E94 —
       'Taux de succès moteur',
     ];
     for (const title of expected) {
-      await expect(page.locator(`[data-testid="kpi-card"][data-kpi-title="${title}"]`)).toBeVisible();
+      await expect(
+        page.locator(`[data-testid="kpi-card"][data-kpi-title="${title}"]`),
+      ).toBeVisible();
     }
   });
 
@@ -34,8 +37,17 @@ test.describe.skip('E97-B2 — Dashboard KPI', () => { // Couverture E93/E94 —
 
     const ids: string[] = [];
     for (let i = 0; i < 2; i++) {
-    const env = { ...process.env, DATABASE_URL: 'postgresql://postgres:66023@localhost:5432/partiva_test?schema=public', DATABASE_URL_UNPOOLED: 'postgresql://postgres:66023@localhost:5432/partiva_test?schema=public', DIRECT_URL: 'postgresql://postgres:66023@localhost:5432/partiva_test?schema=public' };
-      const out = execSync(`npx tsx e2e/fixtures/create-submitted-part.mts "E2E-KPI-${i}" "Part KPI" '{"x":1}'`, { encoding: 'utf8', env });
+      const env = {
+        ...process.env,
+        DATABASE_URL: 'postgresql://postgres:66023@localhost:5432/partiva_test?schema=public',
+        DATABASE_URL_UNPOOLED:
+          'postgresql://postgres:66023@localhost:5432/partiva_test?schema=public',
+        DIRECT_URL: 'postgresql://postgres:66023@localhost:5432/partiva_test?schema=public',
+      };
+      const out = execSync(
+        `npx tsx e2e/fixtures/create-submitted-part.mts "E2E-KPI-${i}" "Part KPI" '{"x":1}'`,
+        { encoding: 'utf8', env },
+      );
       ids.push(JSON.parse(out.trim()).id);
     }
 
@@ -46,7 +58,12 @@ test.describe.skip('E97-B2 — Dashboard KPI', () => { // Couverture E93/E94 —
     expect(after).toBeGreaterThanOrEqual(before + 2);
 
     for (const id of ids) {
-      try { execSync(`npx prisma db execute --stdin`, { input: `DELETE FROM "Part" WHERE id='${id}';`, stdio: 'pipe' }); } catch {}
+      try {
+        execSync(`npx prisma db execute --stdin`, {
+          input: `DELETE FROM "Part" WHERE id='${id}';`,
+          stdio: 'pipe',
+        });
+      } catch {}
     }
   });
 });

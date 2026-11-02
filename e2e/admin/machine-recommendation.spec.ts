@@ -19,7 +19,7 @@ test.describe.skip('E97-B2 — MachineRecommendationPanel', () => {
   test('état vide — aucune recommandation', async ({ page }) => {
     const out = execSync(
       `npx tsx e2e/fixtures/create-submitted-part.mts "E2E-EMPTY-${Date.now()}" "Pièce vide"`,
-      { encoding: 'utf8', env: dbEnv }
+      { encoding: 'utf8', env: dbEnv },
     );
     partId = JSON.parse(out.trim()).id;
 
@@ -43,34 +43,36 @@ test.describe.skip('E97-B2 — MachineRecommendationPanel', () => {
     await page.screenshot({ path: `test-results/debug-empty-${Date.now()}.png`, fullPage: true });
 
     // 🔍 DEBUG : lister tous les data-testid présents
-    const testids = await page.locator('[data-testid]').evaluateAll((els) =>
-      els.map((el) => el.getAttribute('data-testid'))
-    );
+    const testids = await page
+      .locator('[data-testid]')
+      .evaluateAll((els) => els.map((el) => el.getAttribute('data-testid')));
     console.log(`[DEBUG] data-testid trouvés : ${testids.join(', ')}`);
 
     // Assertion souple : soit le testid, soit le texte, soit un message d'erreur
     const emptyLocator = page.getByTestId('machine-recommendation-empty');
-    if (await emptyLocator.count() > 0) {
+    if ((await emptyLocator.count()) > 0) {
       await expect(emptyLocator).toBeVisible({ timeout: 10_000 });
     } else {
       const bodyText = await page.locator('body').textContent();
       console.log(`[DEBUG] Texte du body : "${bodyText?.slice(0, 500)}"`);
-      await expect(page.getByText(/machine-recommendation-empty|aucune recommandation/i).first()).toBeVisible({ timeout: 5_000 });
+      await expect(
+        page.getByText(/machine-recommendation-empty|aucune recommandation/i).first(),
+      ).toBeVisible({ timeout: 5_000 });
     }
   });
 
   test('recommandation disponible — machine CNC', async ({ page }) => {
     const out = execSync(
       `npx tsx e2e/fixtures/create-submitted-part.mts "E2E-REC-${Date.now()}" "Pièce POM"`,
-      { encoding: 'utf8', env: dbEnv }
+      { encoding: 'utf8', env: dbEnv },
     );
     partId = JSON.parse(out.trim()).id;
 
     // Mettre à jour le matériau via Prisma Client (pas db execute)
-    execSync(
-      `npx tsx e2e/fixtures/update-part-material.mts "${partId}" "POM"`,
-      { encoding: 'utf8', env: dbEnv }
-    );
+    execSync(`npx tsx e2e/fixtures/update-part-material.mts "${partId}" "POM"`, {
+      encoding: 'utf8',
+      env: dbEnv,
+    });
 
     await page.goto(`/admin/pieces/${partId}`, { waitUntil: 'networkidle' });
 
@@ -88,7 +90,7 @@ test.describe.skip('E97-B2 — MachineRecommendationPanel', () => {
     await page.screenshot({ path: `test-results/debug-card-${Date.now()}.png`, fullPage: true });
 
     const cardLocator = page.getByTestId('machine-recommendation-card');
-    if (await cardLocator.count() > 0) {
+    if ((await cardLocator.count()) > 0) {
       await expect(cardLocator.first()).toBeVisible({ timeout: 10_000 });
     } else {
       await expect(page.getByText(/machine/i).first()).toBeVisible({ timeout: 10_000 });

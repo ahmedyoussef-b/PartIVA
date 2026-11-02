@@ -35,7 +35,13 @@ async function createGeneratedCandidate(
       format: options?.targetFormat || 'stl',
       confidence: 0.3,
       warnings: ['Aucun fichier 3D trouvé. Une reconstruction manuelle est nécessaire.'],
-      structuredWarnings: [{ code: 'CAD_GENERATION_FAILED', message: 'La génération 3D a échoué. Vous pouvez réessayer avec des paramètres différents.' }],
+      structuredWarnings: [
+        {
+          code: 'CAD_GENERATION_FAILED',
+          message:
+            'La génération 3D a échoué. Vous pouvez réessayer avec des paramètres différents.',
+        },
+      ],
     };
   }
 }
@@ -66,9 +72,7 @@ export async function selectCandidates(
     if (candidates.length > 0 && rejectedFiles.length > 0) {
       const last = candidates[candidates.length - 1];
       if (last) {
-        last.fileWarnings = [
-          { code: 'INVALID_CAD_FORMAT', files: rejectedFiles },
-        ];
+        last.fileWarnings = [{ code: 'INVALID_CAD_FORMAT', files: rejectedFiles }];
       }
     }
   }

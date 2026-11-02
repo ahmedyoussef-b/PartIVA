@@ -33,4 +33,3 @@ export const localDbConnector: SourceConnector = {
     return filtered.slice(0, limit);
   },
 };
-

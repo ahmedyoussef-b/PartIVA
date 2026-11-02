@@ -11,7 +11,11 @@ const BASE_DELAY_MS = 250;
 const FAILURE_THRESHOLD = 3;
 const OPEN_DURATION_MS = 30000;
 
-export interface EngineWarning { code: string; message: string; stage?: string; }
+export interface EngineWarning {
+  code: string;
+  message: string;
+  stage?: string;
+}
 
 export interface AggregationResult {
   candidates: SearchCandidate[];
@@ -46,11 +50,19 @@ function getCircuitBreaker(name: string): CircuitBreaker {
 }
 
 function isTransient(err: unknown): boolean {
-  const status = (err as { status?: number; response?: { status?: number } })?.status
-    ?? (err as { response?: { status?: number } })?.response?.status;
+  const status =
+    (err as { status?: number; response?: { status?: number } })?.status ??
+    (err as { response?: { status?: number } })?.response?.status;
   if (typeof status === 'number' && status >= 500) return true;
   const msg = String((err as { message?: string })?.message ?? err).toLowerCase();
-  if (msg.includes('timeout') || msg.includes('network') || msg.includes('fetch failed') || msg.includes('econnreset') || msg.includes('aborted')) return true;
+  if (
+    msg.includes('timeout') ||
+    msg.includes('network') ||
+    msg.includes('fetch failed') ||
+    msg.includes('econnreset') ||
+    msg.includes('aborted')
+  )
+    return true;
   const name = (err as { name?: string })?.name;
   if (name === 'AbortError') return true;
   return false;
@@ -80,7 +92,11 @@ export async function aggregateSearch(
     available.map(async (connector) => {
       if (connector.mode === 'mock') {
         console.warn(`Connecteur ${connector.source} en mode démo (données factices).`);
-        structuredWarnings.push({ code: 'SOURCE_MOCK', message: `Le connecteur ${connector.source} est en mode démo (données factices).`, stage: connector.source });
+        structuredWarnings.push({
+          code: 'SOURCE_MOCK',
+          message: `Le connecteur ${connector.source} est en mode démo (données factices).`,
+          stage: connector.source,
+        });
       }
       const sourceTimeout = Math.min(
         connector.timeoutMs ?? AGGREGATION_TIMEOUT_MS,
@@ -97,7 +113,11 @@ export async function aggregateSearch(
         } else {
           sourceDurationsMs[connector.source] = 0;
           sourcesFailed.push(connector.source);
-          structuredWarnings.push({ code: 'CIRCUIT_OPEN', message: 'Une source externe est temporairement indisponible (circuit ouvert).', stage: connector.source });
+          structuredWarnings.push({
+            code: 'CIRCUIT_OPEN',
+            message: 'Une source externe est temporairement indisponible (circuit ouvert).',
+            stage: connector.source,
+          });
           return { source: connector.source, candidates: [] };
         }
       }
@@ -105,7 +125,11 @@ export async function aggregateSearch(
       if (cb.state === 'HALF_OPEN' && cb.halfOpenInFlight) {
         sourceDurationsMs[connector.source] = 0;
         sourcesFailed.push(connector.source);
-        structuredWarnings.push({ code: 'CIRCUIT_OPEN', message: 'Une source externe est temporairement indisponible (circuit ouvert).', stage: connector.source });
+        structuredWarnings.push({
+          code: 'CIRCUIT_OPEN',
+          message: 'Une source externe est temporairement indisponible (circuit ouvert).',
+          stage: connector.source,
+        });
         return { source: connector.source, candidates: [] };
       }
 
@@ -121,7 +145,10 @@ export async function aggregateSearch(
         const sourceController = new AbortController();
         const sourceTimer = setTimeout(() => sourceController.abort(), sourceTimeout);
         try {
-          const combinedSignal = mergeAbortSignals(globalController.signal, sourceController.signal);
+          const combinedSignal = mergeAbortSignals(
+            globalController.signal,
+            sourceController.signal,
+          );
           const res = await withTimeout(
             connector.search(query, { limit, signal: combinedSignal }),
             sourceTimeout,
@@ -160,11 +187,16 @@ export async function aggregateSearch(
       cb.halfOpenInFlight = false;
 
       sourcesFailed.push(connector.source);
-      const timeout = isTransient(lastErr) && String((lastErr as { message?: string })?.message ?? lastErr).toLowerCase().includes('timeout');
+      const timeout =
+        isTransient(lastErr) &&
+        String((lastErr as { message?: string })?.message ?? lastErr)
+          .toLowerCase()
+          .includes('timeout');
       const code = timeout ? 'SOURCE_TIMEOUT' : 'SOURCE_FAILED';
-      const msg = code === 'SOURCE_TIMEOUT'
-        ? 'Une source externe a mis trop de temps à répondre.'
-        : 'Une source externe a échoué.';
+      const msg =
+        code === 'SOURCE_TIMEOUT'
+          ? 'Une source externe a mis trop de temps à répondre.'
+          : 'Une source externe a échoué.';
       structuredWarnings.push({ code, message: msg, stage: connector.source });
       return { source: connector.source, candidates: [] };
     }),

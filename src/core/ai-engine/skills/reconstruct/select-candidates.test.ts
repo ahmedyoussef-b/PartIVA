@@ -40,7 +40,10 @@ const baseIngest: IngestResult = {
   warnings: [],
 };
 
-function makeSearchCandidate(fileUrl: string, score = 0.9): import('./search/types').SearchCandidate {
+function makeSearchCandidate(
+  fileUrl: string,
+  score = 0.9,
+): import('./search/types').SearchCandidate {
   return {
     id: 'cand-1',
     source: 'web',
@@ -51,7 +54,10 @@ function makeSearchCandidate(fileUrl: string, score = 0.9): import('./search/typ
   };
 }
 
-function makeSearchResult(candidates: import('./search/types').SearchCandidate[], searchStatus: 'found' | 'not_found' | 'partial' = 'found'): SearchResult {
+function makeSearchResult(
+  candidates: import('./search/types').SearchCandidate[],
+  searchStatus: 'found' | 'not_found' | 'partial' = 'found',
+): SearchResult {
   return {
     candidates,
     searchStatus,

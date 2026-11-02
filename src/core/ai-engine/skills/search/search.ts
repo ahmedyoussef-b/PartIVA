@@ -16,15 +16,27 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
       const local = await searchLocal({ ...input, threshold, maxResults });
       if (local.length === 0) {
         warnings.push('SEARCH_LOCAL_EMPTY');
-        structuredWarnings.push({ code: 'SEARCH_LOCAL_EMPTY', message: getErrorMessage('SEARCH_LOCAL_EMPTY'), stage: 'search' });
+        structuredWarnings.push({
+          code: 'SEARCH_LOCAL_EMPTY',
+          message: getErrorMessage('SEARCH_LOCAL_EMPTY'),
+          stage: 'search',
+        });
         console.warn('[searchParts] local empty -> web fallback');
         warnings.push('SEARCH_WEB_FALLBACK_USED');
-        structuredWarnings.push({ code: 'SEARCH_WEB_FALLBACK_USED', message: getErrorMessage('SEARCH_WEB_FALLBACK_USED'), stage: 'search' });
+        structuredWarnings.push({
+          code: 'SEARCH_WEB_FALLBACK_USED',
+          message: getErrorMessage('SEARCH_WEB_FALLBACK_USED'),
+          stage: 'search',
+        });
         const web = await searchWeb({ ...input, threshold, maxResults });
         const aggregated = aggregateResults(local, web, maxResults);
         if (aggregated.length === 0) {
           warnings.push('SEARCH_WEB_FAILED');
-          structuredWarnings.push({ code: 'SEARCH_WEB_FAILED', message: getErrorMessage('SEARCH_WEB_FAILED'), stage: 'search' });
+          structuredWarnings.push({
+            code: 'SEARCH_WEB_FAILED',
+            message: getErrorMessage('SEARCH_WEB_FAILED'),
+            stage: 'search',
+          });
           return {
             candidates: [],
             searchStatus: 'not_found',
@@ -72,7 +84,11 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
 
     warnings.push('completing_with_web_search');
     warnings.push('SEARCH_WEB_FALLBACK_USED');
-    structuredWarnings.push({ code: 'SEARCH_WEB_FALLBACK_USED', message: getErrorMessage('SEARCH_WEB_FALLBACK_USED'), stage: 'search' });
+    structuredWarnings.push({
+      code: 'SEARCH_WEB_FALLBACK_USED',
+      message: getErrorMessage('SEARCH_WEB_FALLBACK_USED'),
+      stage: 'search',
+    });
     const web = await searchWeb({ ...input, threshold, maxResults });
     const aggregated = aggregateResults(local, web, maxResults);
 
@@ -100,7 +116,9 @@ export async function searchParts(input: SearchInput): Promise<SearchResult> {
       searchStatus: 'not_found',
       mode: input.mode,
       warnings: ['search_failed'],
-      structuredWarnings: [{ code: 'SEARCH_FAILED', message: getErrorMessage('SEARCH_FAILED'), stage: 'search' }],
+      structuredWarnings: [
+        { code: 'SEARCH_FAILED', message: getErrorMessage('SEARCH_FAILED'), stage: 'search' },
+      ],
     };
   }
 }

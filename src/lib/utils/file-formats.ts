@@ -1,8 +1,8 @@
 export const CAD_EXTENSIONS = ['stl', 'step', 'stp', 'iges', 'igs', 'obj', '3mf'] as const;
 export const PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'] as const;
 
-export type CadExtension = typeof CAD_EXTENSIONS[number];
-export type PhotoExtension = typeof PHOTO_EXTENSIONS[number];
+export type CadExtension = (typeof CAD_EXTENSIONS)[number];
+export type PhotoExtension = (typeof PHOTO_EXTENSIONS)[number];
 
 export function getExtension(urlOrName: string): string | null {
   try {

@@ -42,8 +42,16 @@ export const reconstructInputSchema = z.object({
     .optional(),
 });
 
-export interface EngineError { code: string; message: string; stage: 'ingest'|'search'|'reconstruct'|'archive'|'vision'|'groq'; }
-export interface EngineWarning { code: string; message: string; stage?: string; }
+export interface EngineError {
+  code: string;
+  message: string;
+  stage: 'ingest' | 'search' | 'reconstruct' | 'archive' | 'vision' | 'groq';
+}
+export interface EngineWarning {
+  code: string;
+  message: string;
+  stage?: string;
+}
 
 export type CadPartType =
   'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism' | 'composite';

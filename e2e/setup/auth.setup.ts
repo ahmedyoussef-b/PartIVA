@@ -33,7 +33,7 @@ for (const role of roles) {
       // 🔑 CORRECTION : lancer waitForResponse SANS await AVANT le clic
       const signInResponsePromise = page.waitForResponse(
         (r) => r.url().includes('/api/auth/sign-in/email'),
-        { timeout: 30_000 }
+        { timeout: 30_000 },
       );
 
       // Cliquer sur le bouton (déclenche la requête)
@@ -45,7 +45,7 @@ for (const role of roles) {
       loginSuccessful = status === 200;
 
       console.log(
-        `[auth.setup] ${user.role} POST /api/auth/sign-in/email -> STATUS: ${status} loginSuccessful: ${loginSuccessful}`
+        `[auth.setup] ${user.role} POST /api/auth/sign-in/email -> STATUS: ${status} loginSuccessful: ${loginSuccessful}`,
       );
 
       // Attendre la redirection si succès
@@ -66,7 +66,9 @@ for (const role of roles) {
     // Sauvegarde du storageState
     try {
       await page.context().storageState({ path: user.storageStatePath });
-      console.log(`[auth.setup] ${user.role} : storageState saved (login successful: ${loginSuccessful})`);
+      console.log(
+        `[auth.setup] ${user.role} : storageState saved (login successful: ${loginSuccessful})`,
+      );
     } catch (saveErr) {
       console.error(`[auth.setup] ${user.role} : failed to save storageState:`, saveErr);
     }

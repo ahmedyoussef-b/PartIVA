@@ -274,6 +274,3 @@ export async function searchTecDocByPhotoAndVehicle(
     } satisfies SearchCandidate;
   });
 }
-
-
-

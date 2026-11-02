@@ -30,8 +30,16 @@ export type IngestResult = {
   structuredWarnings?: EngineWarning[];
 };
 
-export interface EngineError { code: string; message: string; stage: 'ingest'|'search'|'reconstruct'|'archive'|'vision'|'groq'; }
-export interface EngineWarning { code: string; message: string; stage?: string; }
+export interface EngineError {
+  code: string;
+  message: string;
+  stage: 'ingest' | 'search' | 'reconstruct' | 'archive' | 'vision' | 'groq';
+}
+export interface EngineWarning {
+  code: string;
+  message: string;
+  stage?: string;
+}
 
 export const dimensionsSchema = z.object({
   length: z.number().optional(),

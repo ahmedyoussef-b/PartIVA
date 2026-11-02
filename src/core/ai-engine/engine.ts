@@ -34,7 +34,13 @@ export async function runEngine(
       extractedFeatures: [],
       analysisStatus: 'failed',
       warnings: ['engine_failed'],
-      structuredWarnings: [{ code: 'INGEST_FAILED', message: 'Impossible de lire les fichiers fournis. Vérifiez le format et réessayez.', stage: 'ingest' }],
+      structuredWarnings: [
+        {
+          code: 'INGEST_FAILED',
+          message: 'Impossible de lire les fichiers fournis. Vérifiez le format et réessayez.',
+          stage: 'ingest',
+        },
+      ],
     };
   }
 
@@ -54,7 +60,13 @@ export async function runEngine(
       searchStatus: 'not_found',
       mode,
       warnings: ['engine_failed'],
-      structuredWarnings: [{ code: 'SEARCH_FAILED', message: 'La recherche a échoué. Vous pouvez réessayer ou choisir un autre mode.', stage: 'search' }],
+      structuredWarnings: [
+        {
+          code: 'SEARCH_FAILED',
+          message: 'La recherche a échoué. Vous pouvez réessayer ou choisir un autre mode.',
+          stage: 'search',
+        },
+      ],
     };
   }
 
@@ -71,7 +83,13 @@ export async function runEngine(
       candidates: [],
       reconstructStatus: 'failed',
       warnings: ['engine_failed'],
-      structuredWarnings: [{ code: 'RECONSTRUCT_FAILED', message: 'La reconstruction a échoué. Un candidat généré est proposé en fallback.', stage: 'reconstruct' }],
+      structuredWarnings: [
+        {
+          code: 'RECONSTRUCT_FAILED',
+          message: 'La reconstruction a échoué. Un candidat généré est proposé en fallback.',
+          stage: 'reconstruct',
+        },
+      ],
     };
   }
 
@@ -90,7 +108,13 @@ export async function runEngine(
       archivedPartId: null,
       archiveStatus: 'failed',
       warnings: ['engine_failed'],
-      structuredWarnings: [{ code: 'ARCHIVE_FAILED', message: "L'archivage a échoué, mais votre résultat est disponible.", stage: 'archive' }],
+      structuredWarnings: [
+        {
+          code: 'ARCHIVE_FAILED',
+          message: "L'archivage a échoué, mais votre résultat est disponible.",
+          stage: 'archive',
+        },
+      ],
     };
   }
 

@@ -42,7 +42,9 @@ describe('extractCadParams', () => {
 
   it('retourne des paramètres par défaut si Groq échoue', async () => {
     mockCallGroq.mockRejectedValue(new Error('Network error'));
-    await expect(extractCadParams(baseIngest)).rejects.toMatchObject({ code: 'EXTRACT_PARAMS_FAILED' });
+    await expect(extractCadParams(baseIngest)).rejects.toMatchObject({
+      code: 'EXTRACT_PARAMS_FAILED',
+    });
   });
 
   it('retourne des paramètres par défaut si la réponse est invalide', async () => {

@@ -55,9 +55,19 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     };
   }
   if (validUrls.length > MAX_IMAGES) {
-    structuredWarnings.push({ code: 'VISION_TOO_MANY_IMAGES', message: 'Trop d images transmises (maximum 3).', stage: 'vision' });
+    structuredWarnings.push({
+      code: 'VISION_TOO_MANY_IMAGES',
+      message: 'Trop d images transmises (maximum 3).',
+      stage: 'vision',
+    });
     warnings.push('VISION_TOO_MANY_IMAGES');
-    return { detectedType: null, confidence: 0, rawResponse: '', warnings, structuredWarnings: structuredWarnings as never };
+    return {
+      detectedType: null,
+      confidence: 0,
+      rawResponse: '',
+      warnings,
+      structuredWarnings: structuredWarnings as never,
+    };
   }
   const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
     {
@@ -69,7 +79,11 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
     const loaded = await loadImageAsBase64(url);
     if (loaded?.warning) {
       warnings.push(loaded.warning);
-      structuredWarnings.push({ code: 'VISION_DOWNLOAD_FAILED', message: 'Echec du telechargement de l image.', stage: 'vision' });
+      structuredWarnings.push({
+        code: 'VISION_DOWNLOAD_FAILED',
+        message: 'Echec du telechargement de l image.',
+        stage: 'vision',
+      });
       continue;
     }
     if (loaded) {
@@ -105,10 +119,20 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
         throw new Error('no json');
       }
     } catch {
-      structuredWarnings.push({ code: 'VISION_PARSE_FAILED', message: 'Reponse du modele IA non exploitable.', stage: 'vision' });
+      structuredWarnings.push({
+        code: 'VISION_PARSE_FAILED',
+        message: 'Reponse du modele IA non exploitable.',
+        stage: 'vision',
+      });
       warnings.push('VISION_PARSE_FAILED');
     }
-    return { detectedType, confidence, rawResponse: raw, warnings, structuredWarnings: structuredWarnings as never };
+    return {
+      detectedType,
+      confidence,
+      rawResponse: raw,
+      warnings,
+      structuredWarnings: structuredWarnings as never,
+    };
   } catch (err: unknown) {
     const e = err as { code?: string };
     const code = e?.code ?? 'GROQ_HTTP_ERROR';
@@ -118,7 +142,10 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       confidence: 0,
       rawResponse: '',
       warnings,
-      structuredWarnings: [...structuredWarnings, { code, message: code, stage: 'vision' }] as never,
+      structuredWarnings: [
+        ...structuredWarnings,
+        { code, message: code, stage: 'vision' },
+      ] as never,
     };
   }
 }

@@ -20,7 +20,10 @@ describe('vision', () => {
   });
 
   it('succes JSON valide', async () => {
-    vi.mocked(callGroq).mockResolvedValue({ content: '{"type":"vis","confidence":0.9}', model: 'm' });
+    vi.mocked(callGroq).mockResolvedValue({
+      content: '{"type":"vis","confidence":0.9}',
+      model: 'm',
+    });
     const r = await detectPartType({ photoUrls: ['https://example.com/a.jpg'] });
     expect(r.detectedType).toBe('vis');
     expect(r.confidence).toBe(0.9);
@@ -33,7 +36,12 @@ describe('vision', () => {
   });
 
   it('>3 images -> VISION_TOO_MANY_IMAGES', async () => {
-    const urls = ['https://a.com/1.jpg','https://a.com/2.jpg','https://a.com/3.jpg','https://a.com/4.jpg'];
+    const urls = [
+      'https://a.com/1.jpg',
+      'https://a.com/2.jpg',
+      'https://a.com/3.jpg',
+      'https://a.com/4.jpg',
+    ];
     const r = await detectPartType({ photoUrls: urls });
     expect(r.structuredWarnings?.some((w) => w.code === 'VISION_TOO_MANY_IMAGES')).toBe(true);
   });

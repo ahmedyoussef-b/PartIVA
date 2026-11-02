@@ -35,7 +35,10 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
 
   if (!result.machine) {
     return (
-      <div className="mt-4 text-sm text-muted-foreground" data-testid="machine-recommendation-empty">
+      <div
+        className="mt-4 text-sm text-muted-foreground"
+        data-testid="machine-recommendation-empty"
+      >
         Aucune recommandation disponible pour cette pièce
       </div>
     );

@@ -298,10 +298,3 @@ test.describe('Workspace page', () => {
     await expect(page.getByText(/Aucun mod.*3D charg/i)).toBeVisible();
   });
 });
-
-
-
-
-
-
-

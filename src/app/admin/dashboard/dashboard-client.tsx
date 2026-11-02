@@ -110,61 +110,61 @@ export default function AdminDashboardClient({ requests, machines }: AdminDashbo
       {/* KPIs */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div data-testid="kpi-card" data-kpi-title="Demandes en attente">
-        <KpiCard
-          title="Demandes en attente"
-          value={kpiLoading ? '—' : (kpi?.demandesEnAttente ?? pendingRequests.length)}
-          description="À qualifier / chercher"
-          variant="warning"
-        />
+          <KpiCard
+            title="Demandes en attente"
+            value={kpiLoading ? '—' : (kpi?.demandesEnAttente ?? pendingRequests.length)}
+            description="À qualifier / chercher"
+            variant="warning"
+          />
         </div>
         <div data-testid="kpi-card" data-kpi-title="Pièces en BDD">
-        <KpiCard
-          title="Pièces en BDD"
-          value={kpiLoading ? '—' : `${kpi?.piecesEnBdd ?? requests.length} réf.`}
-          description="Source de vérité Neon Postgres"
-          variant="default"
-        />
+          <KpiCard
+            title="Pièces en BDD"
+            value={kpiLoading ? '—' : `${kpi?.piecesEnBdd ?? requests.length} réf.`}
+            description="Source de vérité Neon Postgres"
+            variant="default"
+          />
         </div>
         <div data-testid="kpi-card" data-kpi-title="Taux de succès">
-        <KpiCard
-          title="Taux de succès"
-          value={kpiLoading ? '—' : kpi && kpi.tauxSucces > 0 ? `${kpi.tauxSucces}%` : 'N/A'}
-          description="30 derniers jours (clôturées)"
-          variant="success"
-        />
+          <KpiCard
+            title="Taux de succès"
+            value={kpiLoading ? '—' : kpi && kpi.tauxSucces > 0 ? `${kpi.tauxSucces}%` : 'N/A'}
+            description="30 derniers jours (clôturées)"
+            variant="success"
+          />
         </div>
         <div data-testid="kpi-card" data-kpi-title="Analyses lancées">
-        <KpiCard
-          title="Analyses lancées"
-          value={kpiLoading ? '—' : (kpi?.engineAnalysesCount ?? 0)}
-          description="Moteur workspace"
-          variant="default"
-          icon={Activity}
-        />
+          <KpiCard
+            title="Analyses lancées"
+            value={kpiLoading ? '—' : (kpi?.engineAnalysesCount ?? 0)}
+            description="Moteur workspace"
+            variant="default"
+            icon={Activity}
+          />
         </div>
         <div data-testid="kpi-card" data-kpi-title="Pièces générées">
-        <KpiCard
-          title="Pièces générées"
-          value={kpiLoading ? '—' : (kpi?.engineGeneratedPartsCount ?? 0)}
-          description="Par le moteur"
-          variant="default"
-          icon={Wrench}
-        />
+          <KpiCard
+            title="Pièces générées"
+            value={kpiLoading ? '—' : (kpi?.engineGeneratedPartsCount ?? 0)}
+            description="Par le moteur"
+            variant="default"
+            icon={Wrench}
+          />
         </div>
         <div data-testid="kpi-card" data-kpi-title="Taux de succès moteur">
-        <KpiCard
-          title="Taux de succès moteur"
-          value={
-            kpiLoading
-              ? '—'
-              : kpi && (kpi.engineSuccessRate ?? 0) > 0
-                ? `${kpi.engineSuccessRate}%`
-                : 'N/A'
-          }
-          description="Pièces analysées / générées"
-          variant="success"
-          icon={TrendingUp}
-        />
+          <KpiCard
+            title="Taux de succès moteur"
+            value={
+              kpiLoading
+                ? '—'
+                : kpi && (kpi.engineSuccessRate ?? 0) > 0
+                  ? `${kpi.engineSuccessRate}%`
+                  : 'N/A'
+            }
+            description="Pièces analysées / générées"
+            variant="success"
+            icon={TrendingUp}
+          />
         </div>
       </div>
 

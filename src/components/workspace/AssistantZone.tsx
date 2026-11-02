@@ -79,22 +79,38 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   if (result) {
     if (result.ingest?.structuredWarnings?.length) {
       for (const w of result.ingest.structuredWarnings) {
-        messages.push({ id: `ingest-sw-${w.code}`, role: 'assistant' as const, content: getErrorMessage(w.code) });
+        messages.push({
+          id: `ingest-sw-${w.code}`,
+          role: 'assistant' as const,
+          content: getErrorMessage(w.code),
+        });
       }
     }
     if (result.search?.structuredWarnings?.length) {
       for (const w of result.search.structuredWarnings) {
-        messages.push({ id: `search-sw-${w.code}`, role: 'assistant' as const, content: getErrorMessage(w.code) });
+        messages.push({
+          id: `search-sw-${w.code}`,
+          role: 'assistant' as const,
+          content: getErrorMessage(w.code),
+        });
       }
     }
     if (result.reconstruct?.structuredWarnings?.length) {
       for (const w of result.reconstruct.structuredWarnings) {
-        messages.push({ id: `reconstruct-sw-${w.code}`, role: 'assistant' as const, content: getErrorMessage(w.code) });
+        messages.push({
+          id: `reconstruct-sw-${w.code}`,
+          role: 'assistant' as const,
+          content: getErrorMessage(w.code),
+        });
       }
     }
     if (result.archive?.structuredWarnings?.length) {
       for (const w of result.archive.structuredWarnings) {
-        messages.push({ id: `archive-sw-${w.code}`, role: 'assistant' as const, content: getErrorMessage(w.code) });
+        messages.push({
+          id: `archive-sw-${w.code}`,
+          role: 'assistant' as const,
+          content: getErrorMessage(w.code),
+        });
       }
     }
     messages.push({
