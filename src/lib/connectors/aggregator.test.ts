@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { aggregateSearch, resetCircuitBreakers } from './aggregator';
 import type { SourceConnector } from './types';
 import type { SearchCandidate } from '@/schemas/search';

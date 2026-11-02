@@ -76,11 +76,11 @@ export async function extractCadParams(ingestResult: IngestResult): Promise<CadP
     console.error('[RECONSTRUCT][EXTRACT_PARAMS_FAILED]', e);
     throw { code: 'EXTRACT_PARAMS_FAILED', message: 'Extraction params failed', stage: 'reconstruct' };
   }
-  let parsed;
+  let parsed: { success: boolean; data?: any } = { success: false };
   try {
     parsed = cadParamsSchema.safeParse(parseJsonReply(content));
   } catch {
-    parsed = { success: false } as any;
+    parsed = { success: false };
   }
   if (parsed.success) {
     const { type, unit, material, length, width, height, diameter } = parsed.data;
