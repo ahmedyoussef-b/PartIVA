@@ -6,11 +6,13 @@
 // Usage : npx tsx e2e/fixtures/create-submitted-part.mts "<partNumber>" "<name>"
 import { prisma } from '@/lib/prisma';
 
-const [partNumber, name] = process.argv.slice(2);
+const [partNumber, name, analysisDataJson] = process.argv.slice(2);
 if (!partNumber || !name) {
-  console.error('Usage: tsx create-submitted-part.mts <partNumber> <name>');
+  console.error('Usage: tsx create-submitted-part.mts <partNumber> <name> [analysisDataJson]');
   process.exit(1);
 }
+
+const analysisData = analysisDataJson ? JSON.parse(analysisDataJson) : undefined;
 
 const part = await prisma.part.create({
   data: {
@@ -18,6 +20,7 @@ const part = await prisma.part.create({
     name,
     description: 'Part créée par fixture E2E (D-e2e-submitted-consumption)',
     status: 'SUBMITTED',
+    ...(analysisData ? { analysisData } : {}),
   },
 });
 

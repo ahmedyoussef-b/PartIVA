@@ -26,7 +26,8 @@ async function createGeneratedCandidate(
   try {
     const params = await extractCadParams(ingestResult);
     return await generateCadFromParams(params);
-  } catch {
+  } catch (e) {
+    console.error('[RECONSTRUCT][CAD_GENERATION_FAILED]', e);
     return {
       id: 'generated-1',
       method: 'generated',
@@ -34,6 +35,7 @@ async function createGeneratedCandidate(
       format: options?.targetFormat || 'stl',
       confidence: 0.3,
       warnings: ['Aucun fichier 3D trouvé. Une reconstruction manuelle est nécessaire.'],
+      structuredWarnings: [{ code: 'CAD_GENERATION_FAILED', message: 'La génération 3D a échoué. Vous pouvez réessayer avec des paramètres différents.' }],
     };
   }
 }

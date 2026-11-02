@@ -20,7 +20,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
 
   if (result.alreadyAssigned) {
     return (
-      <div className="mt-4">
+      <div className="mt-4" data-testid="machine-recommendation-assigned">
         <Badge variant="secondary">Déjà assignée à {result.machine?.name}</Badge>
         <Button
           variant="ghost"
@@ -35,15 +35,15 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
 
   if (!result.machine) {
     return (
-      <div className="mt-4 text-sm text-muted-foreground">
+      <div className="mt-4 text-sm text-muted-foreground" data-testid="machine-recommendation-empty">
         Aucune recommandation disponible pour cette pièce
       </div>
     );
   }
 
   return (
-    <div className="mt-4">
-      <Card>
+    <div className="mt-4" data-testid="machine-recommendation-panel">
+      <Card data-testid="machine-recommendation-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Recommandation de machine</CardTitle>
           <CardDescription className="text-xs">
@@ -77,6 +77,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
       </Card>
       <div className="mt-3">
         <Button
+          data-testid="machine-view-button"
           variant="secondary"
           size="sm"
           className="w-full"

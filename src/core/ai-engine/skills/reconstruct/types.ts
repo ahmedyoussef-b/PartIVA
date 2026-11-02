@@ -20,6 +20,7 @@ export type ReconstructCandidate = {
   format: string;
   confidence: number;
   warnings: string[];
+  structuredWarnings?: EngineWarning[];
   fileWarnings?: Array<{ code: string; files: string[] }>;
 };
 
@@ -27,6 +28,7 @@ export type ReconstructResult = {
   candidates: ReconstructCandidate[];
   reconstructStatus: 'success' | 'partial' | 'failed';
   warnings: string[];
+  structuredWarnings?: EngineWarning[];
 };
 
 export const reconstructInputSchema = z.object({
@@ -40,7 +42,8 @@ export const reconstructInputSchema = z.object({
     .optional(),
 });
 
-// --- Paramètres CAO générés par LLM / templates ---
+export interface EngineError { code: string; message: string; stage: 'ingest'|'search'|'reconstruct'|'archive'|'vision'|'groq'; }
+export interface EngineWarning { code: string; message: string; stage?: string; }
 
 export type CadPartType =
   'cylinder' | 'plate' | 'disc' | 'block' | 'sphere' | 'torus' | 'cone' | 'prism' | 'composite';

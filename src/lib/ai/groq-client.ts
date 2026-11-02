@@ -39,13 +39,14 @@ export async function callGroq(
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
-      throw new Error(`GROQ API error: ${response.status} ${response.statusText} - ${errorText}`);
+      const code = response.status === 404 ? 'GROQ_MODEL_DEPRECATED' : 'GROQ_HTTP_ERROR';
+      throw { code, message: `GROQ API error: ${response.status} ${response.statusText} - ${errorText}`, stage: 'groq' };
     }
 
     const data: GroqResponse = await response.json();
 
     if (!data.choices || data.choices.length === 0) {
-      throw new Error('GROQ API returned empty choices');
+      throw { code: 'GROQ_EMPTY_RESPONSE', message: 'GROQ API returned empty choices', stage: 'groq' };
     }
 
     return {
@@ -54,7 +55,7 @@ export async function callGroq(
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'TimeoutError') {
-      throw new Error(`GROQ request timeout after ${timeoutMs}ms`);
+      throw { code: 'GROQ_TIMEOUT', message: `GROQ request timeout after ${timeoutMs}ms`, stage: 'groq' };
     }
     throw error;
   }

@@ -142,16 +142,21 @@ export function createGeometry(params: CadParams): THREE.BufferGeometry {
  * Ne dépend que de `three` et des paramètres fournis. Aucun appel réseau.
  */
 export async function generateCadFromParams(params: CadParams): Promise<ReconstructCandidate> {
-  const geometry = buildGeometry(params);
-  const stl = buildStlString(geometry);
-  const fileUrl = `data:application/stl;base64,${toBase64(stl)}`;
+  try {
+    const geometry = buildGeometry(params);
+    const stl = buildStlString(geometry);
+    const fileUrl = `data:application/stl;base64,${toBase64(stl)}`;
 
-  return {
-    id: `generated-${Date.now()}`,
-    method: 'generated',
-    fileUrl,
-    format: 'stl',
-    confidence: computeConfidence(params),
-    warnings: [],
-  };
+    return {
+      id: `generated-${Date.now()}`,
+      method: 'generated',
+      fileUrl,
+      format: 'stl',
+      confidence: computeConfidence(params),
+      warnings: [],
+    };
+  } catch (e) {
+    console.error('[RECONSTRUCT][CAD_GENERATION_FAILED]', e);
+    throw { code: 'CAD_GENERATION_FAILED', message: 'CAD generation failed', stage: 'reconstruct' };
+  }
 }

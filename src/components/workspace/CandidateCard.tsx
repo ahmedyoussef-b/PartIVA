@@ -60,7 +60,7 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
   const canConvert = isAdmin;
 
   return (
-    <Card className="mb-2">
+    <Card data-testid="candidate-card" className="mb-2">
       <CardHeader className="flex flex-row items-center gap-3 p-3">
         {candidate.thumbnailUrl ? (
           <img
