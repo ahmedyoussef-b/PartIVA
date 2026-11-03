@@ -27,7 +27,10 @@ export function PiecesDetailClient({ part }: { part: Part }) {
   const [saving, setSaving] = useState(false);
 
   const handleEdit = () => {
-    console.log('[ADMIN-EDIT-PART] Mode édition activé:', { partId: part.id, fields: ['name', 'material', 'description', 'ptvReference', 'partNumber'] });
+    console.log('[ADMIN-EDIT-PART] Mode édition activé:', {
+      partId: part.id,
+      fields: ['name', 'material', 'description', 'ptvReference', 'partNumber'],
+    });
     setEditing(true);
   };
 
@@ -78,13 +81,29 @@ export function PiecesDetailClient({ part }: { part: Part }) {
   return (
     <div className="space-y-3">
       <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" />
-      <Input value={partNumber} onChange={(e) => setPartNumber(e.target.value)} placeholder="N° pièce" />
-      <Input value={ptvReference} onChange={(e) => setPtvReference(e.target.value)} placeholder="Réf. PTV" />
+      <Input
+        value={partNumber}
+        onChange={(e) => setPartNumber(e.target.value)}
+        placeholder="N° pièce"
+      />
+      <Input
+        value={ptvReference}
+        onChange={(e) => setPtvReference(e.target.value)}
+        placeholder="Réf. PTV"
+      />
       <Input value={material} onChange={(e) => setMaterial(e.target.value)} placeholder="Matière" />
-      <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
+      <Textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+      />
       <div className="flex gap-2">
-        <Button onClick={handleSave} disabled={saving}>Sauvegarder</Button>
-        <Button variant="outline" onClick={handleCancel}>Annuler</Button>
+        <Button onClick={handleSave} disabled={saving}>
+          Sauvegarder
+        </Button>
+        <Button variant="outline" onClick={handleCancel}>
+          Annuler
+        </Button>
       </div>
     </div>
   );

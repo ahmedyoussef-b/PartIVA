@@ -52,7 +52,8 @@ export async function uploadToCloudinary(
     );
   }
 
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME ?? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const cloudName =
+    process.env.CLOUDINARY_CLOUD_NAME ?? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -64,17 +65,17 @@ export async function uploadToCloudinary(
   const timestamp = Math.floor(Date.now() / 1000);
 
   // Construire la chaîne à signer avec TOUS les paramètres (triés alpha)
-  const paramsToSign = [
-    `folder=${folder}`,
-    `public_id=${publicId}`,
-    `timestamp=${timestamp}`,
-  ].sort().join('&');
+  const paramsToSign = [`folder=${folder}`, `public_id=${publicId}`, `timestamp=${timestamp}`]
+    .sort()
+    .join('&');
 
   const signature = createHash('sha1')
     .update(paramsToSign + apiSecret)
     .digest('hex');
 
-  console.log('[UPLOAD-CLOUDINARY-REST-SIGN]', { paramsToSign: paramsToSign.substring(0, 80) + '...' });
+  console.log('[UPLOAD-CLOUDINARY-REST-SIGN]', {
+    paramsToSign: paramsToSign.substring(0, 80) + '...',
+  });
 
   console.log('[UPLOAD-CLOUDINARY-REST]', {
     resourceType,
@@ -92,10 +93,13 @@ export async function uploadToCloudinary(
   formData.append('public_id', publicId);
   formData.append('folder', folder);
 
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
-    method: 'POST',
-    body: formData,
-  });
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+    {
+      method: 'POST',
+      body: formData,
+    },
+  );
 
   if (!response.ok) {
     const errorText = await response.text();

@@ -114,91 +114,91 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
 
       {/* Table */}
       <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">Réf.</TableHead>
-                      <TableHead>Pièce</TableHead>
-                      <TableHead>Matière</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Fichiers</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((part) => {
-                      const hasCad = (part.files?.cad?.length ?? 0) > 0;
-                      const hasPlan = (part.files?.plans?.length ?? 0) > 0;
-                      return (
-                        <TableRow key={part.id} className="hover:bg-muted/30">
-                          <TableCell className="font-mono text-xs font-bold text-primary">
-                            {part.reference}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-xs font-medium">{part.name}</div>
-                            <div className="line-clamp-1 text-[11px] text-muted-foreground">
-                              {part.description}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono text-[10px]">
-                              {part.material}
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Réf.</TableHead>
+                  <TableHead>Pièce</TableHead>
+                  <TableHead>Matière</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Fichiers</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((part) => {
+                  const hasCad = (part.files?.cad?.length ?? 0) > 0;
+                  const hasPlan = (part.files?.plans?.length ?? 0) > 0;
+                  return (
+                    <TableRow key={part.id} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs font-bold text-primary">
+                        {part.reference}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs font-medium">{part.name}</div>
+                        <div className="line-clamp-1 text-[11px] text-muted-foreground">
+                          {part.description}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono text-[10px]">
+                          {part.material}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <PartStatusBadge status={part.status} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {hasCad && (
+                            <Badge
+                              variant="outline"
+                              className="border-blue-500/40 font-mono text-[9px] text-blue-600"
+                            >
+                              CAO
                             </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <PartStatusBadge status={part.status} />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {hasCad && (
-                                <Badge
-                                  variant="outline"
-                                  className="border-blue-500/40 font-mono text-[9px] text-blue-600"
-                                >
-                                  CAO
-                                </Badge>
-                              )}
-                              {hasPlan && (
-                                <Badge
-                                  variant="outline"
-                                  className="border-violet-500/40 font-mono text-[9px] text-violet-600"
-                                >
-                                  PLAN
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-xs">
-                                <Link href={`/admin/pieces/${part.id}`}>
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                  Fiche
-                                </Link>
-                              </Button>
-                              {hasCad && (
-                                <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
-                                  <FileDown className="h-3.5 w-3.5" />
-                                  STEP
-                                </Button>
-                              )}
-                              <PartTransitionDialog
-                                partId={part.id}
-                                currentStatus={part.status}
-                                actorRole={actorRole}
-                              />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                          )}
+                          {hasPlan && (
+                            <Badge
+                              variant="outline"
+                              className="border-violet-500/40 font-mono text-[9px] text-violet-600"
+                            >
+                              PLAN
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-xs">
+                            <Link href={`/admin/pieces/${part.id}`}>
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Fiche
+                            </Link>
+                          </Button>
+                          {hasCad && (
+                            <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
+                              <FileDown className="h-3.5 w-3.5" />
+                              STEP
+                            </Button>
+                          )}
+                          <PartTransitionDialog
+                            partId={part.id}
+                            currentStatus={part.status}
+                            actorRole={actorRole}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

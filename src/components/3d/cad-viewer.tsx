@@ -29,7 +29,7 @@ function FitCamera({ geometry }: { geometry: THREE.BufferGeometry | null }) {
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
     const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
-    const distance = (maxDim / 2) / Math.tan(fov / 2) * 1.5;
+    const distance = (maxDim / 2 / Math.tan(fov / 2)) * 1.5;
     camera.position.set(center.x, center.y, center.z + distance);
     camera.lookAt(center);
     camera.updateProjectionMatrix();

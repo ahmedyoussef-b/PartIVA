@@ -23,16 +23,14 @@ const UpdatePartSchema = z.object({
   partNumber: z.string().optional(),
 });
 
-export async function updatePart(
-  data: {
-    partId: string;
-    name?: string;
-    material?: string;
-    description?: string;
-    ptvReference?: string;
-    partNumber?: string;
-  },
-): Promise<{ success: true; updatedAt: string } | { success: false; error: string }> {
+export async function updatePart(data: {
+  partId: string;
+  name?: string;
+  material?: string;
+  description?: string;
+  ptvReference?: string;
+  partNumber?: string;
+}): Promise<{ success: true; updatedAt: string } | { success: false; error: string }> {
   console.log('[ADMIN-EDIT-PART-SERVER] Mise à jour demandée:', { partId: data.partId, data });
 
   try {
@@ -42,7 +40,10 @@ export async function updatePart(
     }
 
     const validated = UpdatePartSchema.parse(data);
-    console.log('[ADMIN-EDIT-PART-SERVER] Mise à jour Prisma:', { partId: validated.partId, data: validated });
+    console.log('[ADMIN-EDIT-PART-SERVER] Mise à jour Prisma:', {
+      partId: validated.partId,
+      data: validated,
+    });
 
     const updated = await prisma.part.update({
       where: { id: validated.partId },
@@ -55,7 +56,10 @@ export async function updatePart(
       },
     });
 
-    console.log('[ADMIN-EDIT-PART-SERVER] Mise à jour réussie:', { partId: updated.id, updatedAt: updated.updatedAt });
+    console.log('[ADMIN-EDIT-PART-SERVER] Mise à jour réussie:', {
+      partId: updated.id,
+      updatedAt: updated.updatedAt,
+    });
     return { success: true, updatedAt: updated.updatedAt.toISOString() };
   } catch (error) {
     console.error('[ADMIN-EDIT-PART-ERROR] Mise à jour échouée:', error);
@@ -132,12 +136,7 @@ export async function createPart(
         }
 
         const buffer = Buffer.from(await image.arrayBuffer());
-        const uploaded = await uploadToCloudinary(
-          buffer,
-          `parts/${part.id}`,
-          'image',
-          mimeType,
-        );
+        const uploaded = await uploadToCloudinary(buffer, `parts/${part.id}`, 'image', mimeType);
 
         await tx.partImage.create({
           data: {
@@ -340,4 +339,3 @@ export async function deletePartImage(data: {
     };
   }
 }
-

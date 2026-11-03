@@ -8,7 +8,9 @@ cloudinary.config({
 
 console.log('[CLOUDINARY-CONFIG-FINAL]', {
   cloud_name: cloudinary.config().cloud_name,
-  api_key: cloudinary.config().api_key ? (String(cloudinary.config().api_key).substring(0,6)) : undefined,
+  api_key: cloudinary.config().api_key
+    ? String(cloudinary.config().api_key).substring(0, 6)
+    : undefined,
 });
 
 export { cloudinary };

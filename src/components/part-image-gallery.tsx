@@ -241,12 +241,7 @@ export default function PartImageGallery({
         {!hasImages ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-muted/50">
             <p className="text-sm text-muted-foreground">Aucune image téléchargée</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddClick}
-              disabled={uploading}
-            >
+            <Button variant="outline" size="sm" onClick={handleAddClick} disabled={uploading}>
               {uploading ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
@@ -355,7 +350,7 @@ export default function PartImageGallery({
           {displayImages.length > 1 && (
             <button
               type="button"
-              className="absolute left-4 top-1/2 z-50 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/40 focus:outline-none"
+              className="absolute top-1/2 left-4 z-50 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/40 focus:outline-none"
               onClick={(e) => {
                 e.stopPropagation();
                 setLightboxIndex((prev) =>
@@ -407,7 +402,7 @@ export default function PartImageGallery({
           {displayImages.length > 1 && (
             <button
               type="button"
-              className="absolute right-4 top-1/2 z-50 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/40 focus:outline-none"
+              className="absolute top-1/2 right-4 z-50 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/40 focus:outline-none"
               onClick={(e) => {
                 e.stopPropagation();
                 setLightboxIndex((prev) =>

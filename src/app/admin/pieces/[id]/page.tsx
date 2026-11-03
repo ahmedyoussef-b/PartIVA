@@ -258,11 +258,7 @@ export default async function AdminPieceDetailPage({
             </TabsContent>
 
             <TabsContent value="images" className="mt-4">
-              <PartImageGallery
-                images={part.images || []}
-                partId={part.id}
-                partName={part.name}
-              />
+              <PartImageGallery images={part.images || []} partId={part.id} partName={part.name} />
             </TabsContent>
           </Tabs>
         </div>

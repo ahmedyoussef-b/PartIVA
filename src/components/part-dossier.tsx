@@ -57,7 +57,16 @@ export function PartDossier({ part, machines = [] }: PartDossierProps) {
           <CardTitle className="text-base">Dossier pièce — {part.ptvReference}</CardTitle>
           <PartStatusBadge status={part.status} />
           <div className="flex items-center gap-2">
-            <EditPartButton part={{ id: part.id, name: part.name, description: part.description ?? null, material: part.material ?? null, ptvReference: part.ptvReference ?? null, partNumber: part.partNumber }} />
+            <EditPartButton
+              part={{
+                id: part.id,
+                name: part.name,
+                description: part.description ?? null,
+                material: part.material ?? null,
+                ptvReference: part.ptvReference ?? null,
+                partNumber: part.partNumber,
+              }}
+            />
             <span className="text-xs text-muted-foreground">Modifier</span>
           </div>
         </div>
