@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MachineRecommendationPanel } from '@/app/admin/pieces/[id]/machine-recommendation-panel';
+import { EditPartButton } from '@/app/admin/pieces/[id]/edit-part-button';
 import type { UserRole } from '@/generated/prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -76,6 +77,16 @@ export default async function AdminPieceDetailPage({
           <span className="rounded bg-secondary px-2 py-1 text-secondary-foreground">
             {actorRole}
           </span>
+          <EditPartButton
+            part={{
+              id: part.id,
+              name: part.name,
+              partNumber: part.partNumber,
+              ptvReference: part.ptvReference,
+              material: part.material,
+              description: part.description,
+            }}
+          />
         </div>
       </div>
 
@@ -247,7 +258,11 @@ export default async function AdminPieceDetailPage({
             </TabsContent>
 
             <TabsContent value="images" className="mt-4">
-              <PartImageGallery images={part.images || []} />
+              <PartImageGallery
+                images={part.images || []}
+                partId={part.id}
+                partName={part.name}
+              />
             </TabsContent>
           </Tabs>
         </div>

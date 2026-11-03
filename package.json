@@ -16,7 +16,11 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:backfill-embeddings": "tsx scripts/backfill-embeddings.ts",
     "test:e2e": "playwright test",
-    "test:unit": "npx vitest run"
+    "test:unit": "npx vitest run",
+    "campaign:check": "tsx scripts/campaign/check-env.ts",
+    "campaign:snapshot": "tsx scripts/campaign/snapshot-db.ts",
+    "campaign:record": "tsx scripts/campaign/record-result.ts",
+    "campaign:dashboard": "tsx scripts/campaign/dashboard.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

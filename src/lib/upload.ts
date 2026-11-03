@@ -1,4 +1,4 @@
-import { cloudinary } from '@/lib/cloudinary';
+import { createHash } from 'crypto';
 
 export interface CloudinaryUploadResult {
   url: string;
@@ -8,7 +8,6 @@ export interface CloudinaryUploadResult {
 }
 
 const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
-
 const ALLOWED_RAW_MIME_TYPES = [
   'application/pdf',
   'application/step',
@@ -53,30 +52,67 @@ export async function uploadToCloudinary(
     );
   }
 
-  const publicId = `${folder}/${crypto.randomUUID()}`;
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME ?? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-  const upload = await new Promise<Record<string, unknown>>((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: resourceType,
-        public_id: publicId,
-        folder,
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(result as Record<string, unknown>);
-      },
-    );
-    stream.end(file);
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new UploadError('Configuration Cloudinary manquante', 'UPLOAD_FAILED');
+  }
+
+  const publicId = `${folder}/${crypto.randomUUID()}`;
+  const timestamp = Math.floor(Date.now() / 1000);
+
+  // Construire la chaîne à signer avec TOUS les paramètres (triés alpha)
+  const paramsToSign = [
+    `folder=${folder}`,
+    `public_id=${publicId}`,
+    `timestamp=${timestamp}`,
+  ].sort().join('&');
+
+  const signature = createHash('sha1')
+    .update(paramsToSign + apiSecret)
+    .digest('hex');
+
+  console.log('[UPLOAD-CLOUDINARY-REST-SIGN]', { paramsToSign: paramsToSign.substring(0, 80) + '...' });
+
+  console.log('[UPLOAD-CLOUDINARY-REST]', {
+    resourceType,
+    folder,
+    publicId,
+    fileSize: file.byteLength,
+    mimeType,
+  });
+
+  const formData = new FormData();
+  formData.append('file', new Blob([new Uint8Array(file)], { type: mimeType }));
+  formData.append('api_key', apiKey);
+  formData.append('timestamp', String(timestamp));
+  formData.append('signature', signature);
+  formData.append('public_id', publicId);
+  formData.append('folder', folder);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('[UPLOAD-CLOUDINARY-REST-ERROR]', { status: response.status, body: errorText });
+    throw new UploadError(`Upload Cloudinary échoué (${response.status})`, 'UPLOAD_FAILED');
+  }
+
+  const result = await response.json();
+  console.log('[UPLOAD-CLOUDINARY-REST-SUCCESS]', {
+    public_id: result.public_id,
+    secure_url: result.secure_url,
   });
 
   return {
-    url: String(upload.secure_url ?? upload.url),
-    publicId: String(upload.public_id),
-    format: String(upload.format ?? ''),
-    size: Number(upload.bytes ?? file.byteLength),
+    url: String(result.secure_url ?? result.url),
+    publicId: String(result.public_id),
+    format: String(result.format ?? ''),
+    size: Number(result.bytes ?? file.byteLength),
   };
 }

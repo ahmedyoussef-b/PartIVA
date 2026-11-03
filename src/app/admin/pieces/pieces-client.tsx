@@ -16,18 +16,14 @@ import { KpiCard } from '@/components/shared/kpi-card';
 import { FilterBar } from '@/components/shared/filter-bar';
 import { PartStatusBadge } from '@/components/part-status-badge';
 import { PartTransitionDialog } from '@/components/part-transition-dialog';
-import { PartDossier } from '@/components/part-dossier';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, FileDown, Package } from 'lucide-react';
+import { FileDown, Package, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
-import type { Machine } from '@/generated/prisma/client';
 import type { UserRole } from '@/generated/prisma/browser';
 
 interface PiecesClientProps {
   initialParts: PartWithSerializedSuppliers[];
   actorRole: UserRole;
-  machines: Machine[];
 }
 
 function mapPartToUi(part: PartWithSerializedSuppliers) {
@@ -46,11 +42,9 @@ function mapPartToUi(part: PartWithSerializedSuppliers) {
   };
 }
 
-export default function PiecesClient({ initialParts, actorRole, machines }: PiecesClientProps) {
+export default function PiecesClient({ initialParts, actorRole }: PiecesClientProps) {
   const [search, setSearch] = React.useState('');
   const [matFilter, setMatFilter] = React.useState('all');
-
-  const [selectedPartId, setSelectedPartId] = React.useState<string | null>(null);
 
   const parts = React.useMemo(() => initialParts.map(mapPartToUi), [initialParts]);
 
@@ -119,18 +113,7 @@ export default function PiecesClient({ initialParts, actorRole, machines }: Piec
       />
 
       {/* Table */}
-      <Tabs
-        value={selectedPartId ?? 'catalogue'}
-        onValueChange={(v) => {
-          setSelectedPartId(v === 'catalogue' ? null : v);
-        }}
-      >
-        <TabsList>
-          <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
-          {selectedPartId && <TabsTrigger value={selectedPartId}>Pièce</TabsTrigger>}
-        </TabsList>
-        <TabsContent value="catalogue">
-          <Card>
+      <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
@@ -189,14 +172,11 @@ export default function PiecesClient({ initialParts, actorRole, machines }: Piec
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 gap-1 text-xs"
-                                onClick={() => setSelectedPartId(part.id)}
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                Voir
+                              <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-xs">
+                                <Link href={`/admin/pieces/${part.id}`}>
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                  Fiche
+                                </Link>
                               </Button>
                               {hasCad && (
                                 <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
@@ -219,13 +199,6 @@ export default function PiecesClient({ initialParts, actorRole, machines }: Piec
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        {selectedPartId && (
-          <TabsContent value={selectedPartId}>
-            <PartDossier part={parts.find((p) => p.id === selectedPartId)!} machines={machines} />
-          </TabsContent>
-        )}
-      </Tabs>
-    </div>
+        </div>
   );
 }

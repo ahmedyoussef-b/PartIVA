@@ -1,8 +1,7 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -364,12 +363,10 @@ export default function CreerPiecePage() {
                       className="group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:border-primary/40"
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                        <Image
+                        <img
                           src={photo.url}
                           alt={`Photo ${photo.tag}`}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          fill
-                          sizes="(max-width: 768px) 100vw, 50vw"
                         />
                         <button
                           type="button"
@@ -547,3 +544,4 @@ export default function CreerPiecePage() {
     </div>
   );
 }
+

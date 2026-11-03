@@ -1,0 +1,13 @@
+﻿import { test, expect } from '@playwright/test';
+
+test.describe('Admin - Recherche', () => {
+  test('recherche Pignon trouve au moins 1 resultat', async ({ page }) => {
+    await page.goto('/admin/demandes');
+    await page.waitForLoadState('networkidle');
+    const searchInput = page.getByPlaceholder(/Filtrer|Rechercher/i);
+    await searchInput.fill('Pignon');
+    await page.waitForTimeout(1000);
+    await expect(page.locator('a[href^=\"/admin/demandes/\"]').first()).toBeVisible({ timeout: 10000 });
+    await page.screenshot({ path: 'docs/campagne-tests/preuves/E2E-ADMIN-03/bug1-search-fixed.png', fullPage: true });
+  });
+});

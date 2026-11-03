@@ -86,6 +86,15 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
         });
       }
     }
+    if (result.ingest?.warnings?.length) {
+      for (const w of result.ingest.warnings) {
+        messages.push({
+          id: `ingest-w-${w}`,
+          role: 'assistant' as const,
+          content: w,
+        });
+      }
+    }
     if (result.search?.structuredWarnings?.length) {
       for (const w of result.search.structuredWarnings) {
         messages.push({

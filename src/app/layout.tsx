@@ -4,6 +4,7 @@ import { inter, poppins, firaCode } from '@/app/fonts/index';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/sonner';
 import { RegisterSW } from '@/components/pwa/register-sw';
+import { CommitBadge } from '@/components/dev/CommitBadge';
 
 export const metadata: Metadata = {
   title: 'Atelier Pièces Industrielles — Fabrication Plastique à la demande',
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />
         <RegisterSW />
+        {process.env.NEXT_PUBLIC_SHOW_COMMIT_SHA === 'true' && <CommitBadge />}
       </body>
     </html>
   );

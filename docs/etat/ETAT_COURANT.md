@@ -222,7 +222,13 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - E92-B: bouton+modale Analyser dans onglet CAD RE; tsc/unit OK.
 
 
-## E104 â€” Fiabilisation moteur de recherche (CLÃ”TURÃ‰E)
+## Campagne tests réels admin (2026-11-03) — CLÔTURÉE
+
+- 5 bugs corrigés : recherche, actualiser, Cloudinary, édition pièce, création partielle.
+- 3 dettes d'accessibilité corrigées : PartDossier retiré, bouton Fiche, galerie images (suppression, lightbox, workspace).
+- Logs structurés `[ADMIN-EDIT-PART]`, `[ADMIN-IMAGE-UPLOAD]`, `[ADMIN-IMAGE-DELETE]` conservés dans le code.
+- Typecheck exit 0, lint 0 erreurs, build vert.
+- 13 leçons gravées, 9 dettes d'infrastructure tracées (voir DETTES.md).
 - **Date** : 2026-11-02
 - **Statut** : ClÃ´turÃ©e (B1+B2)
 

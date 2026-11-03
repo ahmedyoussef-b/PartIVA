@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Grid, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,29 @@ import {
 
 const MODEL_COLOR = '#94a3b8';
 const MODEL_EXTENT = 2.8;
+
+function FitCamera({ geometry }: { geometry: THREE.BufferGeometry | null }) {
+  const { camera, controls } = useThree();
+  React.useEffect(() => {
+    if (!geometry) return;
+    geometry.computeBoundingBox();
+    const box = geometry.boundingBox;
+    if (!box) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
+    const distance = (maxDim / 2) / Math.tan(fov / 2) * 1.5;
+    camera.position.set(center.x, center.y, center.z + distance);
+    camera.lookAt(center);
+    camera.updateProjectionMatrix();
+    if (controls) {
+      (controls as unknown as { target: THREE.Vector3 }).target.copy(center);
+      (controls as unknown as { update: () => void }).update();
+    }
+  }, [geometry, camera, controls]);
+  return null;
+}
 
 interface CadViewerProps {
   src: string;
@@ -332,8 +355,9 @@ export function CadViewer({
               />
             </mesh>
             <ViewerSceneBridge bridgeRef={bridgeRef} />
+            <FitCamera geometry={geometry} />
             {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
-            <OrbitControls enableZoom enablePan enableRotate makeDefault target={[0, 0, 0]} />
+            <OrbitControls enableZoom enablePan enableRotate makeDefault />
           </Canvas>
         </div>
       )}

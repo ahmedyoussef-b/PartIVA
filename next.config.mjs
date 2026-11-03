@@ -4,18 +4,19 @@ import path from 'path';
 const isExport = process.env.NEXT_EXPORT === 'true';
 
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_COMMIT_SHA:
+      process.env.NEXT_PUBLIC_COMMIT_SHA || process.env.COMMIT_SHA || '',
+  },
   output: isExport ? 'export' : undefined,
   typescript: isExport ? { ignoreBuildErrors: true } : {},
   reactStrictMode: true,
   images: {
+    domains: ['res.cloudinary.com'],
     remotePatterns: [
-      { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },
-      { protocol: 'https', hostname: '**.traceparts.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
     ],
-    unoptimized: isExport,
-    loader: 'cloudinary',
-    path: 'https://res.cloudinary.com/dl8ngmflh/image/upload/',
+    unoptimized: true,
   },
   turbopack: {
     root: path.resolve(process.cwd()),

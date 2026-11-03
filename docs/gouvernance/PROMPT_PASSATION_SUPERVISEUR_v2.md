@@ -63,6 +63,11 @@ Phases clôturées : E89, E90, E91, E92, E93, E94, E95, E96, E97, E98, E99, E100
 
 ## 7. Recommandations pour la suite (E104+ ou consolidation)
 
+### Leçons campagne V0
+8. Un test ciblé vert ne prouve rien. Seul le run complet sur build frais fait foi. Règle E2E-PROOF : `npm run build` avant tout `npx playwright test`, et la preuve contractuelle est la ligne finale `15 passed, 2 skipped, 0 failed`.
+9. L'ordre des commandes de fiche est contractuel. `campaign:snapshot` → RAPPORT.md → `campaign:record` → `campaign:dashboard` → `campaign:snapshot --retest`. Ne jamais enregistrer un verdict avant le RAPPORT.md complet.
+10. Encodage UTF-8 des registres. Les notes PowerShell peuvent sortir mal encodées (`après` → `aprÃ¨s`). Dette `D-CAMPAGNE-ENCODING` à corriger (writeFile UTF-8 explicite).
+
 - Valider les cas réels Groq pour `D-E52-CAD-GENERATION`.
 - Résoudre `D-E57-WORKSPACE-E2E` (tests E2E workspace).
 - Résoudre `D-E24-E2E-TIMEOUT-SOURCES`.
@@ -79,10 +84,29 @@ Phases clôturées : E89, E90, E91, E92, E93, E94, E95, E96, E97, E98, E99, E100
 - `65e62b5` — docs (clôture E100 + dettes)
 
 ### État tests
-- Workspace E2E : 15/2 (pass/fail selon `D-E24-E2E-TIMEOUT-SOURCES`).
+- Workspace E2E : 15/2/0 après rebuild obligatoire (correction E-TESTS-FIX-WORKSPACE-WARNINGS-v2). Tests unitaires : 12 suites, 52 tests, tous verts.
 - tsc / lint : OK.
 - Unitaires : verts (dernière exécution).
 
-### Rapports clés
-- `docs/sessions/rapports/SESSION-2026-10-31-E90-0.md` et suivants (E90-E92).
-- `docs/etat/ETAT_COURANT.md`, `docs/etat/DETTES.md`, `docs/etat/DECISIONS.md`.
+## Campagne tests réels admin (2026-11-03) — CLÔTURÉE
+
+### 13 leçons gravées
+49. Incohérence URL/affichage = bug UX grave
+50. Un bouton invisible = bouton mort
+51. Patchwork UI pire qu'absence de fonctionnalité
+52. Capture partielle ne prouve rien
+53. Composant existant mais non rendu = faux-semblant
+54. Simplifier plutôt que complexifier
+55. Patchwork UI = pire qu'absence
+56. Rapport de synthèse sans preuve = faux-semblant
+57. Rapport honnête = mieux qu'optimisme
+58. State supprimé mais référencé = bug de compilation
+59. Simplification complète (imports, props)
+60. Bouton sans onClick = faux-semblant d'UI
+61. Chaque correction révèle d'autres problèmes
+
+### 9 dettes d'infrastructure
+D-CAMPAGNE-ENCODING, D-CAMPAGNE-BUILD-FRESH, D-CAMPAGNE-RECORD-ORDER, D-CAMPAGNE-ENV-TEST-SYNC, D-CAMPAGNE-ENV-PRIORITY, D-CAMPAGNE-CLOUDINARY-CHECK, D-CAMPAGNE-GROQ-CHECK, D-ADMIN-TEST-COVERAGE, D-WS-REFACTOR
+
+### Bilan
+5 bugs + 3 dettes corrigés. Typecheck exit 0, lint 0 erreurs, build vert.

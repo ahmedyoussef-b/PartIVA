@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-11-02T15:28:48.379Z",
+  "counts": {
+    "accounts": 4,
+    "attachments": 3,
+    "audit_logs": 3,
+    "cad_files": 1,
+    "candidate_feedbacks": 0,
+    "desktop_builds": 0,
+    "desktop_installers": 0,
+    "fit_reports": 0,
+    "fitments": 5,
+    "machines": 4,
+    "materials": 5,
+    "part_categories": 3,
+    "part_images": 5,
+    "part_specifications": 28,
+    "part_suppliers": 8,
+    "part_versions": 11,
+    "parts": 13,
+    "requests": 4,
+    "reverse_engineering_projects": 2,
+    "reverse_engineering_steps": 8,
+    "scoring_weights": 0,
+    "search_candidates": 4,
+    "search_histories": 0,
+    "sessions": 0,
+    "suppliers": 3,
+    "users": 4,
+    "vehicles": 5,
+    "verifications": 0
+  }
+}

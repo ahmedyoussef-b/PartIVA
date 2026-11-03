@@ -225,4 +225,14 @@
 - **Condition de r�solution :** DB joignable et build EXIT 0 ?
 
 
-- **D-E105-CONNECTORS-MOCK** — Connecteurs externes en mode mock (tecdoc, traceparts, 3dcarparts) désactivés par défaut; activer via ENABLE_MOCK_CONNECTORS=true.
+## Dettes infrastructure campagne (2026-11-03)
+
+- D-CAMPAGNE-ENCODING (Basse) — Notes du registre mal encodées (UTF-8)
+- D-CAMPAGNE-BUILD-FRESH (Moyenne) — Playwright doit rebuild avant test
+- D-CAMPAGNE-RECORD-ORDER (Basse) — Ordre des commandes contractuel
+- D-CAMPAGNE-ENV-TEST-SYNC (Haute) — .env.test en miroir de .env
+- D-CAMPAGNE-ENV-PRIORITY (Haute) — .env.local écrase .env silencieusement
+- D-CAMPAGNE-CLOUDINARY-CHECK (Basse) — campaign:check doit valider Cloudinary
+- D-CAMPAGNE-GROQ-CHECK (Moyenne) — campaign:check doit valider Groq
+- D-ADMIN-TEST-COVERAGE (Moyenne) — Pas de tests E2E admin
+- D-WS-REFACTOR (Moyenne) — Refactor UI workspace abandonné

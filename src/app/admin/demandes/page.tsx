@@ -14,27 +14,46 @@ import AuthGuard from '@/lib/auth-guard';
 function AdminDemandesPageContent() {
   const [demandes, setDemandes] = React.useState<ReturnType<typeof mapRequestToUi>[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [query, setQuery] = React.useState('');
 
-  React.useEffect(() => {
-    async function fetchDemandes() {
-      try {
-        const data = await getDemandesFile();
-        const mapped = (data || []).map(mapRequestToUi);
-        setDemandes(mapped);
-      } catch (error) {
-        console.error('Failed to fetch demandes:', error);
-        setDemandes([]);
-      } finally {
+  const fetchDemandes = React.useCallback(async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    try {
+      const data = await getDemandesFile();
+      const mapped = (data || []).map(mapRequestToUi);
+      setDemandes(mapped);
+    } catch (error) {
+      console.error('Failed to fetch demandes:', error);
+      setDemandes([]);
+    } finally {
+      if (showLoading) {
         setLoading(false);
+      } else {
+        setIsRefreshing(false);
       }
     }
-    fetchDemandes();
   }, []);
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDemandes(true);
+  }, [fetchDemandes]);
+
+  const handleRefresh = React.useCallback(() => {
+    if (isRefreshing || loading) return;
+    fetchDemandes(false);
+  }, [fetchDemandes, isRefreshing, loading]);
 
   const filtered = demandes.filter((d) => {
     const q = query.toLowerCase();
+    const partName = ((d as Record<string, unknown>).partName as string | undefined) || '';
     return (
+      partName.toLowerCase().includes(q) ||
       d.partDescription?.toLowerCase().includes(q) ||
       d.machineRef?.toLowerCase().includes(q) ||
       d.id.toLowerCase().includes(q) ||
@@ -74,9 +93,15 @@ function AdminDemandesPageContent() {
             Demandes reçues → Recherche matériaux → Validation → Usinage CNC.
           </p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Actualiser
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={handleRefresh}
+          disabled={isRefreshing || loading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Actualisation...' : 'Actualiser'}
         </Button>
       </div>
 

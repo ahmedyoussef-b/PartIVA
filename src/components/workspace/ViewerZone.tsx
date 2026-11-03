@@ -79,7 +79,7 @@ export function ViewerZone({
         >
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
         </svg>
-        <p>Aucun mod�le 3D charg�. D�posez un fichier STEP ou STL pour commencer.</p>
+        <p>Aucun modèle 3D chargé. Déposez un fichier STEP ou STL pour commencer.</p>
       </div>
     );
   }
