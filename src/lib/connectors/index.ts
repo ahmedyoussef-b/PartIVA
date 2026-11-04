@@ -6,10 +6,14 @@ import { industrialCatalogConnector } from './industrial-catalog';
 import { threeDCarPartsConnector } from './3dcarparts';
 import type { SourceConnector } from './types';
 
+import { fapiConnector } from './fapi';
+import { isFapiConfigured } from './fapi';
+
 export const REAL_CONNECTORS: SourceConnector[] = [
   localDbConnector,
   wikidataConnector,
   industrialCatalogConnector,
+  ...(isFapiConfigured() ? [fapiConnector] : []),
 ];
 
 export const MOCK_CONNECTORS: SourceConnector[] = [

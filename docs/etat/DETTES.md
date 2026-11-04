@@ -379,3 +379,14 @@
 - **Effort estimé :** —
 - **Bloquant :** Non
 - **Résolution :** Phase clôturée sans test. À reprendre en V2 (quand les exports seront câblés et configurés). Dettes tracées : D-V14-BUILDS-EMPTY, D-V14-BLOB-NOT-CONFIGURED, D-V14-EXPORT-UTILS-ORPHANS, D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED.
+
+### V2-B — Intégration FAPI (TecDoc alternative)
+
+| ID | Niveau | Statut | Cause / Périmètre |
+|---|---|---|---|
+| D-V2-FAPI-INTEGRATION | Moyenne | Fermée (prouvée) | Connecteur src/lib/connectors/fapi.ts livré. Typecheck OK, 2/2 tests unitaires, API /api/search?source=fapi répond 200, build OK. |
+| D-V2-FAPI-UI-NOT-WIRED | Moyenne | Ouverte | L'UI admin (/admin/recherche) n'appelle que /api/search?mode=text, pas source=fapi. Le connecteur fonctionne mais n'est pas exposé graphiquement. À traiter en V2-V2 (câblage UI). |
+| D-V2-FAPI-PAGINATION-NATIVE | Basse | Ouverte | Le slice(limit) se fait côté client. FAPI renvoie toutes les cross-refs (potentiellement des centaines pour w753), consommant inutilement le quota d'essai. Vérifier si FAPI propose un paramètre natif de pagination. |
+| D-V2-FAPI-HTTP-ERROR-TEST | Basse | Ouverte | Aucun test unitaire sur les codes 429/500 → throw propre. |
+| D-V2-FAPI-ENV-LOADED-BUT-UI-SILENT | Basse | Résolue | FAPI_API_KEY bien présente dans .env.local (ligne 46), le serveur dev la charge. Ce n'était pas un problème d'env. |
+| D-V2-FAPI-B6-E2E-NOT-WRITTEN | Basse | Ouverte | Test e2e/fapi.spec.ts écrit mais non exécuté (bloqué par sélecteurs UI absents). Le runtime est prouvé par les logs serveur (200 in 3.4s + 200 in 545ms). |
