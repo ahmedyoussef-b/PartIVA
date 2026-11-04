@@ -395,3 +395,6 @@
 | D-E2E-WEBSERVER-TIMEOUT | Moyenne | Fermée (4d5ddf5) — timeout 180_000 → 300_000. |
 | D-INFRA-BACKUP-UNTRACKED | Basse | Fermée (b15730e) — .backup/ gitignored. |
 | D-GOV-V2B-INCOMPLETE-COMMIT | Haute | Fermée (fe3a4c8) — 4 fichiers transverses FAPI rattrapés. |
+
+| D-V2-FAPI-UI-NOT-WIRED | Moyenne | Fermée — sélecteur source dans search-bar + admin recherche. |
+| D-V2-FAPI-B6-E2E-NOT-WRITTEN | Basse | Fermée — e2e/fapi.spec.ts avec data-testid. |
