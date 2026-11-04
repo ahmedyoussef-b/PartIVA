@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { bearer } from 'better-auth/plugins';
 import { prismaAdapter } from '@better-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
+import { nextCookies } from 'better-auth/next-js';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -37,7 +38,7 @@ export const auth = betterAuth({
   },
   // E8P-S09-quater-ter — support des tokens Bearer pour le client desktop Rust
   // (sans ce plugin, getSession ne lit QUE le cookie → /api/desktop/sync/* en 401).
-  plugins: [bearer()],
+  plugins: [bearer(), nextCookies()],
   user: {
     additionalFields: {
       role: {

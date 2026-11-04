@@ -3,6 +3,12 @@
 // mock 'PartIVA-dev-2026!' — différent du mot de passe réel seedé en production.
 // Les setups USER/VIEWER échouaient en 401.
 import 'dotenv/config';
+import { config as loadEnv } from 'dotenv';
+import path from 'node:path';
+loadEnv({ path: '.env.test', override: true });
+if (!process.env.DATABASE_URL?.includes('partiva_test')) {
+  throw new Error('playwright.config: DATABASE_URL doit pointer vers partiva_test');
+}
 import { defineConfig, devices } from '@playwright/test';
 
 import { config as dotenvConfig } from 'dotenv';
@@ -88,7 +94,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     stdout: 'pipe',
     stderr: 'pipe',
     timeout: 180_000,
