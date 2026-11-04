@@ -20,35 +20,28 @@ test.describe('Admin — Reverse Engineering (V1.3-A)', () => {
 
   test('A2. project1 COMPLETED affiche le CadFile seedé SKF-6205-2RS.stl (onglet Dossier CAO)', async ({ page }) => {
     await page.goto('/admin/reverse-engineering');
-    await page
-      .getByText('Reverse engineering roulement SKF 6205', { exact: false })
-      .first()
-      .click();
-    await page.waitForURL(/\/admin\/reverse-engineering\//, { timeout: 15000 });
+    const link = page.getByRole('link', { name: /Reverse engineering roulement SKF 6205/i }).first();
+    await expect(link).toBeVisible({ timeout: 20000 });
+    const href = await link.getAttribute('href');
+    await page.goto(href!);
+    await expect(page).toHaveURL(/\/admin\/reverse-engineering\/[a-z0-9]+/);
     const tab = page.getByRole('tab', { name: /Dossier CAO/i });
     await expect(tab).toBeVisible();
     await tab.click();
-    await expect(page.getByText('SKF-6205-2RS.stl', { exact: false })).toBeVisible({
-      timeout: 20000,
-    });
+    await expect(page.getByText('SKF-6205-2RS.stl', { exact: false })).toBeVisible({ timeout: 20000 });
   });
-
   test('A3. project2 IN_PROGRESS — étapes: 4 complétées / 1 non complétée (Modélisation CAO)', async ({ page }) => {
     await page.goto('/admin/reverse-engineering');
-    await page
-      .getByRole('link', { name: /Analyse engrenage module 2/i })
-      .first()
-      .click();
-    await page.waitForURL(/\/admin\/reverse-engineering\//, { timeout: 15000 });
+    const link = page.getByRole('link', { name: /Analyse engrenage module 2/i }).first();
+    await expect(link).toBeVisible({ timeout: 20000 });
+    const href = await link.getAttribute('href');
+    await page.goto(href!);
+    await expect(page).toHaveURL(/\/admin\/reverse-engineering\/[a-z0-9]+/);
     const tab = page.getByRole('tab', { name: /Étapes/i });
     await expect(tab).toBeVisible();
     await tab.click();
-    await expect(page.getByText('Modélisation CAO', { exact: false })).toBeVisible({
-      timeout: 20000,
-    });
-    await expect(
-      page.getByText(/4 complétées\s*\/\s*1 non complétée/i, { exact: false }),
-    ).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('Modélisation CAO', { exact: false })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText(/4 complétées\s*\/\s*1 non complétée/i, { exact: false })).toBeVisible({ timeout: 20000 });
   });
 
   // D-V13A-A4-NO-STABLE-SELECTOR — assertion tautologique, pas de data-testid,
