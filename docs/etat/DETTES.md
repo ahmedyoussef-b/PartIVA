@@ -323,3 +323,50 @@
 - **Condition de résolution :** Garantir que `auth.setup.ts` régénère le storageState APRÈS le seed (supprimer le early-return `fs.access`), ou que le seed ne supprime pas les sessions, ou que `.auth/` soit supprimé de manière fiable avant le seed. **Non résolu en V1.5-INFRA-AUTH (8 tentatives, corrections annoncées mais non appliquées).**
 
 
+
+## Ajouts session V1.4 (2026-11-04)
+
+### D-V14-BUILDS-EMPTY — public/builds/ vide, download non testable
+- **Statut :** Ouverte
+- **Priorité :** Moyenne
+- **Cause :** public/builds/ est vide. /api/desktop-builds/download retourne 404 en E2E. Aucun fichier de test disponible.
+- **Périmètre :** public/builds/, e2e/admin/`r
+- **Effort estimé :** Faible
+- **Bloquant :** Non
+- **Condition de résolution :** Fournir un fichier fixture dans public/builds/ ou skipper la route.
+
+### D-V14-BLOB-NOT-CONFIGURED — Blob non configuré dans .env.test
+- **Statut :** Ouverte
+- **Priorité :** Moyenne
+- **Cause :** BLOB_READ_WRITE_TOKEN absent de .env.test. /api/admin/desktop-downloads/[version]/download ne peut pas fonctionner en E2E.
+- **Périmètre :** .env.test, src/app/api/admin/desktop-downloads/[version]/download/route.ts`r
+- **Effort estimé :** Faible
+- **Bloquant :** Non
+- **Condition de résolution :** Ajouter la config Blob dans .env.test (si possible) ou skipper la route.
+
+### D-V14-EXPORT-UTILS-ORPHANS — Utilitaires export orphelins
+- **Statut :** Ouverte
+- **Priorité :** Basse
+- **Cause :** src/lib/export/pdf-export.ts et src/lib/export/stl-export.ts ne sont référencés nulle part dans src/. Code mort.
+- **Périmètre :** src/lib/export/`r
+- **Effort estimé :** Faible
+- **Bloquant :** Non
+- **Condition de résolution ::** Câbler (V2) ou supprimer.
+
+### D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED — Route admin download bloquée by auth
+- **Statut :** Ouverte
+- **Priorité :** Haute
+- **Cause :** /api/admin/desktop-downloads/[version]/download requiert equireAdmin(). Bloquée by D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE.
+- **Périmètre :** e2e/admin/, src/app/api/admin/desktop-downloads/[version]/download/route.ts`r
+- **Effort estimé :** Moyen
+- **Bloquant :** Oui (pour cette route)
+- **Condition de résolution :** Résoudre D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE (V1.5) ou tester via equest.get avec token admin manuel.
+
+### D-V14-NO-TESTABLE-EXPORT — V1.4 sans périmètre testable
+- **Statut :** Fermée (2026-11-04)
+- **Priorité :** Moyenne
+- **Cause :** V1.4 (exports) n'a pas de périmètre testable : builds vides, Blob non configuré, utilitaires orphelins, auth admin bloquée.
+- **Périmètre :** V1.4
+- **Effort estimé :** —
+- **Bloquant :** Non
+- **Résolution :** Phase clôturée sans test. À reprendre en V2 (quand les exports seront câblés et configurés). Dettes tracées : D-V14-BUILDS-EMPTY, D-V14-BLOB-NOT-CONFIGURED, D-V14-EXPORT-UTILS-ORPHANS, D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED.
