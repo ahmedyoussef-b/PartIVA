@@ -119,3 +119,6 @@ fix-two-regex.py
 docs/app/
 
 .env.test
+
+# Backups locaux
+.backup/
