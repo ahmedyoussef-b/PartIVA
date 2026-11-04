@@ -56,6 +56,7 @@ export const FR = {
     geometric_search: 'Recherche géométrique 3D / IA',
     industrial_catalog: 'Catalogue industriel (dataset HF)',
     '3dcarparts': '3DCarParts (modèles 3D imprimables)',
+    fapi: 'FAPI (analogues)',
   } satisfies Record<SearchSource, string>,
   autoCategories: {
     body: 'Carrosserie',

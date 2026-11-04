@@ -2,7 +2,7 @@ import type { SearchCandidate } from '@/schemas/search';
 
 export interface SourceConnector {
   readonly source:
-    'local_db' | 'wikidata' | 'traceparts' | 'tecdoc' | 'industrial_catalog' | '3dcarparts';
+    'local_db' | 'wikidata' | 'traceparts' | 'tecdoc' | 'industrial_catalog' | '3dcarparts' | 'fapi';
 
   readonly mode: 'real' | 'mock';
 
