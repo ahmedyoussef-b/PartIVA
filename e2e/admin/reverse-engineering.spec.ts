@@ -36,7 +36,7 @@ test.describe('Admin — Reverse Engineering (V1.3-A)', () => {
   test('A3. project2 IN_PROGRESS — étapes: 4 complétées / 1 non complétée (Modélisation CAO)', async ({ page }) => {
     await page.goto('/admin/reverse-engineering');
     await page
-      .getByText('Analyse engrenage module 2', { exact: false })
+      .getByRole('link', { name: /Analyse engrenage module 2/i })
       .first()
       .click();
     await page.waitForURL(/\/admin\/reverse-engineering\//, { timeout: 15000 });
