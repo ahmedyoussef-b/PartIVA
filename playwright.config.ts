@@ -97,7 +97,7 @@ export default defineConfig({
     reuseExistingServer: false,
     stdout: 'pipe',
     stderr: 'pipe',
-    timeout: 180_000,
+    timeout: 300_000,
     env: {
       E2E_DISABLE_RATE_LIMIT: 'true',
       BETTER_AUTH_URL: 'http://localhost:3000',
