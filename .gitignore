@@ -33,6 +33,7 @@ src-tauri/gen/
 # Environment
 .env
 .env.*
+!.env.test.example
 !.env.example
 .neon
 
