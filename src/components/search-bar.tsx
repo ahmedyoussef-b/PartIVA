@@ -95,6 +95,8 @@ export function SearchBar() {
   const [facetsLoading, setFacetsLoading] = React.useState(false);
   const [total, setTotal] = React.useState(0);
   const [engineMode, setEngineMode] = React.useState(false);
+  const [source, setSource] = React.useState<'text' | 'fapi' | 'all'>('text');
+  const [manualTrigger, setManualTrigger] = React.useState(0);
   const limit = 20;
 
   // E13-R1 — Sauvegarde de l'état de recherche (sessionStorage)
@@ -132,6 +134,7 @@ export function SearchBar() {
     const params = new URLSearchParams();
     params.set('limit', '20');
     params.set('mode', mode);
+    if (source !== 'text') params.set('source', source);
     if (isDimensions) {
       if (min !== '') {
         params.set('min', min);
@@ -212,6 +215,7 @@ export function SearchBar() {
     isMulti,
     hasDimensionBounds,
     engineMode,
+    manualTrigger,
   ]);
 
   // E12-R1d — remise à zéro de la page dès que les critères changent
@@ -377,6 +381,28 @@ export function SearchBar() {
         />
         Moteur d&apos;ingénierie
       </label>
+      <div className="flex items-center gap-2">
+        <label className="text-xs" htmlFor="source-select">Source :</label>
+        <select
+          id="source-select"
+          data-testid="source-select"
+          value={source}
+          onChange={(e) => setSource(e.target.value as 'text' | 'fapi' | 'all')}
+          className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+        >
+          <option value="text">Texte (local)</option>
+          <option value="fapi">FAPI (analogues)</option>
+          <option value="all">Toutes sources</option>
+        </select>
+        <button
+          type="button"
+          data-testid="search-submit"
+          onClick={() => setManualTrigger((t) => t + 1)}
+          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+        >
+          Rechercher
+        </button>
+      </div>
       <div className="flex gap-2" role="tablist" aria-label="Mode de recherche">
         <button
           type="button"
@@ -622,9 +648,10 @@ export function SearchBar() {
                   ? 'Rechercher une matière, une dimension…'
                   : 'Rechercher une pièce (nom, référence, matière…)…'
             }
-            className="pl-9"
-            aria-label="Rechercher une pièce"
-          />
+              className="pl-9"
+              aria-label="Rechercher une pièce"
+              data-testid="search-input"
+            />
         </div>
       )}
 
@@ -646,6 +673,8 @@ export function SearchBar() {
                 <button
                   key={result.id}
                   type="button"
+                  data-testid="search-result"
+                  data-reference={(result as { reference?: string }).reference ?? result.partNumber ?? result.ptvReference ?? ''}
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted/30"
                   onClick={() => {
                     // eslint-disable-next-line @next/next/no-location-assign-relative-destination

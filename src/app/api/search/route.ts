@@ -21,6 +21,7 @@ import { tracePartsConnector } from '@/lib/connectors/traceparts';
 import { tecDocConnector } from '@/lib/connectors/tecdoc';
 import { industrialCatalogConnector } from '@/lib/connectors/industrial-catalog';
 import { threeDCarPartsConnector } from '@/lib/connectors/3dcarparts';
+import { fapiConnector } from '@/lib/connectors/fapi';
 
 /**
  * Connecteurs actifs (D-E3-26).
@@ -87,6 +88,14 @@ export async function GET(req: Request) {
 
     const isUser = session.user.role === 'USER';
     const clientId = isUser ? session.user.id : undefined;
+
+    const sourceParam = searchParams.get('source');
+    if (sourceParam === 'fapi') {
+      const q = searchParams.get('q') ?? '';
+      const limit = Number(searchParams.get('limit') ?? 20);
+      const candidates = await fapiConnector.search(q, { limit });
+      return NextResponse.json({ mode: 'fapi', count: candidates.length, total: candidates.length, results: candidates });
+    }
 
     const engineFlag = searchParams.get('engine');
     if (engineFlag === 'true') {
