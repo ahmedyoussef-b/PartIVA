@@ -123,3 +123,9 @@ Voir [docs/architecture.md](docs/architecture.md).
 ## 7. Licence
 
 [À définir]
+
+## Setup local E2E
+1. cp .env.test.example .env.test
+2. Remplir les valeurs locales (DB password, ADMIN_PASSWORD, etc.)
+3. npm run test:e2e
+
