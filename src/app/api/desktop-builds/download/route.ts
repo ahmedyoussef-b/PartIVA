@@ -1,5 +1,3 @@
-export const dynamic = 'force-static';
-
 import { NextResponse } from 'next/server';
 import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
