@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Auth setup – runs once before role-based projects.
  * Logs in each role and persists storageState to .auth/<role>.json.
  * E2E-R4 – handles the case where the DB is unavailable.
@@ -20,7 +20,6 @@ for (const role of roles) {
       await page.getByLabel(/email/i).fill(user.email);
       await page.getByLabel(/mot de passe/i).fill(user.password);
 
-      // Lancer waitForResponse SANS await AVANT le clic
       const signInResponsePromise = page.waitForResponse(
         (r) => r.url().includes('/api/auth/sign-in/email'),
         { timeout: 30_000 },
@@ -50,7 +49,6 @@ for (const role of roles) {
       await page.waitForLoadState('networkidle', { timeout: 10_000 });
     } catch {}
 
-    // Sauvegarde du storageState (toujours régénéré après seed)
     try {
       await page.context().storageState({ path: user.storageStatePath });
       console.log(
