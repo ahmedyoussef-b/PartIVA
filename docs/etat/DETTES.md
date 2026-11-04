@@ -327,13 +327,22 @@
 ## Ajouts session V1.4 (2026-11-04)
 
 ### D-V14-BUILDS-EMPTY — public/builds/ vide, download non testable
-- **Statut :** Ouverte
+- **Statut :** Fermée (2026-11-04)
 - **Priorité :** Moyenne
-- **Cause :** public/builds/ est vide. /api/desktop-builds/download retourne 404 en E2E. Aucun fichier de test disponible.
-- **Périmètre :** public/builds/, e2e/admin/`r
+- **Cause :** `public/builds/` est vide. `/api/desktop-builds/download` retourne 404 en E2E. Aucun fichier de test disponible.
+- **Périmètre :** `public/builds/`, `e2e/admin/`
 - **Effort estimé :** Faible
 - **Bloquant :** Non
-- **Condition de résolution :** Fournir un fichier fixture dans public/builds/ ou skipper la route.
+- **Résolution :** Fixture `public/builds/test.bin` + test E2E `e2e/admin/exports.spec.ts` (E1, E2). Testé et prouvé.
+
+### D-V14-FORCE-STATIC-BUG — force-static bloque les query params
+- **Statut :** Fermée (2026-11-04)
+- **Priorité :** Moyenne
+- **Cause :** `export const dynamic = 'force-static'` dans `src/app/api/desktop-builds/download/route.ts` empêche `searchParams.get('file')` de fonctionner (route pré-rendue au build).
+- **Périmètre :** `src/app/api/desktop-builds/download/route.ts`, `e2e/admin/exports.spec.ts`
+- **Effort estimé :** Faible
+- **Bloquant :** Oui (pour tester la route)
+- **Résolution :** `export const dynamic = 'force-static'` supprimé de `src/app/api/desktop-builds/download/route.ts`. Route dynamique, `searchParams.get('file')` fonctionne. Testé et prouvé.
 
 ### D-V14-BLOB-NOT-CONFIGURED — Blob non configuré dans .env.test
 - **Statut :** Ouverte
