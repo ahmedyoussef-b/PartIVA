@@ -1,4 +1,4 @@
-﻿# DETTES ACTIVES — PartIVA
+# DETTES ACTIVES — PartIVA
 
 **Dernière mise à jour :** 2026-10-27
 **Source :** Scission de `DEBT.md` (E3-S2)
@@ -398,3 +398,10 @@
 
 | D-V2-FAPI-UI-NOT-WIRED | Moyenne | Fermée — sélecteur source dans search-bar + admin recherche. |
 | D-V2-FAPI-B6-E2E-NOT-WRITTEN | Basse | Fermée — e2e/fapi.spec.ts avec data-testid. |
+
+### V2-C — Cache web pour l'agrégation
+
+| ID | Niveau | Statut | Cause / Périmètre |
+|---|---|---|---|
+| `D-V2-NO-WEB-CACHE` | Moyenne | **Fermée** | Cache Prisma `WebSearchCache` + intégration aggregator (`_cache: hit/miss`). Latence 2e appel < 2s (prouvé: ~1.04s). |
+| `D-V2-FAPI-DUPLICATE-IDS` | Basse | **Fermée** | Déduplication par id et name ajoutée dans `aggregator.ts` (`deduplicateCandidates`). |
