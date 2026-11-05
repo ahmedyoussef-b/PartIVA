@@ -96,7 +96,7 @@ export function SearchBar() {
   const [total, setTotal] = React.useState(0);
   const [engineMode, setEngineMode] = React.useState(false);
   const [source, setSource] = React.useState<'text' | 'fapi' | 'all'>('text');
-  const [manualTrigger, setManualTrigger] = React.useState(0);
+  const [manualTrigger] = React.useState(0);
   const limit = 20;
 
   // E13-R1 — Sauvegarde de l'état de recherche (sessionStorage)
@@ -316,6 +316,26 @@ export function SearchBar() {
     }
   }
 
+  // E2E — handleSubmit lit source/query/mode AU MOMENT DU CLIC
+  // pour éviter la race condition useEffect/setTimeout avec source='fapi'
+  const handleSubmit = async () => {
+    const params = new URLSearchParams();
+    params.set('limit', '20');
+    params.set('mode', mode);
+    if (source !== 'text') params.set('source', source);
+    params.set('q', query.trim());
+
+    const res = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
+    if (!res.ok) {
+      setResults([]);
+      setTotal(0);
+      return;
+    }
+    const data = await res.json();
+    setResults(data.results ?? []);
+    setTotal(data.total ?? data.results?.length ?? 0);
+  };
+
   function handlePhotoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     setPhotoError('');
@@ -397,7 +417,7 @@ export function SearchBar() {
         <button
           type="button"
           data-testid="search-submit"
-          onClick={() => setManualTrigger((t) => t + 1)}
+          onClick={handleSubmit}
           className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
         >
           Rechercher

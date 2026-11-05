@@ -61,6 +61,12 @@ export async function POST(req: Request) {
       return NextResponse.json(result);
     }
 
+    if (source === 'fapi') {
+      const candidates = await fapiConnector.search(String(query ?? ''), {
+        limit: typeof limit === 'number' ? limit : 20,
+      });
+      return NextResponse.json({ query, mode: 'fapi', count: candidates.length, results: candidates });
+    }
     if (source) {
       const filtered = await getSearchCandidates({ source });
       return NextResponse.json(filtered);
@@ -93,6 +99,9 @@ export async function GET(req: Request) {
     if (sourceParam === 'fapi') {
       const q = searchParams.get('q') ?? '';
       const limit = Number(searchParams.get('limit') ?? 20);
+      
+      
+      
       const candidates = await fapiConnector.search(q, { limit });
       return NextResponse.json({ mode: 'fapi', count: candidates.length, total: candidates.length, results: candidates });
     }
