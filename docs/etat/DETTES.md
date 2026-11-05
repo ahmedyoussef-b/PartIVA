@@ -403,5 +403,7 @@
 
 | ID | Niveau | Statut | Cause / Périmètre |
 |---|---|---|---|
-| `D-V2-NO-WEB-CACHE` | Moyenne | **Fermée** | Cache Prisma `WebSearchCache` + intégration aggregator (`_cache: hit/miss`). Latence 2e appel < 2s (prouvé: ~1.04s). |
-| `D-V2-FAPI-DUPLICATE-IDS` | Basse | **Fermée** | Déduplication par id et name ajoutée dans `aggregator.ts` (`deduplicateCandidates`). |
+| `D-V2-NO-WEB-CACHE` | Moyenne | **Fermée** | Cache Prisma `WebSearchCache` + intégration aggregator (`_cache: hit/miss`). MISS 35.34s → HIT 12.76s (2.8×), 18 candidats, FAPI dans sourcesQueried. |
+| `D-V2-FAPI-DUPLICATE-IDS` | Basse | **Fermée** | Déduplication par id et name ajoutée dans `aggregator.ts` (`deduplicateCandidates`). 18 candidats uniques. |
+| `D-V2-CACHE-HIT-LATENCY-12S` | Basse | **Ouverte** | HIT 12.76s au lieu de < 0.2s attendu. Cache fonctionne (2.8× plus rapide), mais lent. À optimiser en V2-D : index cacheKey, sérialisation payload, lecture Prisma. |
+| `D-V2-CACHE-ENABLED-OPTION` | Basse | **Ouverte** | Le cache est actif par défaut. Option `skipCache` (déjà prévue dans `AggregateSearchOptions`) à documenter pour les tests. |

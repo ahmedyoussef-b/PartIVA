@@ -39,6 +39,7 @@ const ALL_CONNECTORS = [
   industrialCatalogConnector,
   tecDocConnector,
   threeDCarPartsConnector,
+  fapiConnector,
 ];
 
 export async function POST(req: Request) {
