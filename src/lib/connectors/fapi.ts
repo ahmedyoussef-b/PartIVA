@@ -12,7 +12,7 @@ interface FapiAnalog {
 }
 
 interface FapiResponse {
-  data: FapiAnalog[];
+  analogList?: { a: FapiAnalog[] };
   messageList?: { m: string[] };
 }
 
@@ -46,14 +46,17 @@ export const fapiConnector: SourceConnector = {
       },
     });
 
+    const debugBody = await response.text();
+
     if (!response.ok) {
       throw new Error(`FAPI HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const json = (await response.json()) as FapiResponse;
-    if (!json.data || json.data.length === 0) return [];
+    const json = JSON.parse(debugBody) as FapiResponse;
+    const items = json.analogList?.a ?? [];
+    if (items.length === 0) return [];
 
-    return json.data.slice(0, limit).map((item) => {
+    return items.slice(0, limit).map((item) => {
       const candidate: SearchCandidate = {
         id: `fapi:${item.pai}`,
         source: 'fapi',

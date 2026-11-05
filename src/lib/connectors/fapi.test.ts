@@ -19,15 +19,18 @@ describe('fapiConnector', () => {
 
   it('maps FAPI analog response to SearchCandidate', async () => {
     const mockResponse = {
-      data: [
-        { i: 1, pi: 10, ns: 'w753', pai: 100, mfai: 25, nsa: 'f026407353' },
-        { i: 2, pi: 10, ns: 'w753', pai: 101, mfai: 26, nsa: 'abc123' },
-      ],
+      analogList: {
+        a: [
+          { i: 1, pi: 10, ns: 'w753', pai: 100, mfai: 25, nsa: 'f026407353' },
+          { i: 2, pi: 10, ns: 'w753', pai: 101, mfai: 26, nsa: 'abc123' },
+        ],
+      },
       messageList: { m: [] },
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => mockResponse,
+      status: 200,
+      text: async () => JSON.stringify(mockResponse),
     }));
 
     const results = await fapiConnector.search('w753', { limit: 20 });
