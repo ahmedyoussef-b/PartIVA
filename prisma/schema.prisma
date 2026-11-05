@@ -496,6 +496,18 @@ model DesktopInstaller {
   @@map("desktop_installers")
 }
 
+model WebSearchCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  payload   Json
+  source    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([source])
+}
+
 enum UserRole {
   ADMIN
   USER
