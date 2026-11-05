@@ -2,6 +2,7 @@ import type { SearchCandidate } from '@/schemas/search';
 import type { SourceConnector } from './types';
 import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
 import { mergeAbortSignals } from '@/lib/data/external-signal';
+import { getCache, setCache, hashCacheKey } from '@/lib/cache/search-cache';
 
 const AGGREGATION_TIMEOUT_MS =
   process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 60_000 : 10_000;
@@ -24,6 +25,14 @@ export interface AggregationResult {
   sourceDurationsMs: Record<string, number>;
   totalDurationMs: number;
   structuredWarnings?: EngineWarning[];
+  _cache?: 'hit' | 'miss';
+}
+
+export type AggregateSearchResult = AggregationResult;
+
+export interface AggregateSearchOptions {
+  limit?: number;
+  skipCache?: boolean;
 }
 
 type CBState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
@@ -73,6 +82,46 @@ function delay(ms: number): Promise<void> {
 }
 
 export async function aggregateSearch(
+  connectors: SourceConnector[],
+  query: string,
+  options: AggregateSearchOptions = {},
+): Promise<AggregationResult> {
+  const cacheKey = hashCacheKey(query, 'all');
+
+  // 1. Cache hit ?
+  if (!options.skipCache) {
+    try {
+      const cached = await getCache(cacheKey);
+      if (cached) {
+        return {
+          ...cached,
+          _cache: 'hit',
+        };
+      }
+    } catch (err) {
+      console.warn('[aggregator] cache get error:', err);
+    }
+  }
+
+  // 2. Cache miss -> exécuter l'agrégation
+  const result = await _aggregateSearchInternal(connectors, query, options);
+
+  // 3. Écrire dans le cache
+  if (!options.skipCache) {
+    try {
+      await setCache(cacheKey, result, 'all');
+    } catch (err) {
+      console.warn('[aggregator] cache set error:', err);
+    }
+  }
+
+  return {
+    ...result,
+    _cache: 'miss',
+  };
+}
+
+async function _aggregateSearchInternal(
   connectors: SourceConnector[],
   query: string,
   options: { limit?: number } = {},
@@ -237,13 +286,18 @@ export async function aggregateSearch(
 }
 
 function deduplicateCandidates(candidates: SearchCandidate[]): SearchCandidate[] {
-  const seen = new Set<string>();
+  const seenNames = new Set<string>();
+  const seenIds = new Set<string>();
   const result: SearchCandidate[] = [];
 
   for (const candidate of candidates) {
-    const key = candidate.name.toLowerCase().trim();
-    if (!seen.has(key)) {
-      seen.add(key);
+    const nameKey = candidate.name.toLowerCase().trim();
+    const idKey = candidate.id ? candidate.id.trim() : '';
+
+    const isDuplicate = seenNames.has(nameKey) || (idKey && seenIds.has(idKey));
+    if (!isDuplicate) {
+      seenNames.add(nameKey);
+      if (idKey) seenIds.add(idKey);
       result.push(candidate);
     }
   }
