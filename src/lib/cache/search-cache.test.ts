@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   hashCacheKey,
   getCache,
@@ -28,16 +28,16 @@ describe('search-cache helper', () => {
 
   describe('hashCacheKey', () => {
     it('produces identical hash for identical query and source regardless of casing and trim', () => {
-      const h1 = hashCacheKey('  W753 ', 'all');
-      const h2 = hashCacheKey('w753', 'all');
+      const h1 = hashCacheKey('  W753 ', 'all', 10);
+      const h2 = hashCacheKey('w753', 'all', 10);
       expect(h1).toBe(h2);
       expect(h1).toHaveLength(32);
     });
 
     it('produces different hash for different queries or sources', () => {
-      const h1 = hashCacheKey('w753', 'all');
-      const h2 = hashCacheKey('w754', 'all');
-      const h3 = hashCacheKey('w753', 'fapi');
+      const h1 = hashCacheKey('w753', 'all', 10);
+      const h2 = hashCacheKey('w754', 'all', 10);
+      const h3 = hashCacheKey('w753', 'fapi', 10);
       expect(h1).not.toBe(h2);
       expect(h1).not.toBe(h3);
     });
@@ -133,7 +133,7 @@ describe('search-cache helper', () => {
         createdAt: new Date(),
       });
 
-      await setCache('my-key', payload, 'all', 3600_000);
+      await setCache('my-key', payload, 'all', 10, 3600_000);
       expect(prisma.webSearchCache.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { cacheKey: 'my-key' },
