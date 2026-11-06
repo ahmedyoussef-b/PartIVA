@@ -407,8 +407,10 @@ equest.get avec token admin manuel.
 |---|---|---|---|
 | `D-V2-NO-WEB-CACHE` | Moyenne | **FermÃ©e** | Cache Prisma `WebSearchCache` + intÃ©gration aggregator (`_cache: hit/miss`). MISS 35.34s â†’ HIT 12.76s (2.8Ã—), 18 candidats, FAPI dans sourcesQueried. |
 | `D-V2-FAPI-DUPLICATE-IDS` | Basse | **FermÃ©e** | DÃ©duplication par id et name ajoutÃ©e dans `aggregator.ts` (`deduplicateCandidates`). 18 candidats uniques. |
-| `D-V2-CACHE-HIT-LATENCY-12S` | Basse | **Ouverte** | HIT 12.76s au lieu de < 0.2s attendu. Cache fonctionne (2.8Ã— plus rapide), mais lent. Ã€ optimiser en V2-D : index cacheKey, sÃ©rialisation payload, lecture Prisma. |
-| `D-V2-CACHE-ENABLED-OPTION` | Basse | **Ouverte** | Le cache est actif par dÃ©faut. Option `skipCache` (dÃ©jÃ  prÃ©vue dans `AggregateSearchOptions`) Ã  documenter pour les tests. |
+| D-V2-CACHE-HIT-LATENCY-12S | Haute | Ouverte diagnostiquee V4-B | Latence GET /api/search 12.76s. Cause reelle: GET /api/search n appelle jamais aggregateSearch. Cache jamais sollicite en GET. |
+| D-V2-CACHE-ENABLED-OPTION | Basse | Fermee V4-B | SEARCH_CACHE_ENABLED absent partout -> isCacheEnabled retourne true par defaut. Option skipCache deja presente. |
+| D-V2-CACHE-KEY-COLLISION | Haute | Ouverte | aggregator.ts:69 hashCacheKey(query, all) en dur -> cles cassees. purgeCache inoperant. Decouverte V4-B. |
+| D-V2-SEARCH-GET-NO-AGGREGATE | Haute | Ouverte | GET /api/search ne route jamais vers aggregateSearch. Decouverte V4-B. |
 
 
 ### V3-C — OpenSERP (Bing) connecteur
