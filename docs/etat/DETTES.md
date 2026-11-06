@@ -365,11 +365,13 @@
 ### D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED — Route admin download bloquée by auth
 - **Statut :** Ouverte
 - **Priorité :** Haute
-- **Cause :** /api/admin/desktop-downloads/[version]/download requiert equireAdmin(). Bloquée by D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE.
+- **Cause :** /api/admin/desktop-downloads/[version]/download requiert 
+equireAdmin(). Bloquée by D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE.
 - **Périmètre :** e2e/admin/, src/app/api/admin/desktop-downloads/[version]/download/route.ts`r
 - **Effort estimé :** Moyen
 - **Bloquant :** Oui (pour cette route)
-- **Condition de résolution :** Résoudre D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE (V1.5) ou tester via equest.get avec token admin manuel.
+- **Condition de résolution :** Résoudre D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE (V1.5) ou tester via 
+equest.get avec token admin manuel.
 
 ### D-V14-NO-TESTABLE-EXPORT — V1.4 sans périmètre testable
 - **Statut :** Fermée (2026-11-04)
@@ -413,7 +415,7 @@
 
 | ID | Niveau | Statut | Cause / P�rim�tre |
 |---|---|---|---|
-| D-V2-OPENSERP-NOT-IMPLEMENTED | Moyenne | **Ferm�e** | Connecteur openserp.ts (CLI Bing), 2 tests unitaires, runtime sourcesQueried 8 sources. |
-| D-V3-OPENSERP-CLI-ONLY | Moyenne | **Ouverte** | CLI docker exec (pas HTTP). Ne fonctionnera pas en prod sans Docker. Migration V4. |
+| `D-V2-OPENSERP-NOT-IMPLEMENTED` | Moyenne | **Ferm�e** (V3-C HTTP) | /mega/search, 4 tests, runtime 8 sources / 20 candidates / 2 OpenSERP. |
+| `D-V3-OPENSERP-CLI-ONLY` | Moyenne | **Ferm�e** | HTTP pur, plus de docker exec. |
 | D-V3-OPENSERP-GOOGLE-CAPTCHA | Basse | **Ouverte** | Google, Yandex, Ecosia, DuckDuckGo bloqu�s. Seul Bing fonctionne. |
 | D-V3-OPENSERP-API-HTTP-MISSING | Basse | **Ouverte** | API HTTP /search absente sur karust/openserp. CLI uniquement. |
