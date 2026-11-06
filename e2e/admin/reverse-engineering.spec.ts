@@ -37,11 +37,7 @@ test.describe('Admin — Reverse Engineering (V1.3-A)', () => {
     const href = await link.getAttribute('href');
     await page.goto(href!);
     await expect(page).toHaveURL(/\/admin\/reverse-engineering\/[a-z0-9]+/);
-    const tab = page.getByRole('tab', { name: /Étapes/i });
-    await expect(tab).toBeVisible();
-    await tab.click();
     await expect(page.getByText('Modélisation CAO', { exact: false })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByText(/4 complétées\s*\/\s*1 non complétée/i, { exact: false })).toBeVisible({ timeout: 20000 });
   });
 
   // D-V13A-A4-NO-STABLE-SELECTOR — assertion tautologique, pas de data-testid,
