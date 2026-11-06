@@ -1,4 +1,4 @@
-﻿import { createHash } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
 import type { AggregationResult } from '@/lib/connectors/aggregator';
