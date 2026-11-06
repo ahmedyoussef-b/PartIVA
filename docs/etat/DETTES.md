@@ -407,3 +407,13 @@
 | `D-V2-FAPI-DUPLICATE-IDS` | Basse | **Fermée** | Déduplication par id et name ajoutée dans `aggregator.ts` (`deduplicateCandidates`). 18 candidats uniques. |
 | `D-V2-CACHE-HIT-LATENCY-12S` | Basse | **Ouverte** | HIT 12.76s au lieu de < 0.2s attendu. Cache fonctionne (2.8× plus rapide), mais lent. À optimiser en V2-D : index cacheKey, sérialisation payload, lecture Prisma. |
 | `D-V2-CACHE-ENABLED-OPTION` | Basse | **Ouverte** | Le cache est actif par défaut. Option `skipCache` (déjà prévue dans `AggregateSearchOptions`) à documenter pour les tests. |
+
+
+### V3-C � OpenSERP (Bing) connecteur
+
+| ID | Niveau | Statut | Cause / P�rim�tre |
+|---|---|---|---|
+| D-V2-OPENSERP-NOT-IMPLEMENTED | Moyenne | **Ferm�e** | Connecteur openserp.ts (CLI Bing), 2 tests unitaires, runtime sourcesQueried 8 sources. |
+| D-V3-OPENSERP-CLI-ONLY | Moyenne | **Ouverte** | CLI docker exec (pas HTTP). Ne fonctionnera pas en prod sans Docker. Migration V4. |
+| D-V3-OPENSERP-GOOGLE-CAPTCHA | Basse | **Ouverte** | Google, Yandex, Ecosia, DuckDuckGo bloqu�s. Seul Bing fonctionne. |
+| D-V3-OPENSERP-API-HTTP-MISSING | Basse | **Ouverte** | API HTTP /search absente sur karust/openserp. CLI uniquement. |
