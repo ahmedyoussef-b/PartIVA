@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MachineRecommendationPanel } from '@/app/admin/pieces/[id]/machine-recommendation-panel';
 import { EditPartButton } from '@/app/admin/pieces/[id]/edit-part-button';
+import { ExportPdfButton } from '@/app/admin/pieces/[id]/export-pdf-button';
 import type { UserRole } from '@/generated/prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -86,6 +87,11 @@ export default async function AdminPieceDetailPage({
               material: part.material,
               description: part.description,
             }}
+          />
+          <ExportPdfButton
+            name={part.name}
+            reference={reference}
+            description={part.description}
           />
         </div>
       </div>
