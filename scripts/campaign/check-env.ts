@@ -1,4 +1,4 @@
-import { config as dotenvConfig } from 'dotenv';
+﻿import { config as dotenvConfig } from 'dotenv';
 import { existsSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
@@ -45,7 +45,7 @@ async function main() {
     console.log('[CAMPAIGN-CHECK-SERVER] status=unreachable');
   }
 
-  // db — connexion réelle (SELECT 1)
+  // db â€” connexion rÃ©elle (SELECT 1)
   try {
     const { prisma } = await import('../../src/lib/prisma.js');
     try {
@@ -102,9 +102,43 @@ async function main() {
     }
   }
 
-  // auth
-  checks.auth = existsSync(join(ROOT, '.auth', 'admin.json'));
-  console.log(`[CAMPAIGN-CHECK-AUTH] found=${checks.auth}`);
+  // auth — validation runtime (D-CAMPAIGN-CHECK-AUTH-VALIDITY)
+  const authFile = join(ROOT, '.auth', 'admin.json');
+  if (!existsSync(authFile)) {
+    console.warn('[CAMPAIGN-CHECK-AUTH] file absent — cannot validate runtime session without cookie');
+    checks.auth = false;
+  } else {
+    try {
+      const raw = (await import('fs')).readFileSync(authFile, 'utf-8');
+      const state = JSON.parse(raw) as { cookies?: { name: string; value: string }[] };
+      const sessionCookie = (state.cookies ?? []).find((c) => c.name === 'better-auth.session_token');
+      if (!sessionCookie) {
+        console.error('[CAMPAIGN-CHECK-AUTH] no session cookie in storage state');
+        checks.auth = false;
+      } else {
+        const cookieHeader = `better-auth.session_token=${sessionCookie.value}`;
+        try {
+          const res = await fetch('http://localhost:3000/api/auth/get-session', {
+            headers: { Cookie: cookieHeader },
+          });
+          if (!res.ok) {
+            checks.auth = false;
+            console.error(`[CAMPAIGN-CHECK-AUTH] get-session status=${res.status} (cookie invalid/expired)`);
+          } else {
+            const body = (await res.json()) as { user?: unknown } | null;
+            checks.auth = Boolean(body && body.user);
+            console.log(`[CAMPAIGN-CHECK-AUTH] session alive=${checks.auth}`);
+          }
+        } catch (e) {
+          checks.auth = false;
+          console.error(`[CAMPAIGN-CHECK-AUTH] endpoint unreachable: ${(e as Error)?.message ?? String(e)}`);
+        }
+      }
+    } catch (e) {
+      checks.auth = false;
+      console.error(`[CAMPAIGN-CHECK-AUTH] parse error: ${(e as Error)?.message ?? String(e)}`);
+    }
+  }
 
   // Groq (NOUVEAU)
   const groqModel = process.env.GROQ_MODEL?.trim();
