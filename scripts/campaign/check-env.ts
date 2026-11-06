@@ -45,7 +45,7 @@ async function main() {
     console.log('[CAMPAIGN-CHECK-SERVER] status=unreachable');
   }
 
-  // db â€” connexion rÃ©elle (SELECT 1)
+  // db — connexion réelle (SELECT 1)
   try {
     const { prisma } = await import('../../src/lib/prisma.js');
     try {
