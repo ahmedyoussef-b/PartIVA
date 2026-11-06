@@ -1,10 +1,6 @@
-﻿import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import type { SourceConnector } from './types';
 import type { SearchCandidate } from '@/schemas/search';
 import { SOURCE_WEIGHTS } from '@/lib/scoring/weights';
-
-const execAsync = promisify(exec);
 
 interface OpenSerpResult {
   id: string;
@@ -17,7 +13,7 @@ interface OpenSerpResult {
 
 interface OpenSerpResponse {
   results: OpenSerpResult[];
-  meta: { engines_failed: string[]; took_ms: number };
+  meta: { engines_failed: string[]; engines_responded?: string[]; took_ms: number };
 }
 
 export function isOpenSerpConfigured(): boolean {
@@ -28,7 +24,7 @@ export const openSerpConnector: SourceConnector = {
   source: 'openserp',
   mode: 'real',
   weight: SOURCE_WEIGHTS.openserp?.weight ?? 0.4,
-  timeoutMs: SOURCE_WEIGHTS.openserp?.timeoutMs ?? 30_000,
+  timeoutMs: SOURCE_WEIGHTS.openserp?.timeoutMs ?? 15_000,
 
   isAvailable(): boolean {
     return isOpenSerpConfigured();
@@ -38,14 +34,24 @@ export const openSerpConnector: SourceConnector = {
     const { limit = 10 } = options;
     if (!isOpenSerpConfigured()) return [];
 
-    const safeQuery = query.replace(/"/g, '\\"');
-    try {
-      const { stdout } = await execAsync(
-        `docker exec openserp openserp search bing "${safeQuery}" --limit ${limit}`,
-        { timeout: 30_000, maxBuffer: 1024 * 1024 },
-      );
+    const baseUrl = process.env.OPENSERP_BASE_URL || 'http://localhost:7000';
+    const url = new URL(`${baseUrl}/mega/search`);
+    url.searchParams.set('text', query);
+    url.searchParams.set('engines', 'bing');
+    url.searchParams.set('mode', 'any');
+    url.searchParams.set('limit', String(limit));
 
-      const json = JSON.parse(stdout) as OpenSerpResponse;
+    try {
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(this.timeoutMs ?? 15_000),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenSERP HTTP ${response.status}`);
+      }
+
+      const json = (await response.json()) as OpenSerpResponse;
       if (!json.results || json.results.length === 0) return [];
 
       return json.results.slice(0, limit).map((item, idx) => {
@@ -61,12 +67,13 @@ export const openSerpConnector: SourceConnector = {
             url: item.url,
             snippet: item.snippet,
             engine: item.engine,
+            domain: item.url.replace(/^https?:\/\/([^/]+).*$/, '$1'),
           },
         };
         return candidate;
       });
     } catch (err) {
-      console.error('[openserp] CLI error:', err);
+      console.error('[openserp] HTTP error:', err);
       throw err;
     }
   },
