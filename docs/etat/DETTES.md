@@ -432,3 +432,26 @@ equest.get avec token admin manuel.
 | `D-V3-OPENSERP-API-HTTP-MISSING` | Basse | **Résolue** | /mega/search répond 200 + résultats. /search racine absente mais non requis. |
 | D-V3-STL-EXPORT-NO-CADFILE | Basse | Ouverte |
 | D-V3-STEP-PARTS-INTEGRATION | Basse | Reportee V4 |
+### D-E57-DEEP-MODE-PLAYWRIGHT — Fermée (V4-A)
+- **Statut :** Résolue (2026-11-07)
+- **Priorité :** Moyenne
+- **Cause :** Playwright ne déclenchait pas onChange sur select contrôlé React ingest-mode-select.
+- **Résolution :** Ajout waitForTimeout(500) avant selectOption. 2 tests fixme convertis en test.
+- **Preuve :** npx playwright test e2e/workspace/workspace.spec.ts -g "deep mode" --reporter=list → 4 passed, EXIT 0.
+- **Commits :** 2abe979, 869c73e.
+
+### D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED — Reclassée (V4-A)
+- **Statut :** Reclassée — Bloquée par D-E2E-AUTH-SEED-INVALIDATES-STORAGESTATE (V1.5)
+- **Priorité :** Moyenne
+- **Cause :** Route appelle correctement requireAdmin(). Blocage aval : storageState invalidé par seed E2E.
+- **Condition de résolution :** Résoudre V1.5 OU test request.get avec cookie admin manuel dans D-ADMIN-TEST-COVERAGE.
+- **Décision V4-A (2026-11-07) :** Aucun code à modifier. Reclassée hors V4-A.
+
+### D-WS-HISTORY-UNAUTH-REDIRECT — Nouvelle dette (Basse)
+- **Statut :** Ouverte
+- **Priorité :** Basse
+- **Cause :** [search/history] GET lance NEXT_REDIRECT /login;307 quand /workspace ouvert sans session.
+- **Périmètre :** src/app/api/search/history, src/app/workspace/
+- **Effort :** Faible
+- **Condition :** Vérifier que /api/search/history répond 401 JSON (pas redirect) sans session, ou que le client ne l'appelle pas sans session.
+- **Découverte :** 2026-11-07, pendant preuve E57.
