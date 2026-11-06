@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
 
 const baseResult = {
   success: true,
@@ -66,8 +66,7 @@ test.describe('Workspace page', () => {
     await expect(page.getByText('Aucune dimension fournie')).toBeVisible();
   });
 
-  // TODO(D-E57-DEEP-MODE-PLAYWRIGHT): Playwright n'arrive pas à déclencher onChange sur ce select contrôlé React. Le test manuel humain confirme que le produit fonctionne. À investiguer (ex: dispatchEvent custom, ou attente de l'hydratation).
-  test.fixme('deep mode sends mode deep', async ({ page }) => {
+    test('deep mode sends mode deep', async ({ page }) => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();
@@ -80,6 +79,7 @@ test.describe('Workspace page', () => {
     await page.goto('/workspace');
     await page.addInitScript(() => localStorage.removeItem('partiva-workspace-state'));
     await page.goto('/workspace');
+    await page.waitForTimeout(500);
     await page.getByTestId('ingest-mode-select').selectOption('deep');
     await expect(page.getByTestId('ingest-mode-select')).toHaveValue('deep');
     await page.getByRole('button', { name: /Analyser/i }).click();
@@ -143,8 +143,7 @@ test.describe('Workspace page', () => {
     await expect.poll(() => body?.mode).toBe('quick');
   });
 
-  // TODO(D-E57-DEEP-MODE-PLAYWRIGHT): Playwright n'arrive pas à déclencher onChange sur ce select contrôlé React. Le test manuel humain confirme que le produit fonctionne. À investiguer (ex: dispatchEvent custom, ou attente de l'hydratation).
-  test.fixme('deep mode triggers engine with deep', async ({ page }) => {
+    test('deep mode triggers engine with deep', async ({ page }) => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();
@@ -157,6 +156,7 @@ test.describe('Workspace page', () => {
     await page.goto('/workspace');
     await page.addInitScript(() => localStorage.removeItem('partiva-workspace-state'));
     await page.goto('/workspace');
+    await page.waitForTimeout(500);
     await page.getByTestId('ingest-mode-select').selectOption('deep');
     await expect(page.getByTestId('ingest-mode-select')).toHaveValue('deep');
     await page.getByRole('button', { name: /Analyser/i }).click();
