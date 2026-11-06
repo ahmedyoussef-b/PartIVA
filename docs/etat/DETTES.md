@@ -419,3 +419,16 @@ equest.get avec token admin manuel.
 | `D-V3-OPENSERP-CLI-ONLY` | Moyenne | **Fermée** | HTTP pur, plus de docker exec. |
 | D-V3-OPENSERP-GOOGLE-CAPTCHA | Basse | **Ouverte** | Google, Yandex, Ecosia, DuckDuckGo bloqués. Seul Bing fonctionne. |
 | D-V3-OPENSERP-API-HTTP-MISSING | Basse | **Ouverte** | API HTTP /search absente sur karust/openserp. CLI uniquement. |
+### V3 - Fermees
+
+| D-V13A-NAVIGATION-NOT-CLICKABLE | Moyenne | Ferme (V3-A) |
+| D-V14-EXPORT-UTILS-ORPHANS | Basse | Ferme (V3-B) |
+| D-V2-OPENSERP-NOT-IMPLEMENTED | Moyenne | Ferme (V3-C) |
+| D-V3-OPENSERP-CLI-ONLY | Moyenne | Ferme (V3-C HTTP) |
+
+### V3 - Restantes
+
+| D-V3-OPENSERP-GOOGLE-CAPTCHA | Basse | Ouverte |
+| D-V3-OPENSERP-API-HTTP-MISSING | Basse | Resolue partiellement |
+| D-V3-STL-EXPORT-NO-CADFILE | Basse | Ouverte |
+| D-V3-STEP-PARTS-INTEGRATION | Basse | Reportee V4 |
