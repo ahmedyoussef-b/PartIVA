@@ -22,6 +22,7 @@ import { tecDocConnector } from '@/lib/connectors/tecdoc';
 import { industrialCatalogConnector } from '@/lib/connectors/industrial-catalog';
 import { threeDCarPartsConnector } from '@/lib/connectors/3dcarparts';
 import { fapiConnector } from '@/lib/connectors/fapi';
+import { openSerpConnector } from '@/lib/connectors/openserp';
 
 /**
  * Connecteurs actifs (D-E3-26).
@@ -40,6 +41,7 @@ const ALL_CONNECTORS = [
   tecDocConnector,
   threeDCarPartsConnector,
   fapiConnector,
+  openSerpConnector,
 ];
 
 export async function POST(req: Request) {

@@ -41,6 +41,7 @@ export const SOURCE_WEIGHTS: Record<
   industrial_catalog: { weight: 0.55, timeoutMs: 5_000 },
   '3dcarparts': { weight: 0.45, timeoutMs: 5_000 },
   fapi: { weight: 0.5, timeoutMs: 10_000 },
+  openserp: { weight: 0.4, timeoutMs: 30_000 },
 } as const;
 
 export type ScoringSource = keyof typeof SOURCE_WEIGHTS;
