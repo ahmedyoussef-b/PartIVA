@@ -122,3 +122,9 @@ docs/app/
 
 # Backups locaux
 .backup/
+
+# Artefacts de debug auth (ne jamais commiter)
+cookies.txt
+login.json
+body.json
+first.json
