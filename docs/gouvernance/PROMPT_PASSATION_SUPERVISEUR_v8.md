@@ -1,11 +1,11 @@
-# PROMPT DE PASSATION — Superviseur IA Externe (PartIVA) — v8
+﻿# PROMPT DE PASSATION — Superviseur IA Externe (PartIVA) — v8
 
 **Type :** Addendum à v4+v5+v6+v7 (état V3)
 **Date :** 2026-11-06
 **Branche :** master
 **Statut :** V3-A, V3-B, V3-C closes. V3-D reportée. V2 close.
 
-Ce document complète v4 (règles), v5 (V1.1+V1.2), v6 (V1.3→V1.5), v7 (V2). Toutes les règles v4 restent en vigueur.
+Ce document complète v4 (règles), v5 (V1.1+V1.2), v6 (V1.3?V1.5), v7 (V2). Toutes les règles v4 restent en vigueur.
 
 ## 1. État du projet
 
@@ -82,7 +82,28 @@ Ce document complète v4 (règles), v5 (V1.1+V1.2), v6 (V1.3→V1.5), v7 (V2). T
 - Leçon 24 : Google, Yandex, Ecosia, DuckDuckGo bloquent OpenSERP. Seul Bing fonctionne.
 - Leçon 25 : l'API HTTP OpenSERP est /{engine}/search (ex: /mega/search?engines=bing).
 
-## 6. À l'ouverture de la prochaine session
+## 6. Prérequis runtime
+
+- Node.js, npm, Docker (OpenSERP sur localhost:7000)
+- DATABASE_URL pointant vers partiva_test
+- OPENSERP_BASE_URL=http://localhost:7000, OPENSERP_ENABLED=true
+
+## 7. Commandes clés
+
+- npm run dev (port 3000)
+- npm run test:unit
+- npm run typecheck
+- docker exec openserp openserp search bing "query"
+
+## 8. Commit HEAD
+
+- Récupérer via git log --oneline -1
+
+## 9. Dettes fermées V3-C
+
+- D-V3-OPENSERP-CLI-ONLY : Fermée (HTTP pur)
+
+## 10. À l'ouverture de la prochaine session
 
 1. Confirmer la lecture de v4 + v5 + v6 + v7 + v8.
 2. Confirmer être prêt à reprendre le rôle de Superviseur.
