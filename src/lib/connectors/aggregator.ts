@@ -1,4 +1,4 @@
-import type { SearchCandidate } from '@/schemas/search';
+﻿import type { SearchCandidate } from '@/schemas/search';
 import type { SourceConnector } from './types';
 import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
 import { mergeAbortSignals } from '@/lib/data/external-signal';
@@ -86,7 +86,8 @@ export async function aggregateSearch(
   query: string,
   options: AggregateSearchOptions = {},
 ): Promise<AggregationResult> {
-  const cacheKey = hashCacheKey(query, 'all');
+  const limit = options.limit ?? 20;
+  const cacheKey = hashCacheKey(query, 'all', limit);
 
   // 1. Cache hit ?
   if (!options.skipCache) {
@@ -109,7 +110,7 @@ export async function aggregateSearch(
   // 3. Écrire dans le cache
   if (!options.skipCache) {
     try {
-      await setCache(cacheKey, result, 'all');
+      await setCache(cacheKey, result, 'all', limit);
     } catch (err) {
       console.warn('[aggregator] cache set error:', err);
     }

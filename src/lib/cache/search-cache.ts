@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+﻿import { createHash } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
 import type { AggregationResult } from '@/lib/connectors/aggregator';
@@ -7,15 +7,23 @@ export type AggregateSearchResult = AggregationResult & {
   _cache?: 'hit' | 'miss';
 };
 
+export interface CacheKeyParams {
+  query: string;
+  source: string;
+  limit: number;
+}
+
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 export function isCacheEnabled(): boolean {
   return process.env.SEARCH_CACHE_ENABLED !== 'false';
 }
 
-export function hashCacheKey(query: string, source: string): string {
+export function hashCacheKey(query: string, source: string, limit: number): string {
+  const normalizedSource = source.trim().toLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
   return createHash('sha256')
-    .update(`${source}:${query.trim().toLowerCase()}`)
+    .update(`${normalizedSource}:${normalizedQuery}:${limit}`)
     .digest('hex')
     .slice(0, 32);
 }
@@ -26,7 +34,7 @@ export async function getCache(cacheKey: string): Promise<AggregateSearchResult 
     const entry = await prisma.webSearchCache.findUnique({ where: { cacheKey } });
     if (!entry) return null;
     if (entry.expiresAt < new Date()) {
-      await prisma.webSearchCache.delete({ where: { cacheKey } }).catch(() => null);
+      void prisma.webSearchCache.delete({ where: { cacheKey } }).catch(() => null);
       return null;
     }
     return entry.payload as unknown as AggregateSearchResult;
@@ -40,6 +48,7 @@ export async function setCache(
   cacheKey: string,
   payload: AggregateSearchResult,
   source: string,
+  limit: number,
   ttlMs = DEFAULT_TTL_MS,
 ): Promise<void> {
   if (!isCacheEnabled()) return;
@@ -67,4 +76,3 @@ export async function purgeCache(source?: string): Promise<number> {
     return 0;
   }
 }
-
