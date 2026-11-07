@@ -3,6 +3,7 @@ import { bearer } from 'better-auth/plugins';
 import { prismaAdapter } from '@better-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import { nextCookies } from 'better-auth/next-js';
+import { sendPasswordResetEmail } from '@/lib/mail';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -10,6 +11,16 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    resetPasswordTokenExpiresIn: 60 * 60, // 1h
+    sendResetPassword: async ({ user, url }) => {
+      // L'URL Better Auth pointe vers /api/auth/reset-password/:token?callbackURL=...
+      // On conserve ce flux réel et on envoie le lien par email.
+      await sendPasswordResetEmail({
+        to: user.email,
+        url,
+        userName: user.name,
+      });
+    },
   },
   // E27 — Better Auth limite par défaut /sign-in/* à 3 requêtes / 10 s
   // (node_modules/better-auth/dist/api/rate-limiter/index.mjs, getDefaultSpecialRules).

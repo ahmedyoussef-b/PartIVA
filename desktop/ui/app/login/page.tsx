@@ -65,6 +65,11 @@ export default function LoginPage() {
         <button type="submit" disabled={busy}>
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
+        <p style={{ marginTop: 12, textAlign: 'center' }}>
+          <a href="https://part-iva.vercel.app/forgot-password" target="_blank" rel="noreferrer">
+            Mot de passe oublié ?
+          </a>
+        </p>
       </form>
     </main>
   );
