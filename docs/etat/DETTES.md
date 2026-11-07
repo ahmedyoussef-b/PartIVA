@@ -481,3 +481,17 @@ equest.get avec token admin manuel.
   - `POST /api/auth/sign-in/email 200` (4.8s) — login réussi avec le nouveau mot de passe (flux reset complet : demande → lien → reset → login).
 - **Réserve levée :** flux complet exécuté manuellement et fonctionnel.
 - **Risque tracé :** si `SMTP_HOST` absent en production, le lien de reset est loggé en clair dans les logs serveur (fuite potentielle du token). À configurer en prod.
+
+### `V5 — Recherche Multi-Sources (achèvement data réelle)`
+- **Statut :** Résolue (2026-11-07)
+- **Priorité :** Haute
+- **Périmètre :**
+  - **V5-A** : UI branchée sur `aggregateSearch` (1 seul fetch au lieu de 4). ✅
+  - **V5-B** : Connecteur `geometric` (similarité d'embedding) ajouté à `ALL_CONNECTORS`. ✅
+  - **V5-C** : TraceParts — Mode mock documenté (credentials absents). ⚠️
+  - **V5-D** : E2E Playwright prouvant le flux complet. ✅
+- **Preuves runtime :**
+  - `POST /api/search {source:'all'}` retourne `sourcesQueried` incluant `geometric`.
+  - `sourceDurationsMs.geometric = 724ms` (le connecteur s'exécute sans planter).
+  - Les 4 cartes de sources (BDD, TraceParts, CADENAS, Géométrique) s'affichent et affichent `✓ N` ou `✗`.
+- **Commits :** `530a0f3` (V5-A), `79a1723` (V5-B), `aa8160e` (merge PR #3).
