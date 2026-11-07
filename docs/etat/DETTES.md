@@ -459,7 +459,7 @@ equest.get avec token admin manuel.
 - **Découverte :** 2026-11-07, pendant preuve E57.
 
 ### `D-AUTH-PASSWORD-RESET` — Flux "mot de passe oublié" (reset password)
-- **Statut :** Fermée avec réserve — **non testée runtime** (validation manuelle à faire en début de prochaine session)
+- **Statut :** **Résolue (2026-11-07) — testée runtime**
 - **Priorité :** Moyenne
 - **Cause initiale :** Le lien "Mot de passe oublié ?" pointait vers un mock. Aucun flux réel.
 - **Résolution (code) :**
@@ -475,5 +475,9 @@ equest.get avec token admin manuel.
   - `npm run lint` → `LINT EXIT: 0` (0 erreur, 23 warnings préexistants)
   - `npm run build` → `BUILD EXIT: 0` (route `○ /reset-password` présente)
   - Commit `5884fe7` poussé sur `origin/master`
-- **Réserve (test runtime à faire) :** flux complet non testé manuellement dans cette session (pas de clic sur "Envoyer", pas de vérification du lien de reset, pas de login avec le nouveau mot de passe, pas de test anti-énumération runtime). **À valider en début de prochaine session** avant de considérer la fonctionnalité comme pleinement livrée.
-- **Risque tracé :** si `SMTP_HOST` absent en production, le lien de reset est loggé en clair dans les logs serveur (fuite potentielle du token). À vérifier en prod.
+- **Preuves runtime (2026-11-07) :**
+  - `POST /api/auth/request-password-reset 200` (1201ms) — token généré.
+  - `[auth] SMTP non configuré — lien de réinitialisation (usage dev) : http://localhost:3000/api/auth/reset-password/***?callbackURL=.../reset-password` — lien réel loggé (SMTP absent).
+  - `POST /api/auth/sign-in/email 200` (4.8s) — login réussi avec le nouveau mot de passe (flux reset complet : demande → lien → reset → login).
+- **Réserve levée :** flux complet exécuté manuellement et fonctionnel.
+- **Risque tracé :** si `SMTP_HOST` absent en production, le lien de reset est loggé en clair dans les logs serveur (fuite potentielle du token). À configurer en prod.
