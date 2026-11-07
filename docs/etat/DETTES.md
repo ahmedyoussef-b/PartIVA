@@ -457,3 +457,23 @@ equest.get avec token admin manuel.
 - **Effort :** Faible
 - **Condition :** Vérifier que /api/search/history répond 401 JSON (pas redirect) sans session, ou que le client ne l'appelle pas sans session.
 - **Découverte :** 2026-11-07, pendant preuve E57.
+
+### `D-AUTH-PASSWORD-RESET` — Flux "mot de passe oublié" (reset password)
+- **Statut :** Fermée avec réserve — **non testée runtime** (validation manuelle à faire en début de prochaine session)
+- **Priorité :** Moyenne
+- **Cause initiale :** Le lien "Mot de passe oublié ?" pointait vers un mock. Aucun flux réel.
+- **Résolution (code) :**
+  - `src/lib/mail.ts` : envoi SMTP via `nodemailer`, fallback log serveur si `SMTP_HOST` absent (dev).
+  - `src/lib/auth.ts` : `emailAndPassword.sendResetPassword` configuré, `resetPasswordTokenExpiresIn: 1h`.
+  - `src/lib/auth-client.ts` : `requestPasswordReset` + `resetPassword` exportés.
+  - `src/app/(auth)/forgot-password/page.tsx` : appel réel, anti-énumération, loading/error.
+  - `src/app/(auth)/reset-password/page.tsx` : validation token, ≥8 chars, confirmation, gestion `INVALID_TOKEN`, redirect `/login`.
+  - `desktop/ui/app/login/page.tsx` : lien web `https://part-iva.vercel.app/forgot-password`.
+  - `.env.example` : variables SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`).
+- **Preuves obtenues :**
+  - `npm run typecheck` → `TYPECHECK EXIT: 0`
+  - `npm run lint` → `LINT EXIT: 0` (0 erreur, 23 warnings préexistants)
+  - `npm run build` → `BUILD EXIT: 0` (route `○ /reset-password` présente)
+  - Commit `5884fe7` poussé sur `origin/master`
+- **Réserve (test runtime à faire) :** flux complet non testé manuellement dans cette session (pas de clic sur "Envoyer", pas de vérification du lien de reset, pas de login avec le nouveau mot de passe, pas de test anti-énumération runtime). **À valider en début de prochaine session** avant de considérer la fonctionnalité comme pleinement livrée.
+- **Risque tracé :** si `SMTP_HOST` absent en production, le lien de reset est loggé en clair dans les logs serveur (fuite potentielle du token). À vérifier en prod.
