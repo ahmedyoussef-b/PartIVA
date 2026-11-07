@@ -5,7 +5,11 @@ describe('fapiConnector', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    process.env = { ...originalEnv, FAPI_API_KEY: 'test-key', FAPI_BASE_URL: 'https://fapi.test/v2' };
+    process.env = {
+      ...originalEnv,
+      FAPI_API_KEY: 'test-key',
+      FAPI_BASE_URL: 'https://fapi.test/v2',
+    };
   });
 
   afterEach(() => {
@@ -27,11 +31,14 @@ describe('fapiConnector', () => {
       },
       messageList: { m: [] },
     };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify(mockResponse),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify(mockResponse),
+      }),
+    );
 
     const results = await fapiConnector.search('w753', { limit: 20 });
     expect(results).toHaveLength(2);

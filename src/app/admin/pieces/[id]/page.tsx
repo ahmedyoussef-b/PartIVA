@@ -88,11 +88,7 @@ export default async function AdminPieceDetailPage({
               description: part.description,
             }}
           />
-          <ExportPdfButton
-            name={part.name}
-            reference={reference}
-            description={part.description}
-          />
+          <ExportPdfButton name={part.name} reference={reference} description={part.description} />
         </div>
       </div>
 

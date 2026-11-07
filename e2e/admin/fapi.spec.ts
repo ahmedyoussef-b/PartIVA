@@ -10,7 +10,7 @@ test.describe('FAPI connector', () => {
 
     // Attendre la réponse réseau au lieu de cliquer aveugle
     const responsePromise = page.waitForResponse(
-      (res) => res.url().includes('/api/search') && res.url().includes('source=fapi')
+      (res) => res.url().includes('/api/search') && res.url().includes('source=fapi'),
     );
     await page.click('[data-testid="search-submit"]');
     const response = await responsePromise;

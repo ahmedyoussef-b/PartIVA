@@ -66,7 +66,7 @@ test.describe('Workspace page', () => {
     await expect(page.getByText('Aucune dimension fournie')).toBeVisible();
   });
 
-    test('deep mode sends mode deep', async ({ page }) => {
+  test('deep mode sends mode deep', async ({ page }) => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();
@@ -143,7 +143,7 @@ test.describe('Workspace page', () => {
     await expect.poll(() => body?.mode).toBe('quick');
   });
 
-    test('deep mode triggers engine with deep', async ({ page }) => {
+  test('deep mode triggers engine with deep', async ({ page }) => {
     let body: any;
     await page.route('**/api/engine', async (route) => {
       body = route.request().postDataJSON();

@@ -402,7 +402,9 @@ export function SearchBar() {
         Moteur d&apos;ingénierie
       </label>
       <div className="flex items-center gap-2">
-        <label className="text-xs" htmlFor="source-select">Source :</label>
+        <label className="text-xs" htmlFor="source-select">
+          Source :
+        </label>
         <select
           id="source-select"
           data-testid="source-select"
@@ -668,10 +670,10 @@ export function SearchBar() {
                   ? 'Rechercher une matière, une dimension…'
                   : 'Rechercher une pièce (nom, référence, matière…)…'
             }
-              className="pl-9"
-              aria-label="Rechercher une pièce"
-              data-testid="search-input"
-            />
+            className="pl-9"
+            aria-label="Rechercher une pièce"
+            data-testid="search-input"
+          />
         </div>
       )}
 
@@ -694,7 +696,12 @@ export function SearchBar() {
                   key={result.id}
                   type="button"
                   data-testid="search-result"
-                  data-reference={(result as { reference?: string }).reference ?? result.partNumber ?? result.ptvReference ?? ''}
+                  data-reference={
+                    (result as { reference?: string }).reference ??
+                    result.partNumber ??
+                    result.ptvReference ??
+                    ''
+                  }
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted/30"
                   onClick={() => {
                     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
