@@ -393,7 +393,7 @@ equest.get avec token admin manuel.
 | D-V2-FAPI-ENV-LOADED-BUT-UI-SILENT | Basse | RÃ©solue | FAPI_API_KEY bien prÃ©sente dans .env.local (ligne 46), le serveur dev la charge. Ce n'Ã©tait pas un problÃ¨me d'env. |
 |  | Test e2e/fapi.spec.ts Ã©crit mais non exÃ©cutÃ© (bloquÃ© par sÃ©lecteurs UI absents). Le runtime est prouvÃ© par les logs serveur (200 in 3.4s + 200 in 545ms). |
 
-| D-CI-BYPASS-ADMIN-PUSH | Basse | Les commits fe3a4c8, b15730e, 4d5ddf5 ont Ã©tÃ© poussÃ©s sur master en bypassant 4 required status checks GitHub (admin override). VÃ©rifier que la CI est verte rÃ©troactivement. Si non, revert immÃ©diat. |
+| `D-CI-BYPASS-ADMIN-PUSH` | **Haute** | **Résolue (2026-11-07)** | (1) Mismatch protection ↔ workflow : `E2E (Playwright)` requis mais job E2E uniquement `workflow_dispatch` → check jamais satisfait sur push (“4 expected” + bypass). (2) 17 fichiers non conformes Prettier → `format:check` fail → lint job rouge. (3) `enforce_admins:false`. **Résolution :** Prettier sur 17 fichiers (PR #1, `da284b0`, merge `891ca77`) ; `E2E (Playwright)` retiré des required checks (aligné D-E27, E2E manuel) — 3 checks requis : `ESLint + Prettier`, `TypeScript`, `Build` ; `enforce_admins:true`. **Point d’attention :** `08ec906` (dedupe `format:check` dans `ci.yml`) poussé après merge PR #1 → **absent de `master`** ; `git show master:.github/workflows/ci.yml` montre encore 2 lignes `format:check` (non bloquant, PR ultérieure). |
 | D-E2E-WEBSERVER-TIMEOUT | Moyenne | FermÃ©e (4d5ddf5) â€” timeout 180_000 â†’ 300_000. |
 | D-INFRA-BACKUP-UNTRACKED | Basse | FermÃ©e (b15730e) â€” .backup/ gitignored. |
 | D-GOV-V2B-INCOMPLETE-COMMIT | Haute | FermÃ©e (fe3a4c8) â€” 4 fichiers transverses FAPI rattrapÃ©s. |
