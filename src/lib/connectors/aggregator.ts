@@ -1,4 +1,4 @@
-﻿import type { SearchCandidate } from '@/schemas/search';
+import type { SearchCandidate } from '@/schemas/search';
 import type { SourceConnector } from './types';
 import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
 import { mergeAbortSignals } from '@/lib/data/external-signal';
