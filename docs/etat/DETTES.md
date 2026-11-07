@@ -409,8 +409,8 @@ equest.get avec token admin manuel.
 | `D-V2-FAPI-DUPLICATE-IDS` | Basse | **FermÃ©e** | DÃ©duplication par id et name ajoutÃ©e dans `aggregator.ts` (`deduplicateCandidates`). 18 candidats uniques. |
 | D-V2-CACHE-HIT-LATENCY-12S | Haute | Ouverte diagnostiquee V4-B | Latence GET /api/search 12.76s. Cause reelle: GET /api/search n appelle jamais aggregateSearch. Cache jamais sollicite en GET. |
 | D-V2-CACHE-ENABLED-OPTION | Basse | Fermee V4-B | SEARCH_CACHE_ENABLED absent partout -> isCacheEnabled retourne true par defaut. Option skipCache deja presente. |
-| D-V2-CACHE-KEY-COLLISION | Haute | Ouverte | aggregator.ts:69 hashCacheKey(query, all) en dur -> cles cassees. purgeCache inoperant. Decouverte V4-B. |
-| D-V2-SEARCH-GET-NO-AGGREGATE | Haute | Ouverte | GET /api/search ne route jamais vers aggregateSearch. Decouverte V4-B. |
+| D-V2-CACHE-KEY-COLLISION | Haute | **Fermée (V4-B')** | hashCacheKey inclut limit + source réelle. setCache reçoit source réel. Correctif complet. |
+| D-V2-SEARCH-GET-NO-AGGREGATE | Haute | **Fermée (V4-B')** | GET ?mode=aggregate route vers aggregateSearch. Cache maintenant sollicité en GET. |
 
 
 ### V3-C — OpenSERP (Bing) connecteur
