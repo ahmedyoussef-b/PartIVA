@@ -162,4 +162,3 @@ describe('search-cache helper', () => {
     });
   });
 });
-

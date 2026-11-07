@@ -5,7 +5,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Admin — Exports (V1.5-B)', () => {
-  test('E1. GET /api/desktop-builds/download?file=test.bin retourne un fichier binaire', async ({ request }) => {
+  test('E1. GET /api/desktop-builds/download?file=test.bin retourne un fichier binaire', async ({
+    request,
+  }) => {
     const response = await request.get('/api/desktop-builds/download?file=test.bin');
     expect(response.status()).toBe(200);
     expect(response.headers()['content-disposition']).toMatch(/attachment/);

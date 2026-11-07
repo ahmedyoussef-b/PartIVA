@@ -6,7 +6,9 @@ test('Exporter PDF sur la page détail pièce', async ({ page }) => {
 
   await page.waitForLoadState('networkidle');
 
-  const firstLink = page.locator('a[href^="/admin/pieces/"]:not([href="/admin/pieces/nouveau"])').first();
+  const firstLink = page
+    .locator('a[href^="/admin/pieces/"]:not([href="/admin/pieces/nouveau"])')
+    .first();
   const href = await firstLink.getAttribute('href');
   expect(href).toBeTruthy();
   expect(href).toMatch(/^\/admin\/pieces\/[a-zA-Z0-9-]+$/);

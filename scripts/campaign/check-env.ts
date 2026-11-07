@@ -61,9 +61,7 @@ async function main() {
     }
   } catch (e) {
     checks.db = false;
-    console.error(
-      `[CAMPAIGN-CHECK-DB] error=${(e as Error)?.message ?? String(e)}`,
-    );
+    console.error(`[CAMPAIGN-CHECK-DB] error=${(e as Error)?.message ?? String(e)}`);
   }
 
   // commit sha injected
@@ -86,12 +84,10 @@ async function main() {
           `SELECT COUNT(*)::bigint AS c FROM "_prisma_migrations"`,
         )) as { c: bigint }[];
         checks.migrations = Number(mig[0]?.c ?? 0) > 0;
-        console.log(
-          `[CAMPAIGN-CHECK-MIGRATIONS] count=${mig[0]?.c ?? 0} ok=${checks.migrations}`,
-        );
-        const u = (await prisma.$queryRawUnsafe(
-          `SELECT COUNT(*)::bigint AS c FROM "users"`,
-        )) as { c: bigint }[];
+        console.log(`[CAMPAIGN-CHECK-MIGRATIONS] count=${mig[0]?.c ?? 0} ok=${checks.migrations}`);
+        const u = (await prisma.$queryRawUnsafe(`SELECT COUNT(*)::bigint AS c FROM "users"`)) as {
+          c: bigint;
+        }[];
         checks.seed = Number(u[0]?.c ?? 0) > 0;
         console.log(`[CAMPAIGN-CHECK-SEED] count=${u[0]?.c ?? 0} ok=${checks.seed}`);
       } finally {
@@ -105,13 +101,17 @@ async function main() {
   // auth — validation runtime (D-CAMPAIGN-CHECK-AUTH-VALIDITY)
   const authFile = join(ROOT, '.auth', 'admin.json');
   if (!existsSync(authFile)) {
-    console.warn('[CAMPAIGN-CHECK-AUTH] file absent — cannot validate runtime session without cookie');
+    console.warn(
+      '[CAMPAIGN-CHECK-AUTH] file absent — cannot validate runtime session without cookie',
+    );
     checks.auth = false;
   } else {
     try {
       const raw = (await import('fs')).readFileSync(authFile, 'utf-8');
       const state = JSON.parse(raw) as { cookies?: { name: string; value: string }[] };
-      const sessionCookie = (state.cookies ?? []).find((c) => c.name === 'better-auth.session_token');
+      const sessionCookie = (state.cookies ?? []).find(
+        (c) => c.name === 'better-auth.session_token',
+      );
       if (!sessionCookie) {
         console.error('[CAMPAIGN-CHECK-AUTH] no session cookie in storage state');
         checks.auth = false;
@@ -123,7 +123,9 @@ async function main() {
           });
           if (!res.ok) {
             checks.auth = false;
-            console.error(`[CAMPAIGN-CHECK-AUTH] get-session status=${res.status} (cookie invalid/expired)`);
+            console.error(
+              `[CAMPAIGN-CHECK-AUTH] get-session status=${res.status} (cookie invalid/expired)`,
+            );
           } else {
             const body = (await res.json()) as { user?: unknown } | null;
             checks.auth = Boolean(body && body.user);
@@ -131,7 +133,9 @@ async function main() {
           }
         } catch (e) {
           checks.auth = false;
-          console.error(`[CAMPAIGN-CHECK-AUTH] endpoint unreachable: ${(e as Error)?.message ?? String(e)}`);
+          console.error(
+            `[CAMPAIGN-CHECK-AUTH] endpoint unreachable: ${(e as Error)?.message ?? String(e)}`,
+          );
         }
       }
     } catch (e) {
@@ -145,7 +149,10 @@ async function main() {
   const groqVisionModel = process.env.GROQ_VISION_MODEL?.trim();
   const groqApiKey = process.env.GROQ_API_KEY;
 
-  if ((groqModel?.startsWith('llama-') ?? false) || (groqVisionModel?.startsWith('llama-') ?? false)) {
+  if (
+    (groqModel?.startsWith('llama-') ?? false) ||
+    (groqVisionModel?.startsWith('llama-') ?? false)
+  ) {
     checks.groq = false;
     console.error('[CAMPAIGN-CHECK-GROQ] forbidden model=llama-*');
   } else if (groqApiKey && groqModel) {
@@ -181,12 +188,7 @@ async function main() {
   }
 
   const ok =
-    checks.server &&
-    checks.db &&
-    checks.migrations &&
-    checks.seed &&
-    checks.auth &&
-    checks.groq;
+    checks.server && checks.db && checks.migrations && checks.seed && checks.auth && checks.groq;
 
   mkdirSync(join(ROOT, 'docs', 'campagne-tests'), { recursive: true });
   writeFileSync(
