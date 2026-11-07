@@ -33,12 +33,14 @@ import {
   Sparkles,
   AlertTriangle,
   Info,
+  AlertOctagon,
 } from 'lucide-react';
 import type { SearchCandidate } from '@/schemas/search';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
 import { useTransition } from 'react';
 import type { RequestStatus, RequestUrgency } from '@/schemas/request';
 
+// On garde les IDs d'affichage (pour les icônes), mais on les mappe sur les sources réelles du backend.
 const SOURCES = [
   {
     id: 'local_db',
@@ -59,7 +61,7 @@ const SOURCES = [
     description: 'Bibliothèque CAO industrielle 200M+ refs',
   },
   {
-    id: 'cadenas',
+    id: 'industrial_catalog',
     label: 'CADENAS PARTsolutions',
     icon: Cpu,
     color: 'text-violet-500',
@@ -68,7 +70,7 @@ const SOURCES = [
     description: 'Catalogue normalisé fournisseurs industriels',
   },
   {
-    id: 'geometric_search',
+    id: 'geometric',
     label: 'Recherche Géométrique IA',
     icon: Scan,
     color: 'text-amber-500',
@@ -78,8 +80,11 @@ const SOURCES = [
   },
 ];
 
-type SearchState = 'idle' | 'running' | 'done';
-type SourceProgress = Record<string, { state: SearchState; found: number }>;
+type SearchState = 'idle' | 'running' | 'done' | 'error';
+type SourceProgress = Record<
+  string,
+  { state: SearchState; found: number; durationMs?: number; error?: boolean }
+>;
 
 const URGENCIES: { value: RequestUrgency; label: string }[] = [
   { value: 'low', label: 'Standard (7-10 jours ouvrés)' },
@@ -138,40 +143,58 @@ export default function RechercheClient({
 
   const totalProgress = React.useMemo(() => {
     if (searchState === 'idle') return 0;
-    if (searchState === 'done') return 100;
-    const done = Object.values(sourceProgress).filter((s) => s.state === 'done').length;
-    return Math.round((done / SOURCES.length) * 100);
-  }, [searchState, sourceProgress]);
+    if (searchState === 'done' || searchState === 'error') return 100;
+    return 50; // simple fallback
+  }, [searchState]);
 
   const handleSearch = async () => {
     setSearchState('running');
     setCandidates([]);
     setSelectedCandidate(null);
+
     const initial: SourceProgress = {};
     SOURCES.forEach((s) => {
       initial[s.id] = { state: 'idle', found: 0 };
     });
     setSourceProgress(initial);
 
-    for (const src of SOURCES) {
-      setSourceProgress((prev) => ({
-        ...prev,
-        [src.id]: { state: 'running', found: 0 },
-      }));
-      await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
+    try {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: src.id }),
+        body: JSON.stringify({
+          source: 'all',
+          query: request.partDescription,
+          limit: 20,
+        }),
       });
-      const found: SearchCandidate[] = res.ok ? await res.json() : [];
-      setSourceProgress((prev) => ({
-        ...prev,
-        [src.id]: { state: 'done', found: found.length },
-      }));
-      setCandidates((prev) => [...prev, ...found]);
+
+      if (!res.ok) throw new Error('Erreur API search');
+
+      const data = await res.json();
+
+      // data = AggregationResult { candidates, sourcesQueried, sourcesFailed, sourceDurationsMs, ... }
+      const foundCandidates: SearchCandidate[] = data.candidates ?? [];
+
+      const nextProgress: SourceProgress = {};
+      SOURCES.forEach((s) => {
+        const isFailed = (data.sourcesFailed as string[]).includes(s.id);
+        const foundCount = foundCandidates.filter((c) => c.source === s.id).length;
+        nextProgress[s.id] = {
+          state: isFailed ? 'error' : 'done',
+          found: foundCount,
+          durationMs: data.sourceDurationsMs?.[s.id],
+          error: isFailed,
+        };
+      });
+
+      setSourceProgress(nextProgress);
+      setCandidates(foundCandidates);
+      setSearchState('done');
+    } catch (err) {
+      console.error(err);
+      setSearchState('error');
     }
-    setSearchState('done');
   };
 
   const filtered =
@@ -314,9 +337,11 @@ export default function RechercheClient({
                     className={`flex items-center gap-3 rounded-lg border p-3 transition-all ${
                       prog?.state === 'running'
                         ? `${src.borderColor} ${src.bgColor}`
-                        : prog?.state === 'done'
-                          ? 'border-emerald-500/20 bg-emerald-500/5'
-                          : 'border-border bg-muted/30'
+                        : prog?.state === 'error'
+                          ? 'border-red-500/20 bg-red-500/5'
+                          : prog?.state === 'done'
+                            ? 'border-emerald-500/20 bg-emerald-500/5'
+                            : 'border-border bg-muted/30'
                     }`}
                   >
                     <div className={`rounded-md p-1.5 ${src.bgColor}`}>
@@ -329,6 +354,11 @@ export default function RechercheClient({
                     <div className="shrink-0">
                       {prog?.state === 'running' && (
                         <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      )}
+                      {prog?.state === 'error' && (
+                        <div className="flex items-center gap-1 text-red-500">
+                          <AlertOctagon className="h-4 w-4" />
+                        </div>
                       )}
                       {prog?.state === 'done' && (
                         <div className="flex items-center gap-1">
@@ -357,6 +387,12 @@ export default function RechercheClient({
                 </div>
               )}
 
+              {searchState === 'error' && (
+                <div className="rounded-md border border-red-500/50 bg-red-500/10 p-3 text-xs text-red-600">
+                  Erreur lors de la recherche. Vérifiez la connexion.
+                </div>
+              )}
+
               <Button
                 className="mt-2 w-full gap-2 font-bold"
                 onClick={handleSearch}
@@ -367,7 +403,7 @@ export default function RechercheClient({
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Recherche en cours…
                   </>
-                ) : searchState === 'done' ? (
+                ) : searchState === 'done' || searchState === 'error' ? (
                   <>
                     <RefreshCw className="h-4 w-4" />
                     Relancer la Recherche
@@ -452,7 +488,7 @@ export default function RechercheClient({
             </div>
           )}
 
-          {(searchState === 'running' || searchState === 'done') && (
+          {(searchState === 'running' || searchState === 'done' || searchState === 'error') && (
             <>
               {/* Source filter tabs */}
               <Tabs value={activeSource} onValueChange={setActiveSource}>
@@ -496,6 +532,16 @@ export default function RechercheClient({
                             onSelect={() =>
                               setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)
                             }
+                            onValidate={(cand) => {
+                              setSelectedCandidate(cand);
+                              handleStatusChange('candidate_found');
+                            }}
+                            onReject={() => {
+                              alert(`Candidat ${c.reference} rejeté (logique à implémenter)`);
+                            }}
+                            onView={() => {
+                              alert(`Voir détails de ${c.reference} (logique à implémenter)`);
+                            }}
                           />
                         ))}
                     </div>

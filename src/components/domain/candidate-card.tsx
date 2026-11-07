@@ -104,14 +104,22 @@ export function CandidateCard({
             size="sm"
             variant={isMatchHigh ? 'default' : 'outline'}
             className="flex-1 font-semibold"
-            onClick={() => onValidate?.(candidate)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onValidate) onValidate(candidate);
+              else alert('Validation non configurée');
+            }}
           >
             <Check className="mr-1.5 h-4 w-4" /> Valider (≥70%)
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onReject?.(candidate)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onReject) onReject(candidate);
+              else alert('Rejet non configuré');
+            }}
             aria-label="Rejeter"
           >
             <X className="h-4 w-4 text-muted-foreground" />
@@ -119,7 +127,11 @@ export function CandidateCard({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => onView?.(candidate)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onView) onView(candidate);
+              else alert('Vue détaillée non configurée');
+            }}
             aria-label="Voir détails"
           >
             <ExternalLink className="h-4 w-4 text-muted-foreground" />

@@ -9,7 +9,8 @@ export interface SourceConnector {
     | 'industrial_catalog'
     | '3dcarparts'
     | 'fapi'
-    | 'openserp';
+    | 'openserp'
+    | 'geometric';
 
   readonly mode: 'real' | 'mock';
 
