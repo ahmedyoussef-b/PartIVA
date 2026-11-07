@@ -1,7 +1,6 @@
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getParts } from '@/lib/data/parts';
-import { getMachines } from '@/lib/data/machines';
 import PiecesClient from './pieces-client';
 import type { UserRole } from '@/generated/prisma/client';
 
@@ -9,7 +8,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminPiecesPage() {
   const parts = await getParts();
-  const machines = await getMachines();
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -17,5 +15,5 @@ export default async function AdminPiecesPage() {
   const actorRole = ((session?.user as { role?: string } | undefined)?.role ??
     'VIEWER') as UserRole;
 
-  return <PiecesClient initialParts={parts} actorRole={actorRole} machines={machines} />;
+  return <PiecesClient initialParts={parts} actorRole={actorRole} />;
 }

@@ -88,7 +88,7 @@ export default function ReverseEngineeringListClient({
                         {project.id.slice(0, 8)}
                       </TableCell>
                       <TableCell>
-                        <div className="text-xs font-medium">{project.name}</div>
+                        <Link href={`/admin/reverse-engineering/${project.id}`} data-testid="re-project-link" className="text-xs font-medium hover:underline">{project.name}</Link>
                         <div className="line-clamp-1 text-[11px] text-muted-foreground">
                           {project.description || '—'}
                         </div>

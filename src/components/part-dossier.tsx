@@ -17,6 +17,7 @@ import type { MaterialCategory } from '@/generated/prisma/browser';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import type { Machine } from '@/generated/prisma/client';
 import { MachineRecommendationPanel } from '@/app/admin/pieces/[id]/machine-recommendation-panel';
+import { EditPartButton } from '@/app/admin/pieces/[id]/edit-part-button';
 
 interface PartDossierProps {
   part: Omit<PartWithSerializedSuppliers, 'attachments'> & {
@@ -55,6 +56,10 @@ export function PartDossier({ part, machines = [] }: PartDossierProps) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">Dossier pièce — {part.ptvReference}</CardTitle>
           <PartStatusBadge status={part.status} />
+          <div className="flex items-center gap-2">
+            <EditPartButton part={{ id: part.id, name: part.name, description: part.description ?? null, material: part.material ?? null, ptvReference: part.ptvReference ?? null, partNumber: part.partNumber }} />
+            <span className="text-xs text-muted-foreground">Modifier</span>
+          </div>
         </div>
         <CardDescription>
           Vue centralisée du dossier : informations, mesures, documents, historique et images.
@@ -144,7 +149,7 @@ export function PartDossier({ part, machines = [] }: PartDossierProps) {
           </TabsContent>
 
           <TabsContent value="images">
-            <PartImageGallery images={part.images} partName={part.name} />
+            <PartImageGallery images={part.images} partName={part.name} partId={part.id} />
           </TabsContent>
 
           <TabsContent value="analyse">
