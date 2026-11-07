@@ -54,6 +54,7 @@ export const FR = {
     wikidata: 'Wikidata (SPARQL)',
     manufacturer_catalog: 'Catalogues constructeurs indexÃ©s',
     geometric_search: 'Recherche gÃ©omÃ©trique 3D / IA',
+    geometric: 'Recherche gÃ©omÃ©trique (embeddings)',
     industrial_catalog: 'Catalogue industriel (dataset HF)',
     '3dcarparts': '3DCarParts (modÃ¨les 3D imprimables)',
     fapi: 'FAPI (analogues)',

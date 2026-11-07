@@ -23,6 +23,7 @@ import { industrialCatalogConnector } from '@/lib/connectors/industrial-catalog'
 import { threeDCarPartsConnector } from '@/lib/connectors/3dcarparts';
 import { fapiConnector } from '@/lib/connectors/fapi';
 import { openSerpConnector } from '@/lib/connectors/openserp';
+import { geometricConnector } from '@/lib/connectors/geometric';
 
 /**
  * Connecteurs actifs (D-E3-26).
@@ -42,6 +43,7 @@ const ALL_CONNECTORS = [
   threeDCarPartsConnector,
   fapiConnector,
   openSerpConnector,
+  geometricConnector,
 ];
 
 export async function POST(req: Request) {
@@ -72,6 +74,18 @@ export async function POST(req: Request) {
       return NextResponse.json({
         query,
         mode: 'fapi',
+        count: candidates.length,
+        results: candidates,
+      });
+    }
+
+    if (source === 'geometric') {
+      const candidates = await geometricConnector.search(String(query ?? ''), {
+        limit: typeof limit === 'number' ? limit : 20,
+      });
+      return NextResponse.json({
+        query,
+        mode: 'geometric',
         count: candidates.length,
         results: candidates,
       });
