@@ -27,10 +27,10 @@ import { openSerpConnector } from '@/lib/connectors/openserp';
 /**
  * Connecteurs actifs (D-E3-26).
  * CADENAS (D-E3-19) et OpenSERP (D-openserp-instance)
- * sont EXCLUS â€” non fonctionnels.
+ * sont EXCLUS — non fonctionnels.
  *
- * Ordre = poids dÃ©croissant (D-E3-23) : la
- * dÃ©duplication (D-E3-24) privilÃ©gie la source
+ * Ordre = poids décroissant (D-E3-23) : la
+ * déduplication (D-E3-24) privilégie la source
  * la plus fiable (local_db > wikidata > traceparts > industrial_catalog > tecdoc > 3dcarparts).
  */
 const ALL_CONNECTORS = [
@@ -50,13 +50,13 @@ export async function POST(req: Request) {
       headers: await headers(),
     });
     if (!session?.user) {
-      return NextResponse.json({ message: 'Non authentifiÃ©' }, { status: 401 });
+      return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
     }
 
     const body = await req.json().catch(() => ({}));
     const { source, query, limit } = body;
 
-    // AgrÃ©gation multi-sources (D-E3-25)
+    // Agrégation multi-sources (D-E3-25)
     if (source === 'all') {
       const result = await aggregateSearch(ALL_CONNECTORS, String(query ?? ''), {
         limit: typeof limit === 'number' ? limit : 20,
@@ -90,7 +90,7 @@ export async function GET(req: Request) {
       headers: await headers(),
     });
     if (!session?.user) {
-      return NextResponse.json({ message: 'Non authentifiÃ©' }, { status: 401 });
+      return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -176,10 +176,10 @@ export async function GET(req: Request) {
         dimensionKey: validatedMulti.dimensionKey,
         matchMode: validatedMulti.matchMode,
         clientId,
-        limit: (validatedMulti.limit ?? 20) + (validatedMulti.offset ?? 0), // rÃ©cupÃ©rer assez pour paginer
+        limit: (validatedMulti.limit ?? 20) + (validatedMulti.offset ?? 0), // récupérer assez pour paginer
       });
 
-      // Filtres avancÃ©s (E12-R1b)
+      // Filtres avancés (E12-R1b)
       if (validatedMulti.material) {
         results = results.filter((r) => r.material === validatedMulti.material);
       }
@@ -283,7 +283,7 @@ export async function GET(req: Request) {
                 limit: validated.limit,
               });
 
-    // Filtres avancÃ©s (E12-R2): appliquer aux modes mono (text, reference, specs, dimensions)
+    // Filtres avancés (E12-R2): appliquer aux modes mono (text, reference, specs, dimensions)
     let filtered = results as Array<{
       material: string | null;
       status: string;
@@ -299,7 +299,7 @@ export async function GET(req: Request) {
         (r) => new Date(r.createdAt) <= new Date(validated.createdBefore!),
       );
     if (validated.machineId) filtered = filtered.filter((r) => r.machineId === validated.machineId);
-    // minScore ignorÃ© en mono-mode (D-E12-MINSCORE-MONO)
+    // minScore ignoré en mono-mode (D-E12-MINSCORE-MONO)
 
     return NextResponse.json({
       query: validated.q,
