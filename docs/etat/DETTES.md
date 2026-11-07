@@ -488,10 +488,18 @@ equest.get avec token admin manuel.
 - **Périmètre :**
   - **V5-A** : UI branchée sur `aggregateSearch` (1 seul fetch au lieu de 4). ✅
   - **V5-B** : Connecteur `geometric` (similarité d'embedding) ajouté à `ALL_CONNECTORS`. ✅
-  - **V5-C** : TraceParts — Mode mock documenté (credentials absents). ⚠️
+  - **V5-C** : TraceParts — Mode mock documenté (badge UI "Mock" + dette `D-TRACEPARTS-CREDENTIALS` tracée). ✅
   - **V5-D** : E2E Playwright prouvant le flux complet. ✅
 - **Preuves runtime :**
   - `POST /api/search {source:'all'}` retourne `sourcesQueried` incluant `geometric`.
   - `sourceDurationsMs.geometric = 724ms` (le connecteur s'exécute sans planter).
   - Les 4 cartes de sources (BDD, TraceParts, CADENAS, Géométrique) s'affichent et affichent `✓ N` ou `✗`.
 - **Commits :** `530a0f3` (V5-A), `79a1723` (V5-B), `aa8160e` (merge PR #3).
+### `D-TRACEPARTS-CREDENTIALS` — TraceParts en mode mock (substitut documenté)
+- **Statut :** Ouverte
+- **Priorité :** Moyenne
+- **Cause :** Pas de credentials `TRACEPARTS_TENANT_UID` + `TRACEPARTS_API_KEY` disponibles. Le connecteur fonctionne en `mode: 'mock'` (3 produits statiques dans `src/lib/data/traceparts.ts`). L'agrégateur émet un warning `SOURCE_MOCK` structuré. L'UI affiche un badge `Mock`.
+- **Substitut en place :** Le connecteur CADENAS (`industrial-catalog.ts`) sert de source réelle-ish (dataset embarqué, 11 items) et couvre les cas d'usage CADENAS. TraceParts reste mock mais **clairement signalé**.
+- **Condition de résolution :** Obtenir les credentials TraceParts, passer `traceparts.ts` en `mode: 'real'`, remplacer le mock statique par l'API REST v3 réelle, tester unitaire + runtime, retirer le badge `Mock`.
+- **Impact :** Non bloquant. L'UI et l'agrégateur fonctionnent. Le mock est tracé et visible.
+- **Décision V5-C (2026-11-07) :** Substitut documenté (badge UI + dette tracée). Pas de basculement sur CADENAS (les 2 sources restent distinctes pour ne pas tromper l'utilisateur sur l'origine).

@@ -50,6 +50,7 @@ const SOURCES = [
     bgColor: 'bg-emerald-500/10',
     borderColor: 'border-emerald-500/30',
     description: 'Archive interne — pièces déjà usinées',
+    isMock: false,
   },
   {
     id: 'traceparts',
@@ -59,6 +60,7 @@ const SOURCES = [
     bgColor: 'bg-blue-500/10',
     borderColor: 'border-blue-500/30',
     description: 'Bibliothèque CAO industrielle 200M+ refs',
+    isMock: true, // Mock statique en attendant les credentials API
   },
   {
     id: 'industrial_catalog',
@@ -68,6 +70,7 @@ const SOURCES = [
     bgColor: 'bg-violet-500/10',
     borderColor: 'border-violet-500/30',
     description: 'Catalogue normalisé fournisseurs industriels',
+    isMock: false,
   },
   {
     id: 'geometric',
@@ -77,6 +80,7 @@ const SOURCES = [
     bgColor: 'bg-amber-500/10',
     borderColor: 'border-amber-500/30',
     description: 'Index de similarité 3D par embedding',
+    isMock: false,
   },
 ];
 
@@ -348,7 +352,17 @@ export default function RechercheClient({
                       <Icon className={`h-3.5 w-3.5 ${src.color}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-xs font-semibold">{src.label}</div>
+                      <div className="flex items-center gap-1.5 truncate text-xs font-semibold">
+                        {src.label}
+                        {src.isMock && (
+                          <Badge
+                            variant="outline"
+                            className="border-amber-500/40 bg-amber-500/10 text-[9px] text-amber-600 dark:text-amber-400"
+                          >
+                            Mock
+                          </Badge>
+                        )}
+                      </div>
                       <div className="text-[10px] text-muted-foreground">{src.description}</div>
                     </div>
                     <div className="shrink-0">
