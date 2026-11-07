@@ -33,6 +33,7 @@ export type AggregateSearchResult = AggregationResult;
 export interface AggregateSearchOptions {
   limit?: number;
   skipCache?: boolean;
+  source?: string;
 }
 
 type CBState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
@@ -87,7 +88,8 @@ export async function aggregateSearch(
   options: AggregateSearchOptions = {},
 ): Promise<AggregationResult> {
   const limit = options.limit ?? 20;
-  const cacheKey = hashCacheKey(query, 'all', limit);
+  const source = options.source ?? 'all';
+  const cacheKey = hashCacheKey(query, source, limit);
 
   // 1. Cache hit ?
   if (!options.skipCache) {
@@ -110,7 +112,7 @@ export async function aggregateSearch(
   // 3. Écrire dans le cache
   if (!options.skipCache) {
     try {
-      await setCache(cacheKey, result, 'all', limit);
+      await setCache(cacheKey, result, source, limit);
     } catch (err) {
       console.warn('[aggregator] cache set error:', err);
     }
