@@ -11,14 +11,14 @@ test.describe('Recherche Multi-Sources (V5)', () => {
     const apiResponse = await page.request.get('/api/requests');
     expect(apiResponse.ok()).toBeTruthy();
     const requests = await apiResponse.json();
-    
+
     // On cherche une demande valide (le premier ID disponible)
     const requestId = requests?.[0]?.id;
     expect(requestId).toBeDefined();
 
     // 2. Naviguer directement vers la page de recherche multi-sources
     await page.goto(`/admin/demandes/${requestId}/recherche`);
-    
+
     // 3. Attendre que la page soit chargée (titre visible)
     await expect(page.getByRole('heading', { name: /Recherche Multi-Sources/i })).toBeVisible();
 
@@ -39,14 +39,14 @@ test.describe('Recherche Multi-Sources (V5)', () => {
 
     // 7. VÉRIFICATION V5-B : geometric est interrogé
     expect(body.sourcesQueried).toContain('geometric');
-    
+
     // 8. VÉRIFICATION V5-A : les sources sont remplies
     expect(body.sourceDurationsMs).toBeDefined();
     expect(Object.keys(body.sourceDurationsMs).length).toBeGreaterThan(0);
-    
+
     // 9. VÉRIFICATION UI : le panneau "Sources de Recherche" est visible
     await expect(page.getByText('Sources de Recherche')).toBeVisible();
-    
+
     // 10. VÉRIFICATION UI : l'onglet "Tous" contient un compteur
     await expect(page.getByRole('tab', { name: /tous/i })).toBeVisible();
   });
