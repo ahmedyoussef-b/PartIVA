@@ -58,6 +58,7 @@ export const FR = {
     industrial_catalog: 'Catalogue industriel (dataset HF)',
     '3dcarparts': '3DCarParts (modÃ¨les 3D imprimables)',
     fapi: 'FAPI (analogues)',
+    step_parts: 'STEP Parts',
     openserp: 'OpenSERP (web)',
   } satisfies Record<SearchSource, string>,
   autoCategories: {

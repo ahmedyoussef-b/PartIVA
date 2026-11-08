@@ -24,6 +24,7 @@ import { threeDCarPartsConnector } from '@/lib/connectors/3dcarparts';
 import { fapiConnector } from '@/lib/connectors/fapi';
 import { openSerpConnector } from '@/lib/connectors/openserp';
 import { geometricConnector } from '@/lib/connectors/geometric';
+import { dynamicConnectors } from '@/lib/connectors/registry';
 
 /**
  * Connecteurs actifs (D-E3-26).
@@ -44,6 +45,7 @@ const ALL_CONNECTORS = [
   fapiConnector,
   openSerpConnector,
   geometricConnector,
+  ...dynamicConnectors,
 ];
 
 export async function POST(req: Request) {
