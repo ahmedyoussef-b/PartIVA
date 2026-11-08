@@ -1,6 +1,5 @@
 import { localDbConnector } from './local-db';
 import { wikidataConnector } from './wikidata';
-import { industrialCatalogConnector } from './industrial-catalog';
 import type { SourceConnector } from './types';
 
 import { fapiConnector } from './fapi';
@@ -10,7 +9,6 @@ import { dynamicConnectors } from './registry';
 export const REAL_CONNECTORS: SourceConnector[] = [
   localDbConnector,
   wikidataConnector,
-  industrialCatalogConnector,
   ...(isFapiConfigured() ? [fapiConnector] : []),
   ...dynamicConnectors,
 ];

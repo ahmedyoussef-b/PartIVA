@@ -8,6 +8,38 @@ import { SimilarityScore } from './similarity-score';
 import type { SearchCandidate } from '@/schemas/search';
 import { Check, X, ExternalLink, Box, FileText } from 'lucide-react';
 
+const getSourceBadge = (source: string) => {
+  const config: Record<string, { label: string; className: string }> = {
+    step_parts: {
+      label: 'STEP Parts',
+      className: 'bg-blue-500/20 text-blue-700 border-blue-500/30',
+    },
+    industrial_catalog: {
+      label: 'CADENAS',
+      className: 'bg-violet-500/20 text-violet-700 border-violet-500/30',
+    },
+    fapi: { label: 'FAPI', className: 'bg-amber-500/20 text-amber-700 border-amber-500/30' },
+    local_db: {
+      label: 'BDD Locale',
+      className: 'bg-emerald-500/20 text-emerald-700 border-emerald-500/30',
+    },
+    geometric: {
+      label: 'Géométrique IA',
+      className: 'bg-cyan-500/20 text-cyan-700 border-cyan-500/30',
+    },
+    traceparts: {
+      label: 'TraceParts (Mock)',
+      className: 'bg-gray-500/20 text-gray-700 border-gray-500/30',
+    },
+  };
+  const c = config[source] ?? { label: source, className: 'bg-muted text-muted-foreground' };
+  return (
+    <Badge variant="outline" className={`text-[10px] font-semibold ${c.className}`}>
+      {c.label}
+    </Badge>
+  );
+};
+
 interface CandidateCardProps {
   candidate: SearchCandidate;
   onValidate?: (c: SearchCandidate) => void;
@@ -24,7 +56,6 @@ export function CandidateCard({
   onValidate,
   onReject,
   onView,
-  sourceLabel,
   isSelected,
   onSelect,
 }: CandidateCardProps) {
@@ -41,9 +72,7 @@ export function CandidateCard({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold text-primary">{candidate.reference}</span>
-            <Badge variant="outline" className="font-mono text-[10px] tracking-wider uppercase">
-              {sourceLabel ?? candidate.source.replace('_', ' ')}
-            </Badge>
+            {getSourceBadge(candidate.source)}
           </div>
           <h3 className="line-clamp-1 text-sm font-semibold">{candidate.name}</h3>
           {candidate.manufacturer && (

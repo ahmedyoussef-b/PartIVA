@@ -21,4 +21,13 @@ export interface ConnectorDescriptor {
 
   // Filtre optionnel : quels items de la réponse sont pertinents
   extractItems: (rawResponse: unknown) => unknown[];
+
+  /**
+   * Optionnel : si défini, remplace complètement le fetch HTTP.
+   * Utilisé pour les sources locales (pas d'API externe).
+   */
+  customSearch?: (
+    query: string,
+    options?: { limit?: number; signal?: AbortSignal },
+  ) => Promise<SearchCandidate[]>;
 }
