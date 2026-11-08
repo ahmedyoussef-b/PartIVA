@@ -34,6 +34,7 @@ import {
   AlertTriangle,
   Info,
   AlertOctagon,
+  Camera,
 } from 'lucide-react';
 import type { SearchCandidate } from '@/schemas/search';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
@@ -144,12 +145,76 @@ export default function RechercheClient({
   const [candidates, setCandidates] = React.useState<SearchCandidate[]>(initialCandidates);
   const [selectedCandidate, setSelectedCandidate] = React.useState<SearchCandidate | null>(null);
   const [activeSource, setActiveSource] = React.useState<string>('all');
+  const [photoFile, setPhotoFile] = React.useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
+  const [isPhotoSearching, setIsPhotoSearching] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const totalProgress = React.useMemo(() => {
     if (searchState === 'idle') return 0;
     if (searchState === 'done' || searchState === 'error') return 100;
     return 50; // simple fallback
   }, [searchState]);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoSearch = async () => {
+    if (!photoFile) return;
+    setIsPhotoSearching(true);
+    setSearchState('running');
+    setCandidates([]);
+    setSelectedCandidate(null);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const base64 = (ev.target?.result as string).split(',')[1];
+        const res = await fetch('/api/search/photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mimeType: photoFile.type, data: base64, limit: 20 }),
+        });
+        if (!res.ok) throw new Error('Erreur API photo');
+        const data = await res.json();
+
+        const photoCandidates: SearchCandidate[] = (data.results || []).map(
+          (r: {
+            id: string;
+            partNumber: string;
+            name: string;
+            imageUrl?: string;
+            similarity?: number;
+          }) => ({
+            id: `photo:${r.id}`,
+            source: 'photo' as const,
+            reference: r.partNumber,
+            name: r.name,
+            imageUrl: r.imageUrl,
+            cadAvailable: false,
+            datasheetAvailable: false,
+            scores: { global: r.similarity || 0.5 },
+            metadata: { similarity: r.similarity, partId: r.id },
+          }),
+        );
+
+        setCandidates((prev) => [...prev, ...photoCandidates]);
+        setSearchState('done');
+      };
+      reader.readAsDataURL(photoFile);
+    } catch (err) {
+      console.error(err);
+      setSearchState('error');
+    } finally {
+      setIsPhotoSearching(false);
+    }
+  };
 
   const handleSearch = async () => {
     setSearchState('running');
@@ -429,6 +494,38 @@ export default function RechercheClient({
                   </>
                 )}
               </Button>
+
+              <div className="mt-2 flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoSelect}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={searchState === 'running' || isPhotoSearching}
+                >
+                  <Camera className="h-4 w-4" />
+                  {photoFile ? 'Changer de photo' : 'Recherche par photo'}
+                </Button>
+              </div>
+              {photoPreview && (
+                <div className="mt-2 space-y-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photoPreview} alt="Aperçu" className="w-full rounded-md border" />
+                  <Button
+                    className="w-full gap-2 bg-primary"
+                    onClick={handlePhotoSearch}
+                    disabled={isPhotoSearching || searchState === 'running'}
+                  >
+                    {isPhotoSearching ? 'Recherche en cours…' : 'Lancer la recherche photo'}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
