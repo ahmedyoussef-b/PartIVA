@@ -60,6 +60,7 @@ export const FR = {
     fapi: 'FAPI (analogues)',
     step_parts: 'STEP Parts',
     openserp: 'OpenSERP (web)',
+    photo: 'Photo (similarité visuelle)',
   } satisfies Record<SearchSource, string>,
   autoCategories: {
     body: 'Carrosserie',
