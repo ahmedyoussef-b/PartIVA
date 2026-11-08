@@ -1,9 +1,12 @@
+'use client';
+
 import type { Machine } from '@/generated/prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Key } from 'lucide-react';
 import { recommendMachine } from '@/lib/utils/machine-recommendation';
+import { useRouter } from 'next/navigation';
 
 type MachineRecommendationPanelProps = {
   part: {
@@ -16,6 +19,7 @@ type MachineRecommendationPanelProps = {
 };
 
 export const MachineRecommendationPanel = ({ part, machines }: MachineRecommendationPanelProps) => {
+  const router = useRouter();
   const result = recommendMachine({ part, machines });
 
   if (result.alreadyAssigned) {
@@ -25,7 +29,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
         <Button
           variant="ghost"
           className="mt-2 text-sm"
-          onClick={() => (window.location.href = `/admin/machines/${result.machine?.id}`)}
+          onClick={() => router.push(`/admin/machines/${result.machine?.id}`)}
         >
           Voir la machine
         </Button>
@@ -84,7 +88,7 @@ export const MachineRecommendationPanel = ({ part, machines }: MachineRecommenda
           variant="secondary"
           size="sm"
           className="w-full"
-          onClick={() => (window.location.href = `/admin/machines/${result.machine?.id}`)}
+          onClick={() => router.push(`/admin/machines/${result.machine?.id}`)}
         >
           Voir la machine détaillée
         </Button>

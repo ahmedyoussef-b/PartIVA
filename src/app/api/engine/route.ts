@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
 import { NextRequest, NextResponse } from 'next/server';
 import { runEngine } from '@/core/ai-engine/engine';
 import { getCurrentUser } from '@/lib/auth-server';
