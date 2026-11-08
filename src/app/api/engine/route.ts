@@ -1,4 +1,3 @@
- 
 import { NextRequest, NextResponse } from 'next/server';
 import { runEngine } from '@/core/ai-engine/engine';
 import { getCurrentUser } from '@/lib/auth-server';

@@ -363,7 +363,7 @@ export default function CreerPiecePage() {
                       className="group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:border-primary/40"
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-{/* eslint-disable-next-line @next/next/no-img-element */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo.url}
                           alt={`Photo ${photo.tag}`}

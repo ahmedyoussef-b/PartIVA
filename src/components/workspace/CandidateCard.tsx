@@ -63,7 +63,7 @@ export function CandidateCard({ candidate, onSelect, isAdmin = false }: Candidat
     <Card data-testid="candidate-card" className="mb-2">
       <CardHeader className="flex flex-row items-center gap-3 p-3">
         {candidate.thumbnailUrl ? (
-// eslint-disable-next-line @next/next/no-img-element
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={candidate.thumbnailUrl}
             alt={candidate.name}

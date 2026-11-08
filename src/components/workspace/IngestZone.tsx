@@ -71,7 +71,7 @@ export function IngestZone({
       height: dimensions.height ?? extractedDimensions.height,
       diameter: dimensions.diameter ?? extractedDimensions.diameter,
     });
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extractedDimensions]);
 
   async function simulateUpload(files: FileList | null, type: 'photo' | 'cad') {
