@@ -14,6 +14,7 @@ export const SearchSourceSchema = z.enum([
   '3dcarparts',
   'fapi',
   'openserp',
+  'step_parts',
 ]);
 export type SearchSource = z.infer<typeof SearchSourceSchema>;
 

@@ -10,7 +10,8 @@ export interface SourceConnector {
     | '3dcarparts'
     | 'fapi'
     | 'openserp'
-    | 'geometric';
+    | 'geometric'
+    | 'step_parts';
 
   readonly mode: 'real' | 'mock';
 
