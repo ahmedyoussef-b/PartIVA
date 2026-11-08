@@ -1,5 +1,4 @@
 import { localDbConnector } from './local-db';
-import { wikidataConnector } from './wikidata';
 import type { SourceConnector } from './types';
 
 import { fapiConnector } from './fapi';
@@ -8,15 +7,11 @@ import { dynamicConnectors } from './registry';
 
 export const REAL_CONNECTORS: SourceConnector[] = [
   localDbConnector,
-  wikidataConnector,
   ...(isFapiConfigured() ? [fapiConnector] : []),
   ...dynamicConnectors,
 ];
 
-export const MOCK_CONNECTORS: SourceConnector[] = [
-  // tracePartsConnector, tecdocConnector, threeDCarPartsConnector retirés
-  // (passage à l'architecture dynamique)
-];
+export const MOCK_CONNECTORS: SourceConnector[] = [];
 
 export const ALL_CONNECTORS: SourceConnector[] =
   process.env.ENABLE_MOCK_CONNECTORS === 'true'
