@@ -1,7 +1,6 @@
 import { localDbConnector } from './local-db';
 import { wikidataConnector } from './wikidata';
 import { industrialCatalogConnector } from './industrial-catalog';
-import { threeDCarPartsConnector } from './3dcarparts';
 import type { SourceConnector } from './types';
 
 import { fapiConnector } from './fapi';
