@@ -421,6 +421,31 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
+export async function aggregateMultiQuery(
+  connectors: SourceConnector[],
+  queries: string[],
+  options: AggregateSearchOptions = {},
+): Promise<AggregationResult> {
+  const results = await Promise.all(
+    queries.map((q) => aggregateSearch(connectors, q, options)),
+  );
+
+  const allCandidates = results.flatMap((r) => r.candidates);
+  const deduped = deduplicateCandidates(allCandidates);
+
+  const sourcesQueried = Array.from(new Set(results.flatMap((r) => r.sourcesQueried)));
+  const sourcesFailed = Array.from(new Set(results.flatMap((r) => r.sourcesFailed)));
+
+  return {
+    candidates: deduped,
+    sourcesQueried,
+    sourcesFailed,
+    sourceDurationsMs: {},
+    totalDurationMs: Math.max(...results.map((r) => r.totalDurationMs)),
+    structuredWarnings: results.flatMap((r) => r.structuredWarnings ?? []),
+  };
+}
+
 export function computeAggregationScore(
   candidate: SearchCandidate,
   connector: SourceConnector,
