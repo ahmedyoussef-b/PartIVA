@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { SearchCandidate, SearchInput } from './types';
 import { embedTexts } from '@/lib/ai/cloudflare-embeddings';
 

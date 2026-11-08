@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SearchInput, SearchResult, EngineWarning } from './types';
 import { searchLocal } from './local-search';
 import { searchWeb } from './web-search';
