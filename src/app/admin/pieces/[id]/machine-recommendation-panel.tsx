@@ -1,3 +1,5 @@
+'use client';
+
 import type { Machine } from '@/generated/prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
