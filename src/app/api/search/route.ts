@@ -14,7 +14,8 @@ import { PART_STATUS_VALUES } from '@/lib/search-constants';
 import { searchParts as searchEngineParts } from '@/core/ai-engine/skills/search';
 import { mapEngineResultToSearchResults } from '@/lib/utils/search-mapper';
 import type { IngestResult } from '@/core/ai-engine/skills/ingest/types';
-import { aggregateSearch } from '@/lib/connectors/aggregator';
+import { aggregateSearch, aggregateMultiQuery } from '@/lib/connectors/aggregator';
+import { normalizeQuery } from '@/lib/ai/query-normalizer';
 import { localDbConnector } from '@/lib/connectors/local-db';
 import { wikidataConnector } from '@/lib/connectors/wikidata';
 import { tracePartsConnector } from '@/lib/connectors/traceparts';
@@ -62,11 +63,22 @@ export async function POST(req: Request) {
 
     // Agrégation multi-sources (D-E3-25)
     if (source === 'all') {
-      const result = await aggregateSearch(ALL_CONNECTORS, String(query ?? ''), {
+      const q = String(query ?? '');
+
+      const normalized = await normalizeQuery(q);
+
+      const queries = [
+        q,
+        normalized.english,
+        ...normalized.keywords,
+      ].filter((v, i, arr) => v && arr.indexOf(v) === i);
+
+      const result = await aggregateMultiQuery(ALL_CONNECTORS, queries, {
         limit: typeof limit === 'number' ? limit : 20,
         source: 'all',
       });
-      return NextResponse.json(result);
+
+      return NextResponse.json({ ...result, _normalized: normalized });
     }
 
     if (source === 'fapi') {
