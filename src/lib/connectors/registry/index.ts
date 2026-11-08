@@ -4,10 +4,7 @@ import { createHttpConnector } from './http-adapter';
 import { stepPartsDescriptor } from './descriptors/step-parts';
 import { cadenasDescriptor } from './descriptors/cadenas';
 
-const DESCRIPTORS: ConnectorDescriptor[] = [
-  stepPartsDescriptor,
-  cadenasDescriptor,
-];
+const DESCRIPTORS: ConnectorDescriptor[] = [stepPartsDescriptor, cadenasDescriptor];
 
 export const dynamicConnectors: SourceConnector[] = DESCRIPTORS.filter(
   (d) => d.mode !== 'mock',
