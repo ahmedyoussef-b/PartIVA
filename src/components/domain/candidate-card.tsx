@@ -31,6 +31,10 @@ const getSourceBadge = (source: string) => {
       label: 'TraceParts (Mock)',
       className: 'bg-gray-500/20 text-gray-700 border-gray-500/30',
     },
+    photo: {
+      label: 'Photo (IA)',
+      className: 'bg-rose-500/20 text-rose-700 border-rose-500/30 dark:text-rose-300',
+    },
   };
   const c = config[source] ?? { label: source, className: 'bg-muted text-muted-foreground' };
   return (
