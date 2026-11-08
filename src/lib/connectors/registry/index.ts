@@ -2,12 +2,11 @@ import type { SourceConnector } from '../types';
 import type { ConnectorDescriptor } from './types';
 import { createHttpConnector } from './http-adapter';
 import { stepPartsDescriptor } from './descriptors/step-parts';
-
-// Plus tard : import { autreDescriptor } from './descriptors/autre';
+import { cadenasDescriptor } from './descriptors/cadenas';
 
 const DESCRIPTORS: ConnectorDescriptor[] = [
   stepPartsDescriptor,
-  // Ajouter d'autres sources ici
+  cadenasDescriptor,
 ];
 
 export const dynamicConnectors: SourceConnector[] = DESCRIPTORS.filter(

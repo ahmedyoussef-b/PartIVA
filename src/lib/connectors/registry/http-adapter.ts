@@ -17,6 +17,12 @@ export function createHttpConnector(descriptor: ConnectorDescriptor): SourceConn
     },
 
     async search(query, options = {}) {
+      // ✅ Si customSearch est défini, on l'utilise
+      if (descriptor.customSearch) {
+        return descriptor.customSearch(query, options);
+      }
+
+      // Sinon, fetch HTTP classique
       const { limit = 20, signal } = options;
 
       const url = new URL(descriptor.api.searchPath, descriptor.api.baseUrl);
