@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CandidateGallery } from '@/components/domain/candidate-gallery';
 import { CandidateTable } from '@/components/domain/candidate-table';
+import { ResultFiltersBar, type ResultFilters } from '@/components/domain/result-filters';
 import { SimilarityScore } from '@/components/domain/similarity-score';
 import {
   ArrowLeft,
@@ -38,6 +39,7 @@ import {
   Camera,
   LayoutGrid,
   List,
+  ChevronDown,
 } from 'lucide-react';
 import type { SearchCandidate } from '@/schemas/search';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
@@ -151,6 +153,12 @@ export default function RechercheClient({
   const [photoFile, setPhotoFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<'gallery' | 'table'>('gallery');
+  const [visibleCount, setVisibleCount] = React.useState(20);
+  const [filters, setFilters] = React.useState<ResultFilters>({
+    minScore: 0,
+    manufacturer: null,
+    source: null,
+  });
   const [isPhotoSearching, setIsPhotoSearching] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -223,6 +231,8 @@ export default function RechercheClient({
   const handleSearch = async () => {
     setSearchState('running');
     setCandidates([]);
+    setVisibleCount(20);
+    setFilters({ minScore: 0, manufacturer: null, source: null });
     setSelectedCandidate(null);
 
     const initial: SourceProgress = {};
@@ -290,8 +300,24 @@ export default function RechercheClient({
     }
   };
 
-  const filtered =
-    activeSource === 'all' ? candidates : candidates.filter((c) => c.source === activeSource);
+  const manufacturers = React.useMemo(
+    () => [...new Set(candidates.map((c) => c.manufacturer).filter(Boolean))] as string[],
+    [candidates],
+  );
+  const sources = React.useMemo(
+    () => [...new Set(candidates.map((c) => c.source))],
+    [candidates],
+  );
+
+  const filteredAndScored = candidates
+    .filter((c) => c.scores.global * 100 >= filters.minScore)
+    .filter((c) => !filters.manufacturer || c.manufacturer === filters.manufacturer)
+    .filter((c) => !filters.source || c.source === filters.source)
+    .filter((c) => activeSource === 'all' || c.source === activeSource)
+    .sort((a, b) => b.scores.global - a.scores.global);
+
+  const visibleCandidates = filteredAndScored.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredAndScored.length;
 
   const bestCandidate = candidates.length
     ? candidates.reduce((a, b) => (a.scores.global > b.scores.global ? a : b))
@@ -642,12 +668,12 @@ export default function RechercheClient({
                 </TabsList>
 
                 <TabsContent value={activeSource} className="mt-4">
-                  {filtered.length === 0 && searchState === 'running' ? (
+                  {filteredAndScored.length === 0 && searchState === 'running' ? (
                     <div className="flex flex-col items-center gap-3 py-12">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                       <p className="text-sm text-muted-foreground">Interrogation en cours…</p>
                     </div>
-                  ) : filtered.length === 0 ? (
+                  ) : filteredAndScored.length === 0 ? (
                     <div className="flex flex-col items-center gap-3 py-12 text-center">
                       <Info className="h-6 w-6 text-muted-foreground/50" />
                       <p className="text-sm text-muted-foreground">
@@ -656,6 +682,15 @@ export default function RechercheClient({
                     </div>
                   ) : (
                     <>
+                      {/* Filtres */}
+                      <ResultFiltersBar
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                        manufacturers={manufacturers}
+                        sources={sources}
+                      />
+
+                      {/* Toggle Galerie / Tableau */}
                       <div className="mb-4 flex items-center justify-end gap-2">
                         <Button
                           variant={viewMode === 'gallery' ? 'default' : 'outline'}
@@ -675,7 +710,7 @@ export default function RechercheClient({
 
                       {viewMode === 'gallery' ? (
                         <CandidateGallery
-                          candidates={filtered.sort((a, b) => b.scores.global - a.scores.global)}
+                          candidates={visibleCandidates}
                           onSelect={(c) =>
                             setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)
                           }
@@ -683,12 +718,29 @@ export default function RechercheClient({
                         />
                       ) : (
                         <CandidateTable
-                          candidates={filtered.sort((a, b) => b.scores.global - a.scores.global)}
+                          candidates={visibleCandidates}
                           onSelect={(c) =>
                             setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)
                           }
                           selectedId={selectedCandidate?.id}
                         />
+                      )}
+
+                      {/* Bouton Charger plus */}
+                      {hasMore && (
+                        <div className="flex flex-col items-center gap-2 pt-4">
+                          <p className="text-xs text-muted-foreground">
+                            {filteredAndScored.length - visibleCount} résultats restants
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => setVisibleCount((prev) => prev + 20)}
+                            className="gap-2"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                            Charger 20 résultats de plus
+                          </Button>
+                        </div>
                       )}
                     </>
                   )}
