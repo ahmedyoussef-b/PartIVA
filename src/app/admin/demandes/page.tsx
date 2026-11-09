@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { getDemandesFile } from '@/lib/data-client';
 import { mapRequestToUi } from '@/lib/utils/request-mappers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, FileText, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import AuthGuard from '@/lib/auth-guard';
 
 function AdminDemandesPageContent() {
+  const router = useRouter();
   const [demandes, setDemandes] = React.useState<ReturnType<typeof mapRequestToUi>[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -141,45 +142,52 @@ function AdminDemandesPageContent() {
                   color: 'text-muted-foreground',
                 };
                 return (
-                  <Link key={d.id} href={`/admin/demandes/${d.id}`} className="block">
-                    <div className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/30">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <Badge variant="outline" className="font-mono text-[9px]">
-                            {d.id.slice(0, 8)}
-                          </Badge>
-                          <Badge variant={statusCfg.variant} className="text-[9px]">
-                            {statusCfg.label}
-                          </Badge>
-                          <Badge variant="outline" className={`text-[9px] ${urgencyCfg.color}`}>
-                            {urgencyCfg.label}
-                          </Badge>
-                        </div>
-                        <p className="truncate text-xs font-medium">{d.partDescription}</p>
-                        {d.partFunction && (
-                          <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
-                            Fonction : {d.partFunction}
-                          </p>
-                        )}
-                        <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
-                          {d.machineRef && (
-                            <>
-                              <span>Machine :</span>
-                              <span className="font-mono">{d.machineRef}</span>
-                              <span>·</span>
-                            </>
-                          )}
-                          <span>{new Date(d.createdAt).toLocaleDateString('fr-FR')}</span>
-                          {d.client?.name && (
-                            <>
-                              <span>·</span>
-                              <span>Client : {d.client.name}</span>
-                            </>
-                          )}
-                        </p>
+                  <div
+                    key={d.id}
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => router.push(`/admin/demandes/${d.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') router.push(`/admin/demandes/${d.id}`);
+                    }}
+                    className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/30"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-[9px]">
+                          {d.id.slice(0, 8)}
+                        </Badge>
+                        <Badge variant={statusCfg.variant} className="text-[9px]">
+                          {statusCfg.label}
+                        </Badge>
+                        <Badge variant="outline" className={`text-[9px] ${urgencyCfg.color}`}>
+                          {urgencyCfg.label}
+                        </Badge>
                       </div>
+                      <p className="truncate text-xs font-medium">{d.partDescription}</p>
+                      {d.partFunction && (
+                        <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                          Fonction : {d.partFunction}
+                        </p>
+                      )}
+                      <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                        {d.machineRef && (
+                          <>
+                            <span>Machine :</span>
+                            <span className="font-mono">{d.machineRef}</span>
+                            <span>·</span>
+                          </>
+                        )}
+                        <span>{new Date(d.createdAt).toLocaleDateString('fr-FR')}</span>
+                        {d.client?.name && (
+                          <>
+                            <span>·</span>
+                            <span>Client : {d.client.name}</span>
+                          </>
+                        )}
+                      </p>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
