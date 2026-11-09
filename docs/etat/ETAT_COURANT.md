@@ -1,17 +1,35 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-10-27  
-**Phase en cours :** E61-REPRISE (génération CAO)  
-**Statut :** En cours de finalisation. Tests unitaires E61 validés ; build débloqué ; tests E2E `workspace` 17/17 verts. Tests E2E `admin` bloqués par un setup préexistant, hors périmètre E61.
+**Date de mise à jour :** 2026-11-10
+**HEAD actuel :** `c0c86a2` (origin/master)
+**Branche courante :** `feat/v7b-workspace-ia` (depuis `master` local `823103a`)
+**Statut :** Bloc 0 clos. V7 ouverte, V7-B prochaine.
+
+## État des versions
+
+| Version | Statut |
+|---------|--------|
+| V3 | CLOS |
+| V4-A | CLOS |
+| V4-B | CLOS |
+| V5 | CLOS |
+| V6 | CLOS |
+| V8 | CLOS |
+| V7 | **OUVERTE** (branche `refactor/v7-clean-ui` obsolète, candidate à la suppression) |
+| V7-B | **PROCHAINE** (branche `feat/v7b-workspace-ia` créée) |
+
+## Actions critiques
+
+- **Mot de passe admin** : `$env:ADMIN_PASSWORD` doit être défini dans l'environnement avant tout démarrage E2E admin. Les tests admin sont bloqués sans cela.
+- **Hook BOM** : les fichiers doivent être encodés UTF-8 sans BOM. Vérifier avec `Get-Content -Encoding Byte` avant commit.
+- **Nettoyage branches** : `refactor/v7-clean-ui` est obsolète (mergée dans `master` et `origin/master`, aucun commit en avance). Suppression candidate dans la session d'hygiène (`D-GIT-BRANCH-HYGIENE`).
 
 ## Dernière session
 
-- **SESSION-2026-10-27-E61-REPRISE** : Reprise après interruption.
-  - Corrections de tests sur `src/core/ai-engine/skills/reconstruct/*`.
-  - Creation des scripts/configs unitaires : `package.json` (`test:unit`), `vitest.config.ts` racine.
-  - Validation `npm run test:unit` EXIT 0 (7 fichiers, 20 tests).
-  - Suivi git du module `reconstruct` ajouté (`git add`), sans commit.
-  - Mise à jour de `docs/etat/DETTES.md` (D-E52-CAD-GENERATION partiellement résolu).
+- **SESSION-2026-11-10-DOC-SYNC** (en cours) : synchronisation documentaire post-V8.
+  - Objet : aligner les 4 documents de référence (`ETAT_COURANT.md`, `DETTES.md`, `DECISIONS.md`, `INDEX.md`) sur l'état réel `master` @ `c0c86a2`.
+  - Décisions appliquées : Q1–Q6 (2026-11-09), C1–C3 (2026-11-10).
+  - Branche : `feat/v7b-workspace-ia` (créée depuis `master` local @ `823103a`).
 
 ## VÉRIFICATION E61 — E61-VERIF
 
@@ -23,25 +41,25 @@
 ## Portefeuille
 
 - [E61] Génération CAO via LLM + templates dans `src/core/ai-engine/skills/reconstruct/` — finalisé.
-- [Build] Prérendering de `/client/dashboard/demandes/[id]` désactivé à la build — débloqué.
+- [Build] Prérengering de `/client/dashboard/demandes/[id]` désactivé à la build — débloqué.
 - [E2E] `workspace` 17/17 — verts.
 - [E2E] `admin` bloqué par setup préexistant — hors périmètre E61.
 
-
-E62-FIX: regex corrig�e, admin list OK, build OK, v�rification E62-VERIF.
+E62-FIX: regex corrigée, admin list OK, build OK, vérification E62-VERIF.
 
 ## Portefeuille E64
 
 | Session | Statut | Dossier |
 |---------|--------|---------|
 | [E64-A] | ✅ Terminée | torus + cone |
-| [E64-B] | En cours de finalisation | Corrections regex appliquees, tests a valider, commit en attente |
+| [E64-B] | En cours de finalisation | Corrections regex appliquées, tests à valider, commit en attente |
 
 **Fichiers validés** :
+
 - ✅ `src/core/ai-engine/skills/reconstruct/types.ts` — `prism` ajouté à `CadPartType` et `CadParams`
 - ✅ `src/core/ai-engine/skills/reconstruct/generate-cad.ts` — `case 'prism'` avec `BoxGeometry`
 - ✅ `src/core/ai-engine/skills/reconstruct/generate-cad.test.ts` — 4 tests prism ajoutés
-- ✅ Tests : 22/22 tests unitaires (regex fix appliqué dans generate-cad.test.ts)
+- ✅ Tests : 22/22 tests unitaires (regex fix appliqué dans `generate-cad.test.ts`)
 - ✅ Typecheck, lint, build : EXIT 0
 
 **Dette** : D-E52-CAD-GENERATION → 75 % résolue (cylinder/plate/torus/cone/prism)
@@ -49,7 +67,9 @@ E62-FIX: regex corrig�e, admin list OK, build OK, v�rification E62-VERIF.
 **État des tests** : 22 tests unitaires (14 generate-cad + 3 reconstruct + 3 extract-params + 2 select-candidates)
 
 **Commit** : `c5ddff8` (E64-A) et commit E64-B effectué
+
 ## §3 — Résultats vérification E62
+
 - **admin --list** : OK (53 tests répertoriés)
 - **admin --grep "ADMIN"** : tests démarrent sans erreur de syntaxe (setup timeout connexion préexistant)
 - **workspace 17/17** : verts
@@ -59,180 +79,191 @@ E62-FIX: regex corrig�e, admin list OK, build OK, v�rification E62-VERIF.
 
 Dette E62-FIX clôturée, non-régression complète confirmée.
 
-E64-B-FIX-FINAL: 6 regex corrig�es. En attente validation Coordinateur.
+E64-B-FIX-FINAL: 6 regex corrigées. En attente validation Coordinateur.
 
 E64-B validation: test:unit 30/30 pass.
 
 E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 
 ## E71-A
-- Dimensions STEP extraites et pr�-remplies.
 
+- Dimensions STEP extraites et pré-remplies.
 
 ## E72-A
+
 - Chat interactif avec contexte.
 
-
 ## E72-B
-- Provider Claude inactif pr�par�.
 
+- Provider Claude inactif préparé.
 
-## E74-A � Conversion Candidat ? Pi�ce
-- Action serveur `convertCandidateToPart` cr��e dans `src/lib/actions/convert-candidate.ts` (v�rifie r�le ADMIN, g�n�re `partNumber` `CAND-{timestamp}`, cr�e `Part` en `DRAFT` avec `printableModelUrl`, cr�e `Attachment` de type CAO si extension `.stl/.step/.obj`).
-- Bouton "Convertir en pi�ce" ajout� dans `src/components/workspace/CandidateCard.tsx` (prop `isAdmin`, �tat de conversion, message succ�s/erreur).
-- `src/components/workspace/AssistantZone.tsx` passe `isAdmin` (via `useSession`) � chaque `CandidateCard`.
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run build` EXIT 0.
+## E74-A — Conversion Candidat → Pièce
+
+- Action serveur `convertCandidateToPart` créée dans `src/lib/actions/convert-candidate.ts` (vérifie rôle ADMIN, génère `partNumber` `CAND-{timestamp}`, crée `Part` en `DRAFT` avec `printableModelUrl`, crée `Attachment` de type CAO si extension `.stl/.step/.obj`).
+- Bouton "Convertir en pièce" ajouté dans `src/components/workspace/CandidateCard.tsx` (prop `isAdmin`, état de conversion, message succès/erreur).
+- `src/components/workspace/AssistantZone.tsx` passe `isAdmin` (via `useSession`) à chaque `CandidateCard`.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run build` EXIT 0.
 - Aucun commit.
 
-## E74-A-FIX � Correction bouton + layout workspace
-- Bouton : condition d'affichage chang�e de `isAdmin && Boolean(candidate.fileUrl)` � `isAdmin` (`CandidateCard.tsx:43`) car `fileUrl` est optionnel sur `SearchCandidate` et masquait le bouton.
-- Layout `WorkspaceLayout.tsx` : conteneur racine `flex flex-col`, grille `flex-1 min-h-0` pour remplir l'espace sous le header et autoriser la r�duction des items.
-- Layout `WorkspaceClient.tsx` : 3 enveloppes de zone passent de `overflow-auto` � `min-h-0` (scroll g�r� en interne par chaque zone).
-- Layout `AssistantZone.tsx` : conteneur ajoute `overflow-hidden` ; zone de messages passe de `overflow-auto` � `flex-1 min-h-0 overflow-y-auto` (scroll vertical interne uniquement, plus de scroll horizontal parasite ni de vide de colonne).
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+## E74-A-FIX — Correction bouton + layout workspace
+
+- Bouton : condition d'affichage changée de `isAdmin && Boolean(candidate.fileUrl)` à `isAdmin` (`CandidateCard.tsx:43`) car `fileUrl` est optionnel sur `SearchCandidate` et masquait le bouton.
+- Layout `WorkspaceLayout.tsx` : conteneur racine `flex flex-col`, grille `flex-1 min-h-0` pour remplir l'espace sous le header et autoriser la réduction des items.
+- Layout `WorkspaceClient.tsx` : 3 enveloppes de zone passent de `overflow-auto` à `min-h-0` (scroll géré en interne par chaque zone).
+- Layout `AssistantZone.tsx` : conteneur ajoute `overflow-hidden` ; zone de messages passe de `overflow-auto` à `flex-1 min-h-0 overflow-y-auto` (scroll vertical interne uniquement, plus de scroll horizontal parasite ni de vide de colonne).
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
-## E70-B � Mesure d'Angle et de Diam�tre
-- `MeasureTool.tsx` : type `MeasureMode` (`distance` \| `angle` \| `diameter`) export�, prop `mode` ajout�e. Mode angle (3 points, `Vector3.angleTo`, label �), mode diam�tre (2 points, cercle + label �), mode distance conserv�. Points r�initialis�s au changement de mode.
-- `ViewerZone.tsx` : �tat `measureMode`, s�lecteur `<select>` Distance/Angle/Diam�tre dans la surcouche "Mesurer".
-- `cad-viewer.tsx` et `model-viewer.tsx` : prop `measureMode` propag�e � `MeasureTool`.
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+## E70-B — Mesure d'Angle et de Diamètre
+
+- `MeasureTool.tsx` : type `MeasureMode` (`distance` \| `angle` \| `diameter`) exporté, prop `mode` ajoutée. Mode angle (3 points, `Vector3.angleTo`, label °), mode diamètre (2 points, cercle + label Ø), mode distance conservé. Points réinitialisés au changement de mode.
+- `ViewerZone.tsx` : état `measureMode`, sélecteur `<select>` Distance/Angle/Diamètre dans la surcouche "Mesurer".
+- `cad-viewer.tsx` et `model-viewer.tsx` : prop `measureMode` propagée à `MeasureTool`.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
-## E70-B-FIX � Correction r�gression visuelle workspace
-- `viewer-shell.tsx` : retrait de `aspect-video` (ratio 16:9 forc�) qui entrait en conflit avec la hauteur explicite (`height="400px"` du `Canvas`) et d�formait le mod�le 3D (�tirement vertical). La hauteur est d�sormais contr�l�e par la prop `height` ou `min-h-[320px]` par d�faut.
-- `ViewerZone.tsx` : inchang� (layout `relative flex h-full flex-col` avec overlay `absolute` d�j� correct).
-- `AssistantZone.tsx` : inchang� (scroll interne aux messages via `overflow-y-auto`, conteneur `overflow-hidden`, d�j� en place depuis E74-A-FIX).
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+## E70-B-FIX — Correction régression visuelle workspace
+
+- `viewer-shell.tsx` : retrait de `aspect-video` (ratio 16:9 forcé) qui entrait en conflit avec la hauteur explicite (`height="400px"` du `Canvas`) et déformait le modèle 3D (étirement vertical). La hauteur est désormais contrôlée par la prop `height` ou `min-h-[320px]` par défaut.
+- `ViewerZone.tsx` : inchangé (layout `relative flex h-full flex-col` avec overlay `absolute` déjà correct).
+- `AssistantZone.tsx` : inchangé (scroll interne aux messages via `overflow-y-auto`, conteneur `overflow-hidden`, déjà en place depuis E74-A-FIX).
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Aucun commit.
 
-## E73-A � Sauvegarde locale du workspace (localStorage)
-- `src/lib/hooks/use-workspace-persistence.ts` (nouveau) : hook `useWorkspacePersistence` qui persiste dans `localStorage` (cl� `partiva-workspace-state`) : `photos`, `cadFiles`, `dimensions`, `description`, `mode`, `result`. Restaure au montage via `useEffect` c�t� client, sauvegarde � chaque changement, expose `clearWorkspace()`.
-- `src/components/workspace/WorkspaceClient.tsx` : remplace les `useState` individuels par le hook pour les �tats persistants. Garde `extractedDimensions`, `status`, `error` en �tat local. Ajoute `handleClearWorkspace`.
-- `src/components/workspace/IngestZone.tsx` : bouton "Effacer" (ic�ne `Trash2`) dans l'en-t�te de la zone Collecte + indicateur "Sauvegard� localement".
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+## E73-A — Sauvegarde locale du workspace (localStorage)
+
+- `src/lib/hooks/use-workspace-persistence.ts` (nouveau) : hook `useWorkspacePersistence` qui persiste dans `localStorage` (clé `partiva-workspace-state`) : `photos`, `cadFiles`, `dimensions`, `description`, `mode`, `result`. Restaure au montage via `useEffect` côté client, sauvegarde à chaque changement, expose `clearWorkspace()`.
+- `src/components/workspace/WorkspaceClient.tsx` : remplace les `useState` individuels par le hook pour les états persistants. Garde `extractedDimensions`, `status`, `error` en état local. Ajoute `handleClearWorkspace`.
+- `src/components/workspace/IngestZone.tsx` : bouton "Effacer" (icône `Trash2`) dans l'en-tête de la zone Collecte + indicateur "Sauvegardé localement".
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Commit : `72c4761`.
 
-## E73-A-FIX � Correction �crasement des donn�es par l'effet de sauvegarde
-- `src/lib/hooks/use-workspace-persistence.ts` : l'effet de sauvegarde �crasait `localStorage` avec `DEFAULT_STATE` avant que l'effet de restauration n'ait pu recharger les donn�es. Corrig� avec `isFirstRender` ref pour sauter la sauvegarde au premier rendu.
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+## E73-A-FIX — Correction écrasement des données par l'effet de sauvegarde
+
+- `src/lib/hooks/use-workspace-persistence.ts` : l'effet de sauvegarde écrasait `localStorage` avec `DEFAULT_STATE` avant que l'effet de restauration n'ait pu recharger les données. Corrigé avec `isFirstRender` ref pour sauter la sauvegarde au premier rendu.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
 - Commit : `2e490ce`.
 
-## E73-A-FIX2 � Correction hydratation SSR (React #418)
-- `src/lib/hooks/use-workspace-persistence.ts` : `useState(loadState)` lisait `localStorage` dans l'initialiseur, cr�ant un mismatch d'hydratation Next.js (SSR rend `DEFAULT_STATE`, client rend l'�tat restaur�). Corrig� en utilisant `useState(DEFAULT_STATE)` (identique serveur/client) et en restaurant l'�tat dans un `useEffect` c�t� client uniquement apr�s le montage.
-- V�rifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
-- Aucun commit.
+## E73-A-FIX2 — Correction hydratation SSR (React #418)
 
+- `src/lib/hooks/use-workspace-persistence.ts` : `useState(loadState)` lisait `localStorage` dans l'initialiseur, créant un mismatch d'hydratation Next.js (SSR rend `DEFAULT_STATE`, client rend l'état restauré). Corrigé en utilisant `useState(DEFAULT_STATE)` (identique serveur/client) et en restaurant l'état dans un `useEffect` côté client uniquement après le montage.
+- Vérifications : `npm run typecheck` EXIT 0, `npm run lint` 0 erreurs, `npm run format:check` OK, `npm run build` EXIT 0.
+- Aucun commit.
 
 ## E86-A-FIX10 - Correction du build (polices locales)
 
 - src/app/layout.tsx : remplacement des imports next/font/google (Inter, Poppins, Fira_Code) par next/font/local via src/app/fonts/index.
-- Polices telechargees et hebergees localement dans src/app/fonts/ : 10 fichiers .woff2 (Inter 300/400/500/600/700, Poppins 400/500/600/700, Fira Code 400 couvrant 400/500/600), tous magic wOF2 valides.
-- Regle ESLint no-restricted-imports ajoutee dans eslint.config.mjs pour interdire next/font/google a l'avenir.
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- Polices téléchargées et hébergées localement dans src/app/fonts/ : 10 fichiers .woff2 (Inter 300/400/500/600/700, Poppins 400/500/600/700, Fira Code 400 couvrant 400/500/600), tous magic wOF2 valides.
+- Règle ESLint no-restricted-imports ajoutée dans eslint.config.mjs pour interdire next/font/google à l'avenir.
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX10.md.
-- Aucun commit.\
+- Aucun commit.
 
+## E86-A-FIX11 - Analyse Comparative avec docs/app et Correction Définitive Groq
 
-## E86-A-FIX11 - Analyse Comparative avec docs/app et Correction Definitive Groq
-
-- Analyse comparative avec docs/app : identification du modele de reference openai/gpt-oss-120b pour Groq (groq-client.ts, config.rs, setup-form.tsx).
-- Cause identifiee de l'erreur 404 : .env contenait GROQ_MODEL=llama-3.3-70b-versatile (decommissionne par Groq le 16 aout 2026), et src/core/ai-engine/skills/vision/vision.ts ciblait qwen/qwen3.6-27b (egalement 404).
-- src/lib/ai/groq-client.ts : aligne sur openai/gpt-oss-120b avec fallback defensif contre les modeles decommissionnes llama-*.
-- src/core/ai-engine/skills/vision/vision.ts : modele de vision mis a jour vers le modele multimodal actif qwen/qwen3.8-27b.
-- .env et .env.example : mise a jour GROQ_MODEL=openai/gpt-oss-120b et GROQ_VISION_MODEL=qwen/qwen3.8-27b.
+- Analyse comparative avec docs/app : identification du modèle de référence openai/gpt-oss-120b pour Groq (groq-client.ts, config.rs, setup-form.tsx).
+- Cause identifiée de l'erreur 404 : .env contenait GROQ_MODEL=llama-3.3-70b-versatile (décommissionné par Groq le 16 août 2026), et src/core/ai-engine/skills/vision/vision.ts ciblait qwen/qwen3.6-27b (également 404).
+- src/lib/ai/groq-client.ts : aligné sur openai/gpt-oss-120b avec fallback défensif contre les modèles décommissionnés llama-*.
+- src/core/ai-engine/skills/vision/vision.ts : modèle de vision mis à jour vers le modèle multimodal actif qwen/qwen3.8-27b.
+- .env et .env.example : mise à jour GROQ_MODEL=openai/gpt-oss-120b et GROQ_VISION_MODEL=qwen/qwen3.8-27b.
 - Tests API directs Groq : chat 200 OK, vision 200 OK.
-- Verifications : npm run typecheck EXIT 0, npm run lint -- src/lib/ai EXIT 0, npm run build EXIT 0.
+- Vérifications : npm run typecheck EXIT 0, npm run lint -- src/lib/ai EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX11.md.
 - Aucun commit.
 
 ## E86-A-FIX12 - Correction de l'erreur 400 vision (analyse d'image Groq)
 
-- src/core/ai-engine/skills/vision/vision.ts : modele de vision passe de qwen/qwen3.8-27b (erreur 400 sur les images) a meta-llama/llama-4-scout-17b-16e-instruct (modele vision confirme sur Groq).
-- .env.example : GROQ_VISION_MODEL mis a jour vers meta-llama/llama-4-scout-17b-16e-instruct.
-- Format de requete OpenAI-compatible { type: 'image_url', image_url: { url } } conserve (conforme).
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- src/core/ai-engine/skills/vision/vision.ts : modèle de vision passé de qwen/qwen3.8-27b (erreur 400 sur les images) à meta-llama/llama-4-scout-17b-16e-instruct (modèle vision confirmé sur Groq).
+- .env.example : GROQ_VISION_MODEL mis à jour vers meta-llama/llama-4-scout-17b-16e-instruct.
+- Format de requête OpenAI-compatible { type: 'image_url', image_url: { url } } conservé (conforme).
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX12.md.
 - Aucun commit.
-## E86-A-FIX13 - Verification du format vision Groq
 
-- src/core/ai-engine/skills/vision/vision.ts : aucun message system envoye (pas de tableau a convertir en chaine), message user bien forme (tableau de blocs text + image_url, format OpenAI-compatible).
-- Nombre d'images limite a 3 (slice(0, 3)) sous la limite Groq de 5 images par requete.
-- Modele vision deja corrige en E86-A-FIX12 : meta-llama/llama-4-scout-17b-16e-instruct.
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+## E86-A-FIX13 - Vérification du format vision Groq
+
+- src/core/ai-engine/skills/vision/vision.ts : aucun message system envoyé (pas de tableau à convertir en chaîne), message user bien formé (tableau de blocs text + image_url, format OpenAI-compatible).
+- Nombre d'images limité à 3 (slice(0, 3)) sous la limite Groq de 5 images par requête.
+- Modèle vision déjà corrigé en E86-A-FIX12 : meta-llama/llama-4-scout-17b-16e-instruct.
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX13.md.
 - Aucun commit.
+
 ## E86-A-FIX14 - Passage des images en base64 pour Groq Vision
 
-- src/core/ai-engine/skills/vision/vision.ts : les URLs Cloudinary ne sont plus passees directement a Groq (timeout cote Groq sur les images volumineuses -> erreur 400). Chaque image est telechargee cote serveur, convertie en base64 (data:image/...;base64,...) et envoyee en inline.
+- src/core/ai-engine/skills/vision/vision.ts : les URLs Cloudinary ne sont plus passées directement à Groq (timeout côté Groq sur les images volumineuses -> erreur 400). Chaque image est téléchargée côté serveur, convertie en base64 (data:image/...;base64,...) et envoyée en inline.
 - Limite de taille : 5 Mo max par image (MAX_IMAGE_BYTES).
-- Gestion d'erreur par image : les images inaccessibles/trop grosses/erreurs de telechargement sont ignorees avec un warning explicite, sans bloquer les autres.
+- Gestion d'erreur par image : les images inaccessibles/trop grosses/erreurs de téléchargement sont ignorées avec un warning explicite, sans bloquer les autres.
 - Si aucune image valide : VisionResult avec detectedType: null et warning explicite.
-- Modele vision : meta-llama/llama-4-scout-17b-16e-instruct (E86-A-FIX12).
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
+- Modèle vision : meta-llama/llama-4-scout-17b-16e-instruct (E86-A-FIX12).
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX14.md.
 - Aucun commit.
+
 ## E86-A-FIX15 - Upload Cloudinary des photos avant analyse (erreur fetch failed sur URL blob)
 
-- src/components/workspace/IngestZone.tsx : simulateUpload ne pousse plus d'URL blob: (URL.createObjectURL). Seule l'URL Cloudinary publique (secure_url) est ajoutee a l'etat photos. En cas d'echec d'upload ou d'absence de config Cloudinary, un console.warn est emis et l'image est ignoree (pas d'URL locale temporaire inaccessible cote serveur).
+- src/components/workspace/IngestZone.tsx : simulateUpload ne pousse plus d'URL blob: (URL.createObjectURL). Seule l'URL Cloudinary publique (secure_url) est ajoutée à l'état photos. En cas d'échec d'upload ou d'absence de config Cloudinary, un console.warn est émis et l'image est ignorée (pas d'URL locale temporaire inaccessible côté serveur).
 - src/core/ai-engine/skills/vision/vision.ts : filtre des URLs photo (https:// uniquement, ignore les URLs blob: avec warning explicite). Si aucune image publique valide : detectedType: null + warning.
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX15.md.
 - Aucun commit.
-## E86-A-FIX16 - Upload Cloudinary des photos avant analyse (correction reelle, pas seulement filtre blob)
 
-- src/components/workspace/IngestZone.tsx : simulateUpload n' cree plus d'URL blob: (URL.createObjectURL supprimee). L'upload vers Cloudinary est effectue AVANT d'ajouter l'URL a l'etat photos (fetch vers v1_1/{cloud}/upload avec upload_preset). L'URL secure_url publique (https://res.cloudinary.com/...) est stockee dans photos. En cas d'echec ou d'absence de config Cloudinary : console.warn et l'image est ignoree (pas d'URL locale temporaire).
-- Etat de chargement : [isUploading, setIsUploading] ajoute, setIsUploading(true) au debut de l'upload, setIsUploading(false) dans un finally, bouton "Ajouter des photos" desactive (disabled={isUploading}) pendant l'upload.
+## E86-A-FIX16 - Upload Cloudinary des photos avant analyse (correction réelle, pas seulement filtre blob)
+
+- src/components/workspace/IngestZone.tsx : simulateUpload ne crée plus d'URL blob: (URL.createObjectURL supprimée). L'upload vers Cloudinary est effectué AVANT d'ajouter l'URL à l'état photos (fetch vers v1_1/{cloud}/upload avec upload_preset). L'URL secure_url publique (https://res.cloudinary.com/...) est stockée dans photos. En cas d'échec ou d'absence de config Cloudinary : console.warn et l'image est ignorée (pas d'URL locale temporaire).
+- État de chargement : [isUploading, setIsUploading] ajouté, setIsUploading(true) au début de l'upload, setIsUploading(false) dans un finally, bouton "Ajouter des photos" désactivé (disabled={isUploading}) pendant l'upload.
 - src/core/ai-engine/skills/vision/vision.ts : filtre des URLs photo (https:// uniquement, ignore les URLs blob: avec warning explicite). Si aucune image publique valide : detectedType: null + warning.
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX16.md.
 - Aucun commit.
-## E86-A-FIX17 - Restauration de l upload de photos et CAO (regression E86-A-FIX15/16)
 
-- src/components/workspace/IngestZone.tsx : fallback URL.createObjectURL(file) retabli quand Cloudinary echoue ou est non configure. L utilisateur voit sa photo dans ViewerZone (URL blob locale resoute cote client). Le filtre blob: dans vision.ts empeche l envoi a Groq (pas de fetch failed). Etat de chargement isUploading conserve (bouton desactive pendant l upload).
-- Verifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
+## E86-A-FIX17 - Restauration de l'upload de photos et CAO (régression E86-A-FIX15/16)
+
+- src/components/workspace/IngestZone.tsx : fallback URL.createObjectURL(file) rétabli quand Cloudinary échoue ou est non configuré. L'utilisateur voit sa photo dans ViewerZone (URL blob locale résolue côté client). Le filtre blob: dans vision.ts empêche l'envoi à Groq (pas de fetch failed). État de chargement isUploading conservé (bouton désactivé pendant l'upload).
+- Vérifications : npm run lint EXIT 0, npm run typecheck EXIT 0, npm run build EXIT 0, npm run format:check EXIT 0.
 - Rapport : docs/sessions/rapports/SESSION-2026-10-30-E86-A-FIX17.md.
 - Aucun commit.
-- E86-A-FIX18: upload Cloudinary photos impl�ment� (IngestZone.tsx).
 
-- E90-0: audit pr�alable (rapport docs/sessions/rapports/SESSION-2026-10-31-E90-0.md).
+## E86-A-FIX18: upload Cloudinary photos implémenté (IngestZone.tsx).
 
-- E90-A: schema + types (migration DB �chou�e P1000, generate OK).
+## E90-0: audit préalable (rapport docs/sessions/rapports/SESSION-2026-10-31-E90-0.md).
 
-- E90-A1: migration P1000 (DB auth), client g�n�r� OK.
+## E90-A: schéma + types (migration DB échouée P1000, generate OK).
 
-- E90-A: db push OK (analysisData column), generate OK, tsc EXIT 0.
+## E90-A1: migration P1000 (DB auth), client généré OK.
 
-- E90-B: persistance archivePart + engine analysisData; tsc/unit OK.
+## E90-A: db push OK (analysisData column), generate OK, tsc EXIT 0.
 
-- E90-C: onglet Analyse dans PartDossier; tsc EXIT 0.
+## E90-B: persistance archivePart + engine analysisData; tsc/unit OK.
 
-- E91-0: audit recherche (rapport SESSION-2026-10-31-E91-0.md).
+## E90-C: onglet Analyse dans PartDossier; tsc EXIT 0.
 
-- E91-A: mapper search-mapper.ts + type SearchResultItem export�; tsc OK.
+## E91-0: audit recherche (rapport SESSION-2026-10-31-E91-0.md).
 
-- E91-B: route /api/search flag engine; tsc/unit OK.
+## E91-A: mapper search-mapper.ts + type SearchResultItem exporté; tsc OK.
 
-- E91-C: toggle engine dans SearchBar; tsc/unit OK.
+## E91-B: route /api/search flag engine; tsc/unit OK.
 
-- E92-0: audit reverse engineering (rapport SESSION-2026-10-31-E92-0.md).
+## E91-C: toggle engine dans SearchBar; tsc/unit OK.
 
-- E92-A: Server Action analyzeReverseEngineeringProject; tsc/unit OK.
+## E92-0: audit reverse engineering (rapport SESSION-2026-10-31-E92-0.md).
 
-- E92-B: bouton+modale Analyser dans onglet CAD RE; tsc/unit OK.
+## E92-A: Server Action analyzeReverseEngineeringProject; tsc/unit OK.
 
+## E92-B: bouton+modale Analyser dans onglet CAD RE; tsc/unit OK.
 
-## Campagne tests r�els admin (2026-11-03) � CL�TUR�E
+## Campagne tests réels admin (2026-11-03) — CLÔTURÉE
 
-- 5 bugs corrig�s : recherche, actualiser, Cloudinary, �dition pi�ce, cr�ation partielle.
-- 3 dettes d'accessibilit� corrig�es : PartDossier retir�, bouton Fiche, galerie images (suppression, lightbox, workspace).
-- Logs structur�s `[ADMIN-EDIT-PART]`, `[ADMIN-IMAGE-UPLOAD]`, `[ADMIN-IMAGE-DELETE]` conserv�s dans le code.
+- 5 bugs corrigés : recherche, actualiser, Cloudinary, édition pièce, création partielle.
+- 3 dettes d'accessibilité corrigées : PartDossier retiré, bouton Fiche, galerie images (suppression, lightbox, workspace).
+- Logs structurés `[ADMIN-EDIT-PART]`, `[ADMIN-IMAGE-UPLOAD]`, `[ADMIN-IMAGE-DELETE]` conservés dans le code.
 - Typecheck exit 0, lint 0 erreurs, build vert.
-- 13 le�ons grav�es, 9 dettes d'infrastructure trac�es (voir DETTES.md).
+- 13 leçons gravées, 9 dettes d'infrastructure tracées (voir DETTES.md).
 - **Date** : 2026-11-02
 - **Statut** : Clôturée (B1+B2)
 
 **Livré :**
+
 - src/lib/connectors/aggregator.ts : retry avec backoff exponentiel, circuit-breaker par connecteur, propagation sourcesFailed/sourceDurationsMs + structuredWarnings (SOURCE_FAILED, SOURCE_TIMEOUT, CIRCUIT_OPEN)
 - src/lib/connectors/aggregator.test.ts : 4 tests (succès, timeout, retry, circuit-breaker)
 - src/core/ai-engine/skills/search/search.ts : mode quick avec fallback web si local vide, warnings structurés
@@ -242,3 +273,12 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 - docs/etat/DETTES.md : D-E48-WEB-SEARCH-RESILIENCE passée en Résolue (E104-B1+B2)
 
 **Commits** : aa50156 (B1), 141f4e8 (B2)
+
+## Prochaine étape
+
+**V7-B — Workspace IA** (source v10 §4).
+
+- **Objectif :** analyser les 3 photos du rétroviseur, générer un modèle 3D, compléter la Roadmap V7.
+- **Statut :** PROPOSE — ne démarre qu'après validation du coordinateur et production du plan détaillé par l'IA externe.
+- **Prérequis :** V7-A prouvée par commit git (C3b).
+- **Détail des étapes et preuves attendues :** voir prompt v11 §7 (Étape 3) et v10 §4.
