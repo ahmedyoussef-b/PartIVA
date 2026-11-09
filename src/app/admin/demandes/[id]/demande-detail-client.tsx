@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { PipelineStepper } from '@/components/domain/pipeline-stepper';
-import { ArrowLeft, Search, Wrench, Phone, Mail, Building } from 'lucide-react';
+
+import { ArrowLeft, Search, Phone, Mail, Building, Sparkles, Hammer, FileBox } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-mappers';
 import { FR } from '@/i18n/fr';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
 import { useTransition } from 'react';
 import type { RequestStatus, RequestUrgency } from '@/schemas/request';
-import { AnalyzeWorkspacePanel } from './analyze-workspace-panel';
 
 const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
   { value: 'new', label: 'Nouvelle demande' },
@@ -47,6 +47,7 @@ interface DemandeDetailClientProps {
 export default function DemandeDetailClient({ initialRequest }: DemandeDetailClientProps) {
   const request = mapRequestToUi(initialRequest);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleStatusChange = (status: RequestStatus) => {
     startTransition(async () => {
@@ -134,32 +135,88 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
               {formatDate(request.createdAt)}
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/admin/demandes/${request.id}/recherche`}>
-              <Button className="gap-2 font-bold shadow-sm">
-                <Search className="h-4 w-4" />
-                Lancer Recherche Multi-Sources
-              </Button>
-            </Link>
-            <Link href={`/admin/reverse-engineering/${request.id}`}>
-              <Button variant="outline" className="gap-2 font-semibold">
-                <Wrench className="h-4 w-4" />
-                Bascule Reverse CAO
-              </Button>
-            </Link>
-            <AnalyzeWorkspacePanel requestId={request.id} />
-          </div>
         </div>
       </div>
 
-      {/* Stepper Card */}
-      <Card className="p-6">
-        <h3 className="mb-4 text-xs font-semibold text-muted-foreground uppercase">
-          Pipeline de Fabrication Actuel
-        </h3>
-        <PipelineStepper currentStep={request.status} />
-      </Card>
+      {/* Panneau de Décision V7 */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card
+          className="cursor-pointer transition-colors hover:border-blue-500/50"
+          onClick={() => router.push(`/admin/demandes/${request.id}/recherche`)}
+        >
+          <CardHeader className="pb-2">
+            <div className="mb-2 w-fit rounded-md bg-blue-500/10 p-2">
+              <Search className="h-5 w-5 text-blue-500" />
+            </div>
+            <CardTitle className="text-sm">Méthode 1 : Catalogue</CardTitle>
+            <CardDescription className="text-xs">
+              Rechercher une pièce standard (Step.parts, CADENAS, FAPI)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" className="w-full text-xs">
+              Lancer la recherche
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer transition-colors hover:border-amber-500/50"
+          onClick={() => router.push(`/admin/demandes/${request.id}/workspace`)}
+        >
+          <CardHeader className="pb-2">
+            <div className="mb-2 w-fit rounded-md bg-amber-500/10 p-2">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+            </div>
+            <CardTitle className="text-sm">Méthode 2 : Workspace IA</CardTitle>
+            <CardDescription className="text-xs">
+              Analyser les photos et générer un modèle 3D automatiquement
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" className="w-full text-xs">
+              Ouvrir Workspace
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer transition-colors hover:border-violet-500/50"
+          onClick={() => router.push(`/admin/reverse-engineering/${request.id}`)}
+        >
+          <CardHeader className="pb-2">
+            <div className="mb-2 w-fit rounded-md bg-violet-500/10 p-2">
+              <Hammer className="h-5 w-5 text-violet-500" />
+            </div>
+            <CardTitle className="text-sm">Méthode 3 : Reverse CAO</CardTitle>
+            <CardDescription className="text-xs">
+              Modélisation manuelle par l&apos;admin (si l&apos;IA échoue)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" className="w-full text-xs">
+              Ouvrir Reverse
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="transition-colors hover:border-emerald-500/50">
+          <CardHeader className="pb-2">
+            <div className="mb-2 w-fit rounded-md bg-emerald-500/10 p-2">
+              <FileBox className="h-5 w-5 text-emerald-500" />
+            </div>
+            <CardTitle className="text-sm">Méthode 4 : Import CAO</CardTitle>
+            <CardDescription className="text-xs">
+              Importer un fichier STEP/IGES fourni par le client
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" className="w-full text-xs" disabled>
+              Bientôt disponible
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -229,6 +286,19 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                           {photoTag}
                         </div>
                       )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Button
+                          size="sm"
+                          className="gap-2"
+                          onClick={() =>
+                            router.push(
+                              `/admin/demandes/${request.id}/recherche?photo=${encodeURIComponent(photoUrl)}`,
+                            )
+                          }
+                        >
+                          <Search className="h-3.5 w-3.5" /> Chercher cette photo
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
@@ -268,24 +338,6 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
                   {request.client.phone || 'Non renseigné'}
                 </a>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-primary/40 bg-card/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Prochaine Action Recommandée</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs">
-              <p className="text-muted-foreground">
-                Lancer le moteur de recherche pour vérifier si la géométrie existe déjà dans la base
-                de données SQLite de l&apos;atelier ou dans les bibliothèques TraceParts.
-              </p>
-              <Link href={`/admin/demandes/${request.id}/recherche`}>
-                <Button className="w-full gap-2 text-xs font-bold shadow-xs">
-                  <Search className="h-3.5 w-3.5" />
-                  Ouvrir l&apos;Écran de Recherche Multi-Sources
-                </Button>
-              </Link>
             </CardContent>
           </Card>
         </div>
