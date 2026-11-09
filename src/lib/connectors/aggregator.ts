@@ -3,6 +3,7 @@ import type { SourceConnector } from './types';
 import { searchTecDocByVIN, searchTecDocByVehicle, searchTecDocByPhotoAndVehicle } from './tecdoc';
 import { mergeAbortSignals } from '@/lib/data/external-signal';
 import { getCache, setCache, hashCacheKey } from '@/lib/cache/search-cache';
+import type { RoutedQuery } from '@/lib/ai/smart-router';
 
 const AGGREGATION_TIMEOUT_MS =
   process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 60_000 : 10_000;
@@ -419,6 +420,81 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
       },
     );
   });
+}
+
+export async function aggregateSearchRouted(
+  connectors: SourceConnector[],
+  routes: RoutedQuery[],
+  options: AggregateSearchOptions = {},
+): Promise<AggregationResult> {
+  const startTime = Date.now();
+  const allCandidates: SearchCandidate[] = [];
+  const sourcesQueried: string[] = [];
+  const sourcesFailed: string[] = [];
+  const sourceDurationsMs: Record<string, number> = {};
+
+  const results = await Promise.allSettled(
+    routes.map(async ({ sourceId, query }) => {
+      const connector = connectors.find((c) => c.source === sourceId);
+      if (!connector)
+        return { sourceId, candidates: [] as SearchCandidate[], duration: 0, failed: true };
+
+      const sourceStart = Date.now();
+      try {
+        const candidates = await connector.search(query, { limit: options.limit });
+        return { sourceId, candidates, duration: Date.now() - sourceStart, failed: false };
+      } catch {
+        return {
+          sourceId,
+          candidates: [] as SearchCandidate[],
+          duration: Date.now() - sourceStart,
+          failed: true,
+        };
+      }
+    }),
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      const { sourceId, candidates, duration, failed } = result.value;
+      sourcesQueried.push(sourceId);
+      sourceDurationsMs[sourceId] = duration;
+      if (failed) sourcesFailed.push(sourceId);
+      else allCandidates.push(...candidates);
+    }
+  }
+
+  // Fallback : si step_parts n'a rien trouvé, relancer avec la route fallback
+  const stepPartsRoute = routes.find((r) => r.sourceId === 'step_parts' && r.isFallback);
+  const stepPartsCandidates = allCandidates.filter((c) => c.source === 'step_parts');
+  if (stepPartsRoute && stepPartsCandidates.length === 0) {
+    const connector = connectors.find((c) => c.source === 'step_parts');
+    if (connector) {
+      const sourceStart = Date.now();
+      try {
+        const fallbackCandidates = await connector.search(stepPartsRoute.query, {
+          limit: options.limit,
+        });
+        sourceDurationsMs['step_parts_fallback'] = Date.now() - sourceStart;
+        if (fallbackCandidates.length > 0) {
+          allCandidates.push(...fallbackCandidates);
+          if (!sourcesQueried.includes('step_parts')) sourcesQueried.push('step_parts');
+        }
+      } catch {
+        // silencieux
+      }
+    }
+  }
+
+  const deduped = deduplicateCandidates(allCandidates);
+
+  return {
+    candidates: deduped,
+    sourcesQueried,
+    sourcesFailed,
+    sourceDurationsMs,
+    totalDurationMs: Date.now() - startTime,
+  };
 }
 
 export function computeAggregationScore(
