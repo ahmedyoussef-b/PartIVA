@@ -344,6 +344,7 @@ model Request {
   updatedAt         DateTime                    @updatedAt
   client            User?                       @relation("UserRequests", fields: [clientId], references: [id])
   projects          ReverseEngineeringProject[] @relation("RequestToReverseEngineeringProject")
+  attempts          ReconstructionAttempt[]
 
   @@index([status])
   @@index([clientId])
@@ -506,6 +507,27 @@ model WebSearchCache {
 
   @@index([expiresAt])
   @@index([source])
+}
+
+model ReconstructionAttempt {
+  id        String   @id @default(cuid())
+  requestId String
+  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  method    String
+  status    String
+
+  metadata  Json?
+  files     Json?
+
+  decision  String?
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([requestId])
+  @@map("reconstruction_attempts")
 }
 
 enum UserRole {
