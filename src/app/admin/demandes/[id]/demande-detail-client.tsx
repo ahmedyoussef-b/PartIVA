@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { PipelineStepper } from '@/components/domain/pipeline-stepper';
+
 import { ArrowLeft, Search, Phone, Mail, Building, Sparkles, Hammer, FileBox } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-mappers';
@@ -137,14 +137,6 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
           </div>
         </div>
       </div>
-
-      {/* Stepper Card */}
-      <Card className="p-6">
-        <h3 className="mb-4 text-xs font-semibold text-muted-foreground uppercase">
-          Pipeline de Fabrication Actuel
-        </h3>
-        <PipelineStepper currentStep={request.status} />
-      </Card>
 
       {/* Panneau de Décision V7 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
