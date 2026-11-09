@@ -92,13 +92,19 @@ export function CandidateCard({
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
         {candidate.imageUrl && (
-          <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-md border bg-muted/50">
+          <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-md border bg-muted/50 transition-transform duration-700 ease-out group-hover:scale-105">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={candidate.imageUrl}
               alt={candidate.name}
               className="h-full w-full object-cover"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                img.src = '/placeholder-part.svg';
+                img.className = 'h-full w-full object-contain p-8 opacity-60';
+              }}
             />
+            <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-black/5 ring-inset" />
           </div>
         )}
         <div className="space-y-2">

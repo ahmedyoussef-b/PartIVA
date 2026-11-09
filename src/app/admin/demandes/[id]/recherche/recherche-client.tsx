@@ -260,6 +260,26 @@ export default function RechercheClient({
       setSourceProgress(nextProgress);
       setCandidates(foundCandidates);
       setSearchState('done');
+
+      if (foundCandidates.length > 0) {
+        await fetch(`/api/requests/${request.id}/attempts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            method: 'catalogue',
+            status: 'success',
+            metadata: {
+              candidates: foundCandidates.slice(0, 5).map((c) => ({
+                source: c.source,
+                reference: c.reference,
+                name: c.name,
+                score: c.scores.global,
+              })),
+            },
+            decision: 'pending',
+          }),
+        }).catch((err) => console.warn('[V8] attempt log failed', err));
+      }
     } catch (err) {
       console.error(err);
       setSearchState('error');
