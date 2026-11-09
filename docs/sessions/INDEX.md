@@ -1,7 +1,7 @@
 # INDEX DES SESSIONS — PartIVA
 
 **Dernière mise à jour :** 2026-11-10
-**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC).
+**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE).
 **Statut :** Index des sessions.
 
 ---
@@ -50,28 +50,35 @@
 
 ---
 
-## 3. Session en cours (2026-11-10)
+## 3. Sessions de la phase V7 (2026-11-10)
+
+| ID | Date | Objectif | Fonctionnalités | Statut | Référence |
+|---|---|---|---|---|---|
+| SESSION-2026-11-10-V7-OUVERTURE | 2026-11-10 | Ouverture formelle de V7 (V7-A prouvée, V7-B prochaine) | Gouvernance | ✅ | PR #20 mergée (`869254e`), `DECISIONS.md` §9 |
+
+**Détail :**
+- **V7-A (Catalogue)** : **prouvée fonctionnellement** — preuves : `src/app/admin/demandes/[id]/recherche/recherche-client.tsx` (libellé « Recherche Multi-Sources » l. 340, `SearchState` l. 93, `setSearchState('running')` l. 183/232, `fetch('/api/search')` l. 245, `fetch('/api/search/photo')` l. 191) + commit `530a0f3`.
+- **V7-B (Workspace IA)** : **prochaine étape**.
+- **Branche** : `feat/v7-ouverture` (créée depuis `master` `11cc1f8`, mergée en `869254e`).
+- **Commit** : `7614654` (PR #20 mergée `869254e`).
+
+---
+
+## 4. Session en cours (2026-11-10)
 
 | ID | Date | Objectif | Fonctionnalités | Statut |
 |---|---|---|---|---|
-| SESSION-2026-11-10-DOC-SYNC | 2026-11-10 | Synchronisation documentaire post-V8 (4 docs) | Gouvernance | ⏳ En cours |
-
-**Détail :**
-- **1-A** : `ETAT_COURANT.md` — en-tête 2026-11-10, versions V3–V8, actions critiques, prochaine étape V7-B. ✅
-- **1-B** : `DETTES.md` — registre actif aligné v10 §3 (8 dettes + `D-GIT-BRANCH-HYGIENE`), garde-fou documentaire. ✅
-- **1-C** : `DECISIONS.md` — Q1–Q6, C1–C3, V3–V8, L51–L56, décisions de méthode. ✅
-- **1-D** : `INDEX.md` — en cours.
-- **1-E** : commit + PR (à venir).
+| SESSION-2026-11-10-V7-INDEX | 2026-11-10 | Mise à jour de `INDEX.md` (V7 ouverte, V7-A prouvée) | Gouvernance | ⏳ En cours |
 
 ---
 
-## 4. Décisions et leçons (renvoi)
+## 5. Décisions et leçons (renvoi)
 
-Les décisions validées (Q1–Q6, C1–C3) et les leçons (L45–L57) sont consignées dans `docs/etat/DECISIONS.md`. Les dettes actives sont dans `docs/etat/DETTES.md`. L'état courant est dans `docs/etat/ETAT_COURANT.md`.
+Les décisions validées (Q1–Q6, C1–C3, D-V7-A-PROUVEE, D-V7-OUVERTURE) et les leçons (L45–L59) sont consignées dans `docs/etat/DECISIONS.md`. Les dettes actives sont dans `docs/etat/DETTES.md`. L'état courant est dans `docs/etat/ETAT_COURANT.md`.
 
 ---
 
-## 5. Index des fonctionnalités (E17 → E29 — historique conservé)
+## 6. Index des fonctionnalités (E17 → E29 — historique conservé)
 
 Noms canoniques des fonctionnalités traitées, avec les sessions correspondantes (charte §6).
 
@@ -100,14 +107,14 @@ Noms canoniques des fonctionnalités traitées, avec les sessions correspondante
 | Cache / API | V4-B | Clôturé |
 | Recherche | V5, V8 | Clôturé |
 | UI | V8 | Clôturé |
-| Gouvernance | DOC-SYNC | En cours |
+| Gouvernance | DOC-SYNC, V7-OUVERTURE | En cours |
 
 ---
 
-## 6. Notes
+## 7. Notes
 
 - **Format :** Chaque rapport suit le modèle `MODELE_RAPPORT.md`.
 - **Mise à jour :** L'index est mis à jour à chaque nouvelle session.
 - **Sessions antérieures :** Les sessions E0 à E16 ne sont pas listées ici. Leur trace est conservée dans `docs/archive/JOURNAL.md` et `docs/archive/ROADMAP.md` (archivage effectué en E6). Si le coordinateur souhaite un historique indexé E0 → E16, un ordre de rattrapage sera nécessaire.
-- **Noms canoniques :** toute fonctionnalité ajoutée à une session doit être reportée au §5 sous le même nom (charte §6).
-- **Synchronisation 2026-11-10 :** les sessions V3–V8 et `SESSION-2026-11-10-DOC-SYNC` sont ajoutées. Les sessions E17–E29 sont conservées intégralement (charte §7). La mention `E58-A → E58-E` est clarifiée.
+- **Noms canoniques :** toute fonctionnalité ajoutée à une session doit être reportée au §6 sous le même nom (charte §6).
+- **Synchronisation 2026-11-10 :** les sessions V3–V8, V7-OUVERTURE et V7-INDEX sont ajoutées. Les sessions E17–E29 sont conservées intégralement (charte §7). La mention `E58-A → E58-E` est clarifiée.
