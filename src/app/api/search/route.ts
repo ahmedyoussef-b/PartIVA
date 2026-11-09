@@ -14,7 +14,9 @@ import { PART_STATUS_VALUES } from '@/lib/search-constants';
 import { searchParts as searchEngineParts } from '@/core/ai-engine/skills/search';
 import { mapEngineResultToSearchResults } from '@/lib/utils/search-mapper';
 import type { IngestResult } from '@/core/ai-engine/skills/ingest/types';
-import { aggregateSearch } from '@/lib/connectors/aggregator';
+import { aggregateSearch, aggregateSearchRouted } from '@/lib/connectors/aggregator';
+import { normalizeQuery } from '@/lib/ai/query-normalizer';
+import { buildSmartRoutes } from '@/lib/ai/smart-router';
 import { localDbConnector } from '@/lib/connectors/local-db';
 import { wikidataConnector } from '@/lib/connectors/wikidata';
 import { tracePartsConnector } from '@/lib/connectors/traceparts';
@@ -60,13 +62,18 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { source, query, limit } = body;
 
-    // Agrégation multi-sources (D-E3-25)
+    // Agrégation multi-sources (D-E3-25) - Smart Router V8
     if (source === 'all') {
-      const result = await aggregateSearch(ALL_CONNECTORS, String(query ?? ''), {
+      const q = String(query ?? '');
+      const normalized = await normalizeQuery(q);
+      const routes = buildSmartRoutes(normalized);
+
+      const result = await aggregateSearchRouted(ALL_CONNECTORS, routes, {
         limit: typeof limit === 'number' ? limit : 20,
         source: 'all',
       });
-      return NextResponse.json(result);
+
+      return NextResponse.json({ ...result, _normalized: normalized, _routes: routes });
     }
 
     if (source === 'fapi') {
