@@ -665,28 +665,42 @@ export default function RechercheClient({
                 </TabsList>
 
                 <TabsContent value={activeSource} className="mt-4">
-                  {filteredAndScored.length === 0 && searchState === 'running' ? (
+                  {searchState === 'done' && (
+                    <ResultFiltersBar
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      manufacturers={manufacturers}
+                      sources={sources}
+                    />
+                  )}
+
+                  {searchState === 'running' ? (
                     <div className="flex flex-col items-center gap-3 py-12">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                       <p className="text-sm text-muted-foreground">Interrogation en cours…</p>
                     </div>
                   ) : filteredAndScored.length === 0 ? (
-                    <div className="flex flex-col items-center gap-3 py-12 text-center">
+                    <div className="flex flex-col items-center gap-4 py-12 text-center">
                       <Info className="h-6 w-6 text-muted-foreground/50" />
                       <p className="text-sm text-muted-foreground">
-                        Aucun résultat pour cette source
+                        {candidates.length > 0
+                          ? 'Aucun résultat avec ces filtres'
+                          : 'Aucun résultat pour cette source'}
                       </p>
+                      {candidates.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setFilters({ minScore: 0, manufacturer: null, source: null })
+                          }
+                        >
+                          Réinitialiser les filtres
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <>
-                      {/* Filtres */}
-                      <ResultFiltersBar
-                        filters={filters}
-                        onFiltersChange={setFilters}
-                        manufacturers={manufacturers}
-                        sources={sources}
-                      />
-
                       {/* Toggle Galerie / Tableau */}
                       <div className="mb-4 flex items-center justify-end gap-2">
                         <Button
