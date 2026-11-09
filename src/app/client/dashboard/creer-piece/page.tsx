@@ -59,6 +59,7 @@ export default function CreerPiecePage() {
   const [clientEmail, setClientEmail] = React.useState('client@demo.fr');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
   const router = useRouter();
 
   type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
@@ -81,32 +82,33 @@ export default function CreerPiecePage() {
     setPhotoTags((prev) => prev.map((p) => (p.url === url ? { ...p, tag: newTag } : p)));
   };
 
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (!clientName?.trim()) errs.clientName = 'Nom / Société obligatoire.';
+    if (!clientEmail?.trim()) errs.clientEmail = 'Email obligatoire.';
+    if (!partName?.trim()) errs.partName = 'Nom de la pièce obligatoire.';
+    if (!notes || notes.trim().length < 10)
+      errs.notes = 'La description doit contenir au moins 10 caractères.';
+    if (photoUrls.length === 0)
+      errs.photos = 'Ajoutez au moins une photo de la pièce.';
+    setFieldErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      toast.error('Champs manquants ou invalides', {
+        description: Object.values(errs)[0],
+        duration: 5000,
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!validate()) return;
     setIsSubmitting(true);
 
     try {
-      if (photoUrls.length === 0) {
-        console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: aucune photo`);
-        toast.error('Veuillez ajouter au moins une photo de la pièce souhaitée.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!clientName || !clientEmail) {
-        console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: infos client manquantes`);
-        toast.error('Veuillez indiquer votre nom et email.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!notes || notes.trim().length < 10) {
-        console.log(`${DEBUG_PREFIX} ❌ Soumission bloquée: description trop courte`);
-        toast.error('La description doit contenir au moins 10 caractères.');
-        setIsSubmitting(false);
-        return;
-      }
 
       const formData = new FormData();
 
@@ -205,6 +207,7 @@ export default function CreerPiecePage() {
       if (url) {
         setPhotoUrls((prev) => [...prev, url]);
         setPhotoTags((prev) => [...prev, { url, tag: 'Vue d’ensemble' }]);
+        setFieldErrors((p) => ({ ...p, photos: '' }));
         toast.success(`${file.name} envoyée avec succès`);
       }
     }
@@ -261,8 +264,15 @@ export default function CreerPiecePage() {
                 type="text"
                 placeholder="Ex: SARL Meca Precision"
                 value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
+                onChange={(e) => {
+                  setClientName(e.target.value);
+                  if (fieldErrors.clientName) setFieldErrors((p) => ({ ...p, clientName: '' }));
+                }}
+                className={fieldErrors.clientName ? 'border-red-500' : ''}
               />
+              {fieldErrors.clientName && (
+                <p className="text-xs text-red-500">{fieldErrors.clientName}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="clientEmail">
@@ -273,8 +283,15 @@ export default function CreerPiecePage() {
                 type="email"
                 placeholder="exemple@entreprise.fr"
                 value={clientEmail}
-                onChange={(e) => setClientEmail(e.target.value)}
+                onChange={(e) => {
+                  setClientEmail(e.target.value);
+                  if (fieldErrors.clientEmail) setFieldErrors((p) => ({ ...p, clientEmail: '' }));
+                }}
+                className={fieldErrors.clientEmail ? 'border-red-500' : ''}
               />
+              {fieldErrors.clientEmail && (
+                <p className="text-xs text-red-500">{fieldErrors.clientEmail}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -312,21 +329,19 @@ export default function CreerPiecePage() {
               />
               <label
                 htmlFor="photo-upload"
-                className="cursor-pointer rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className={`cursor-pointer rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90 ${fieldErrors.photos ? 'ring-2 ring-red-500' : ''}`}
               >
                 Ajouter des photos
               </label>
+              {fieldErrors.photos && (
+                <p className="text-xs text-red-500">{fieldErrors.photos}</p>
+              )}
               {photoUrls.length > 0 && (
                 <p className="text-xs text-muted-foreground">
                   {photoUrls.length} photo(s) prête(s) à être envoyée(s).
                 </p>
               )}
             </div>
-            {photoUrls.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                {photoUrls.length} photo(s) prête(s) à être envoyée(s).
-              </p>
-            )}
 
             {uploadState.status === 'uploading' && (
               <div className="space-y-3">
@@ -422,9 +437,15 @@ export default function CreerPiecePage() {
                 <Input
                   id="partName"
                   value={partName}
-                  onChange={(e) => setPartName(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                  onChange={(e) => {
+                    setPartName(e.target.value);
+                    if (fieldErrors.partName) setFieldErrors((p) => ({ ...p, partName: '' }));
+                  }}
+                  className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none ${fieldErrors.partName ? 'border-red-500' : ''}`}
                 />
+                {fieldErrors.partName && (
+                  <p className="text-xs text-red-500">{fieldErrors.partName}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="machineRef">Référence machine</Label>
@@ -487,8 +508,13 @@ export default function CreerPiecePage() {
                 rows={4}
                 placeholder="Ex: Température d'utilisation 80°C, contact avec des produits acides, tolérance serrée sur l’alésage central..."
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => {
+                  setNotes(e.target.value);
+                  if (fieldErrors.notes) setFieldErrors((p) => ({ ...p, notes: '' }));
+                }}
+                className={fieldErrors.notes ? 'border-red-500' : ''}
               />
+              {fieldErrors.notes && <p className="text-xs text-red-500">{fieldErrors.notes}</p>}
             </div>
           </CardContent>
         </Card>
@@ -516,9 +542,7 @@ export default function CreerPiecePage() {
             </Link>
             <Button
               type="submit"
-              disabled={
-                isSubmitting || photoUrls.length === 0 || uploadState.status === 'uploading'
-              }
+              disabled={isSubmitting || uploadState.status === 'uploading'}
               className="w-full gap-2 px-6 font-bold shadow-md sm:w-auto"
             >
               {isSubmitting ? (
