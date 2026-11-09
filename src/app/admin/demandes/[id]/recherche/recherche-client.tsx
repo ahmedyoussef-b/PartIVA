@@ -16,7 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CandidateCard } from '@/components/domain/candidate-card';
+import { CandidateGallery } from '@/components/domain/candidate-gallery';
+import { CandidateTable } from '@/components/domain/candidate-table';
 import { SimilarityScore } from '@/components/domain/similarity-score';
 import {
   ArrowLeft,
@@ -35,6 +36,8 @@ import {
   Info,
   AlertOctagon,
   Camera,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import type { SearchCandidate } from '@/schemas/search';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
@@ -147,6 +150,7 @@ export default function RechercheClient({
   const [activeSource, setActiveSource] = React.useState<string>('all');
   const [photoFile, setPhotoFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
+  const [viewMode, setViewMode] = React.useState<'gallery' | 'table'>('gallery');
   const [isPhotoSearching, setIsPhotoSearching] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -651,31 +655,38 @@ export default function RechercheClient({
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-4">
-                      {filtered
-                        .sort((a, b) => b.scores.global - a.scores.global)
-                        .map((c) => (
-                          <CandidateCard
-                            key={c.id}
-                            candidate={c}
-                            sourceLabel={sourceLabel(c.source)}
-                            isSelected={selectedCandidate?.id === c.id}
-                            onSelect={() =>
-                              setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)
-                            }
-                            onValidate={(cand) => {
-                              setSelectedCandidate(cand);
-                              handleStatusChange('candidate_found');
-                            }}
-                            onReject={() => {
-                              alert(`Candidat ${c.reference} rejeté (logique à implémenter)`);
-                            }}
-                            onView={() => {
-                              alert(`Voir détails de ${c.reference} (logique à implémenter)`);
-                            }}
-                          />
-                        ))}
-                    </div>
+                    <>
+                      <div className="mb-4 flex items-center justify-end gap-2">
+                        <Button
+                          variant={viewMode === 'gallery' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setViewMode('gallery')}
+                        >
+                          <LayoutGrid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant={viewMode === 'table' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setViewMode('table')}
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {viewMode === 'gallery' ? (
+                        <CandidateGallery
+                          candidates={filtered.sort((a, b) => b.scores.global - a.scores.global)}
+                          onSelect={(c) => setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)}
+                          selectedId={selectedCandidate?.id}
+                        />
+                      ) : (
+                        <CandidateTable
+                          candidates={filtered.sort((a, b) => b.scores.global - a.scores.global)}
+                          onSelect={(c) => setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)}
+                          selectedId={selectedCandidate?.id}
+                        />
+                      )}
+                    </>
                   )}
                 </TabsContent>
               </Tabs>
