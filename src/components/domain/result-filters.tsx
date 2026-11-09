@@ -44,9 +44,7 @@ export function ResultFiltersBar({
       {/* Fabricant */}
       <select
         value={filters.manufacturer ?? ''}
-        onChange={(e) =>
-          onFiltersChange({ ...filters, manufacturer: e.target.value || null })
-        }
+        onChange={(e) => onFiltersChange({ ...filters, manufacturer: e.target.value || null })}
         className="rounded-md border border-input bg-background px-2 py-1 text-xs"
       >
         <option value="">Tous les fabricants</option>

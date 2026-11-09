@@ -304,10 +304,7 @@ export default function RechercheClient({
     () => [...new Set(candidates.map((c) => c.manufacturer).filter(Boolean))] as string[],
     [candidates],
   );
-  const sources = React.useMemo(
-    () => [...new Set(candidates.map((c) => c.source))],
-    [candidates],
-  );
+  const sources = React.useMemo(() => [...new Set(candidates.map((c) => c.source))], [candidates]);
 
   const filteredAndScored = candidates
     .filter((c) => c.scores.global * 100 >= filters.minScore)
