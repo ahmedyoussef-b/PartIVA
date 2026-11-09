@@ -89,8 +89,7 @@ export default function CreerPiecePage() {
     if (!partName?.trim()) errs.partName = 'Nom de la pièce obligatoire.';
     if (!notes || notes.trim().length < 10)
       errs.notes = 'La description doit contenir au moins 10 caractères.';
-    if (photoUrls.length === 0)
-      errs.photos = 'Ajoutez au moins une photo de la pièce.';
+    if (photoUrls.length === 0) errs.photos = 'Ajoutez au moins une photo de la pièce.';
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) {
       toast.error('Champs manquants ou invalides', {
@@ -109,7 +108,6 @@ export default function CreerPiecePage() {
     setIsSubmitting(true);
 
     try {
-
       const formData = new FormData();
 
       formData.append('clientName', clientName);
@@ -333,9 +331,7 @@ export default function CreerPiecePage() {
               >
                 Ajouter des photos
               </label>
-              {fieldErrors.photos && (
-                <p className="text-xs text-red-500">{fieldErrors.photos}</p>
-              )}
+              {fieldErrors.photos && <p className="text-xs text-red-500">{fieldErrors.photos}</p>}
               {photoUrls.length > 0 && (
                 <p className="text-xs text-muted-foreground">
                   {photoUrls.length} photo(s) prête(s) à être envoyée(s).
