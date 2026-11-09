@@ -1,7 +1,7 @@
 # DÉCISIONS VALIDÉES — PartIVA
 
 **Dernière mise à jour :** 2026-11-10
-**Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC).
+**Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE).
 **Statut :** Registre des décisions validées.
 
 ---
@@ -135,7 +135,7 @@
 |---|---|---|---|
 | **C1** | Statut du mot de passe admin | **(a)** La v10 prime : action critique non-dette | **Q6(b) est requalifié en Q6(a')**. Le mot de passe admin figure dans `ETAT_COURANT.md` §« Actions critiques », **pas** dans `DETTES.md`. |
 | **C2** | Date de référence | **(a)** Date = 2026-11-10 | Le prompt v11 est daté 2026-11-10. |
-| **C3** | V7-A réellement commitée ? | **(b)** Preuve git exigée avant ouverture V7 | L'IA interne doit fournir le hash du commit V7-A. Sans preuve, Étape 2 suspendue (L50). |
+| **C3** | V7-A réellement commitée ? | **(b)** Preuve git exigée avant ouverture V7 | L'IA interne doit fournir le hash du commit V7-A. Sans preuve, Étape 2 suspendue (L50). **Prouvée en 2-A/2-A-bis : `530a0f3` + `recherche-client.tsx`.** |
 
 **Note de requalification :** Q6(b) (dette suivie dans `DETTES.md`) est **remplacé** par C1(a) (action critique dans `ETAT_COURANT.md`). Les deux décisions sont conservées ici pour traçabilité (charte §9).
 
@@ -167,13 +167,27 @@
 ### `D-L57-SELECTSTRING` — Échappement des métacaractères regex dans `Select-String`
 
 - **Date :** 2026-11-10.
-- **Décision :** Dans `Select-String`, les métacaractères regex (`?`, `*`, `+`, `[`, `]`, `(`, `)`, `{`, `}`, `|`, `\`) doivent être échappés (`\?`) ou placés entre crochets (`[?]`), ou utiliser `-SimpleMatch` quand pertinent. Ne jamais coller de contenu Markdown/texte contenant `[ ] :: \` ? * \`` dans le terminal PowerShell — passer par un fichier temporaire ou une commande dédiée.
-- **Justification :** En 1-C, un `?` non échappé a provoqué `Quantificateur {x,y} ne suivant rien` ; un collage accidentel de la leçon L55 a provoqué des erreurs de parsing. Les deux étaient des erreurs de commande, pas du fichier.
+- **Décision :** Dans `Select-String`, les métacaractères regex (`?`, `*`, `+`, `[`, `]`, `(`, `)`, `{`, `}`, `|`, `\`) doivent être échappés (`\?`) ou placés entre crochets (`[?]`), ou utiliser `-SimpleMatch` quand pertinent. Ne jamais coller de contenu Markdown/texte contenant `` [ ] :: ` `` `?` `*` `\` dans le terminal PowerShell — passer par un fichier temporaire ou une commande dédiée.
+- **Justification :** En 1-C, un `?` non échappé a provoqué `Quantificateur {x,y} ne suivant rien` ; un collage accidentel de la leçon L55 a provoqué des erreurs de parsing.
 - **Conséquences :** L57 actée. Les patterns `Select-String` des prompts suivants sont corrigés.
+
+### `D-L58-MERGE-COMMITS` — `git show --name-only` sur merge commit
+
+- **Date :** 2026-11-10.
+- **Décision :** `git show --name-only` sur un **merge commit** ne liste **aucun fichier**. Pour vérifier le contenu d'un merge, utiliser `git diff --name-only <merge>^1 <merge>` (diff par rapport au premier parent).
+- **Justification :** En 1-F, `git show --name-only` sur `11cc1f8` (merge PR #19) n'a listé aucun fichier ; `git diff --name-only HEAD^1 HEAD` a listé les 5 fichiers.
+- **Conséquences :** L58 actée. L51 ne s'applique qu'aux commits **non-merge**.
+
+### `D-L59-POWERSHELL-GLOBSTAR` — `Select-String` et `**` en PowerShell 5.1
+
+- **Date :** 2026-11-10.
+- **Décision :** En PowerShell 5.1, `Select-String -Path "**/*.tsx"` ne fonctionne pas (pas de globstar). Utiliser `Get-ChildItem -Path <dir> -Recurse -Include "*.tsx","*.ts" | Select-String -Pattern "..." -SimpleMatch`. Ne jamais laisser de placeholder `<hash>` dans une commande — le remplacer par le hash réel avant exécution.
+- **Justification :** En 2-A-bis, `Select-String` avec `**` n'a trouvé qu'une occurrence sur cinq ; le fallback `Get-ChildItem` a trouvé les cinq. `git show <hash>` a échoué (placeholder non substitué).
+- **Conséquences :** L59 actée. Les prompts suivants utilisent le fallback `Get-ChildItem`.
 
 ---
 
-## 7. Leçons (L45 → L57)
+## 7. Leçons (L45 → L59)
 
 - **L45** — `prettier --check` échoue souvent sur les fichiers modifiés par l'IA interne → toujours `prettier --write` avant commit.
 - **L46** — Les commits poussés après le merge d'une PR nécessitent une **nouvelle PR** (ne pas réutiliser la branche supprimée).
@@ -187,7 +201,9 @@
 - **L54** — Un `git diff` **vide** après édition signifie que **rien n'a été modifié**. Avant de déclarer une étape close, vérifier que `git diff <fichier>` est **non vide** et que `git status --short` montre bien ` M <fichier>`. Ne jamais utiliser `git checkout --` / `git restore` pour « repartir de zéro » sans sauvegarde.
 - **L55** — `Set-Content -Encoding UTF8` sur PowerShell 5.1 réencode le fichier et corrompt les accents (`é` → `�`). Utiliser `[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))`. `.Replace()` de .NET échoue **silencieusement** si la chaîne recherchée diffère d'un seul caractère.
 - **L56** — Pour les fichiers Markdown > 100 lignes, **fournir le fichier complet** et l'écrire en une seule fois via `WriteAllText` (UTF-8 sans BOM), plutôt que des `.Replace()` ciblés. Vérifier avec `Format-Hex` (pas de BOM) et `Select-String` (contenu attendu).
-- **L57** — Dans `Select-String`, les métacaractères regex (`?`, `*`, `+`, `[`, `]`, `(`, `)`, `{`, `}`, `|`, `\`) doivent être **échappés** (`\?`) ou placés entre crochets (`[?]`), ou utiliser `-SimpleMatch` quand pertinent. Un `?` non échappé provoque une erreur `Quantificateur {x,y} ne suivant rien`. Ne jamais coller de contenu Markdown/texte contenant `[ ] :: \` ? * \`` directement dans le terminal PowerShell.
+- **L57** — Dans `Select-String`, les métacaractères regex (`?`, `*`, `+`, `[`, `]`, `(`, `)`, `{`, `}`, `|`, `\`) doivent être **échappés** (`\?`) ou placés entre crochets (`[?]`), ou utiliser `-SimpleMatch` quand pertinent. Un `?` non échappé provoque une erreur `Quantificateur {x,y} ne suivant rien`. Ne jamais coller de contenu Markdown/texte contenant `` [ ] :: ` `` `?` `*` `\` directement dans le terminal PowerShell.
+- **L58** — `git show --name-only` sur un **merge commit** ne liste **aucun fichier** (le merge n'a pas de diff propre). Pour vérifier le contenu d'un merge, utiliser `git diff --name-only <merge>^1 <merge>` (diff par rapport au premier parent). L51 ne s'applique qu'aux commits **non-merge**.
+- **L59** — En PowerShell 5.1, `Select-String -Path "**/*.tsx"` ne fonctionne pas (pas de globstar). Utiliser `Get-ChildItem -Path <dir> -Recurse -Include "*.tsx","*.ts" | Select-String -Pattern "..." -SimpleMatch`. Ne jamais laisser de placeholder `<hash>` dans une commande — le remplacer par le hash réel avant exécution.
 
 ---
 
@@ -196,4 +212,22 @@
 - **Mise à jour :** Les nouvelles décisions sont ajoutées ici après validation par le coordinateur.
 - **Référence :** `ETAT_COURANT.md` §5 renvoie à ce fichier pour les décisions opérationnelles.
 - **Archivage :** Les décisions obsolètes sont conservées ici (pas d'archivage séparé).
-- **Traçabilité :** Les décisions E16 → E26 sont conservées intégralement (charte §9). Les décisions V3–V8, Q1–Q6, C1–C3, et les leçons L51–L57 sont ajoutées le 2026-11-10.
+- **Traçabilité :** Les décisions E16 → E26 sont conservées intégralement (charte §9). Les décisions V3–V8, Q1–Q6, C1–C3, et les leçons L51–L59 sont ajoutées le 2026-11-10.
+
+---
+
+## 9. V7 — Ouverture formelle (2026-11-10)
+
+### `D-V7-A-PROUVEE` — V7-A (Catalogue) fonctionnellement réalisée
+
+- **Date :** 2026-11-10 (session V7-OUVERTURE).
+- **Décision :** V7-A (Catalogue) est **fonctionnellement réalisée**. Preuves : `src/app/admin/demandes/[id]/recherche/recherche-client.tsx` (libellé « Recherche Multi-Sources » l. 340, `SearchState` l. 93, `setSearchState('running')` l. 183/232, `fetch('/api/search')` l. 245, `fetch('/api/search/photo')` l. 191) + commit `530a0f3` (`feat(V5-A): brancher l'UI Recherche Multi-Sources sur aggregateSearch`).
+- **Justification :** C3(b) exigeait une preuve git de V7-A. La vérification UI/code (2-A-bis) a prouvé que le parcours existe fonctionnellement. Pas de commit dédié `V7-A` — couverture V5-A/V8.
+- **Conséquences :** V7 est **ouverte formellement**. V7-B (Workspace IA) est la **prochaine étape**. Aucune requalification de V7-A en « à faire ».
+
+### `D-V7-OUVERTURE` — Ouverture formelle de V7
+
+- **Date :** 2026-11-10 (session V7-OUVERTURE).
+- **Décision :** V7 (Reconstruction de pièce) est **ouverte formellement**. V7-A est prouvée, V7-B est la prochaine étape, V7-C/V7-D/V7-E restent à faire.
+- **Justification :** Q3(b) exigeait une ouverture formelle de V7 avant V7-B. C3(b) exigeait une preuve V7-A. Les deux sont satisfaites.
+- **Conséquences :** `ETAT_COURANT.md` reflète V7 ouverte. `INDEX.md` sera mis à jour en 2-C. V7-B peut démarrer après validation du coordinateur et production du plan détaillé.

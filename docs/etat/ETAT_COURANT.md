@@ -1,9 +1,9 @@
 # État courant du projet
 
 **Date de mise à jour :** 2026-11-10
-**HEAD actuel :** `c0c86a2` (origin/master)
-**Branche courante :** `feat/v7b-workspace-ia` (depuis `master` local `823103a`)
-**Statut :** Bloc 0 clos. V7 ouverte, V7-B prochaine.
+**HEAD actuel :** `11cc1f8` (Merge PR #19 — synchronisation documentaire)
+**Branche courante :** `feat/v7-ouverture` (depuis `master` @ `11cc1f8`)
+**Statut :** Bloc 0 clos. V7 ouverte (V7-A prouvée fonctionnellement, V7-B prochaine).
 
 ## État des versions
 
@@ -15,8 +15,8 @@
 | V5 | CLOS |
 | V6 | CLOS |
 | V8 | CLOS |
-| V7 | **OUVERTE** (branche `refactor/v7-clean-ui` obsolète, candidate à la suppression) |
-| V7-B | **PROCHAINE** (branche `feat/v7b-workspace-ia` créée) |
+| V7 | **OUVERTE** — V7-A prouvée fonctionnellement (code + commit `530a0f3`), V7-B prochaine |
+| V7-B | **PROCHAINE** — Workspace IA |
 
 ## Actions critiques
 
@@ -26,10 +26,14 @@
 
 ## Dernière session
 
-- **SESSION-2026-11-10-DOC-SYNC** (en cours) : synchronisation documentaire post-V8.
-  - Objet : aligner les 4 documents de référence (`ETAT_COURANT.md`, `DETTES.md`, `DECISIONS.md`, `INDEX.md`) sur l'état réel `master` @ `c0c86a2`.
+- **SESSION-2026-11-10-DOC-SYNC** (clôturée) : synchronisation documentaire post-V8.
+  - Objet : aligner les 4 documents de référence sur l'état réel `master` @ `11cc1f8`.
   - Décisions appliquées : Q1–Q6 (2026-11-09), C1–C3 (2026-11-10).
   - Branche : `feat/v7b-workspace-ia` (créée depuis `master` local @ `823103a`).
+  - Commit : `6fe254d` (PR #19 mergée `11cc1f8`).
+- **SESSION-2026-11-10-V7-OUVERTURE** (en cours) : ouverture formelle de V7.
+  - V7-A (Catalogue) : **prouvée fonctionnellement** — preuves : `src/app/admin/demandes/[id]/recherche/recherche-client.tsx` (libellé « Recherche Multi-Sources » l. 340, `SearchState` l. 93, `setSearchState('running')` l. 183/232, `fetch('/api/search')` l. 245, `fetch('/api/search/photo')` l. 191) + commit `530a0f3` (`feat(V5-A): brancher l'UI Recherche Multi-Sources sur aggregateSearch`).
+  - V7-B (Workspace IA) : **prochaine étape**.
 
 ## VÉRIFICATION E61 — E61-VERIF
 
@@ -41,7 +45,7 @@
 ## Portefeuille
 
 - [E61] Génération CAO via LLM + templates dans `src/core/ai-engine/skills/reconstruct/` — finalisé.
-- [Build] Prérengering de `/client/dashboard/demandes/[id]` désactivé à la build — débloqué.
+- [Build] Prérendering de `/client/dashboard/demandes/[id]` désactivé à la build — débloqué.
 - [E2E] `workspace` 17/17 — verts.
 - [E2E] `admin` bloqué par setup préexistant — hors périmètre E61.
 
@@ -280,5 +284,5 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 
 - **Objectif :** analyser les 3 photos du rétroviseur, générer un modèle 3D, compléter la Roadmap V7.
 - **Statut :** PROPOSE — ne démarre qu'après validation du coordinateur et production du plan détaillé par l'IA externe.
-- **Prérequis :** V7-A prouvée par commit git (C3b).
+- **Prérequis :** V7-A prouvée (C3b) — ✅.
 - **Détail des étapes et preuves attendues :** voir prompt v11 §7 (Étape 3) et v10 §4.
