@@ -676,13 +676,17 @@ export default function RechercheClient({
                       {viewMode === 'gallery' ? (
                         <CandidateGallery
                           candidates={filtered.sort((a, b) => b.scores.global - a.scores.global)}
-                          onSelect={(c) => setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)}
+                          onSelect={(c) =>
+                            setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)
+                          }
                           selectedId={selectedCandidate?.id}
                         />
                       ) : (
                         <CandidateTable
                           candidates={filtered.sort((a, b) => b.scores.global - a.scores.global)}
-                          onSelect={(c) => setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)}
+                          onSelect={(c) =>
+                            setSelectedCandidate(selectedCandidate?.id === c.id ? null : c)
+                          }
                           selectedId={selectedCandidate?.id}
                         />
                       )}
