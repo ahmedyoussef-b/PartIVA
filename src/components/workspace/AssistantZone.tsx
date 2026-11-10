@@ -277,6 +277,21 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
           </TooltipTrigger>
           <TooltipContent>Génère une fiche technique descriptive via l'IA.</TooltipContent>
         </Tooltip>
+        {result?.reconstruct?.candidates?.[0]?.fileUrl && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={result.reconstruct.candidates[0].fileUrl}
+                download="modele.stl"
+                className="flex items-center gap-1 rounded border px-2 py-1 text-xs shadow"
+              >
+                <Download className="h-4 w-4" />
+                Télécharger le modèle STL
+              </a>
+            </TooltipTrigger>
+            <TooltipContent>Télécharge le modèle 3D généré au format STL.</TooltipContent>
+          </Tooltip>
+        )}
       </div>
       {fiche && (
         <div className="mb-2 rounded border bg-blue-50 p-2 text-xs whitespace-pre-wrap">
