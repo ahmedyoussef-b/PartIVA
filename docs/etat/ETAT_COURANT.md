@@ -1,9 +1,9 @@
 # État courant du projet
 
 **Date de mise à jour :** 2026-11-10
-**HEAD actuel :** `11cc1f8` (Merge PR #19 — synchronisation documentaire)
-**Branche courante :** `feat/v7-ouverture` (depuis `master` @ `11cc1f8`)
-**Statut :** Bloc 0 clos. V7 ouverte (V7-A prouvée fonctionnellement, V7-B prochaine).
+**HEAD actuel :** `eb798c0` (Merge PR #28 — tests V7B-6)
+**Branche courante :** `feat/v7b-cloture-doc` (depuis `master` @ `eb798c0`)
+**Statut :** V7-B close (V7B-1 → V7B-6 validés). V7-C (Reverse CAO) prochaine étape.
 
 ## État des versions
 
@@ -15,8 +15,9 @@
 | V5 | CLOS |
 | V6 | CLOS |
 | V8 | CLOS |
-| V7 | **OUVERTE** — V7-A prouvée fonctionnellement (code + commit `530a0f3`), V7-B prochaine |
-| V7-B | **PROCHAINE** — Workspace IA |
+| V7 | **OUVERTE** — V7-A prouvée, **V7-B close** (V7B-1 → V7B-6), V7-C prochaine |
+| V7-B | **CLOSE** (Workspace IA) — 6 sous-tâches validées (voir §V7-B) |
+| V7-C | **PROCHAINE** — Reverse CAO |
 
 ## Actions critiques
 
@@ -26,14 +27,14 @@
 
 ## Dernière session
 
-- **SESSION-2026-11-10-DOC-SYNC** (clôturée) : synchronisation documentaire post-V8.
-  - Objet : aligner les 4 documents de référence sur l'état réel `master` @ `11cc1f8`.
-  - Décisions appliquées : Q1–Q6 (2026-11-09), C1–C3 (2026-11-10).
-  - Branche : `feat/v7b-workspace-ia` (créée depuis `master` local @ `823103a`).
-  - Commit : `6fe254d` (PR #19 mergée `11cc1f8`).
-- **SESSION-2026-11-10-V7-OUVERTURE** (en cours) : ouverture formelle de V7.
-  - V7-A (Catalogue) : **prouvée fonctionnellement** — preuves : `src/app/admin/demandes/[id]/recherche/recherche-client.tsx` (libellé « Recherche Multi-Sources » l. 340, `SearchState` l. 93, `setSearchState('running')` l. 183/232, `fetch('/api/search')` l. 245, `fetch('/api/search/photo')` l. 191) + commit `530a0f3` (`feat(V5-A): brancher l'UI Recherche Multi-Sources sur aggregateSearch`).
-  - V7-B (Workspace IA) : **prochaine étape**.
+- **SESSION-2026-11-10-V7B** (clôturée) : Workspace IA (V7B-1 → V7B-6).
+  - **V7B-1** : bouton « Ouvrir le Workspace » depuis une demande + pré-chargement photos/description/matériau. Commit `9241a91`, PR #22 mergée `5e4ba47`.
+  - **V7B-2** : libellé « Analyser avec le Workspace » + affichage dimensions/forme/matériau. Commit `680eaa0`, PR #23 mergée `aefd372`.
+  - **V7B-3** : libellé « Reconstruire CAO » + export STL. Commit `5b9d7db`, PR #24 mergée `b2c7b93`.
+  - **V7B-4** : viewer 3D pour modèles générés (data URL STL). Commit `2388d61`, PR #25 mergée `61f2dd5`.
+  - **V7B-5** : validation + persistance (`Part` + `ReconstructionAttempt`). Commit `c01a2f5`, PR #26 mergée `0f8600b`.
+  - **V7B-6** : tests unitaires (route validate) + correction tests connectors. Commit `daaa957`, PR #28 mergée `eb798c0`.
+  - **Total** : 6 commits, 6 PR mergées, 3 checks CI verts à chaque PR.
 
 ## VÉRIFICATION E61 — E61-VERIF
 
@@ -280,9 +281,9 @@ E64-B-CI-FIX-APPLIED: typecheck OK, 30/30 tests, lint OK.
 
 ## Prochaine étape
 
-**V7-B — Workspace IA** (source v10 §4).
+**V7-C — Reverse CAO** (méthode 3 de la roadmap V7).
 
-- **Objectif :** analyser les 3 photos du rétroviseur, générer un modèle 3D, compléter la Roadmap V7.
-- **Statut :** PROPOSE — ne démarre qu'après validation du coordinateur et production du plan détaillé par l'IA externe.
-- **Prérequis :** V7-A prouvée (C3b) — ✅.
-- **Détail des étapes et preuves attendues :** voir prompt v11 §7 (Étape 3) et v10 §4.
+- **Objectif :** modélisation manuelle si l'IA échoue (fallback de V7-B).
+- **Statut :** PROPOSE — ne démarre qu'après validation du coordinateur.
+- **Alternative :** V4-C (connecteurs TraceParts/TecDoc réels).
+- **Détail :** voir `ROADMAP_RECONSTRUCTION.md` §V7-C.

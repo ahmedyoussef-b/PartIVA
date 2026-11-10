@@ -1,7 +1,7 @@
 # INDEX DES SESSIONS — PartIVA
 
 **Dernière mise à jour :** 2026-11-10
-**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE).
+**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B).
 **Statut :** Index des sessions.
 
 ---
@@ -55,12 +55,16 @@
 | ID | Date | Objectif | Fonctionnalités | Statut | Référence |
 |---|---|---|---|---|---|
 | SESSION-2026-11-10-V7-OUVERTURE | 2026-11-10 | Ouverture formelle de V7 (V7-A prouvée, V7-B prochaine) | Gouvernance | ✅ | PR #20 mergée (`869254e`), `DECISIONS.md` §9 |
+| SESSION-2026-11-10-V7B | 2026-11-10 | Workspace IA (V7B-1 → V7B-6) | Workspace, Validation | ✅ | PR #22 → #28, commits `9241a91` → `daaa957` |
 
-**Détail :**
-- **V7-A (Catalogue)** : **prouvée fonctionnellement** — preuves : `src/app/admin/demandes/[id]/recherche/recherche-client.tsx` (libellé « Recherche Multi-Sources » l. 340, `SearchState` l. 93, `setSearchState('running')` l. 183/232, `fetch('/api/search')` l. 245, `fetch('/api/search/photo')` l. 191) + commit `530a0f3`.
-- **V7-B (Workspace IA)** : **prochaine étape**.
-- **Branche** : `feat/v7-ouverture` (créée depuis `master` `11cc1f8`, mergée en `869254e`).
-- **Commit** : `7614654` (PR #20 mergée `869254e`).
+**Détail V7B :**
+
+- **V7B-1** : bouton « Ouvrir le Workspace » + pré-chargement photos/description/matériau. Commit `9241a91`, PR #22 mergée `5e4ba47`.
+- **V7B-2** : libellé « Analyser avec le Workspace » + affichage dimensions/forme/matériau. Commit `680eaa0`, PR #23 mergée `aefd372`.
+- **V7B-3** : libellé « Reconstruire CAO » + export STL. Commit `5b9d7db`, PR #24 mergée `b2c7b93`.
+- **V7B-4** : viewer 3D pour modèles générés (data URL STL). Commit `2388d61`, PR #25 mergée `61f2dd5`.
+- **V7B-5** : validation + persistance (`Part` + `ReconstructionAttempt`). Commit `c01a2f5`, PR #26 mergée `0f8600b`.
+- **V7B-6** : tests unitaires (route validate) + correction tests connectors. Commit `daaa957`, PR #28 mergée `eb798c0`.
 
 ---
 
@@ -68,13 +72,13 @@
 
 | ID | Date | Objectif | Fonctionnalités | Statut |
 |---|---|---|---|---|
-| SESSION-2026-11-10-V7-INDEX | 2026-11-10 | Mise à jour de `INDEX.md` (V7 ouverte, V7-A prouvée) | Gouvernance | ⏳ En cours |
+| SESSION-2026-11-10-V7B-CLOSED | 2026-11-10 | Clôture documentaire de V7-B (ETAT_COURANT, INDEX, DECISIONS) | Gouvernance | ⏳ En cours |
 
 ---
 
 ## 5. Décisions et leçons (renvoi)
 
-Les décisions validées (Q1–Q6, C1–C3, D-V7-A-PROUVEE, D-V7-OUVERTURE) et les leçons (L45–L59) sont consignées dans `docs/etat/DECISIONS.md`. Les dettes actives sont dans `docs/etat/DETTES.md`. L'état courant est dans `docs/etat/ETAT_COURANT.md`.
+Les décisions validées (Q1–Q6, C1–C3, D-V7-A-PROUVEE, D-V7-OUVERTURE, D-V7B-CLOSED) et les leçons (L45–L59) sont consignées dans `docs/etat/DECISIONS.md`. Les dettes actives sont dans `docs/etat/DETTES.md`. L'état courant est dans `docs/etat/ETAT_COURANT.md`.
 
 ---
 
@@ -107,7 +111,16 @@ Noms canoniques des fonctionnalités traitées, avec les sessions correspondante
 | Cache / API | V4-B | Clôturé |
 | Recherche | V5, V8 | Clôturé |
 | UI | V8 | Clôturé |
-| Gouvernance | DOC-SYNC, V7-OUVERTURE | En cours |
+| Gouvernance | DOC-SYNC, V7-OUVERTURE | Clôturé |
+
+**Fonctionnalités V7 (ajoutées le 2026-11-10) :**
+
+| Fonctionnalité | Sessions | Statut |
+|---|---|---|
+| Workspace | V7B | Clôturé |
+| Validation | V7B | Clôturé |
+| Export STL | V7B | Clôturé |
+| Persistance | V7B | Clôturé |
 
 ---
 
@@ -117,4 +130,4 @@ Noms canoniques des fonctionnalités traitées, avec les sessions correspondante
 - **Mise à jour :** L'index est mis à jour à chaque nouvelle session.
 - **Sessions antérieures :** Les sessions E0 à E16 ne sont pas listées ici. Leur trace est conservée dans `docs/archive/JOURNAL.md` et `docs/archive/ROADMAP.md` (archivage effectué en E6). Si le coordinateur souhaite un historique indexé E0 → E16, un ordre de rattrapage sera nécessaire.
 - **Noms canoniques :** toute fonctionnalité ajoutée à une session doit être reportée au §6 sous le même nom (charte §6).
-- **Synchronisation 2026-11-10 :** les sessions V3–V8, V7-OUVERTURE et V7-INDEX sont ajoutées. Les sessions E17–E29 sont conservées intégralement (charte §7). La mention `E58-A → E58-E` est clarifiée.
+- **Synchronisation 2026-11-10 :** les sessions V3–V8, V7-OUVERTURE, V7B et V7B-CLOSED sont ajoutées. Les sessions E17–E29 sont conservées intégralement (charte §7).
