@@ -109,6 +109,9 @@ export async function ingestInput(input: IngestInput): Promise<IngestResult> {
         detectedType,
       },
       extractedFeatures,
+      extractedDimensions: dimensions,
+      extractedShape: detectedType,
+      extractedMaterial: dimensions?.material ?? null,
       analysisStatus,
       warnings,
     };

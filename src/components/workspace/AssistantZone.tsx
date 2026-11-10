@@ -77,6 +77,43 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
   }
 
   if (result) {
+    const extractedDimensions =
+      result.ingest?.extractedDimensions ?? result.ingest?.metadata?.dimensions;
+    const extractedShape = result.ingest?.extractedShape ?? result.ingest?.metadata?.detectedType;
+    const extractedMaterial =
+      result.ingest?.extractedMaterial ?? result.ingest?.metadata?.dimensions?.material;
+    if (
+      extractedDimensions?.length ||
+      extractedDimensions?.width ||
+      extractedDimensions?.height ||
+      extractedDimensions?.diameter ||
+      extractedShape ||
+      extractedMaterial
+    ) {
+      messages.push({
+        id: 'extracted-summary',
+        role: 'assistant' as const,
+        content: [
+          'Dimensions extraites',
+          extractedDimensions?.length != null
+            ? `Longueur: ${extractedDimensions.length} ${extractedDimensions.unit ?? 'mm'}`
+            : null,
+          extractedDimensions?.width != null
+            ? `Largeur: ${extractedDimensions.width} ${extractedDimensions.unit ?? 'mm'}`
+            : null,
+          extractedDimensions?.height != null
+            ? `Hauteur: ${extractedDimensions.height} ${extractedDimensions.unit ?? 'mm'}`
+            : null,
+          extractedDimensions?.diameter != null
+            ? `Diamètre: ${extractedDimensions.diameter} ${extractedDimensions.unit ?? 'mm'}`
+            : null,
+          extractedShape ? `Forme: ${extractedShape}` : null,
+          extractedMaterial ? `Matériau: ${extractedMaterial}` : null,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      });
+    }
     if (result.ingest?.structuredWarnings?.length) {
       for (const w of result.ingest.structuredWarnings) {
         messages.push({
