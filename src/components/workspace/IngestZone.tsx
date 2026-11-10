@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -193,11 +194,13 @@ export function IngestZone({
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map((url, i) => (
-            <div key={i} className="relative group">
-              <img
+            <div key={i} className="relative group h-20 w-full">
+              <Image
                 src={url}
                 alt={`Photo ${i + 1}`}
-                className="h-20 w-full rounded border object-cover"
+                fill
+                className="rounded border object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
               <button
                 type="button"
