@@ -61,6 +61,7 @@ export function WorkspaceClient() {
   } | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
 
   function handleDimensionsExtracted(dims: {
     length: number;
@@ -183,14 +184,18 @@ export function WorkspaceClient() {
             onSubmit={handleSubmit}
             loading={status === 'loading'}
             onClearWorkspace={handleClearWorkspace}
+            selectedPhotoIndex={selectedPhotoIndex}
+            onSelectPhoto={setSelectedPhotoIndex}
           />
         </div>
         <div className="flex min-h-0 flex-col rounded-lg border bg-background">
           <ViewerZone
             fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
-            uploadedFileUrl={cadFiles[0] ?? photos[0] ?? null}
+            uploadedFileUrl={cadFiles[0] ?? photos[selectedPhotoIndex ?? 0] ?? null}
             candidates={result?.reconstruct?.candidates ?? []}
             onDimensionsExtracted={handleDimensionsExtracted}
+            photos={photos}
+            selectedPhotoIndex={selectedPhotoIndex}
           />
         </div>
         <div className="flex min-h-0 flex-col rounded-lg border bg-background">
