@@ -194,7 +194,7 @@ export function IngestZone({
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map((url, i) => (
-            <div key={i} className="relative group h-20 w-full">
+            <div key={i} className="group relative h-20 w-full">
               <Image
                 src={url}
                 alt={`Photo ${i + 1}`}
