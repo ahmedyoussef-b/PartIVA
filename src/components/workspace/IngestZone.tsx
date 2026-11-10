@@ -190,6 +190,27 @@ export function IngestZone({
       <div className="text-xs text-gray-500">
         Photos: {photos.length} | CAO: {cadFiles.length}
       </div>
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {photos.map((url, i) => (
+            <div key={i} className="relative group">
+              <img
+                src={url}
+                alt={`Photo ${i + 1}`}
+                className="h-20 w-full rounded border object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => onPhotosChange(photos.filter((_, idx) => idx !== i))}
+                className="absolute top-1 right-1 hidden rounded bg-red-500 p-1 text-white group-hover:block"
+                title="Supprimer la photo"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       {cadFiles.length > 0 && (
         <ul className="space-y-1 text-xs text-gray-600">
           {cadFiles.map((url, i) => (
