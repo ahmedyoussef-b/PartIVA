@@ -5,6 +5,7 @@ export type Dimensions = {
   width?: number;
   height?: number;
   diameter?: number;
+  material?: string;
   unit: 'mm' | 'cm';
 };
 
@@ -25,6 +26,9 @@ export type IngestResult = {
     detectedType?: string | null;
   };
   extractedFeatures: string[];
+  extractedDimensions?: Dimensions;
+  extractedShape?: string | null;
+  extractedMaterial?: string | null;
   analysisStatus: 'complete' | 'partial' | 'failed';
   warnings: string[];
   structuredWarnings?: EngineWarning[];
@@ -46,6 +50,7 @@ export const dimensionsSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   diameter: z.number().optional(),
+  material: z.string().optional(),
   unit: z.enum(['mm', 'cm']),
 });
 
