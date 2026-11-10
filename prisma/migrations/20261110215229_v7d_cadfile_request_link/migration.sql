@@ -9,7 +9,7 @@ ALTER TABLE "cad_files" ALTER COLUMN "projectId" DROP NOT NULL;
 
 -- Add foreign key constraint for requestId
 ALTER TABLE "cad_files" ADD CONSTRAINT "cad_files_requestId_fkey" 
-    FOREIGN KEY ("requestId") REFERENCES "requests"("id") ON DELETE CASCADE;
+    FOREIGN KEY ("requestId") REFERENCES "requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Add index on requestId
 CREATE INDEX "cad_files_requestId_idx" ON "cad_files"("requestId");
