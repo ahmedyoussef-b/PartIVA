@@ -47,6 +47,7 @@ export function ViewerZone({
   onDimensionsExtracted,
 }: ViewerZoneProps) {
   const displayUrl = fileUrl || uploadedFileUrl || null;
+  const isStlDataUrl = displayUrl ? displayUrl.startsWith('data:application/stl') : false;
   const [measuring, setMeasuring] = useState(false);
   const [measureMode, setMeasureMode] = useState<MeasureMode>('distance');
   const [renderMode, setRenderMode] = useState<RenderMode>('solid');
@@ -58,6 +59,7 @@ export function ViewerZone({
   if (
     displayUrl &&
     !isCad(displayUrl) &&
+    !isStlDataUrl &&
     !/\.(stl|gltf|glb|step|stp|iges|igs|obj|3mf)$/i.test(displayUrl)
   ) {
     return (
