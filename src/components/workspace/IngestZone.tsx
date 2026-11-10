@@ -303,11 +303,11 @@ export function IngestZone({
               disabled={loading}
               className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Analyse en cours...' : 'Analyser avec le Workspace'}
+              {loading ? 'Reconstruction en cours...' : 'Reconstruire CAO'}
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            Lance l&apos;analyse IA sur les fichiers et dimensions fournis.
+            Lance la reconstruction CAO sur les fichiers et dimensions fournis.
           </TooltipContent>
         </Tooltip>
       </div>
