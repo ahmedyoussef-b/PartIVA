@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { Trash2, X } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -190,6 +191,29 @@ export function IngestZone({
       <div className="text-xs text-gray-500">
         Photos: {photos.length} | CAO: {cadFiles.length}
       </div>
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {photos.map((url, i) => (
+            <div key={i} className="group relative h-20 w-full">
+              <Image
+                src={url}
+                alt={`Photo ${i + 1}`}
+                fill
+                className="rounded border object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+              <button
+                type="button"
+                onClick={() => onPhotosChange(photos.filter((_, idx) => idx !== i))}
+                className="absolute top-1 right-1 hidden rounded bg-red-500 p-1 text-white group-hover:block"
+                title="Supprimer la photo"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       {cadFiles.length > 0 && (
         <ul className="space-y-1 text-xs text-gray-600">
           {cadFiles.map((url, i) => (
