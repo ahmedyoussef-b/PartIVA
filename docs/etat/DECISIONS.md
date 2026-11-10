@@ -1,7 +1,7 @@
 # DÉCISIONS VALIDÉES — PartIVA
 
 **Dernière mise à jour :** 2026-11-10
-**Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE).
+**Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B).
 **Statut :** Registre des décisions validées.
 
 ---
@@ -231,3 +231,28 @@
 - **Décision :** V7 (Reconstruction de pièce) est **ouverte formellement**. V7-A est prouvée, V7-B est la prochaine étape, V7-C/V7-D/V7-E restent à faire.
 - **Justification :** Q3(b) exigeait une ouverture formelle de V7 avant V7-B. C3(b) exigeait une preuve V7-A. Les deux sont satisfaites.
 - **Conséquences :** `ETAT_COURANT.md` reflète V7 ouverte. `INDEX.md` sera mis à jour en 2-C. V7-B peut démarrer après validation du coordinateur et production du plan détaillé.
+
+---
+
+## 10. V7-B — Clôture (2026-11-10)
+
+### `D-V7B-CLOSED` — V7-B (Workspace IA) close
+
+- **Date :** 2026-11-10 (session V7B).
+- **Décision :** V7-B (Workspace IA) est **close**. Les 6 sous-tâches (V7B-1 → V7B-6) sont **validées** par le coordinateur, avec preuves brutes et 3 checks CI verts à chaque PR.
+- **Justification :** V7B-1 (bouton Workspace + pré-chargement), V7B-2 (libellé Analyser + affichage dimensions), V7B-3 (libellé Reconstruire + export STL), V7B-4 (viewer 3D data URL STL), V7B-5 (validation + persistance), V7B-6 (tests). 6 commits, 6 PR mergées.
+- **Conséquences :** V7-C (Reverse CAO) devient la **prochaine étape** de V7. V7-B est **close**, aucune réouverture sans arbitrage.
+- **Preuves :**
+  - V7B-1 : commit `9241a91`, PR #22 mergée `5e4ba47`.
+  - V7B-2 : commit `680eaa0`, PR #23 mergée `aefd372`.
+  - V7B-3 : commit `5b9d7db`, PR #24 mergée `b2c7b93`.
+  - V7B-4 : commit `2388d61`, PR #25 mergée `61f2dd5`.
+  - V7B-5 : commit `c01a2f5`, PR #26 mergée `0f8600b`.
+  - V7B-6 : commit `daaa957`, PR #28 mergée `eb798c0`.
+
+### `D-V7B-METHODE` — Méthode V7-B (par sous-tâches)
+
+- **Date :** 2026-11-10.
+- **Décision :** V7-B a été exécutée en **6 sous-tâches atomiques** (V7B-1 → V7B-6), chacune avec son prompt unitaire, ses preuves brutes, son commit et sa PR. **Aucune sous-tâche n'a été validée sans preuves brutes.**
+- **Justification :** La granularité a permis d'isoler les erreurs (V7B-4 : TSC manquant ; V7B-6 : travail non fait sur la bonne branche) et de corriger sans casser le reste.
+- **Conséquences :** Méthode à réutiliser pour V7-C, V7-D, V7-E.
