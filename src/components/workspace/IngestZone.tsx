@@ -36,6 +36,8 @@ interface IngestZoneProps {
   onSubmit: () => void;
   loading: boolean;
   onClearWorkspace: () => void;
+  selectedPhotoIndex?: number;
+  onSelectPhoto?: (index: number) => void;
 }
 
 export function IngestZone({
@@ -53,6 +55,8 @@ export function IngestZone({
   onSubmit,
   loading,
   onClearWorkspace,
+  selectedPhotoIndex,
+  onSelectPhoto,
 }: IngestZoneProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -194,7 +198,13 @@ export function IngestZone({
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map((url, i) => (
-            <div key={i} className="group relative h-20 w-full">
+            <div
+              key={i}
+              className={`group relative h-20 w-full cursor-pointer rounded border-2 ${
+                selectedPhotoIndex === i ? 'border-blue-500' : 'border-transparent'
+              }`}
+              onClick={() => onSelectPhoto?.(i)}
+            >
               <Image
                 src={url}
                 alt={`Photo ${i + 1}`}
@@ -204,7 +214,10 @@ export function IngestZone({
               />
               <button
                 type="button"
-                onClick={() => onPhotosChange(photos.filter((_, idx) => idx !== i))}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPhotosChange(photos.filter((_, idx) => idx !== i));
+                }}
                 className="absolute top-1 right-1 hidden rounded bg-red-500 p-1 text-white group-hover:block"
                 title="Supprimer la photo"
               >

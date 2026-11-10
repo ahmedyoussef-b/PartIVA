@@ -19,6 +19,8 @@ interface ViewerZoneProps {
     height: number;
     diameter: number;
   }) => void;
+  photos?: string[];
+  selectedPhotoIndex?: number;
 }
 
 function isCad(url: string) {
@@ -45,8 +47,10 @@ export function ViewerZone({
   uploadedFileUrl,
   candidates = [],
   onDimensionsExtracted,
+  photos = [],
+  selectedPhotoIndex = 0,
 }: ViewerZoneProps) {
-  const displayUrl = fileUrl || uploadedFileUrl || null;
+  const displayUrl = fileUrl || uploadedFileUrl || photos[selectedPhotoIndex] || null;
   const isStlDataUrl = displayUrl ? displayUrl.startsWith('data:application/stl') : false;
   const [measuring, setMeasuring] = useState(false);
   const [measureMode, setMeasureMode] = useState<MeasureMode>('distance');
