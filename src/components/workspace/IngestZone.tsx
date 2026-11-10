@@ -18,6 +18,7 @@ interface IngestZoneProps {
     width?: number;
     height?: number;
     diameter?: number;
+    material?: string;
     unit: 'mm' | 'cm';
   };
   onDimensionsChange: (dims: any) => void;

@@ -1,5 +1,10 @@
-﻿import { WorkspaceClient } from '@/components/workspace/WorkspaceClient';
+﻿import { Suspense } from 'react';
+import { WorkspaceClient } from '@/components/workspace/WorkspaceClient';
 
 export default function WorkspacePage() {
-  return <WorkspaceClient />;
+  return (
+    <Suspense fallback={null}>
+      <WorkspaceClient />
+    </Suspense>
+  );
 }
