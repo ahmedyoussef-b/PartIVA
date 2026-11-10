@@ -51,6 +51,19 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** obtenir les credentials TraceParts, passer `traceparts.ts` en `mode: 'real'`, remplacer le mock statique par l'API REST v3 réelle, tester unitaire + runtime, retirer le badge `Mock`.
 
+
+### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
+
+- **Statut :** Active (documentée)
+- **Cause :** la migration `20261110215229_v7d_cadfile_request_link` a été trackée manuellement en DB (`_prisma_migrations.checksum`) lors de V7-D-2.1-fix3, puis corrigée en V7-D-2.9-fix. Le checksum est désormais aligné sur le SHA256 réel du fichier (`82d167a2...`).
+- **Action future :** tout nouveau dev qui clone le repo doit lancer `migrate dev` (qui recalculera le checksum si besoin) — pas de fix manuel nécessaire.
+- **Condition de résolution :** documenté pour traçabilité (pas d'action corrective requise).
+
+### `D-MIGRATION-FK-ONUPDATE` — Drift FK cad_files_requestId_fkey (résolue)
+
+- **Statut :** Résolue (V7-D-2.9-fix)
+- **Cause :** la FK `cad_files_requestId_fkey` avait été appliquée sans `ON UPDATE CASCADE` (V7-D-2.1-fix2, application manuelle), puis le fichier `migration.sql` commité en V7-D-2.7 contenait `ON UPDATE CASCADE`. Drift corrigé (DB alignée sur fichier).
+- **Condition de résolution :** dette fermée.
 ---
 
 ## Basse
@@ -91,6 +104,51 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** chaque branche est soit supprimée (si mergée et sans usage), soit documentée comme conservée avec motif. Preuve : `git branch` final + justification par branche.
 
+
+### `D-PRISMA-MIGRATION-DRIFT-HISTORIQUE` — Lignes fantômes `_prisma_migrations` (add_analysis_data_to_part)
+
+- **Statut :** Active
+- **Cause :** 3 lignes dans `_prisma_migrations` pour la migration `20261101173317_add_analysis_data_to_part` (dont 2 avec finished_at: null, applied_steps_count: 0). **Pré-existant à V7-D**, non causé par V7-D.
+- **Action future :** nettoyage manuel des lignes fantômes (hors scope V7).
+- **Condition de résolution :** lignes fantômes supprimées ou documentées comme acceptées.
+
+### `D-PRISMA-FORMAT-DIFF` — Bruit diff `prisma format` sur `schema.prisma`
+
+- **Statut :** Active
+- **Cause :** `prisma format` a réécrit intégralement `prisma/schema.prisma` (bruit diff dans le commit V7-D `7b2bcdc`, +1309/-684).
+- **Action future :** commit séparé `chore(prisma): format` si le bruit devient gênant. **Non bloquant.**
+- **Condition de résolution :** diff normalisé ou accepté.
+
+### `D-ESLINT-IGNORE-DEPRECATED` — `.eslintignore` déprécié
+
+- **Statut :** Active
+- **Cause :** warning `.eslintignore` déprécié (Prisma 7 / ESLint 9). **Pré-existant**, non bloquant.
+- **Action future :** migrer vers `eslint.config.mjs` `ignores` quand le temps le permettra.
+- **Condition de résolution :** configuration ESLint migrée, warning absent.
+
+### `D-CADFILE-DELETE` — Suppression fichier CAO import admin absente
+
+- **Statut :** Active
+- **Cause :** pas de bouton « supprimer » un fichier CAO dans `/admin/demandes/[id]/import-cad`.
+- **Action future :** ajouter une Server Action `deleteCadFile` + bouton. **V7-E+.**
+- **Condition de résolution :** suppression disponible et vérifiée.
+
+### `D-CADFILE-XOR-GUARD` — Garde-fou XOR projectId/requestId absent
+
+- **Statut :** Active
+- **Cause :** pas de garde-fou Zod si un futur code passe `projectId` ET `requestId` simultanément à `prisma.cadFile.create`.
+- **Action future :** ajouter `.refine()` dans le schéma Zod de `importCad` et `addCadFile`. **V7-E+.**
+- **Condition de résolution :** garde-fou en place et testé.
+
+---
+
+## Résolues
+
+### `D-ENV-SHADOW-DB` — Branche Neon shadow configurée
+
+- **Statut :** Résolue (V7-D-2.8-fix)
+- **Cause :** `SHADOW_DATABASE_URL` manquante empêchait `migrate dev`.
+- **Résolution :** branche Neon shadow créée (URL directe, sans -pooler, même projet ep-flat-paper-b221l3fy). `migrate dev` fonctionnel.
 ---
 
 ## Notes
