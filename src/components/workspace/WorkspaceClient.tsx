@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { WorkspaceLayout } from './WorkspaceLayout';
 import { IngestZone } from './IngestZone';
 import { ViewerZone } from './ViewerZone';
@@ -12,6 +12,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 
 export function WorkspaceClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const requestId = searchParams.get('requestId');
   const {
     state: { photos, cadFiles, dimensions, description, mode, result },
@@ -111,6 +112,51 @@ export function WorkspaceClient() {
     }
   }
 
+  async function handleValidate() {
+    setStatus('loading');
+    setError(null);
+    try {
+      const res = await fetch('/api/engine/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId,
+          result,
+          action: 'validate',
+        }),
+      });
+      if (!res.ok) throw new Error('Erreur de validation');
+      setStatus('success');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur inconnue');
+      setStatus('error');
+    }
+  }
+
+  async function handleInvalidate() {
+    setStatus('loading');
+    setError(null);
+    try {
+      const res = await fetch('/api/engine/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId,
+          result,
+          action: 'invalidate',
+        }),
+      });
+      if (!res.ok) throw new Error("Erreur d'invalidation");
+      if (requestId) {
+        router.push(`/admin/demandes/${requestId}/reverse-engineering`);
+      }
+      setStatus('success');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur inconnue');
+      setStatus('error');
+    }
+  }
+
   function handleClearWorkspace() {
     clearWorkspace();
     setExtractedDimensions(null);
@@ -148,7 +194,13 @@ export function WorkspaceClient() {
           />
         </div>
         <div className="flex min-h-0 flex-col rounded-lg border bg-background">
-          <AssistantZone result={result} status={status} error={error} />
+          <AssistantZone
+            result={result}
+            status={status}
+            error={error}
+            onValidate={handleValidate}
+            onInvalidate={handleInvalidate}
+          />
         </div>
       </WorkspaceLayout>
     </TooltipProvider>

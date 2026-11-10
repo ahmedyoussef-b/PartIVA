@@ -10,6 +10,7 @@ import { CandidateCard } from './CandidateCard';
 import { generateSuggestions } from '@/lib/ai/suggestions';
 import { Download, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import { exportWorkspaceToPdf } from '@/lib/export/pdf-export';
 import { recommendMaterial } from '@/lib/ai/material-recommendation';
 import { SuggestionList } from './SuggestionList';
@@ -20,9 +21,17 @@ interface AssistantZoneProps {
   result: EngineResult | null;
   status: 'idle' | 'loading' | 'success' | 'error';
   error: string | null;
+  onValidate?: () => void;
+  onInvalidate?: () => void;
 }
 
-export function AssistantZone({ result, status, error }: AssistantZoneProps) {
+export function AssistantZone({
+  result,
+  status,
+  error,
+  onValidate,
+  onInvalidate,
+}: AssistantZoneProps) {
   const messages = [];
   const [chatMessages, setChatMessages] = useState<
     { role: 'user' | 'assistant'; content: string }[]
@@ -291,6 +300,16 @@ export function AssistantZone({ result, status, error }: AssistantZoneProps) {
             </TooltipTrigger>
             <TooltipContent>Télécharge le modèle 3D généré au format STL.</TooltipContent>
           </Tooltip>
+        )}
+        {result?.reconstruct?.candidates?.[0]?.fileUrl && (
+          <div className="mt-4 flex gap-2">
+            <Button onClick={onValidate} variant="default" disabled={!onValidate}>
+              Valider (pièce prête)
+            </Button>
+            <Button onClick={onInvalidate} variant="outline" disabled={!onInvalidate}>
+              Invalider (passer à V7-C)
+            </Button>
+          </div>
         )}
       </div>
       {fiche && (
