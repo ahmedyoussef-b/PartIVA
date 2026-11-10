@@ -8,24 +8,24 @@ datasource db {
 }
 
 model User {
-  id            String                      @id @default(cuid())
-  email         String                      @unique
-  name          String?
-  role          UserRole                    @default(USER)
-  image         String?
-  createdAt     DateTime                    @default(now())
-  updatedAt     DateTime                    @updatedAt
-  emailVerified Boolean                     @default(false)
-  accounts      Account[]
-  auditLogs     AuditLog[]
-  fitReports    FitReport[]
-  searchHistories SearchHistory[]
+  id                 String                      @id @default(cuid())
+  email              String                      @unique
+  name               String?
+  role               UserRole                    @default(USER)
+  image              String?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  emailVerified      Boolean                     @default(false)
+  accounts           Account[]
+  auditLogs          AuditLog[]
+  fitReports         FitReport[]
+  searchHistories    SearchHistory[]
   candidateFeedbacks CandidateFeedback[]
-  partVersions  PartVersion[]
-  parts         Part[]                      @relation("PartClient")
-  requests      Request[]                   @relation("UserRequests")
-  projects      ReverseEngineeringProject[]
-  sessions      Session[]
+  partVersions       PartVersion[]
+  parts              Part[]                      @relation("PartClient")
+  requests           Request[]                   @relation("UserRequests")
+  projects           ReverseEngineeringProject[]
+  sessions           Session[]
 
   @@map("users")
 }
@@ -231,16 +231,19 @@ model ReverseEngineeringStep {
 }
 
 model CadFile {
-  id        String                    @id @default(cuid())
-  projectId String
+  id        String                     @id @default(cuid())
+  projectId String?
+  requestId String?
   name      String
   url       String
   fileType  FileType
   sizeBytes Int?
-  createdAt DateTime                  @default(now())
-  project   ReverseEngineeringProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime                   @default(now())
+  project   ReverseEngineeringProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  request   Request?                   @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([requestId])
   @@map("cad_files")
 }
 
@@ -345,6 +348,7 @@ model Request {
   client            User?                       @relation("UserRequests", fields: [clientId], references: [id])
   projects          ReverseEngineeringProject[] @relation("RequestToReverseEngineeringProject")
   attempts          ReconstructionAttempt[]
+  cadFiles          CadFile[]
 
   @@index([status])
   @@index([clientId])
@@ -510,18 +514,18 @@ model WebSearchCache {
 }
 
 model ReconstructionAttempt {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   requestId String
-  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  method    String
-  status    String
+  method String
+  status String
 
-  metadata  Json?
-  files     Json?
+  metadata Json?
+  files    Json?
 
-  decision  String?
-  notes     String?
+  decision String?
+  notes    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -563,6 +567,7 @@ enum FileType {
   PDF
   CAD_STL
   CAD_STEP
+  CAD_IGES
   CAD_OBJ
   OTHER
 }

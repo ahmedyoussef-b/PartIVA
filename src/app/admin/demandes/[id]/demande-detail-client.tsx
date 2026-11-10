@@ -208,8 +208,8 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full text-xs" disabled>
-              Bientôt disponible
+            <Button variant="outline" className="w-full text-xs" asChild>
+              <Link href={`/admin/demandes/${request.id}/import-cad`}>Importer un fichier CAO</Link>
             </Button>
           </CardContent>
         </Card>
