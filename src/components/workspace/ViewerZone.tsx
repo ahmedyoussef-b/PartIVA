@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Ruler, Scissors, Columns, Download, Box } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
 import { CadViewer } from '@/components/3d/cad-viewer';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
 import type { MeasureMode } from '@/components/workspace/MeasureTool';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import * as THREE from 'three';
+import { Canvas, useLoader } from '@react-three/fiber';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -28,10 +32,72 @@ function isCad(url: string) {
   return ['.step', '.stp', '.iges', '.igs'].includes(ext);
 }
 
+function detectCadFormat(url: string): 'STEP' | 'IGES' | 'STL' | 'OBJ' | '3MF' | null {
+  const ext = url.slice(url.lastIndexOf('.')).toLowerCase();
+  switch (ext) {
+    case '.step':
+    case '.stp':
+      return 'STEP';
+    case '.iges':
+    case '.igs':
+      return 'IGES';
+    case '.stl':
+      return 'STL';
+    case '.obj':
+      return 'OBJ';
+    case '.3mf':
+      return '3MF';
+    default:
+      return null;
+  }
+}
+
+// STL Viewer Component
+function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
+  const geometry = useLoader(STLLoader, src);
+  const mesh = useMemo(
+    () =>
+      new THREE.Mesh(
+        geometry,
+        new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.3, roughness: 0.7 }),
+      ),
+    [geometry],
+  );
+  return (
+    <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[10, 10, 5]} intensity={1.5} />
+      <primitive object={mesh} />
+    </Canvas>
+  );
+}
+
+// OBJ Viewer Component
+function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
+  const object = useLoader(OBJLoader, src);
+  return (
+    <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[10, 10, 5]} intensity={1.5} />
+      <primitive object={object} />
+    </Canvas>
+  );
+}
+
+// 3MF Fallback Component
+function ThreeMFFallback() {
+  return (
+    <div className="flex h-full items-center justify-center p-8 text-center">
+      <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-amber-500" />
+      <p className="text-muted-foreground">Preview 3MF non disponible</p>
+    </div>
+  );
+}
+
 const MODE_LABELS: Record<MeasureMode, string> = {
   distance: 'Distance',
   angle: 'Angle',
-  diameter: 'Diam�tre',
+  diameter: 'Diamètre',
 };
 
 type RenderMode = 'solid' | 'wireframe' | 'xray';
@@ -90,7 +156,6 @@ export function ViewerZone({
     );
   }
 
-  const isCadFile = displayUrl ? isCad(displayUrl) : false;
   const validCandidates = candidates.filter((c) => !!c.fileUrl);
   const selectedCandidate =
     validCandidates.find((c) => c.id === selectedCandidateId) ?? validCandidates[0] ?? null;
@@ -111,7 +176,7 @@ export function ViewerZone({
               Mesurer
             </button>
           </TooltipTrigger>
-          <TooltipContent>Mesure une distance, un angle ou un diam�tre.</TooltipContent>
+          <TooltipContent>Mesure une distance, un angle ou un diamètre.</TooltipContent>
         </Tooltip>
         {measuring && (
           <select
@@ -151,7 +216,7 @@ export function ViewerZone({
               Section
             </button>
           </TooltipTrigger>
-          <TooltipContent>Active un plan de coupe pour voir l&apos;int�rieur.</TooltipContent>
+          <TooltipContent>Active un plan de coupe pour voir l&apos;intérieur.</TooltipContent>
         </Tooltip>
         {sectionEnabled && (
           <input
@@ -189,35 +254,50 @@ export function ViewerZone({
               Comparer
             </button>
           </TooltipTrigger>
-          <TooltipContent>Compare le fichier upload� avec un candidat.</TooltipContent>
+          <TooltipContent>Compare le fichier uploadé avec un candidat.</TooltipContent>
         </Tooltip>
       </div>
       {compareEnabled ? (
         <div className="grid h-full grid-cols-2 gap-2 p-2">
           <div className="min-h-0">
             {uploadedFileUrl ? (
-              isCad(uploadedFileUrl) ? (
-                <CadViewer
-                  src={uploadedFileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              ) : (
-                <ModelViewer
-                  src={uploadedFileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              )
+              (() => {
+                const fmt = detectCadFormat(uploadedFileUrl);
+                if (fmt === 'STEP' || fmt === 'IGES') {
+                  return (
+                    <CadViewer
+                      src={uploadedFileUrl}
+                      bare
+                      height={400}
+                      renderMode={renderMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
+                }
+                if (fmt === 'STL') {
+                  return <StlViewer src={uploadedFileUrl} style={{ height: 400 }} />;
+                }
+                if (fmt === 'OBJ') {
+                  return <ObjViewer src={uploadedFileUrl} style={{ height: 400 }} />;
+                }
+                if (fmt === '3MF') {
+                  return <ThreeMFFallback />;
+                }
+                return (
+                  <ModelViewer
+                    src={uploadedFileUrl}
+                    bare
+                    height={400}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                );
+              })()
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                Aucun fichier upload�
+                Aucun fichier uploadé
               </div>
             )}
           </div>
@@ -234,25 +314,40 @@ export function ViewerZone({
               ))}
             </select>
             {selectedCandidate?.fileUrl ? (
-              isCad(selectedCandidate.fileUrl) ? (
-                <CadViewer
-                  src={selectedCandidate.fileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              ) : (
-                <ModelViewer
-                  src={selectedCandidate.fileUrl}
-                  bare
-                  height={400}
-                  renderMode={renderMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
-              )
+              (() => {
+                const fmt = detectCadFormat(selectedCandidate.fileUrl);
+                if (fmt === 'STEP' || fmt === 'IGES') {
+                  return (
+                    <CadViewer
+                      src={selectedCandidate.fileUrl}
+                      bare
+                      height={400}
+                      renderMode={renderMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
+                }
+                if (fmt === 'STL') {
+                  return <StlViewer src={selectedCandidate.fileUrl} style={{ height: 400 }} />;
+                }
+                if (fmt === 'OBJ') {
+                  return <ObjViewer src={selectedCandidate.fileUrl} style={{ height: 400 }} />;
+                }
+                if (fmt === '3MF') {
+                  return <ThreeMFFallback />;
+                }
+                return (
+                  <ModelViewer
+                    src={selectedCandidate.fileUrl}
+                    bare
+                    height={400}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                );
+              })()
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-gray-500">
                 Aucun candidat
@@ -264,34 +359,51 @@ export function ViewerZone({
         <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
           <Box className="h-10 w-10 text-gray-300" />
           <p>
-            D�posez un fichier CAO (STEP, STL) ou s�lectionnez un candidat pour visualiser le mod�le
+            Déposez un fichier CAO (STEP, STL) ou sélectionnez un candidat pour visualiser le modèle
             3D.
           </p>
         </div>
-      ) : isCadFile ? (
-        <CadViewer
-          src={displayUrl}
-          bare
-          height={400}
-          measureEnabled={measuring}
-          measureMode={measureMode}
-          renderMode={renderMode}
-          sectionEnabled={sectionEnabled}
-          sectionPosition={sectionPosition}
-          onDimensionsExtracted={onDimensionsExtracted}
-        />
       ) : (
-        <ModelViewer
-          src={displayUrl}
-          bare
-          height={400}
-          measureEnabled={measuring}
-          measureMode={measureMode}
-          renderMode={renderMode}
-          sectionEnabled={sectionEnabled}
-          sectionPosition={sectionPosition}
-          onDimensionsExtracted={onDimensionsExtracted}
-        />
+        (() => {
+          const fmt = detectCadFormat(displayUrl);
+          if (fmt === 'STEP' || fmt === 'IGES') {
+            return (
+              <CadViewer
+                src={displayUrl}
+                bare
+                height={400}
+                measureEnabled={measuring}
+                measureMode={measureMode}
+                renderMode={renderMode}
+                sectionEnabled={sectionEnabled}
+                sectionPosition={sectionPosition}
+                onDimensionsExtracted={onDimensionsExtracted}
+              />
+            );
+          }
+          if (fmt === 'STL') {
+            return <StlViewer src={displayUrl} style={{ height: 400 }} />;
+          }
+          if (fmt === 'OBJ') {
+            return <ObjViewer src={displayUrl} style={{ height: 400 }} />;
+          }
+          if (fmt === '3MF') {
+            return <ThreeMFFallback />;
+          }
+          return (
+            <ModelViewer
+              src={displayUrl}
+              bare
+              height={400}
+              measureEnabled={measuring}
+              measureMode={measureMode}
+              renderMode={renderMode}
+              sectionEnabled={sectionEnabled}
+              sectionPosition={sectionPosition}
+              onDimensionsExtracted={onDimensionsExtracted}
+            />
+          );
+        })()
       )}
     </div>
   );
