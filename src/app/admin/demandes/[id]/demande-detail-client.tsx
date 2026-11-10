@@ -160,22 +160,19 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
           </CardContent>
         </Card>
 
-        <Card
-          className="cursor-pointer transition-colors hover:border-amber-500/50"
-          onClick={() => router.push(`/admin/demandes/${request.id}/workspace`)}
-        >
+        <Card className="transition-colors hover:border-amber-500/50">
           <CardHeader className="pb-2">
             <div className="mb-2 w-fit rounded-md bg-amber-500/10 p-2">
               <Sparkles className="h-5 w-5 text-amber-500" />
             </div>
-            <CardTitle className="text-sm">Méthode 2 : Workspace IA</CardTitle>
+            <CardTitle className="text-sm">MÃ©thode 2 : Workspace IA</CardTitle>
             <CardDescription className="text-xs">
-              Analyser les photos et générer un modèle 3D automatiquement
+              Analyser les photos et gÃ©nÃ©rer un modÃ¨le 3D automatiquement
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full text-xs">
-              Ouvrir Workspace
+            <Button asChild variant="outline" className="w-full text-xs">
+              <Link href={`/workspace?requestId=${request.id}`}>Ouvrir le Workspace</Link>
             </Button>
           </CardContent>
         </Card>

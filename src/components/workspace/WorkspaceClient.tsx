@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { WorkspaceLayout } from './WorkspaceLayout';
 import { IngestZone } from './IngestZone';
 import { ViewerZone } from './ViewerZone';
@@ -10,6 +11,8 @@ import { useWorkspacePersistence } from '@/lib/hooks/use-workspace-persistence';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export function WorkspaceClient() {
+  const searchParams = useSearchParams();
+  const requestId = searchParams.get('requestId');
   const {
     state: { photos, cadFiles, dimensions, description, mode, result },
     setPhotos,
@@ -20,6 +23,34 @@ export function WorkspaceClient() {
     setResult,
     clearWorkspace,
   } = useWorkspacePersistence();
+
+  // Pré-chargement depuis une demande client
+  useEffect(() => {
+    if (!requestId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/requests/${requestId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        if (Array.isArray(data.photos) && data.photos.length > 0) {
+          setPhotos(data.photos as string[]);
+        }
+        if (typeof data.partDescription === 'string' && data.partDescription.length > 0) {
+          setDescription(data.partDescription);
+        }
+        if (typeof data.suspectedMaterial === 'string' && data.suspectedMaterial.length > 0) {
+          setDimensions((prev) => ({ ...prev, material: data.suspectedMaterial as string }));
+        }
+      } catch (e) {
+        console.error('[workspace] Erreur pré-chargement demande', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [requestId, setPhotos, setDescription, setDimensions]);
 
   const [extractedDimensions, setExtractedDimensions] = useState<{
     length?: number;

@@ -13,6 +13,7 @@ export interface PersistedWorkspaceState {
     width?: number;
     height?: number;
     diameter?: number;
+    material?: string;
     unit: 'mm' | 'cm';
   };
   description: string;
