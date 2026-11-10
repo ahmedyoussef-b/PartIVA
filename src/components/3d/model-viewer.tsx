@@ -76,7 +76,7 @@ export function ModelViewer({
 }: ModelViewerProps) {
   const ext = extensionOf(src);
   const isCad = CAD_EXTENSIONS.includes(ext);
-  const isMesh = MESH_EXTENSIONS.includes(ext);
+  const isMesh = MESH_EXTENSIONS.includes(ext) || src?.startsWith('data:application/stl');
 
   const style = height ? { height: heightToCss(height) } : {};
 
