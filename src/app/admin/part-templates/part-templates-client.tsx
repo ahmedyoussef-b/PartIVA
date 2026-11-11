@@ -78,7 +78,7 @@ export default function PartTemplatesClient({
           <p className="mt-1 text-xs text-muted-foreground">Rôle : {actorRole}</p>
         </div>
         <Button asChild size="sm" className="gap-2 text-xs font-semibold">
-          <Link href="/admin/part-templates/nouveau">
+          <Link href="/admin/part-templates/new">
             <Plus className="h-3.5 w-3.5" />
             Nouveau template
           </Link>
@@ -200,6 +200,9 @@ export default function PartTemplatesClient({
                             <ExternalLink className="h-3.5 w-3.5" />
                             Fiche
                           </Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-xs">
+                          <Link href={`/admin/part-templates/${template.id}`}>Éditer</Link>
                         </Button>
                         <DeleteTemplateButton templateId={template.id} />
                       </div>
