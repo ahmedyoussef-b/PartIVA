@@ -1,9 +1,9 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.2
+**Version :** 6.3
 **Date :** 2026-11-11
-**Commit HEAD :** `a27f6c7` (V8-P0-5 — prompt de reprise v6.0 + READY + règles interaction, PR #39) — à mettre à jour après merge PR #40
+**Commit HEAD :** `468078c` (Merge PR #41 — suppression test-files.txt)
 **Branche :** `master`
 **Version en cours :** V7 close — V8 en cours
 **Dernière étape close :** V8-B-0 (UI templates `/admin/part-templates`)
@@ -49,7 +49,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 en cours |
-| **HEAD** | `a27f6c7` (V8-P0-5, PR #39) — à mettre à jour après PR #40 |
+| **HEAD** | `468078c` (Merge PR #41) |
 | **Dernière étape close** | **V8-B-0** (UI templates) |
 | **Prochaine étape** | **V8-B-1** |
 
@@ -67,7 +67,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
 | `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
-| `D-ESLINTIGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
+| `D-ESLINT-IGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
 
 ### Décisions clés (a)→(o)
 
@@ -96,7 +96,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V7-H | 2026-11-11 | Clôture doc V7 (PR #37) | ✅ |
 | V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
 | V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
-| V8-B-0 | 2026-11-11 | UI templates `/admin/part-templates` (PR #40) | ✅ |
+| V8-B-0 | 2026-11-11 | UI templates `/admin/part-templates` (PR #40, #41) | ✅ |
 
 ---
 
