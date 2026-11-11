@@ -47,6 +47,7 @@
 | V5 | 2026-11-07 | Recherche multi-sources (UI, geometric, TraceParts mock, E2E, step.parts, CADENAS) | Recherche, Connecteurs | ✅ | `DECISIONS.md` §3 |
 | V6 | 2026-11-07 | Reset password (web + SMTP) | Auth | ✅ | `DECISIONS.md` §3 |
 | V8 | 2026-11-09 | Smart Router + Vue Hybride + Filtres + Bug fix (PR #18 `c0c86a2`) | Recherche, UI | ✅ | `DECISIONS.md` §3 |
+| V8-B-1 | 2026-11-11 | CRUD templates (UI + API + E2E) — sous-étapes a→d | CRUD Templates | ✅ | PRs #46, #47, #48 |
 
 ---
 
