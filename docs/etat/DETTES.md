@@ -203,3 +203,8 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** clôture manuelle (tracé).
 
+
+### `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` — Découpage strict des prompts
+- **Statut :** Active
+- **Cause :** réforme du 2026-11-11 (Mode R2). Les prompts doivent être divisés en étapes et sous-étapes, avec validation intermédiaire obligatoire.
+- **Condition de résolution :** procédures `PROCEDURE_INTERACTION.md` §13 et `PROCEDURE_COORDINATEUR.md` §6 actées.
