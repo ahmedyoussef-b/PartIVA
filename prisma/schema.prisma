@@ -158,6 +158,8 @@ model PartCategory {
   children    PartCategory[] @relation("CategoryHierarchy")
   parts       Part[]
 
+  templates PartTemplate[]
+
   @@map("part_categories")
 }
 
@@ -350,6 +352,8 @@ model Request {
   attempts          ReconstructionAttempt[]
   cadFiles          CadFile[]
 
+  solutions Solution[]
+
   @@index([status])
   @@index([clientId])
   @@index([urgency])
@@ -532,6 +536,51 @@ model ReconstructionAttempt {
 
   @@index([requestId])
   @@map("reconstruction_attempts")
+}
+
+// ============================================
+// V7-F — Capitalisation BDD (PartTemplate + Solution)
+// ============================================
+
+model PartTemplate {
+  id                String        @id @default(cuid())
+  name              String
+  description       String?
+  categoryId        String?
+  material          String?
+  dimensions        Json?
+  cadParams         Json?
+  analysisData      Json?
+  printableModelUrl String?
+  sourceMethod      String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  category          PartCategory? @relation(fields: [categoryId], references: [id])
+  solutions         Solution[]
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([sourceMethod])
+  @@map("part_templates")
+}
+
+model Solution {
+  id             String        @id @default(cuid())
+  requestId      String
+  partTemplateId String?
+  method         String
+  confidence     Float?
+  validatedAt    DateTime?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  request        Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  partTemplate   PartTemplate? @relation(fields: [partTemplateId], references: [id], onDelete: SetNull)
+
+  @@index([requestId])
+  @@index([partTemplateId])
+  @@index([method])
+  @@map("solutions")
 }
 
 enum UserRole {
