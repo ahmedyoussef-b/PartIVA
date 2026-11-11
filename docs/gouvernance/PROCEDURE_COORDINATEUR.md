@@ -55,3 +55,14 @@ Le coordinateur est responsable de :
 
 - Le coordinateur veille à ce que `ETAT_COURANT.md` soit à jour.
 - Il valide les mises à jour proposées par les IA.
+
+## 6. Mode d'exécution R2 (Coordinateur-exécutant)
+
+### 6.1. Absence d'IA interne séparée
+Dans l'environnement actuel, il n'y a pas d'IA interne distincte. Le coordinateur humain assume le rôle d'**exécutant technique**.
+
+### 6.2. Utilisation des blocs de commandes
+Le coordinateur ne doit pas interpréter les instructions conceptuelles pour en déduire des commandes. Il doit exécuter les **blocs de commandes PowerShell** fournis explicitement par l'IA externe dans chaque sous-étape, et coller les sorties brutes telles que demandées.
+
+### 6.3. Boucle de validation
+Le coordinateur exécute la sous-étape, fournit les preuves brutes à l'IA externe, et attend la validation explicite de l'IA externe avant de passer à la sous-étape suivante. Aucune sous-étape ne peut être sautée.
