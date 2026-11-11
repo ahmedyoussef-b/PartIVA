@@ -56,3 +56,30 @@ Le rapport de fin doit contenir :
 - Les preuves des contrôles.
 - Les écarts par rapport au plan.
 - Les dettes créées (le cas échéant).
+
+## 6. Format des accusés de réception
+
+Voir `docs/gouvernance/PROCEDURE_INTERACTION.md` §6. Structure obligatoire :
+- ÉTAPE : <numéro>
+- STATUT : TERMINÉ | BLOQUÉ | ÉCHEC
+- SORTIES BRUTES : (toutes les sorties brutes, pas de résumé)
+- FICHIERS MODIFIÉS/CRÉÉS : `git status --short` brut
+- PREUVE CLÉ : hash commit OU "non commité"
+- ERREURS/BLOCAGES : aucun | description
+
+## 7. Règles de progression
+
+Voir `docs/gouvernance/PROCEDURE_INTERACTION.md` §8. Résumé :
+- Un prompt = une étape atomique.
+- Preuve de clôture obligatoire avant passage.
+- Pas de saut d'étape.
+- Si blocage : signaler, ne pas contourner (L50).
+- Si échec : prompt de fix ciblé (≤ 30 lignes).
+
+## 8. Règles de blocage
+
+- **Signaler** immédiatement (STATUT: BLOQUÉ dans l'accusé).
+- **Ne pas contourner** (L50, R5).
+- **Fournir** les preuves brutes du blocage (erreur, log, état).
+- **Attendre** l'instruction de l'IA externe.
+- **Ne pas** merger, ne pas commit, ne pas modifier sans instruction.
