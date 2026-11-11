@@ -76,6 +76,58 @@ export async function createREProject(
   }
 }
 
+const CreateREProjectFromRequestSchema = z.object({
+  requestId: z.string().cuid(),
+});
+
+export async function createREProjectFromRequest(
+  requestId: string,
+): Promise<{ success: true; projectId: string } | { success: false; error: string }> {
+  try {
+    const validated = CreateREProjectFromRequestSchema.parse({ requestId });
+
+    const existingRequest = await prisma.request.findUnique({
+      where: { id: validated.requestId },
+      select: {
+        id: true,
+        partDescription: true,
+        projects: {
+          select: { id: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!existingRequest) {
+      return { success: false, error: 'Demande introuvable' };
+    }
+
+    if (existingRequest.projects.length > 0) {
+      return { success: true, projectId: existingRequest.projects[0]!.id };
+    }
+
+    const project = await prisma.reverseEngineeringProject.create({
+      data: {
+        name: `RE - ${existingRequest.partDescription}`,
+        description: `Projet de reverse engineering généré à partir de la demande ${validated.requestId}`,
+        status: 'DRAFT',
+        requests: {
+          connect: { id: validated.requestId },
+        },
+      },
+      select: { id: true },
+    });
+
+    revalidatePath('/admin/reverse-engineering');
+    revalidatePath('/admin/demandes/[id]');
+
+    return { success: true, projectId: project.id };
+  } catch (error) {
+    console.error('Error creating RE project from request:', error);
+    return { success: false, error: 'Erreur lors de la création du projet RE depuis la demande' };
+  }
+}
+
 const CreateREProjectFromFormSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
   description: z.string().optional(),

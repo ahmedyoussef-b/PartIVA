@@ -18,6 +18,7 @@ import { formatDate } from '@/lib/utils';
 import { mapRequestToUi, type RequestWithRelations } from '@/lib/utils/request-mappers';
 import { FR } from '@/i18n/fr';
 import { updateRequestStatus, updateRequestUrgency } from '@/lib/actions/requests';
+import { createREProjectFromRequest } from '@/lib/actions/reverse-engineering';
 import { useTransition } from 'react';
 import type { RequestStatus, RequestUrgency } from '@/schemas/request';
 
@@ -47,6 +48,23 @@ interface DemandeDetailClientProps {
 export default function DemandeDetailClient({ initialRequest }: DemandeDetailClientProps) {
   const request = mapRequestToUi(initialRequest);
   const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleCreateREProjectFromRequest = async () => {
+    setIsSubmitting(true);
+    try {
+      const result = await createREProjectFromRequest(request.id);
+      if (!result.success) {
+        alert(result.error || 'Erreur lors de la création du projet RE');
+        return;
+      }
+      router.push(`/admin/reverse-engineering/${result.projectId}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erreur inattendue');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const router = useRouter();
 
   const handleStatusChange = (status: RequestStatus) => {
@@ -194,7 +212,7 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
 
         <Card
           className="cursor-pointer transition-colors hover:border-violet-500/50"
-          onClick={() => router.push(`/admin/reverse-engineering/${request.id}`)}
+          onClick={handleCreateREProjectFromRequest}
         >
           <CardHeader className="pb-2">
             <div className="mb-2 w-fit rounded-md bg-violet-500/10 p-2">
@@ -206,8 +224,8 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full text-xs">
-              Ouvrir Reverse
+            <Button variant="outline" className="w-full text-xs" disabled={isSubmitting}>
+              {isSubmitting ? 'Création…' : 'Ouvrir Reverse'}
             </Button>
           </CardContent>
         </Card>
