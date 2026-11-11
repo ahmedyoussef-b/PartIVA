@@ -4,8 +4,16 @@ import ImportCadClient from './import-cad-client';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ImportCadPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ImportCadPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ sequential?: string }>;
+}) {
   const { id } = await params;
+  const { sequential } = await searchParams;
+  const isSequential = sequential === '1';
 
   const request = await prisma.request.findUnique({
     where: { id },
@@ -31,5 +39,11 @@ export default async function ImportCadPage({ params }: { params: Promise<{ id: 
     notFound();
   }
 
-  return <ImportCadClient requestId={request.id} initialFiles={request.cadFiles} />;
+  return (
+    <ImportCadClient
+      requestId={request.id}
+      initialFiles={request.cadFiles}
+      isSequential={isSequential}
+    />
+  );
 }

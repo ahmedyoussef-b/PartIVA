@@ -1,7 +1,9 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { WorkspaceLayout } from './WorkspaceLayout';
 import { IngestZone } from './IngestZone';
 import { ViewerZone } from './ViewerZone';
@@ -10,7 +12,11 @@ import type { EngineResult } from '@/core/ai-engine/engine';
 import { useWorkspacePersistence } from '@/lib/hooks/use-workspace-persistence';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-export function WorkspaceClient() {
+interface WorkspaceClientProps {
+  isSequential?: boolean;
+}
+
+export function WorkspaceClient({ isSequential = false }: WorkspaceClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const requestId = searchParams.get('requestId');
@@ -169,6 +175,25 @@ export function WorkspaceClient() {
     <TooltipProvider>
       <WorkspaceLayout>
         <div className="min-h-0 overflow-y-auto rounded-lg border bg-background">
+          {isSequential && requestId && (
+            <div className="m-3 mb-0 rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-amber-600">
+                    Étape 2/4 — Méthode 2 : Workspace IA
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Analysez les photos. Si la reconstruction échoue, passez à la méthode suivante.
+                  </p>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/admin/reverse-engineering/${requestId}?sequential=1`}>
+                    Passer à la Méthode 3 →
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
           <IngestZone
             photos={photos}
             cadFiles={cadFiles}

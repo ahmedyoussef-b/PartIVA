@@ -34,9 +34,14 @@ type CadFileInfo = {
 interface ImportCadClientProps {
   requestId: string;
   initialFiles: CadFileInfo[];
+  isSequential?: boolean;
 }
 
-export default function ImportCadClient({ requestId, initialFiles }: ImportCadClientProps) {
+export default function ImportCadClient({
+  requestId,
+  initialFiles,
+  isSequential = false,
+}: ImportCadClientProps) {
   const router = useRouter();
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -131,6 +136,24 @@ export default function ImportCadClient({ requestId, initialFiles }: ImportCadCl
 
   return (
     <div className="max-w-4xl space-y-6">
+      {isSequential && (
+        <div className="mb-4 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-emerald-600">
+                Étape 4/4 — Méthode 4 : Import CAO
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Importez un fichier CAO fourni par le client. C&apos;est la dernière méthode du flux
+                séquentiel.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/admin/demandes/${requestId}`}>Revenir à la demande</Link>
+            </Button>
+          </div>
+        </div>
+      )}
       <div>
         <Link
           href={`/admin/demandes/${requestId}`}
