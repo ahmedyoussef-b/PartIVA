@@ -94,6 +94,8 @@ INTERDIT : <interdictions>
 FIN DU PROMPT.
 ```
 
+**Règle de contenu** : un prompt unitaire doit contenir le **contenu exact** des fichiers à créer/modifier (ou diff cible), pas seulement une structure.
+
 ## 6. Format des accusés de réception
 
 Structure obligatoire :
@@ -114,12 +116,15 @@ ERREURS/BLOCAGES : <aucun | description>
 
 ## 7. Cycle de travail
 
+0. **IA interne** lit les 4 fichiers de procédure (cf. `PROMPT_DE_REPRISE.md` §Ordre strict) et envoie le message `READY — <fichiers lus> — prêt`. L'IA externe attend ce message avant d'émettre le prompt de la première tâche.
 1. **IA externe** émet un prompt unitaire.
 2. **IA interne** exécute et fournit l'accusé.
 3. **IA externe** valide ou signale un fix.
 4. **Coordinateur** merge la PR.
 5. **IA externe** émet l'étape suivante.
 6. **Régénérer** `PROMPT_DE_REPRISE.md` (à chaque fin d'étape).
+
+**Règle de régénération** : après chaque merge ou clôture d'étape documentée, régénérer `PROMPT_DE_REPRISE.md` (avec le nouveau HEAD et la nouvelle prochaine étape).
 
 ## 8. Règles de progression
 
