@@ -118,11 +118,13 @@ const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
 interface RechercheClientProps {
   initialRequest: RequestWithRelations;
   initialCandidates: SearchCandidate[];
+  isSequential?: boolean;
 }
 
 export default function RechercheClient({
   initialRequest,
   initialCandidates,
+  isSequential = false,
 }: RechercheClientProps) {
   const request = mapRequestToUi(initialRequest);
   const [isPending, startTransition] = useTransition();
@@ -324,6 +326,25 @@ export default function RechercheClient({
 
   return (
     <div className="max-w-7xl space-y-6">
+      {isSequential && (
+        <div className="mb-4 rounded-md border border-blue-500/30 bg-blue-500/5 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-blue-600">
+                Étape 1/4 — Méthode 1 : Catalogue
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Recherchez une pièce standard. Si aucun résultat, passez à la méthode suivante.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/workspace?requestId=${request.id}&sequential=1`}>
+                Passer à la Méthode 2 →
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Breadcrumb */}
       <div>
         <Link

@@ -67,6 +67,10 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
     });
   };
 
+  const handleSequential = () => {
+    router.push(`/admin/demandes/${request.id}/recherche?sequential=1`);
+  };
+
   return (
     <div className="max-w-6xl space-y-6">
       <div>
@@ -139,6 +143,17 @@ export default function DemandeDetailClient({ initialRequest }: DemandeDetailCli
       </div>
 
       {/* Panneau de Décision V7 */}
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold">Panneau de Décision V7</h2>
+          <p className="text-xs text-muted-foreground">
+            4 méthodes indépendantes — ou lancer le flux séquentiel
+          </p>
+        </div>
+        <Button onClick={handleSequential} variant="default" size="sm">
+          Lancer séquentiel
+        </Button>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
           className="cursor-pointer transition-colors hover:border-blue-500/50"

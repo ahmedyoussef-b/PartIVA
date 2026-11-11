@@ -66,6 +66,7 @@ const EMPTY_CAD = {
 
 interface ReverseEngineeringContentProps {
   project: REProjectWithRelations;
+  isSequential?: boolean;
 }
 
 const PROJECT_STATUS_STYLES: Record<
@@ -79,7 +80,10 @@ const PROJECT_STATUS_STYLES: Record<
   CANCELLED: { label: 'Annulé', variant: 'outline' },
 };
 
-export default function ReverseEngineeringContent({ project }: ReverseEngineeringContentProps) {
+export default function ReverseEngineeringContent({
+  project,
+  isSequential = false,
+}: ReverseEngineeringContentProps) {
   const request = project.requests[0] ?? null;
 
   const [steps, setSteps] = React.useState(project.steps);
@@ -190,6 +194,32 @@ export default function ReverseEngineeringContent({ project }: ReverseEngineerin
 
   return (
     <div className="max-w-6xl space-y-6">
+      {isSequential && (
+        <div className="mb-4 rounded-md border border-violet-500/30 bg-violet-500/5 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-violet-600">
+                Étape 3/4 — Méthode 3 : Reverse CAO
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Modélisez manuellement la pièce. Si la modélisation échoue, passez à la méthode
+                suivante.
+              </p>
+            </div>
+            {request ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin/demandes/${request.id}/import-cad?sequential=1`}>
+                  Passer à la Méthode 4 →
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/demandes">Sélectionner une demande</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
       <div>
         <Link
           href="/admin/demandes"
