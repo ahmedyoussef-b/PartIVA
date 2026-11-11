@@ -1,9 +1,9 @@
 # Roadmap V7 — Reconstruction de Pièce (Photos → CAO)
 
 **Type :** Gouvernance / Roadmap
-**Version :** 1.0
-**Date :** 2026-11-09
-**Statut :** Proposée (validation Superviseur requise)
+**Version :** 1.1
+**Date :** 2026-11-11
+**Statut :** Close (V7-A → V7-G validées)
 
 ## Contexte
 
@@ -39,3 +39,17 @@ V6 (recherche intelligente NLP + photo) est terminée. L’UI de la demande clie
 
 - Parcours séquentiel possible mais non obligatoire : l’admin peut choisir la méthode adaptée.
 - V7-E est la phase de clôture commune.
+
+### V7-F — Capitalisation BDD (PartTemplate + Solution)
+- **Action admin :** (backend-only, pas d'UI en V7-F).
+- **Mécanique :** tables `part_templates` + `solutions`, Server Actions CRUD.
+- **Issue :** capitalisation des solutions validées.
+
+### V7-G — Reconstruction CAO assistée (reconstructFromCad)
+- **Action admin :** (backend-only, pas d'UI en V7-G).
+- **Mécanique :** import CAO + dimensions manuelles → `PartTemplate` + `Solution`.
+- **Issue :** reconstruction à partir de CAO + mesures.
+
+### V7-H — Clôture documentaire
+- **Action admin :** mise à jour `ETAT_COURANT`, `DETTES`, `DECISIONS`, `sessions/INDEX`, `ROADMAP`.
+- **Issue :** V7 close.

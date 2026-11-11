@@ -1,7 +1,7 @@
 # INDEX DES SESSIONS — PartIVA
 
-**Dernière mise à jour :** 2026-11-10
-**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B).
+**Dernière mise à jour :** 2026-11-11
+**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V7-C → V7-H (session V7H).
 **Statut :** Index des sessions.
 
 ---
@@ -68,7 +68,20 @@
 
 ---
 
-## 4. Session en cours (2026-11-10)
+## 4. Sessions V7-C → V7-H (2026-11-10 → 2026-11-11)
+
+| ID | Date | Objectif | Statut | Référence |
+|---|---|---|---|---|
+| SESSION-2026-11-10-V7C | 2026-11-10 | Reverse CAO (déjà fonctionnel) | ✅ | `DECISIONS.md` §11 |
+| SESSION-2026-11-10-V7D | 2026-11-10 | Import CAO (PR #32) | ✅ | `DECISIONS.md` §11 |
+| SESSION-2026-11-11-V7E | 2026-11-11 | Orchestrateur (PR #34) | ✅ | `DECISIONS.md` §11 |
+| SESSION-2026-11-11-V7F | 2026-11-11 | Capitalisation (PR #35) | ✅ | `DECISIONS.md` §11 |
+| SESSION-2026-11-11-V7G | 2026-11-11 | Reconstruction (PR #36) | ✅ | `DECISIONS.md` §11 |
+| SESSION-2026-11-11-V7H | 2026-11-11 | Clôture doc V7 | ⏳ En cours | Ce document |
+
+---
+
+## 5. Session en cours (2026-11-10)
 
 | ID | Date | Objectif | Fonctionnalités | Statut |
 |---|---|---|---|---|
@@ -76,13 +89,13 @@
 
 ---
 
-## 5. Décisions et leçons (renvoi)
+## 6. Décisions et leçons (renvoi)
 
 Les décisions validées (Q1–Q6, C1–C3, D-V7-A-PROUVEE, D-V7-OUVERTURE, D-V7B-CLOSED) et les leçons (L45–L59) sont consignées dans `docs/etat/DECISIONS.md`. Les dettes actives sont dans `docs/etat/DETTES.md`. L'état courant est dans `docs/etat/ETAT_COURANT.md`.
 
 ---
 
-## 6. Index des fonctionnalités (E17 → E29 — historique conservé)
+## 7. Index des fonctionnalités (E17 → E29 — historique conservé)
 
 Noms canoniques des fonctionnalités traitées, avec les sessions correspondantes (charte §6).
 
