@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.4
+**Version :** 6.5
 **Date :** 2026-11-11
-**Commit HEAD :** `54a9577` (Merge PR #43 — résync master, V8-B-0 clos via #40)
-**Branche :** `master`
-**Version en cours :** V7 close — V8 en cours
-**Dernière étape close :** V8-B-0 (UI templates `/admin/part-templates`)
-**Prochaine étape :** V8-B-1
+**Commit HEAD :** `f9eb675` (Merge PR #48 — V8-B-1-d close)
+**Branche :** master
+**Version en cours :** V8 en cours
+**Dernière étape close :** V8-B-1-d
+**Prochaine étape :** V8-B-2 (à préciser par le coordinateur)
 
 ---
 
@@ -49,27 +49,32 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 en cours |
-| **HEAD** | `54a9577` (Merge PR #43, V8-B-0 clos via #40) |
-| **Dernière étape close** | **V8-B-0** (UI templates) |
-| **Prochaine étape** | **V8-B-1** |
+| **HEAD** | `f9eb675` (Merge PR #48, V8-B-1-d close) |
+| **Dernière étape close** | **V8-B-1-d** |
+| **Prochaine étape** | **V8-B-2** (à préciser) |
 
-### Dettes haute / moyenne actives
+### Dettes haute / moyenne / basse actives
 
 | ID | Sévérité | Objet |
 | --- | --- | --- |
 | `D-E24-E2E-TIMEOUT-SOURCES` | Haute | Timeout E2E sources |
 | `D-PROCEDURE-3-ACTEURS-INAPPLICABLE` | Haute | Procédure 3 acteurs → 2 acteurs (R2) |
-| `D-ADMIN-TEST-COVERAGE` | Moyenne | Tests E2E admin |
+| `D-V8-B-1-C-FORM-ACTION-INLINE` | Haute | Formulaire `[id]/page.tsx` V8-B-1-c utilisait `action={inline}` rejeté par Next.js (form cassé au rendu). Corrigé en V8-B-1-d (edit-form.tsx, PR #48). Clôture formelle : PR de clôture V8-B-1-e. |
+| `D-ADMIN-TEST-COVERAGE` | Moyenne | Tests E2E admin — partiellement couverte (part-templates, PR #48). Reste à couvrir : autres pages admin (machines, dashboard, etc.). |
 | `D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED` | Moyenne | Route admin download bloquée par auth |
 | `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
 | `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
+| `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` (V8-B-0) conservée en parallèle de `/new` (V8-B-1-c). |
+| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/` (pas racine `e2e/`). Décision (p) actée dans DECISIONS.md. Clôture : ce PR. |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
 | `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
 | `D-ESLINT-IGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
 
-### Décisions clés (a)→(o)
+**Note :** `D-PROCEDURE-HEAD-FAUX` n'existe pas dans ce registre (jamais créée formellement, PR #45). Rien à clôturer.
+
+### Décisions clés
 
 | ID | Valeur |
 | --- | --- |
@@ -86,17 +91,18 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (l) | V7-H = doc minimale (5 fichiers) |
 | (m) | Pas de tag (V7 est un incrément) |
 | (o) | V8-P0 = 4 étapes (option C) |
+| (p) | Specs E2E admin → emplacement `e2e/admin/` (seul projet Playwright injecte `storageState`) |
+| (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives — proposer un smoke test Playwright minimal pour les sous-étapes UI futures. À arbitrer en V8-B-2 ou ultérieur. |
 
 ### 5 dernières sessions
 
 | ID | Date | Objet | Statut |
 | --- | --- | --- | --- |
-| V7-F | 2026-11-11 | Capitalisation BDD (PR #35) | ✅ |
 | V7-G | 2026-11-11 | Reconstruction CAO (PR #36) | ✅ |
 | V7-H | 2026-11-11 | Clôture doc V7 (PR #37) | ✅ |
 | V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
 | V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
-| V8-B-0 | 2026-11-11 | UI templates `/admin/part-templates` (PR #40, #41, #42, #43) | ✅ |
+| V8-B-1 | 2026-11-11 | CRUD templates UI+API+E2E (PR #46, #47, #48) | ✅ |
 
 ---
 
@@ -106,9 +112,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-B-1** : à préciser par le coordinateur (périmètre, objectif, livrables).
+**V8-B-2** : à préciser par le coordinateur (périmètre, objectif, livrables).
 
-**Prompt à émettre** : `V8-B-1` (fourni par l'IA externe).
+**Prompt à émettre** : `V8-B-2` (fourni par l'IA externe).
 
 ---
 

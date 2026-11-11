@@ -1,7 +1,7 @@
 # DÉCISIONS VALIDÉES — PartIVA
 
-**Dernière mise à jour :** 2026-11-10
-**Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B).
+**Dernière mise à jour :** 2026-11-11
+**Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V8-B-1 (session V8-B-1, PRs #46, #47, #48).
 **Statut :** Registre des décisions validées.
 
 ---
@@ -294,7 +294,7 @@
 ### Décisions clés V7
 
 | ID | Valeur |
-|---|---|
+| --- | --- |
 | (d) | Orchestrateur = bouton + redirect + flag `?sequential=1` (non-intrusif) |
 | (e) | Régénérer `migration.sql` avec `ON UPDATE CASCADE` (fait V7-D-2.9-fix) |
 | (f) | `PartTemplate` + `Solution` séparés, `method/sourceMethod` String (enum Zod) |
@@ -304,3 +304,12 @@
 | (k) | `Solution.confidence = 85` par défaut |
 | (l) | V7-H = doc minimale (5 fichiers) |
 | (m) | Pas de tag (V7 est un incrément) |
+
+---
+
+## 12. Décisions clés V8
+
+| ID | Valeur |
+| --- | --- |
+| (p) | Specs E2E admin → emplacement `e2e/admin/` (seul projet Playwright injecte `storageState`). Toute nouvelle spec admin DOIT y être placée. |
+| (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives — proposer un smoke test Playwright minimal pour les sous-étapes UI futures. À arbitrer en V8-B-2 ou ultérieur. |
