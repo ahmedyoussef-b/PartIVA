@@ -169,3 +169,18 @@ L'outil `bash` de Kilo invoque PowerShell (`Out-File`, `Add-Content`, `Get-Conte
 
 ### 12.3. Contrainte de longueur des prompts
 Un prompt unitaire doit être **subdivisé en sous-étapes** si sa taille dépasse la limite d'acceptation de l'outil d'exécution. Chaque sous-étape produit son propre accusé §6. Méthodes d'écriture : `WriteAllText` (écrasement complet), `Add-Content`/`AppendAllText` (morceaux successifs), `Get-Content -Raw` (preuve intégrale). Dette `D-PROCEDURE-LONGUEUR-PROMPTS`.
+
+## 13. Réforme de l'exécution et du découpage (Mode R2)
+
+### 13.1. Découpage obligatoire (Prompt → Étapes → Sous-étapes)
+Pour éviter les échecs liés à la longueur des prompts, tout prompt complexe doit être structuré de la manière suivante :
+- **Le Prompt global** définit l'objectif de l'étape.
+- **L'étape** est divisée en **Sous-étapes atomiques**.
+- **Une sous-étape = un seul prompt émis**.
+- **Règle d'attente** : L'IA externe émet la Sous-étape N. L'IA interne (ou le coordinateur-exécutant) produit l'accusé de réception et les preuves brutes. L'IA externe valide la Sous-étape N avant d'émettre la Sous-étape N+1.
+
+### 13.2. Séparation des blocs "Instruction" et "Commandes"
+Chaque sous-étape doit comporter deux parties distinctes :
+1. **Le bloc "Instruction"** (conceptuel, règles, objectifs).
+2. **Le bloc "Commandes PowerShell"** (spécifique au coordinateur, avec les commandes exactes à copier-coller et la preuve brute attendue).
+Si l'exécution nécessite des preuves brutes, l'IA externe fournit impérativement le bloc "Commandes PowerShell" prêt à l'emploi pour le coordinateur.
