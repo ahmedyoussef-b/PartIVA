@@ -1,7 +1,7 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-11-10
-**Source :** `PROMPT DE PASSATION — Superviseur IA Externe — v10` §3 (2026-11-10)
+**Dernière mise à jour :** 2026-11-11
+**Source :** `PROMPT DE PASSATION — Superviseur IA Externe — v12` §3 (2026-11-10)
 **Statut :** Registre actif — dettes non résolues uniquement (charte §10).
 
 > **Garde-fou documentaire.** Ce registre est la **liste arbitrée** des dettes actives, alignée sur v10 §3. Les dettes non listées dans v10 ne sont **pas** portées ici : elles sont considérées comme non suivies. L'historique complet reste consultable via `git log -- docs/etat/DETTES.md` et `git show <commit>:docs/etat/DETTES.md`. Les **actions critiques** (non dettes) figurent dans `ETAT_COURANT.md` §« Actions critiques », pas dans ce registre (C1a).
@@ -139,6 +139,30 @@
 - **Cause :** pas de garde-fou Zod si un futur code passe `projectId` ET `requestId` simultanément à `prisma.cadFile.create`.
 - **Action future :** ajouter `.refine()` dans le schéma Zod de `importCad` et `addCadFile`. **V7-E+.**
 - **Condition de résolution :** garde-fou en place et testé.
+
+### `D-PARTTEMPLATE-UI` — Pas d'UI de gestion des PartTemplates
+- **Statut :** Active
+- **Cause :** V7-F a créé les tables + Server Actions CRUD, mais pas d'UI (backend-only).
+- **Périmètre :** `src/app/admin/part-templates/`.
+- **Effort estimé :** Moyen.
+- **Action future :** créer une page admin `/admin/part-templates` (liste + création + édition). **V7-H/V8.**
+- **Condition de résolution :** UI disponible et testée.
+
+### `D-RECONSTRUCT-UI` — Pas d'UI de reconstruction CAO
+- **Statut :** Active
+- **Cause :** V7-G a créé `reconstructFromCad` (backend-only), pas d'UI.
+- **Périmètre :** `src/app/admin/demandes/[id]/import-cad/` (ou page dédiée).
+- **Effort estimé :** Moyen.
+- **Action future :** ajouter un formulaire (dimensions + matériau) qui appelle `reconstructFromCad`. **V7-H/V8.**
+- **Condition de résolution :** UI disponible et testée.
+
+### `D-RECONSTRUCT-PHOTOGRAMMETRY` — Photogrammétrie reportée V8
+- **Statut :** Active
+- **Cause :** décision (j)=A — pas de photogrammétrie en V7. Reconstruction uniquement à partir de CAO + mesures.
+- **Périmètre :** V8.
+- **Effort estimé :** Élevé (intégration colmap/meshroom).
+- **Action future :** V8.
+- **Condition de résolution :** pipeline photogrammétrie intégré et testé.
 
 ---
 

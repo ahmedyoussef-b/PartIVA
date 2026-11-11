@@ -256,3 +256,51 @@
 - **Décision :** V7-B a été exécutée en **6 sous-tâches atomiques** (V7B-1 → V7B-6), chacune avec son prompt unitaire, ses preuves brutes, son commit et sa PR. **Aucune sous-tâche n'a été validée sans preuves brutes.**
 - **Justification :** La granularité a permis d'isoler les erreurs (V7B-4 : TSC manquant ; V7B-6 : travail non fait sur la bonne branche) et de corriger sans casser le reste.
 - **Conséquences :** Méthode à réutiliser pour V7-C, V7-D, V7-E.
+
+---
+
+## 11. V7-C → V7-H — Clôture (2026-11-10 → 2026-11-11)
+
+### `D-V7C-CLOSED` — V7-C (Reverse CAO) close
+
+- **Date :** 2026-11-10
+- **Décision :** V7-C est **close**. Reverse CAO déjà fonctionnel (aucun code V7-C à ajouter).
+
+### `D-V7D-CLOSED` — V7-D (Import CAO) close
+
+- **Date :** 2026-11-10
+- **Décision :** V7-D est **close**. PR #32 mergée (`73fedcf`). Migration `20261110215229_v7d_cadfile_request_link`. Route `/api/upload/cad`. Page `/admin/demandes/[id]/import-cad`. Bouton activé (ligne 212).
+
+### `D-V7E-CLOSED` — V7-E (Orchestrateur) close
+
+- **Date :** 2026-11-11
+- **Décision :** V7-E est **close**. PR #34 mergée (`2627203`). Bouton « Lancer séquentiel » + bandeaux « Étape N/4 » dans les 4 méthodes. Non-intrusif (accès direct conservé).
+
+### `D-V7F-CLOSED` — V7-F (Capitalisation BDD) close
+
+- **Date :** 2026-11-11
+- **Décision :** V7-F est **close**. PR #35 mergée (`a0ba816`). Tables `part_templates` + `solutions` (migration `20261111103515`). Server Actions CRUD (part-templates.ts + solutions.ts). Backend-only (pas d'UI).
+
+### `D-V7G-CLOSED` — V7-G (Reconstruction CAO) close
+
+- **Date :** 2026-11-11
+- **Décision :** V7-G est **close**. PR #36 mergée (`580b87c`). Server Action `reconstructFromCad` (transaction atomique, confidence 85). 7 tests unitaires. Backend-only.
+
+### `D-V7H-EN-COURS` — V7-H (Clôture doc) en cours
+
+- **Date :** 2026-11-11
+- **Décision :** V7-H est **en cours**. Décisions (l)=A (doc minimale), (m)=A (pas de tag).
+
+### Décisions clés V7
+
+| ID | Valeur |
+|---|---|
+| (d) | Orchestrateur = bouton + redirect + flag `?sequential=1` (non-intrusif) |
+| (e) | Régénérer `migration.sql` avec `ON UPDATE CASCADE` (fait V7-D-2.9-fix) |
+| (f) | `PartTemplate` + `Solution` séparés, `method/sourceMethod` String (enum Zod) |
+| (g) | Backend-only (pas d'UI en V7-F/G) |
+| (i) | Reconstruction backend-only (`reconstructFromCad`) |
+| (j) | Zéro photogrammétrie (reportée V8) |
+| (k) | `Solution.confidence = 85` par défaut |
+| (l) | V7-H = doc minimale (5 fichiers) |
+| (m) | Pas de tag (V7 est un incrément) |

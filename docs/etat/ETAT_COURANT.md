@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-10
-**HEAD actuel :** `eb798c0` (Merge PR #28 — tests V7B-6)
-**Branche courante :** `feat/v7b-cloture-doc` (depuis `master` @ `eb798c0`)
-**Statut :** V7-B close (V7B-1 → V7B-6 validés). V7-C (Reverse CAO) prochaine étape.
+**Date de mise à jour :** 2026-11-11
+**HEAD actuel :** `580b87c` (V7-G — reconstructFromCad)
+**Branche courante :** `master`
+**Statut :** V7 close (V7-A → V7-G validées). V7-H en cours.
 
 ## État des versions
 
@@ -15,9 +15,13 @@
 | V5 | CLOS |
 | V6 | CLOS |
 | V8 | CLOS |
-| V7 | **OUVERTE** — V7-A prouvée, **V7-B close** (V7B-1 → V7B-6), V7-C prochaine |
-| V7-B | **CLOSE** (Workspace IA) — 6 sous-tâches validées (voir §V7-B) |
-| V7-C | **PROCHAINE** — Reverse CAO |
+| V7 | **CLOSE** — V7-A → V7-G validées (2026-11-10 → 2026-11-11) |
+| V7-C | **CLOSE** — Reverse CAO (déjà fonctionnel) |
+| V7-D | **CLOSE** — Import CAO (PR #32) |
+| V7-E | **CLOSE** — Orchestrateur séquentiel (PR #34) |
+| V7-F | **CLOSE** — Capitalisation BDD (PR #35) |
+| V7-G | **CLOSE** — Reconstruction CAO assistée (PR #36) |
+| V7-H | **EN COURS** — Clôture documentaire |
 
 ## Actions critiques
 
@@ -35,6 +39,16 @@
   - **V7B-5** : validation + persistance (`Part` + `ReconstructionAttempt`). Commit `c01a2f5`, PR #26 mergée `0f8600b`.
   - **V7B-6** : tests unitaires (route validate) + correction tests connectors. Commit `daaa957`, PR #28 mergée `eb798c0`.
   - **Total** : 6 commits, 6 PR mergées, 3 checks CI verts à chaque PR.
+
+
+## Session V7-C → V7-H (2026-11-10 → 2026-11-11)
+- **V7-C** : Reverse CAO déjà fonctionnel (aucun code).
+- **V7-D** : Import CAO — PR #32 (migration, route /api/upload/cad, page, bouton).
+- **V7-E** : Orchestrateur séquentiel non-intrusif — PR #34 (bouton + bandeaux Étape N/4).
+- **V7-F** : Capitalisation BDD — PR #35 (PartTemplate + Solution + Server Actions CRUD).
+- **V7-G** : Reconstruction CAO assistée — PR #36 (reconstructFromCad + 7 tests).
+- **V7-H** : Clôture documentaire (ce document).
+- **Total** : 5 PR mergées (#32, #34, #35, #36), 3 checks CI verts à chaque PR.
 
 ## VÉRIFICATION E61 — E61-VERIF
 
