@@ -1,105 +1,102 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.0
+**Version :** 6.2
 **Date :** 2026-11-11
-**Commit HEAD :** `1bb22ee` (V8-P0 — fiabilisation inter-sessions, PR #38)
+**Commit HEAD :** `a27f6c7` (V8-P0-5 — prompt de reprise v6.0 + READY + règles interaction, PR #39) — à mettre à jour après merge PR #40
 **Branche :** `master`
 **Version en cours :** V7 close — V8 en cours
-**Dernière étape close :** V8-P0-4 (PR #38)
-**Prochaine étape :** V8-B-0 (UI templates `/admin/part-templates`)
+**Dernière étape close :** V8-B-0 (UI templates `/admin/part-templates`)
+**Prochaine étape :** V8-B-1
 
 ---
 
-## ⚠️ ORDRE STRICT POUR L'IA INTERNE — À EXÉCUTER DANS CET ORDRE, SANS EXCEPTION
+## ⚠️ ORDRE STRICT POUR L'EXÉCUTANT — À EXÉCUTER DANS CET ORDRE, SANS EXCEPTION
 
-**Vous êtes l'IA interne (exécution). Avant TOUTE action, vous DEVEZ lire les fichiers de procédure dans cet ordre :**
+**Avant TOUTE action, lire les fichiers de procédure dans cet ordre :**
 
-1. **`docs/gouvernance/PROCEDURE_INTERACTION.md`** — **source unique des règles** (R1-R10, L45-L59, formats prompt/accusé).
-2. **`docs/gouvernance/PROCEDURE_IA_INTERNE.md`** — votre rôle, responsabilités, règles d'action (lecture, édition, preuves, blocage).
-3. **`docs/gouvernance/PROCEDURE_COORDINATEUR.md`** — rôle du coordinateur (pour comprendre qui décide quoi).
-4. **`docs/gouvernance/CHARTE.md`** — principes généraux (charte du projet).
+1. **`docs/gouvernance/PROCEDURE_INTERACTION.md`** — source unique des règles (R1-R10, L45-L59, formats prompt/accusé).
+2. **`docs/gouvernance/PROCEDURE_IA_INTERNE.md`** — rôle exécution, responsabilités.
+3. **`docs/gouvernance/PROCEDURE_COORDINATEUR.md`** — rôle coordinateur.
+4. **`docs/gouvernance/CHARTE.md`** — principes généraux.
 
-**Si vous ne pouvez pas lire un de ces fichiers** (non fourni, inaccessible), **arrêtez-vous** et **demandez-le au coordinateur**. **Ne continuez pas sans avoir lu les 4 fichiers.**
+**Si un fichier est inaccessible : s'arrêter et demander au coordinateur.**
 
-**Après lecture des 4 fichiers**, exécutez la §0.
+**Message READY obligatoire** : `READY — PROCEDURE_INTERACTION.md + PROCEDURE_IA_INTERNE.md + PROCEDURE_COORDINATEUR.md + CHARTE.md lus — prêt.`
 
-**Message READY obligatoire** : après lecture des 4 fichiers, envoyer au coordinateur le message exact :
-`READY — PROCEDURE_INTERACTION.md + PROCEDURE_IA_INTERNE.md + PROCEDURE_COORDINATEUR.md + CHARTE.md lus — prêt.`
-Ne pas exécuter la §0 avant confirmation du coordinateur.
+**Mode d'exécution R2** (acté 2026-11-11) : pas d'IA interne séparée — coordinateur-exécutant + IA externe. Le coordinateur exécute, l'IA externe valide. Le wrapper `bash` Kilo invoque PowerShell : autorisé.
 
 ---
 
-## 0. Action immédiate (à exécuter dès réception, APRÈS l'ordre strict ci-dessus)
+## 0. Action immédiate
 
-1. **Lire ce document** (auto-suffisant).
-2. **Lire les 4 fichiers de procédure** (cf. ordre strict ci-dessus).
-3. **Vérifier** `git log --oneline -3` (HEAD).
-4. **Émettre** le prompt de la prochaine étape (§4).
-
-**Ne pas produire d'analyse statique. Exécuter ces 4 étapes.**
+1. Lire ce document.
+2. Lire les 4 fichiers de procédure.
+3. Vérifier `git log --oneline -3` (HEAD).
+4. Émettre le prompt de la prochaine étape (§4).
 
 ---
 
 ## 1. Rôle de l'IA externe (résumé)
 
-Voir `PROCEDURE_INTERACTION.md` §2.1. Résumé :
-
-- **Analyser, planifier, proposer.**
-- **Ne pas exécuter, ne pas modifier.**
-- **Exiger des preuves brutes** (L50, R9).
-- **Émettre** des prompts unitaires (avec **contenu exact** des livrables, §5).
-- **Valider** les accusés de réception.
+Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger preuves brutes (L50/R9), émettre prompts unitaires (contenu exact, §5), valider accusés. Ne pas exécuter, ne pas modifier.
 
 ---
 
 ## 2. État actuel
 
-| Élément                | Valeur                             |
-| ---------------------- | ---------------------------------- |
-| **Projet**             | PartIVA                            |
-| **Version**            | V7 close — V8 en cours             |
-| **HEAD**               | `1bb22ee` (V8-P0, PR #38)          |
-| **Dernière étape close** | V8-P0-4 (PR #38)                 |
-| **Prochaine étape**    | V8-B-0 (UI templates)              |
+| Élément | Valeur |
+| --- | --- |
+| **Projet** | PartIVA |
+| **Version** | V7 close — V8 en cours |
+| **HEAD** | `a27f6c7` (V8-P0-5, PR #39) — à mettre à jour après PR #40 |
+| **Dernière étape close** | **V8-B-0** (UI templates) |
+| **Prochaine étape** | **V8-B-1** |
 
 ### Dettes haute / moyenne actives
 
-| ID                          | Sévérité | Objet              |
-| --------------------------- | -------- | ------------------ |
-| `D-E24-E2E-TIMEOUT-SOURCES` | Haute    | Timeout E2E sources |
-| `D-ADMIN-TEST-COVERAGE`     | Moyenne  | Tests E2E admin    |
-| `D-TRACEPARTS-CREDENTIALS`  | Moyenne  | Credentials réels  |
-| `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne  | Doc (non bloquant) |
+| ID | Sévérité | Objet |
+| --- | --- | --- |
+| `D-E24-E2E-TIMEOUT-SOURCES` | Haute | Timeout E2E sources |
+| `D-PROCEDURE-3-ACTEURS-INAPPLICABLE` | Haute | Procédure 3 acteurs → 2 acteurs (R2) |
+| `D-ADMIN-TEST-COVERAGE` | Moyenne | Tests E2E admin |
+| `D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED` | Moyenne | Route admin download bloquée par auth |
+| `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
+| `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
+| `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
+| `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
+| `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
+| `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
+| `D-ESLINTIGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
 
 ### Décisions clés (a)→(o)
 
-| ID  | Valeur                                                                        |
-| --- | ----------------------------------------------------------------------------- |
-| (a) | `CadFile.projectId` nullable + `requestId` nullable (XOR)                    |
-| (b) | Preview STEP/IGES via `occt-import-js`, STL/OBJ via `three-stdlib`           |
-| (c) | Route dédiée `/api/upload/cad`                                                |
-| (d) | Orchestrateur = bouton + redirect + flag `?sequential=1`                      |
-| (e) | Régénérer `migration.sql` avec `ON UPDATE CASCADE`                            |
-| (f) | `PartTemplate` + `Solution` séparés                                           |
-| (g) | Backend-only (pas d'UI en V7-F/G)                                             |
-| (i) | Reconstruction backend-only (`reconstructFromCad`)                            |
-| (j) | Zéro photogrammétrie (reportée V8)                                            |
-| (k) | `Solution.confidence = 85` par défaut                                         |
-| (l) | V7-H = doc minimale (5 fichiers)                                              |
-| (m) | Pas de tag (V7 est un incrément)                                              |
-| (o) | V8-P0 = 4 étapes (option C)                                                   |
+| ID | Valeur |
+| --- | --- |
+| (a) | `CadFile.projectId` nullable + `requestId` nullable (XOR) |
+| (b) | Preview STEP/IGES via `occt-import-js`, STL/OBJ via `three-stdlib` |
+| (c) | Route dédiée `/api/upload/cad` |
+| (d) | Orchestrateur = bouton + redirect + flag `?sequential=1` |
+| (e) | Régénérer `migration.sql` avec `ON UPDATE CASCADE` |
+| (f) | `PartTemplate` + `Solution` séparés |
+| (g) | Backend-only (pas d'UI en V7-F/G) |
+| (i) | Reconstruction backend-only (`reconstructFromCad`) |
+| (j) | Zéro photogrammétrie (reportée V8) |
+| (k) | `Solution.confidence = 85` par défaut |
+| (l) | V7-H = doc minimale (5 fichiers) |
+| (m) | Pas de tag (V7 est un incrément) |
+| (o) | V8-P0 = 4 étapes (option C) |
 
 ### 5 dernières sessions
 
-| ID    | Date       | Objet                                | Statut |
-| ----- | ---------- | ------------------------------------ | ------ |
-| V7-D  | 2026-11-10 | Import CAO (PR #32)                  | ✅     |
-| V7-E  | 2026-11-11 | Orchestrateur (PR #34)               | ✅     |
-| V7-F  | 2026-11-11 | Capitalisation BDD (PR #35)          | ✅     |
-| V7-G  | 2026-11-11 | Reconstruction CAO (PR #36)          | ✅     |
-| V7-H  | 2026-11-11 | Clôture doc V7 (PR #37)              | ✅     |
-| V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38)| ✅     |
+| ID | Date | Objet | Statut |
+| --- | --- | --- | --- |
+| V7-F | 2026-11-11 | Capitalisation BDD (PR #35) | ✅ |
+| V7-G | 2026-11-11 | Reconstruction CAO (PR #36) | ✅ |
+| V7-H | 2026-11-11 | Clôture doc V7 (PR #37) | ✅ |
+| V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
+| V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
+| V8-B-0 | 2026-11-11 | UI templates `/admin/part-templates` (PR #40) | ✅ |
 
 ---
 
@@ -109,16 +106,16 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Résumé :
 
 ## 4. Prochaine action attendue
 
-**V8-B-0** : UI templates `/admin/part-templates` (liste + création + édition), backend `part-templates.ts` déjà existant.
+**V8-B-1** : à préciser par le coordinateur (périmètre, objectif, livrables).
 
-**Prompt à émettre** : `V8-B-0` (fourni par l'IA externe).
+**Prompt à émettre** : `V8-B-1` (fourni par l'IA externe).
 
 ---
 
 ## 5. Fichiers de référence
 
-- `docs/gouvernance/PROCEDURE_INTERACTION.md` — **règles** (source unique, à lire en priorité)
-- `docs/gouvernance/PROCEDURE_IA_INTERNE.md` — rôle IA interne
+- `docs/gouvernance/PROCEDURE_INTERACTION.md` — règles (source unique)
+- `docs/gouvernance/PROCEDURE_IA_INTERNE.md` — rôle exécution
 - `docs/gouvernance/PROCEDURE_COORDINATEUR.md` — rôle coordinateur
 - `docs/gouvernance/CHARTE.md` — principes généraux
 - `docs/etat/ETAT_COURANT.md` — état détaillé
@@ -126,19 +123,24 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Résumé :
 - `docs/etat/DECISIONS.md` — décisions complètes
 - `docs/sessions/INDEX.md` — historique sessions
 
-**Instruction** : si l'IA externe a besoin de détails (contenu exact d'un fichier), **demander à l'utilisateur de coller le fichier**. Ne **pas** supposer.
+**Instruction** : si l'IA externe a besoin de détails, demander à l'utilisateur de coller le fichier. Ne pas supposer.
 
 ---
 
 ## 6. Règle de régénération
 
-**Ce fichier doit être régénéré à chaque fin d'étape** (V8-B-1, V8-C-1, etc.) via le prompt `V8-<étape>-reprise` (intégré aux étapes).
+Ce fichier doit être régénéré à chaque fin d'étape via le prompt `V8-<étape>-reprise`.
 
 Structure à mettre à jour :
+- Date, Commit HEAD, Dernière étape close, Prochaine étape
+- Décisions clés (ajouter les nouvelles)
+- 5 dernières sessions (ajouter la nouvelle)
 
-- **Date** : date du jour.
-- **Commit HEAD** : hash du dernier commit mergé.
-- **Dernière étape close** : `<V8-...-N>`.
-- **Prochaine étape** : `<V8-...-N+1>`.
-- **Décisions clés** : ajouter les nouvelles.
-- **5 dernières sessions** : ajouter la nouvelle.
+---
+
+## 7. Contraintes d'exécution (actées 2026-11-11)
+
+- **R2** : 2 acteurs (coordinateur-exécutant + IA externe).
+- **Wrapper Kilo** : `bash` Kilo = PowerShell, autorisé.
+- **Longueur** : subdiviser en sous-étapes si dépassement de la limite d'acceptation.
+- **Preuves brutes** : obligatoires (L50/R9). Un rapport n'est pas une preuve.
