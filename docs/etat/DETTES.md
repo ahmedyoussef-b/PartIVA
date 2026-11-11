@@ -51,7 +51,6 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** obtenir les credentials TraceParts, passer `traceparts.ts` en `mode: 'real'`, remplacer le mock statique par l'API REST v3 réelle, tester unitaire + runtime, retirer le badge `Mock`.
 
-
 ### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
 
 - **Statut :** Active (documentée)
@@ -103,7 +102,6 @@
 - **Effort estimé :** Faible (audit + suppression sélective, une session).
 - **Bloquant :** Non.
 - **Condition de résolution :** chaque branche est soit supprimée (si mergée et sans usage), soit documentée comme conservée avec motif. Preuve : `git branch` final + justification par branche.
-
 
 ### `D-PRISMA-MIGRATION-DRIFT-HISTORIQUE` — Lignes fantômes `_prisma_migrations` (add_analysis_data_to_part)
 
@@ -164,15 +162,6 @@
 - **Action future :** V8.
 - **Condition de résolution :** pipeline photogrammétrie intégré et testé.
 
----
-
-## Résolues
-
-### `D-ENV-SHADOW-DB` — Branche Neon shadow configurée
-
-- **Statut :** Résolue (V7-D-2.8-fix)
-- **Cause :** `SHADOW_DATABASE_URL` manquante empêchait `migrate dev`.
-- **Résolution :** branche Neon shadow créée (URL directe, sans -pooler, même projet ep-flat-paper-b221l3fy). `migrate dev` fonctionnel.
 ---
 
 ## Notes
