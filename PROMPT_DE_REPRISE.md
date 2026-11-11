@@ -1,9 +1,9 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.3
+**Version :** 6.4
 **Date :** 2026-11-11
-**Commit HEAD :** `468078c` (Merge PR #41 — suppression test-files.txt)
+**Commit HEAD :** `54a9577` (Merge PR #43 — résync master, V8-B-0 clos via #40)
 **Branche :** `master`
 **Version en cours :** V7 close — V8 en cours
 **Dernière étape close :** V8-B-0 (UI templates `/admin/part-templates`)
@@ -49,7 +49,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 en cours |
-| **HEAD** | `468078c` (Merge PR #41) |
+| **HEAD** | `54a9577` (Merge PR #43, V8-B-0 clos via #40) |
 | **Dernière étape close** | **V8-B-0** (UI templates) |
 | **Prochaine étape** | **V8-B-1** |
 
@@ -96,7 +96,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V7-H | 2026-11-11 | Clôture doc V7 (PR #37) | ✅ |
 | V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
 | V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
-| V8-B-0 | 2026-11-11 | UI templates `/admin/part-templates` (PR #40, #41) | ✅ |
+| V8-B-0 | 2026-11-11 | UI templates `/admin/part-templates` (PR #40, #41, #42, #43) | ✅ |
 
 ---
 
