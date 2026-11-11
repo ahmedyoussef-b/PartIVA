@@ -1,18 +1,19 @@
 import { headers } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { EditTemplateButton } from '@/app/admin/part-templates/[id]/edit-template-button';
-import { DeleteTemplateButton } from '@/app/admin/part-templates/[id]/delete-template-button';
+import { updatePartTemplate, deletePartTemplate } from '@/lib/actions/part-templates';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import type { UserRole } from '@/generated/prisma/client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function AdminPartTemplateDetailPage({
+export default async function AdminPartTemplateEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -22,99 +23,111 @@ export default async function AdminPartTemplateDetailPage({
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  const actorRole = ((session?.user as { role?: string } | undefined)?.role ??
-    'VIEWER') as UserRole;
+  const actorRole = ((session?.user as { role?: string } | undefined)?.role ?? 'VIEWER') as string;
 
   const template = await prisma.partTemplate.findUnique({
     where: { id },
   });
 
   if (!template) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive">Template introuvable</h1>
-          <p className="mt-2 text-muted-foreground">
-            Aucun template ne correspond à l’identifiant <code>{id}</code>.
-          </p>
-          <Button asChild variant="outline" className="mt-6">
-            <Link href="/admin/part-templates">Retour à la liste</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    notFound();
+  }
+
+  async function handleUpdate(formData: FormData) {
+    const result = await updatePartTemplate({
+      id,
+      name: formData.get('name') as string,
+      description: (formData.get('description') as string) || undefined,
+      categoryId: (formData.get('categoryId') as string) || undefined,
+      material: (formData.get('material') as string) || undefined,
+      sourceMethod: ((formData.get('sourceMethod') as string) || undefined) as
+        'CATALOG' | 'WORKSPACE' | 'REVERSE' | 'IMPORT' | undefined,
+      printableModelUrl: (formData.get('printableModelUrl') as string) || undefined,
+    });
+    if (!result.success) {
+      return;
+    }
+    redirect(`/admin/part-templates/${id}`);
+  }
+
+  async function handleDelete(formData: FormData) {
+    await deletePartTemplate(formData.get('id') as string);
+    redirect('/admin/part-templates');
   }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <Link
-            href="/admin/part-templates"
-            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            Liste des templates
+      <div className="flex items-center gap-2">
+        <Link
+          href="/admin/part-templates"
+          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline"
+        >
+          Liste des templates
+        </Link>
+        <h1 className="text-2xl font-bold tracking-tight">Éditer le template</h1>
+        <span className="rounded bg-secondary px-2 py-1 text-xs text-secondary-foreground">
+          {actorRole}
+        </span>
+      </div>
+      <Card className="max-w-2xl">
+        <form action={handleUpdate} id="update-form">
+          <input type="hidden" name="id" value={template.id} />
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom</Label>
+              <Input id="name" name="name" required defaultValue={template.name} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                rows={4}
+                defaultValue={template.description ?? ''}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="material">Matière</Label>
+              <Input id="material" name="material" defaultValue={template.material ?? ''} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="categoryId">Catégorie</Label>
+              <Input id="categoryId" name="categoryId" defaultValue={template.categoryId ?? ''} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sourceMethod">Méthode source</Label>
+              <Input
+                id="sourceMethod"
+                name="sourceMethod"
+                defaultValue={template.sourceMethod ?? ''}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="printableModelUrl">Modèle CAO (URL)</Label>
+              <Input
+                id="printableModelUrl"
+                name="printableModelUrl"
+                type="url"
+                defaultValue={template.printableModelUrl ?? ''}
+              />
+            </div>
+          </CardContent>
+        </form>
+        <CardFooter className="flex justify-end gap-2">
+          <Link href="/admin/part-templates" className="inline-block">
+            <Button variant="outline">Annuler</Button>
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight">{template.name}</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            {template.categoryId ? (
-              <span className="font-mono text-sm">{template.categoryId}</span>
-            ) : null}
-            {template.material ? <Badge variant="outline">{template.material}</Badge> : null}
-            {template.sourceMethod ? (
-              <span className="rounded bg-secondary px-2 py-1 text-xs text-secondary-foreground">
-                {template.sourceMethod}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span className="rounded bg-secondary px-2 py-1 text-xs text-secondary-foreground">
-            {actorRole}
-          </span>
-          <EditTemplateButton template={template} />
-          <DeleteTemplateButton templateId={template.id} />
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <div className="rounded-lg border bg-border p-4">
-            <h2 className="mb-2 text-sm font-medium">Détails</h2>
-            <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-xs font-medium text-muted-foreground">ID</dt>
-                <dd className="font-mono">{template.id}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium text-muted-foreground">Nom</dt>
-                <dd>{template.name}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium text-muted-foreground">Description</dt>
-                <dd>{template.description ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium text-muted-foreground">Matière</dt>
-                <dd>{template.material ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium text-muted-foreground">Méthode source</dt>
-                <dd>{template.sourceMethod ?? '—'}</dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs font-medium text-muted-foreground">Créé le</dt>
-                <dd>{template.createdAt.toLocaleDateString('fr-FR')}</dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs font-medium text-muted-foreground">Mis à jour le</dt>
-                <dd>{template.updatedAt.toLocaleDateString('fr-FR')}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </div>
+          <form action={handleDelete} className="inline">
+            <input type="hidden" name="id" value={template.id} />
+            <Button variant="destructive" type="submit">
+              Supprimer
+            </Button>
+          </form>
+          <Button form="update-form" type="submit">
+            Enregistrer
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
