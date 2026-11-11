@@ -158,3 +158,14 @@ Toute modification doit être :
 3. Documentée dans `DECISIONS.md`.
 
 En cas de contradiction avec une procédure existante, **cette procédure prévaut**.
+
+## 12. Révisions actées 2026-11-11 (session V8-B-0)
+
+### 12.1. Mode d'exécution R2 (2 acteurs)
+La procédure à 3 acteurs est **réduite à 2 acteurs** : **coordinateur-exécutant + IA externe**. Le coordinateur exécute et produit les preuves brutes ; l'IA externe rédige les prompts et valide les accusés. Dette `D-PROCEDURE-3-ACTEURS-INAPPLICABLE`.
+
+### 12.2. Wrapper Kilo autorisé
+L'outil `bash` de Kilo invoque PowerShell (`Out-File`, `Add-Content`, `Get-Content`, `WriteAllText`). Autorisé en lecture et écriture. Ce n'est pas du bash Unix. Dette `D-PROCEDURE-WRAPPER-KILO`.
+
+### 12.3. Contrainte de longueur des prompts
+Un prompt unitaire doit être **subdivisé en sous-étapes** si sa taille dépasse la limite d'acceptation de l'outil d'exécution. Chaque sous-étape produit son propre accusé §6. Méthodes d'écriture : `WriteAllText` (écrasement complet), `Add-Content`/`AppendAllText` (morceaux successifs), `Get-Content -Raw` (preuve intégrale). Dette `D-PROCEDURE-LONGUEUR-PROMPTS`.

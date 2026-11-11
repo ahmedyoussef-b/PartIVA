@@ -138,14 +138,6 @@
 - **Action future :** ajouter `.refine()` dans le schéma Zod de `importCad` et `addCadFile`. **V7-E+.**
 - **Condition de résolution :** garde-fou en place et testé.
 
-### `D-PARTTEMPLATE-UI` — Pas d'UI de gestion des PartTemplates
-- **Statut :** Active
-- **Cause :** V7-F a créé les tables + Server Actions CRUD, mais pas d'UI (backend-only).
-- **Périmètre :** `src/app/admin/part-templates/`.
-- **Effort estimé :** Moyen.
-- **Action future :** créer une page admin `/admin/part-templates` (liste + création + édition). **V7-H/V8.**
-- **Condition de résolution :** UI disponible et testée.
-
 ### `D-RECONSTRUCT-UI` — Pas d'UI de reconstruction CAO
 - **Statut :** Active
 - **Cause :** V7-G a créé `reconstructFromCad` (backend-only), pas d'UI.
@@ -170,3 +162,44 @@
 - **Actions critiques (non dettes) :** voir `ETAT_COURANT.md` §« Actions critiques » (mot de passe admin, hook BOM, `$env:ADMIN_PASSWORD`).
 - **Source :** v10 §3 (2026-11-10). Toute modification ultérieure nécessite un arbitrage du coordinateur.
 - **Historique :** `git log -- docs/etat/DETTES.md` + `git show <commit>:docs/etat/DETTES.md`.
+
+### `D-V8-B-0-JSON-FIELDS` — `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0
+- **Statut :** Active
+- **Cause :** décision D2b — les 3 champs du `CreatePartTemplateSchema` sont `z.record(z.string(), z.any())`. Une string brute échoue chez Zod. Exclus de V8-B-0.
+- **Périmètre :** `src/app/admin/part-templates/nouveau/part-template-form.tsx`, `src/app/admin/part-templates/[id]/editer/part-template-form.tsx`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** parseur JSON côté client + tests.
+
+### `D-PROCEDURE-3-ACTEURS-INAPPLICABLE` — Procédure 3 acteurs → 2 acteurs (R2)
+- **Statut :** Active
+- **Cause :** environnement réel = coordinateur-exécutant + IA externe. Pas d'IA interne séparée. Décision R2 (2026-11-11).
+- **Périmètre :** `docs/gouvernance/PROCEDURE_INTERACTION.md` §2, `PROCEDURE_COORDINATEUR.md`, `PROCEDURE_IA_INTERNE.md`.
+- **Effort estimé :** Moyen.
+- **Bloquant :** Non (mode R2 acté).
+- **Condition de résolution :** procédures révisées pour 2 acteurs.
+
+### `D-PROCEDURE-LONGUEUR-PROMPTS` — Subdivision en sous-étapes
+- **Statut :** Active
+- **Cause :** prompts trop longs → refus de l'outil d'exécution. Subdivision actée en V8-B-0.
+- **Périmètre :** `docs/gouvernance/PROCEDURE_INTERACTION.md` §5.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** acté dans §5 (fait en V8-B-0).
+
+### `D-PROCEDURE-WRAPPER-KILO` — `bash` Kilo = wrapper PowerShell
+- **Statut :** Active
+- **Cause :** l'outil `bash` de Kilo invoque PowerShell. Autorisé en lecture/écriture.
+- **Périmètre :** `docs/gouvernance/PROCEDURE_INTERACTION.md` §5.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** acté dans §5 (fait en V8-B-0).
+
+### `D-V8-B-0-FIX-1-HORS-PERIMETRE` — `test-files.txt` supprimé hors périmètre
+- **Statut :** Active
+- **Cause :** suppression hors périmètre pendant V8-B-0-FIX-1 (F1). Tracée, non bloquante.
+- **Périmètre :** racine dépôt.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** clôture manuelle (tracé).
+
