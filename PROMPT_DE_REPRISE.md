@@ -1,12 +1,12 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.0
+**Version :** 7.1
 **Date :** 2026-11-12
-**Commit HEAD :** `cbeb1c3` (Merge PR #68 — V8-B-6-e close)
+**Commit HEAD :** `413165d` (Merge PR #70 — V8-B-6-f close)
 **Branche :** master
 **Version en cours :** V8 close (V8-B-6 intégralement clôturée)
-**Dernière étape close :** V8-B-6-e (logs structurés RE)
+**Dernière étape close :** V8-B-6-f (logs manquants ajoutés)
 **Prochaine étape :** V8-B-7 (à préciser par le coordinateur)
 
 ---
@@ -49,8 +49,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) |
-| **HEAD** | `cbeb1c3` (Merge PR #68, V8-B-6-e close) |
-| **Dernière étape close** | **V8-B-6-e** |
+| **HEAD** | `413165d` (Merge PR #70, V8-B-6-f close) |
+| **Dernière étape close** | **V8-B-6-f** |
 | **Prochaine étape** | **V8-B-7** (à préciser) |
 
 ### Dettes haute / moyenne / basse actives
@@ -118,6 +118,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-B-6-c | 2026-11-12 | Preview 3D des fichiers CAO (ModelViewer) | ✅ |
 | V8-B-6-d | 2026-11-12 | Export STL fiable (conversion + étanchéité + unités) | ✅ |
 | V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | ✅ |
+| V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE (total 18 logs) | ✅ |
 
 ---
 
