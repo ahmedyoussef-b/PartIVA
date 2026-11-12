@@ -119,3 +119,45 @@ test.describe('ADMIN - Flux Demande -> Projet RE (V8-B-2-b)', () => {
     await expect(page.getByText(/RE - Pièce test E2E V8-B-2-b/)).toBeVisible({ timeout: 10000 });
   });
 });
+
+/**
+ * V8-B-2-d — Test E2E ajout d'étape (validation du fix uuid → cuid)
+ */
+
+test.describe('ADMIN - Ajout étape RE (V8-B-2-d)', () => {
+  test.setTimeout(60000);
+
+  let projectId: string;
+
+  test.beforeAll(async () => {
+    const project = await prisma.reverseEngineeringProject.create({
+      data: {
+        name: 'Projet test E2E V8-B-2-d',
+        description: "Projet de test pour valider l'ajout d'étape",
+        status: 'DRAFT',
+      },
+    });
+    projectId = project.id;
+  });
+
+  test.afterAll(async () => {
+    // Nettoyage : supprimer l'étape créée, puis le projet
+    await prisma.reverseEngineeringStep.deleteMany({
+      where: { projectId, name: 'Test Étape E2E V8-B-2-d' },
+    });
+    await prisma.reverseEngineeringProject.delete({ where: { id: projectId } });
+  });
+
+  test('ajouter une étape et vérifier son apparition', async ({ page }) => {
+    await page.goto(`/admin/reverse-engineering/${projectId}`);
+    await expect(page.getByRole('button', { name: /Ajouter une étape/i })).toBeVisible({
+      timeout: 30000,
+    });
+    await page.getByRole('button', { name: /Ajouter une étape/i }).click();
+
+    await page.getByPlaceholder(/ex: Validation CAO/i).fill('Test Étape E2E V8-B-2-d');
+    await page.getByRole('button', { name: /^Ajouter$/i }).click();
+
+    await expect(page.getByText('Test Étape E2E V8-B-2-d')).toBeVisible({ timeout: 10000 });
+  });
+});

@@ -821,7 +821,7 @@ export default function ReverseEngineeringContent({
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">Nom de l&apos;étape</Label>
+              <Label className="text-xs">Nom de l&rsquo;étape</Label>
               <Input
                 className="text-xs"
                 value={newStep.name}
