@@ -317,3 +317,4 @@
 | (s) | Accessibilité label : tout `<Label>` doit avoir `htmlFor` et l'`<Input>` associé un `id` (pour `getByLabel` et l'accessibilité). |
 | (t) | Tests d'intégration réels hors CI : le script `npm run test:sources` exécute `scripts/test-real-sources.ts` pour valider les sources externes sans bloquer Playwright. |
 | (u) | Réforme gouvernance 3 acteurs (IA externe, coordinateur, IA interne). Rôles clarifiés : IA externe (analyse/planification), coordinateur (décision/transport), IA interne (exécution). |
+| (v) | Logs structurés `[RE:...]` dans le flux Reverse Engineering (upload, preview, export, statut, étape, projet). V8-B-6-e. |

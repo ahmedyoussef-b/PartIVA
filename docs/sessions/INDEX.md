@@ -52,6 +52,11 @@
 | V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | Dettes RE | ✅ | PRs #55-#57 |
 | V8-B-4 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | Dettes RE | ✅ | PRs #59-#61 |
 | V8-B-5 | 2026-11-12 | Réforme gouvernance 3 acteurs | Gouvernance | ✅ | PR #63 |
+| V8-B-6-a | 2026-11-12 | État des lieux workflow RE | CRUD RE | ✅ | PR #64 |
+| V8-B-6-b | 2026-11-12 | Upload réel de fichiers CAO | CRUD RE | ✅ | PR #65 |
+| V8-B-6-c | 2026-11-12 | Preview 3D des fichiers CAO | CRUD RE | ✅ | PR #66 |
+| V8-B-6-d | 2026-11-12 | Export STL fiable (conversion + étanchéité) | CRUD RE | ✅ | PR #67 |
+| V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | CRUD RE | ✅ | PR #68 |
 
 ---
 

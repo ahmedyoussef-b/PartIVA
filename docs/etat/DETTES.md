@@ -1,6 +1,6 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-11-11
+**Dernière mise à jour :** 2026-11-12
 **Source :** `PROMPT DE PASSATION — Superviseur IA Externe — v12` §3 (2026-11-10)
 **Statut :** Registre actif — dettes non résolues uniquement (charte §10).
 

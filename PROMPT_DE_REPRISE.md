@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.9
+**Version :** 7.0
 **Date :** 2026-11-12
-**Commit HEAD :** `de27047` (Merge PR #63 — V8-B-5-a close)
+**Commit HEAD :** `cbeb1c3` (Merge PR #68 — V8-B-6-e close)
 **Branche :** master
-**Version en cours :** V8 en cours
-**Dernière étape close :** V8-B-5-a
-**Prochaine étape :** V8-B-5 (à préciser par le coordinateur)
+**Version en cours :** V8 close (V8-B-6 intégralement clôturée)
+**Dernière étape close :** V8-B-6-e (logs structurés RE)
+**Prochaine étape :** V8-B-7 (à préciser par le coordinateur)
 
 ---
 
@@ -48,10 +48,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 en cours |
-| **HEAD** | `de27047` (Merge PR #63, V8-B-5-a close) |
-| **Dernière étape close** | **V8-B-5-a** |
-| **Prochaine étape** | **V8-B-6** (à préciser) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) |
+| **HEAD** | `cbeb1c3` (Merge PR #68, V8-B-6-e close) |
+| **Dernière étape close** | **V8-B-6-e** |
+| **Prochaine étape** | **V8-B-7** (à préciser) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -72,6 +72,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
 | `D-ESLINT-IGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
 | `D-GIT-STASH-RESIDUELS` | Basse | Travail E9-R3.a en attente (2 stashes : sidebar Tauri + backend Tauri avec commandes unifiées). Stashes conservés (pas de suppression). |
+| `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre pendant V8-B-0-FIX-1 (F1). Tracée, non bloquante. |
+| `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/nouveau` conservée en parallèle de `/new`. |
+| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/`. Décision (p) actée dans DECISIONS.md. |
+| `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` | Basse | Découpage strict des prompts (réforme du 2026-11-11, Mode R2). |
 
 ### Décisions clés
 
@@ -90,12 +94,13 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (l) | V7-H = doc minimale (5 fichiers) |
 | (m) | Pas de tag (V7 est un incrément) |
 | (o) | V8-P0 = 4 étapes (option C) |
-| (p) | Specs E2E admin → emplacement `e2e/admin/` (seul projet Playwright injecte `storageState`) |
-| (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives — proposer un smoke test Playwright minimal pour les sous-étapes UI futures. À arbitrer en V8-B-2 ou ultérieur. |
-| (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` (et non `uuid()`) pour tous les ID Prisma. |
-| (s) | Accessibilité label : tout `<Label>` doit avoir `htmlFor` et l'`<Input>` associé un `id` (pour `getByLabel` et l'accessibilité). |
-| (t) | Tests d'intégration réels hors CI : le script `npm run test:sources` exécute `scripts/test-real-sources.ts` pour valider les sources externes sans bloquer Playwright. |
-| (u) | Réforme gouvernance 3 acteurs (IA externe, coordinateur, IA interne). Rôles clarifiés : IA externe (analyse/planification), coordinateur (décision/transport), IA interne (exécution). |
+| (p) | Specs E2E admin → emplacement `e2e/admin/` |
+| (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives |
+| (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` pour tous les ID Prisma |
+| (s) | Accessibilité label : tout `<Label>` doit avoir `htmlFor` et l'`<Input>` associé un `id` |
+| (t) | Tests d'intégration réels hors CI : script `npm run test:sources` |
+| (u) | Réforme gouvernance 3 acteurs (IA externe, coordinateur, IA interne) |
+| (v) | Logs structurés `[RE:...]` dans le flux Reverse Engineering (V8-B-6-e) |
 
 ### 5 dernières sessions
 
@@ -108,6 +113,11 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | ✅ |
 | V8-B-4 | 2026-11-12 | Reverse Engineering (liaison Demande → Projet RE, E2E ajout étape) | ✅ |
 | V8-B-5 | 2026-11-12 | Réforme gouvernance 3 acteurs | ✅ |
+| V8-B-6-a | 2026-11-12 | État des lieux workflow RE | ✅ |
+| V8-B-6-b | 2026-11-12 | Upload réel de fichiers CAO (dropzone + /api/upload/cad + addCadFile) | ✅ |
+| V8-B-6-c | 2026-11-12 | Preview 3D des fichiers CAO (ModelViewer) | ✅ |
+| V8-B-6-d | 2026-11-12 | Export STL fiable (conversion + étanchéité + unités) | ✅ |
+| V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | ✅ |
 
 ---
 
@@ -117,9 +127,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-B-5** : à préciser par le coordinateur (périmètre, objectif, livrables).
+**V8-B-7** : à préciser par le coordinateur (périmètre, objectif, livrables).
 
-**Prompt à émettre** : `V8-B-5` (fourni par l'IA externe).
+**Prompt à émettre** : `V8-B-7` (fourni par l'IA externe).
 
 ---
 
