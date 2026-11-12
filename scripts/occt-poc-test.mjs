@@ -2,11 +2,11 @@ import { test } from '@playwright/test';
 import { writeFileSync } from 'fs';
 
 test('OCCT POC page renders cube', async ({ page }) => {
-  const logs: string[] = [];
-  page.on('console', msg => {
+  const logs = [];
+  page.on('console', (msg) => {
     logs.push(`[${msg.type()}] ${msg.text()}`);
   });
-  page.on('pageerror', err => {
+  page.on('pageerror', (err) => {
     logs.push(`[pageerror] ${err.message}`);
   });
 
@@ -26,5 +26,5 @@ test('OCCT POC page renders cube', async ({ page }) => {
   console.log('=== PAGE CONTENT (first 2000 chars) ===');
   console.log(content.slice(0, 2000));
   console.log('=== CONSOLE LOGS ===');
-  logs.forEach(l => console.log(l));
+  logs.forEach((l) => console.log(l));
 });

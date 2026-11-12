@@ -2,10 +2,10 @@
 
 import dynamic from 'next/dynamic';
 
-const OcctPoc = dynamic(
-  () => import('@/components/3d/occt-poc').then((m) => m.OcctPoc),
-  { ssr: false, loading: () => <div>Chargement OpenCascade.js...</div> },
-);
+const OcctPoc = dynamic(() => import('@/components/3d/occt-poc').then((m) => m.OcctPoc), {
+  ssr: false,
+  loading: () => <div>Chargement OpenCascade.js...</div>,
+});
 
 export default function OcctPocTestPage() {
   return (

@@ -17,7 +17,10 @@ import { chromium } from 'playwright';
   });
 
   console.log('Navigation vers /occt-poc-test...');
-  await page.goto('http://localhost:3000/occt-poc-test', { waitUntil: 'networkidle', timeout: 60000 });
+  await page.goto('http://localhost:3000/occt-poc-test', {
+    waitUntil: 'networkidle',
+    timeout: 60000,
+  });
 
   // Attendre le chargement du WASM (60s max)
   console.log('Attente du chargement WASM (60s)...');
@@ -27,7 +30,7 @@ import { chromium } from 'playwright';
   const loadingText = await page.textContent('body');
   const hasLoading = loadingText?.includes('Chargement');
   const hasError = loadingText?.includes('Erreur');
-  const hasCanvas = await page.locator('canvas').count() > 0;
+  const hasCanvas = (await page.locator('canvas').count()) > 0;
 
   console.log(`Page state: hasLoading=${hasLoading}, hasError=${hasError}, hasCanvas=${hasCanvas}`);
 
