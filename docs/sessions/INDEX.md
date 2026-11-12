@@ -49,6 +49,7 @@
 | V8 | 2026-11-09 | Smart Router + Vue Hybride + Filtres + Bug fix (PR #18 `c0c86a2`) | Recherche, UI | ✅ | `DECISIONS.md` §3 |
 | V8-B-1 | 2026-11-11 | CRUD templates (UI + API + E2E) — sous-étapes a→d | CRUD Templates | ✅ | PRs #46, #47, #48 |
 | V8-B-2 | 2026-11-12 | Reverse Engineering (liaison Demande → Projet RE, E2E ajout étape) | CRUD RE | ✅ | PRs #50-#53 |
+| V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | Dettes RE | ✅ | PRs #55-#57 |
 
 ---
 
