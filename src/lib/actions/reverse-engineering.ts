@@ -12,12 +12,12 @@ const CreateREProjectSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
   description: z.string().optional(),
   status: ProjectStatusSchema.default('DRAFT'),
-  partId: z.string().uuid().optional(),
-  userId: z.string().uuid().optional(),
+  partId: z.string().cuid().optional(),
+  userId: z.string().cuid().optional(),
 });
 
 const UpdateREProjectStatusSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   status: ProjectStatusSchema,
 });
 
@@ -29,14 +29,14 @@ const AddREStepSchema = z.object({
 });
 
 const UpdateREStepSchema = z.object({
-  stepId: z.string().uuid(),
+  stepId: z.string().cuid(),
   completed: z.boolean().optional(),
   name: z.string().min(1).optional(),
   description: z.string().optional(),
 });
 
 const AddCadFileSchema = z.object({
-  projectId: z.string().uuid(),
+  projectId: z.string().cuid(),
   name: z.string().min(1, 'Le nom du fichier est requis'),
   url: z.string().url('URL invalide'),
   fileType: z.enum(['IMAGE', 'PDF', 'CAD_STL', 'CAD_STEP', 'CAD_OBJ', 'OTHER']),
