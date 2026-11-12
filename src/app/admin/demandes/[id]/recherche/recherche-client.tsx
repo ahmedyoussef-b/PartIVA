@@ -88,6 +88,17 @@ const SOURCES = [
     description: 'Index de similarité 3D par embedding',
     isMock: false,
   },
+  {
+    id: 'photo',
+    label: 'Recherche par photo',
+    icon: Camera,
+    color: 'text-rose-500',
+    bgColor: 'bg-rose-500/10',
+    borderColor: 'border-rose-500/30',
+    description: "Recherche par similarité d'image (CLIP)",
+    isMock: false,
+    isPhoto: true,
+  },
 ];
 
 type SearchState = 'idle' | 'running' | 'done' | 'error';
