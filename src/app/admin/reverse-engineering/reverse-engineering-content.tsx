@@ -9,6 +9,7 @@ import {
   addREStep,
   updateREStep,
   addCadFile,
+  saveCadDimensions,
   analyzeReverseEngineeringProject,
 } from '@/lib/actions/reverse-engineering';
 import { toast } from 'sonner';
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useDropzone } from 'react-dropzone';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import { CadEditor } from '@/components/3d/cad-editor';
 import { exportCadToStl, downloadStlFromUrl } from '@/lib/export/cad-to-stl';
 import {
   Dialog,
@@ -60,6 +62,8 @@ import {
   Upload,
   Loader2,
   Download,
+  X,
+  Pencil,
 } from 'lucide-react';
 
 const EMPTY_MESURE = { cote: '', valeur: '', tolerance: '', note: '' };
@@ -117,6 +121,11 @@ export default function ReverseEngineeringContent({
   const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
   const [previewName, setPreviewName] = React.useState<string | null>(null);
   const [exporting, setExporting] = React.useState<string | null>(null);
+  const [editingFile, setEditingFile] = React.useState<{
+    url: string;
+    name: string;
+    cadFileId: string;
+  } | null>(null);
 
   const ACCEPT_CAD = {
     'application/step': ['.step', '.stp'],
@@ -914,6 +923,24 @@ export default function ReverseEngineeringContent({
                                   >
                                     <Download className="h-3 w-3" />
                                   </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.info('[RE:editor] Ouverture éditeur', {
+                                        fileName: file.name,
+                                      });
+                                      setEditingFile({
+                                        url: file.url,
+                                        name: file.name,
+                                        cadFileId: file.id,
+                                      });
+                                    }}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               ) : (
                                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -971,6 +998,38 @@ export default function ReverseEngineeringContent({
                           );
                         })}
                   </div>
+
+                  {editingFile && (
+                    <div className="mt-4 rounded-lg border border-border p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <h3 className="text-sm font-semibold">Édition — {editingFile.name}</h3>
+                        <Button variant="ghost" size="sm" onClick={() => setEditingFile(null)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <CadEditor
+                        src={editingFile.url}
+                        height="400px"
+                        onDimensionsChange={async (dims) => {
+                          console.info('[RE:editor] Dimensions modifiées', {
+                            fileName: editingFile.name,
+                            ...dims,
+                          });
+                          if (editingFile.cadFileId) {
+                            const result = await saveCadDimensions({
+                              cadFileId: editingFile.cadFileId,
+                              dimensions: dims,
+                            });
+                            if (result.success) {
+                              toast.success('Dimensions sauvegardées');
+                            } else {
+                              toast.error(result.error || 'Échec de la sauvegarde');
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
 
                   <Separator />
 
@@ -1164,8 +1223,16 @@ export default function ReverseEngineeringContent({
         }}
       >
         <DialogContent className="p-0">
-          <DialogHeader>
+          <DialogHeader className="relative">
             <DialogTitle>Preview 3D — {previewName}</DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 rounded-sm opacity-70 hover:opacity-100"
+              onClick={() => setPreviewOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </DialogHeader>
           <DialogContent className="h-[600px] w-[800px] p-0">
             {previewSrc ? (
