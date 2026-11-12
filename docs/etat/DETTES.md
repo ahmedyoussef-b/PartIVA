@@ -264,14 +264,16 @@
 
 ---
 
-### `D-GIT-STASH-RESIDUELS` — 2 stashes résiduels jamais nettoyés
+### `D-GIT-STASH-RESIDUELS` — Travail E9-R3.a en attente (2 stashes)
 
-- **Statut :** Active
-- **Cause :** `stash@{0}: On master: temp stash before E9-R3.a` et `stash@{1}: On master: wip-e9-r3a-premature` — sessions antérieures.
-- **Périmètre :** `.git/refs/stash` (local)
-- **Effort estimé :** Faible
+- **Statut :** Active (travail en cours)
+- **Cause :** 2 stashes contiennent du travail non commité de la session E9-R3.a (intégration desktop Tauri) :
+  - stash@{0} : modification `src/components/layout/admin-sidebar.tsx` (mode Tauri, lien Téléchargements Desktop conditionnel).
+  - stash@{1} : modifications desktop Tauri (`desktop/src-tauri/src/lib.rs` — commandes unifiées E9-R3.a, `package.json`, `package-lock.json` — dépendance @tauri-apps/cli).
+- **Périmètre :** Intégration desktop Tauri (E9-R3.a), `.git/refs/stash` (local)
+- **Effort estimé :** Moyen (finalisation ou archivage formel)
 - **Bloquant :** Non
-- **Condition de résolution :** Examiner puis `git stash drop` si obsolètes.
+- **Condition de résolution :** Finaliser et commiter le travail E9-R3.a sur une branche dédiée, ou l'archiver, puis supprimer les stashes avec `git stash drop`.
 
 ---
 
