@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-11
-**HEAD actuel :** `f9eb675` (Merge PR #48 — V8-B-1-d close)
+**Date de mise à jour :** 2026-11-12
+**HEAD actuel :** `e626b86` (Merge PR #53 — V8-B-2-d close)
 **Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 en cours (V8-B-1 (a→d) close).
+**Statut :** V7 close (V7-A → V7-H validées). V8 en cours (V8-B-2 (a→d) close).
 
 ---
 
@@ -18,7 +18,7 @@
 | V6 | CLOS |
 | V8 | CLOS |
 | V7 | **CLOSE** — V7-A → V7-H validées (2026-11-10 → 2026-11-11) |
-| V8 | **EN COURS** — V8-B-1 (a→d) close (PRs #46, #47, #48). Prochaine étape : V8-B-2 (à préciser). |
+| V8 | **EN COURS** — V8-B-2 (a→d) close (PRs #50-#53). Prochaine étape : V8-B-3 (à préciser). |
 
 ---
 
@@ -32,12 +32,12 @@
 
 ## Dernière session
 
-- **SESSION-2026-11-11-V8-B-1** (clôturée) : CRUD templates de pièces (UI + API + E2E).
-  - **V8-B-1-a** : lecture + diagnostic, décision périmètre `/admin/part-templates` (Option 1), HEAD `ed28d74`, working tree propre. Pas de modification.
-  - **V8-B-1-b** : API CRUD `/api/part-templates` (GET) + `/api/part-templates/[id]` (GET/PUT/DELETE) avec `requireAdmin`, réutilisation Server Actions, champs JSON exclus. PR #46 mergée, 3 checks CI verts.
-  - **V8-B-1-c** : UI création (`/new`) + édition (`/[id]`) via Server Actions `createPartTemplate`/`updatePartTemplate`/`deletePartTemplate`, non-régression liste V8-B-0. PR #47 mergée, 3 checks CI verts. Bug `action={inline}` détecté (form cassé au rendu) — corrigé en V8-B-1-d.
-  - **V8-B-1-d** : 4 tests E2E CRUD (créer, lire, mettre à jour, supprimer) dans `e2e/admin/admin-part-templates.spec.ts`, nettoyage après chaque test (noms préfixés `e2e-`). PR #48 mergée, 4 tests passent, 3 checks CI verts.
-  - **Total** : 3 PR mergées (#46, #47, #48), 3 checks CI verts à chaque PR.
+- **SESSION-2026-11-12-V8-B-2** (clôturée) : Reverse Engineering — liaison Demande → Projet RE, ajout d'étape.
+  - **V8-B-2-a** : lecture + diagnostic du bug "Projet introuvable" (bouton Méthode 3 passait l'ID Request à la page Projet RE). HEAD `16e178e`, working tree propre.
+  - **V8-B-2-b** : correction backend `createREProjectFromRequest` (liaison Prisma `RequestToReverseEngineeringProject`) + modification bouton `demande-detail-client.tsx` (redirige vers le vrai `projectId`). PR #50 mergée, 3 checks CI verts.
+  - **V8-B-2-c** : correction `AddREStepSchema` (`uuid` → `cuid`) dans `src/lib/actions/reverse-engineering.ts` (bug "Erreur lors de l'ajout de l'étape"). PR #52 mergée, 3 checks CI verts.
+  - **V8-B-2-d** : 1 test E2E ajout étape dans `e2e/admin/reverse-engineering.spec.ts` (10 passed au total), correction du label "Nom de l'étape" (typo). PR #53 mergée, 3 checks CI verts.
+  - **Total** : 4 PR mergées (#50, #51, #52, #53), 3 checks CI verts à chaque PR.
 
 ---
 
