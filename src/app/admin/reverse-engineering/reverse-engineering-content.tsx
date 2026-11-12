@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useDropzone } from 'react-dropzone';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -53,16 +55,12 @@ import {
   Cpu,
   BarChart3,
   ChevronRight,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 
 const EMPTY_MESURE = { cote: '', valeur: '', tolerance: '', note: '' };
 const EMPTY_STEP = { name: '', description: '', order: 0 };
-const EMPTY_CAD = {
-  name: '',
-  url: '',
-  fileType: 'CAD_STEP' as 'CAD_STEP' | 'IMAGE' | 'PDF' | 'CAD_STL' | 'CAD_OBJ' | 'OTHER',
-  sizeBytes: undefined as number | undefined,
-};
 
 interface ReverseEngineeringContentProps {
   project: REProjectWithRelations;
@@ -84,6 +82,7 @@ export default function ReverseEngineeringContent({
   project,
   isSequential = false,
 }: ReverseEngineeringContentProps) {
+  const router = useRouter();
   const request = project.requests[0] ?? null;
 
   const [steps, setSteps] = React.useState(project.steps);
@@ -109,7 +108,76 @@ export default function ReverseEngineeringContent({
   const [analysisResult, setAnalysisResult] = React.useState<unknown | null>(null);
   const [isAnalyzing, startAnalyzing] = React.useTransition();
   const [newStep, setNewStep] = React.useState(EMPTY_STEP);
-  const [newCad, setNewCad] = React.useState(EMPTY_CAD);
+  const [cadUploading, setCadUploading] = React.useState(false);
+  const [cadError, setCadError] = React.useState<string | null>(null);
+
+  const ACCEPT_CAD = {
+    'application/step': ['.step', '.stp'],
+    'model/step': ['.step', '.stp'],
+    'application/iges': ['.iges', '.igs'],
+    'model/iges': ['.iges', '.igs'],
+    'model/stl': ['.stl'],
+    'model/obj': ['.obj'],
+    'model/3mf': ['.3mf'],
+  };
+
+  const MAX_CAD_SIZE = 50 * 1024 * 1024;
+
+  const {
+    getRootProps: getCadDropProps,
+    getInputProps: getCadInputProps,
+    isDragActive: cadDragActive,
+  } = useDropzone({
+    onDrop: async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
+      setCadUploading(true);
+      setCadError(null);
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const uploadRes = await fetch('/api/upload/cad', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const uploadJson = await uploadRes.json();
+
+        if (!uploadJson.success) {
+          setCadError(uploadJson.error || "Échec de l'upload");
+          return;
+        }
+
+        const result = await addCadFile({
+          projectId: project.id,
+          name: uploadJson.name,
+          url: uploadJson.url,
+          fileType: uploadJson.fileType as
+            'CAD_STEP' | 'IMAGE' | 'PDF' | 'CAD_STL' | 'CAD_OBJ' | 'OTHER',
+          sizeBytes: uploadJson.sizeBytes,
+        });
+
+        if (!result.success) {
+          setCadError(result.error || "Échec de l'ajout du fichier CAO");
+          return;
+        }
+
+        setCadDialogOpen(false);
+        setCadUploading(false);
+        toast.success('Fichier CAO ajouté');
+        router.refresh();
+      } catch (err) {
+        setCadError((err as Error)?.message || 'Erreur inattendue');
+        setCadUploading(false);
+      }
+    },
+    accept: ACCEPT_CAD,
+    maxSize: MAX_CAD_SIZE,
+    multiple: false,
+    disabled: cadUploading,
+  });
 
   const completedCount = steps.filter((s) => s.completed).length;
   const progressPct = Math.round((completedCount / steps.length) * 100);
@@ -155,29 +223,6 @@ export default function ReverseEngineeringContent({
         setNewStep(EMPTY_STEP);
         setStepDialogOpen(false);
         toast.success('Étape ajoutée');
-      }
-    });
-  };
-
-  const handleAddCad = () => {
-    if (!newCad.name.trim() || !newCad.url.trim()) {
-      toast.error('Nom et URL du fichier sont requis');
-      return;
-    }
-    startTransition(async () => {
-      const result = await addCadFile({
-        projectId: project.id,
-        name: newCad.name,
-        url: newCad.url,
-        fileType: newCad.fileType,
-        sizeBytes: newCad.sizeBytes,
-      });
-      if (!result.success) {
-        toast.error(result.error || "Erreur lors de l'ajout du fichier CAO");
-      } else {
-        setNewCad(EMPTY_CAD);
-        setCadDialogOpen(false);
-        toast.success('Fichier CAO ajouté');
       }
     });
   };
@@ -863,70 +908,67 @@ export default function ReverseEngineeringContent({
           <DialogHeader>
             <DialogTitle>Ajouter un fichier CAO</DialogTitle>
             <DialogDescription>
-              Ajouter un fichier de conception au dossier technique.
+              Déposez un fichier CAO ou cliquez pour parcourir. Formats : STEP/STP, IGES/IGS, STL,
+              OBJ, 3MF (max 50 Mo).
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Nom du fichier</Label>
-              <Input
-                className="text-xs"
-                value={newCad.name}
-                onChange={(e) => setNewCad((p) => ({ ...p, name: e.target.value }))}
-                placeholder="ex: Modele STEP v1"
-              />
+            <div
+              {...getCadDropProps()}
+              className={`relative rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                cadDragActive
+                  ? 'border-primary bg-primary/5'
+                  : cadUploading
+                    ? 'pointer-events-none border-muted/30 bg-muted/30 opacity-60'
+                    : 'border-border bg-muted/20 hover:border-primary/50'
+              }`}
+            >
+              <input {...getCadInputProps()} />
+              <div className="flex flex-col items-center gap-3">
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                    cadUploading ? 'bg-primary/10' : 'bg-muted/30'
+                  }`}
+                >
+                  {cadUploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  ) : (
+                    <Upload className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">
+                    {cadUploading
+                      ? 'Upload en cours…'
+                      : cadDragActive
+                        ? 'Relâchez pour uploader'
+                        : 'Cliquez ou glissez un fichier'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    STEP, IGES, STL, OBJ, 3MF • Jusqu&apos;à 50 MB
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">URL</Label>
-              <Input
-                className="text-xs"
-                value={newCad.url}
-                onChange={(e) => setNewCad((p) => ({ ...p, url: e.target.value }))}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Type</Label>
-              <Input
-                className="text-xs"
-                value={newCad.fileType}
-                onChange={(e) =>
-                  setNewCad((p) => ({
-                    ...p,
-                    fileType: e.target.value as
-                      'CAD_STEP' | 'IMAGE' | 'PDF' | 'CAD_STL' | 'CAD_OBJ' | 'OTHER',
-                  }))
-                }
-                placeholder="CAD_STEP"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Taille (octets)</Label>
-              <Input
-                className="font-mono text-xs"
-                type="number"
-                value={newCad.sizeBytes ?? ''}
-                onChange={(e) =>
-                  setNewCad((p) => ({
-                    ...p,
-                    sizeBytes: e.target.value ? Number(e.target.value) : undefined,
-                  }))
-                }
-                placeholder="102400"
-              />
-            </div>
+
+            {cadError && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-red-500/50 bg-red-500/10 p-3">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" />
+                <p className="text-sm text-red-600">{cadError}</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
               variant="outline"
               size="sm"
               className="text-xs"
-              onClick={() => setCadDialogOpen(false)}
+              onClick={() => {
+                setCadDialogOpen(false);
+                setCadError(null);
+              }}
             >
               Annuler
-            </Button>
-            <Button size="sm" className="text-xs" onClick={handleAddCad} disabled={isPending}>
-              {isPending ? 'Ajout...' : 'Ajouter'}
             </Button>
           </DialogFooter>
         </DialogContent>
