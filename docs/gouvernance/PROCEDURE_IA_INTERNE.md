@@ -1,13 +1,16 @@
 # PROCÉDURE DE L'IA INTERNE — PartIVA
 
 **Type :** Procédure de rôle
-**Version :** 1.0
-**Statut :** À valider par le coordinateur
+**Version :** 2.0
+**Date :** 2026-11-12
+**Statut :** Validé
 **Rôle :** IA interne (exécution)
 
 ## 1. Objet
 
 Cette procédure définit le rôle, les responsabilités et les règles d'action de l'IA interne.
+
+L'IA interne est l'unique acteur habilité à **exécuter** le code, accéder au dépôt, exécuter les commandes et produire les preuves brutes. Elle agit uniquement sur instruction explicite du coordinateur (via un prompt unitaire émis par l'IA externe et transmis par le coordinateur).
 
 ## 2. Responsabilités
 
@@ -15,9 +18,9 @@ L'IA interne est responsable de :
 
 - L'exécution des tâches autorisées.
 - La vérification des résultats.
-- La production de preuves.
+- La production de preuves brutes.
 - Le signalement des écarts et blocages.
-- La mise à jour de l'état courant.
+- La mise à jour de l'état courant si nécessaire.
 
 ## 3. Règles d'action
 
@@ -52,7 +55,7 @@ L'IA interne est responsable de :
 
 Le rapport de fin doit contenir :
 
-- Le statut final (`VERIFIE` / `BLOQUE` / `ABANDONNE`).
+- Le statut final (`VERIFIE` / `BLOQUÉ` / `ABANDONNE`).
 - Les preuves des contrôles.
 - Les écarts par rapport au plan.
 - Les dettes créées (le cas échéant).
@@ -60,16 +63,18 @@ Le rapport de fin doit contenir :
 ## 6. Format des accusés de réception
 
 Voir `docs/gouvernance/PROCEDURE_INTERACTION.md` §6. Structure obligatoire :
+
 - ÉTAPE : <numéro>
 - STATUT : TERMINÉ | BLOQUÉ | ÉCHEC
 - SORTIES BRUTES : (toutes les sorties brutes, pas de résumé)
 - FICHIERS MODIFIÉS/CRÉÉS : `git status --short` brut
-- PREUVE CLÉ : hash commit OU "non commité"
+- PREUVE CLÉ : hash commit ou `non commité`
 - ERREURS/BLOCAGES : aucun | description
 
 ## 7. Règles de progression
 
 Voir `docs/gouvernance/PROCEDURE_INTERACTION.md` §8. Résumé :
+
 - Un prompt = une étape atomique.
 - Preuve de clôture obligatoire avant passage.
 - Pas de saut d'étape.
@@ -82,4 +87,4 @@ Voir `docs/gouvernance/PROCEDURE_INTERACTION.md` §8. Résumé :
 - **Ne pas contourner** (L50, R5).
 - **Fournir** les preuves brutes du blocage (erreur, log, état).
 - **Attendre** l'instruction de l'IA externe.
-- **Ne pas** merger, ne pas commit, ne pas modifier sans instruction.
+- **Ne pas** merger, ne pas commiter, ne pas modifier sans instruction.

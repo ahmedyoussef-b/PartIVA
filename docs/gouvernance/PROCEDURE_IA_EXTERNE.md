@@ -1,8 +1,9 @@
 # PROCÉDURE DE L'IA EXTERNE — PartIVA
 
 **Type :** Procédure de rôle
-**Version :** 1.0
-**Statut :** À valider par le coordinateur
+**Version :** 2.0
+**Date :** 2026-11-12
+**Statut :** Validé
 **Rôle :** IA externe (planification)
 
 ## 1. Objet
@@ -42,7 +43,7 @@ L'IA externe est responsable de :
 ## 4. Limites
 
 - Ne pas exécuter de tâches.
-- Ne pas modifier les fichiers du projet.
+- Ne pas modifier de fichiers du projet.
 - Ne pas prendre de décisions à la place du coordinateur.
 
 ## 5. Rapport de fin
