@@ -1,12 +1,12 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.2
+**Version :** 7.3
 **Date :** 2026-11-12
-**Commit HEAD :** `177e53e` (Merge PR #72 — V8-B-6-g close)
+**Commit HEAD :** `5e74501` (Merge PR #74 — V8-B-6-h close)
 **Branche :** master
 **Version en cours :** V8 close (V8-B-6 intégralement clôturée)
-**Dernière étape close :** V8-B-6-g (correction upload CAO + logs complets)
+**Dernière étape close :** V8-B-6-h (éditeur 3D + sauvegarde partielle)
 **Prochaine étape :** V8-B-7 (à préciser par le coordinateur)
 
 ---
@@ -120,6 +120,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | ✅ |
 | V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE (total 18 logs) | ✅ |
 | V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | ✅ |
+| V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture + sauvegarde dimensions (partielle) | ✅ |
 
 ---
 
