@@ -1,9 +1,9 @@
 # PROCÉDURE D'INTERACTION — PartIVA
 
 **Type :** Procédure de coopération (source unique)
-**Version :** 1.0
-**Date :** 2026-11-11
-**Statut :** À valider par le coordinateur
+**Version :** 2.0
+**Date :** 2026-11-12
+**Statut :** Validé
 
 ## 1. Objet
 
@@ -23,10 +23,11 @@ En cas de contradiction avec une autre procédure, **cette procédure prévaut**
 
 ### 2.2. Coordinateur
 
-- **Rôle** : décider, valider, merger.
+- **Rôle** : décider, valider, merger, **transporter**.
 - **Ne fait pas** : exécuter les tâches techniques.
 - **Tranche** : les décisions (a), (b), (c), etc.
 - **Merge** : les PR (R4, §10).
+- **Transporte** : copie/colle les prompts de l'IA externe vers l'IA interne, et les rapports de l'IA interne vers l'IA externe.
 
 ### 2.3. IA interne
 
@@ -57,18 +58,18 @@ Les leçons L45-L59 sont documentées en détail dans `docs/etat/DECISIONS.md` �
 - **L45** : `prettier --write` avant commit.
 - **L46** : nouvelle PR après merge (ne pas réutiliser une branche supprimée).
 - **L47** : filtres toujours visibles (même à 0 résultat).
-- **L48** : cache non réutilisé par `applySmartRoutes`.
-- **L49** : `prisma db execute --file` si P1000.
-- **L50** : un rapport n'est pas une preuve.
-- **L51** : `git show --name-only` après commit.
-- **L52** : `git checkout -b` pour créer + basculer.
-- **L53** : preuve de lecture avant modification.
-- **L54** : `git diff` vide = pas de modification.
-- **L55** : `WriteAllText` + `UTF8Encoding($false)`.
-- **L56** : fichiers > 100 lignes = WriteAllText complet.
-- **L57** : `-SimpleMatch` pour littéraux.
-- **L58** : `git diff --name-only <merge>^1 <merge>` pour merge commit.
-- **L59** : `Get-ChildItem -Recurse` (pas de globstar).
+- **L48** : `applySmartRoutes` / `aggregateSearchRouted` ne réutilise pas le cache de `_aggregateSearchInternal`.
+- **L49** : `prisma migrate dev` échoue si le pooler est down (P1000) → utiliser `prisma db execute --file`.
+- **L50** : un rapport d'IA interne **n'est pas une preuve**. Toujours exiger les sorties brutes (`git log`, `TSC EXIT`, `ESLINT EXIT`, `curl`).
+- **L51** : un `git add` malformé (chemin inexistant, faute de frappe) est rejeté silencieusement par git, mais le commit peut réussir si le fichier était déjà indexé. Seul `git show --name-only <hash>` prouve le contenu réel d'un commit. **Toujours vérifier `git show --name-only` après chaque commit.**
+- **L52** : `git branch <nom>` crée une branche sans y basculer. `git checkout -b <nom>` crée et bascule. Un prompt qui dit « créer la branche depuis `master` » doit préciser explicitement le basculement, et la preuve doit inclure `git branch --show-current` = nom de la branche.
+- **L53** : Une preuve de lecture (`Get-Content`) doit être fournie **avant** la modification, pas après. Si le `git status --short` initial montre déjà le fichier modifié, la preuve R1 est invalide : restaurer et recommencer.
+- **L54** : Un `git diff` **vide** après édition signifie que **rien n'a été modifié**. Avant de déclarer une étape close, vérifier que `git diff <fichier>` est **non vide** et que `git status --short` montre bien ` M <fichier>`. Ne jamais utiliser `git checkout --` / `git restore` pour « repartir de zéro » sans sauvegarde.
+- **L55** : `Set-Content -Encoding UTF8` sur PowerShell 5.1 réencode le fichier et corrompt les accents (`é` → `�`). Utiliser `[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))`. `.Replace()` de .NET échoue **silencieusement** si la chaîne recherchée diffère d'un seul caractère.
+- **L56** : Pour les fichiers Markdown > 100 lignes, **fournir le fichier complet** et l'écrire en une seule fois via `WriteAllText` (UTF-8 sans BOM), plutôt que des `.Replace()` ciblés. Vérifier avec `Format-Hex` (pas de BOM) et `Select-String` (contenu attendu).
+- **L57** : Dans `Select-String`, les métacaractères regex (`?`, `*`, `+`, `[`, `]`, `(`, `)`, `{`, `}`, `|`, `\`) doivent être **échappés** (`\?`) ou placés entre crochets (`[?]`), ou utiliser `-SimpleMatch` quand pertinent. Un `?` non échappé provoque une erreur `Quantificateur {x,y} ne suivant rien`. Ne jamais coller de contenu Markdown/texte contenant `` [ ] :: ` `` `?` `*` `\` directement dans le terminal PowerShell.
+- **L58** : `git show --name-only` sur un **merge commit** ne liste **aucun fichier** (le merge n'a pas de diff propre). Pour vérifier le contenu d'un merge, utiliser `git diff --name-only <merge>^1 <merge>` (diff par rapport au premier parent). L51 ne s'applique qu'aux commits **non-merge**.
+- **L59** : En PowerShell 5.1, `Select-String -Path "**/*.tsx"` ne fonctionne pas (pas de globstar). Utiliser `Get-ChildItem -Path <dir> -Recurse -Include "*.tsx","*.ts" | Select-String -Pattern "..." -SimpleMatch`. Ne jamais laisser de placeholder `<hash>` dans une commande — le remplacer par le hash réel avant exécution.
 
 ## 5. Format des prompts unitaires
 
@@ -80,7 +81,7 @@ RÔLE : IA interne. Aucun commit. Aucun push.
 PRÉREQUIS : <étape précédente close>.
 CONTRAINTE : <périmètre>.
 
-TÂCHE 1 — LECTURE (UTF8, L55)
+TÂCHE 1 — LECTURE (UTF8, L53/L55)
 <Get-Content ciblés>
 
 TÂCHE 2 — ÉDITION
@@ -118,11 +119,13 @@ ERREURS/BLOCAGES : <aucun | description>
 
 0. **IA interne** lit les 4 fichiers de procédure (cf. `PROMPT_DE_REPRISE.md` §Ordre strict) et envoie le message `READY — <fichiers lus> — prêt`. L'IA externe attend ce message avant d'émettre le prompt de la première tâche.
 1. **IA externe** émet un prompt unitaire.
-2. **IA interne** exécute et fournit l'accusé.
-3. **IA externe** valide ou signale un fix.
-4. **Coordinateur** merge la PR.
-5. **IA externe** émet l'étape suivante.
-6. **Régénérer** `PROMPT_DE_REPRISE.md` (à chaque fin d'étape).
+2. **Coordinateur** **transmet** le prompt à l'IA interne.
+3. **IA interne** exécute et fournit l'accusé final complet (sorties brutes).
+4. **Coordinateur** **transmet** le rapport à l'IA externe.
+5. **IA externe** valide ou signale un fix.
+6. **Coordinateur** merge la PR (R4).
+7. **IA externe** émet l'étape suivante.
+8. **Régénérer** `PROMPT_DE_REPRISE.md` (à chaque fin d'étape).
 
 **Règle de régénération** : après chaque merge ou clôture d'étape documentée, régénérer `PROMPT_DE_REPRISE.md` (avec le nouveau HEAD et la nouvelle prochaine étape).
 
