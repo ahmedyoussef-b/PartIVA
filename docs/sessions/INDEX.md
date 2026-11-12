@@ -58,6 +58,7 @@
 | V8-B-6-d | 2026-11-12 | Export STL fiable (conversion + étanchéité) | CRUD RE | ✅ | PR #67 |
 | V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | CRUD RE | ✅ | PR #68 |
 | V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE | CRUD RE | ✅ | PR #70 |
+| V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | CRUD RE | ✅ | PR #72 |
 
 ---
 
