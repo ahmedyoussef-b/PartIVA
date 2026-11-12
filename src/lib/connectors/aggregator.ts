@@ -8,6 +8,9 @@ import type { RoutedQuery } from '@/lib/ai/smart-router';
 const AGGREGATION_TIMEOUT_MS =
   process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 60_000 : 10_000;
 
+const CONNECTOR_TIMEOUT_MS =
+  process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 120_000 : 10_000;
+
 const MAX_RETRIES = 2;
 const BASE_DELAY_MS = 250;
 const FAILURE_THRESHOLD = 3;
@@ -432,6 +435,7 @@ export async function aggregateSearchRouted(
   const sourcesQueried: string[] = [];
   const sourcesFailed: string[] = [];
   const sourceDurationsMs: Record<string, number> = {};
+  const structuredWarnings: EngineWarning[] = [];
 
   const results = await Promise.allSettled(
     routes.map(async ({ sourceId, query }) => {
@@ -441,9 +445,18 @@ export async function aggregateSearchRouted(
 
       const sourceStart = Date.now();
       try {
-        const candidates = await connector.search(query, { limit: options.limit });
+        const candidates = await withTimeout(
+          connector.search(query, { limit: options.limit }),
+          CONNECTOR_TIMEOUT_MS,
+        );
         return { sourceId, candidates, duration: Date.now() - sourceStart, failed: false };
       } catch {
+        sourcesFailed.push(sourceId);
+        structuredWarnings.push({
+          code: 'SOURCE_TIMEOUT',
+          message: `Une source externe a mis trop de temps à répondre.`,
+          stage: sourceId,
+        });
         return {
           sourceId,
           candidates: [] as SearchCandidate[],
@@ -494,6 +507,7 @@ export async function aggregateSearchRouted(
     sourcesFailed,
     sourceDurationsMs,
     totalDurationMs: Date.now() - startTime,
+    structuredWarnings: structuredWarnings.length ? structuredWarnings : undefined,
   };
 }
 
