@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { getReverseEngineeringProjectById } from '@/lib/data/reverse-engineering';
 import ReverseEngineeringContent from '../reverse-engineering-content';
 
@@ -13,15 +14,12 @@ export default async function ReverseEngineeringProjectPage({
   const { id } = await params;
   const { sequential } = await searchParams;
   const isSequential = sequential === '1';
+
   const project = await getReverseEngineeringProjectById(id);
 
   if (!project) {
-    return <div className="p-8 text-center text-muted-foreground">Projet introuvable</div>;
+    notFound();
   }
 
   return <ReverseEngineeringContent project={project} isSequential={isSequential} />;
-}
-
-export async function generateStaticParams() {
-  return [{ id: 'placeholder' }];
 }
