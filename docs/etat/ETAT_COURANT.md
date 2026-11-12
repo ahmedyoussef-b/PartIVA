@@ -1,9 +1,9 @@
 # État courant du projet
 
 **Date de mise à jour :** 2026-11-12
-**HEAD actuel :** `6e1e792` (Merge PR #57 — V8-B-3-c close)
+**HEAD actuel :** `de27047` (Merge PR #63 — V8-B-5-a close)
 **Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 en cours (V8-B-3 (a→c) close).
+**Statut :** V7 close (V7-A → V7-H validées). V8 en cours (V8-B-5-a close).
 
 ---
 
@@ -18,7 +18,7 @@
 | V6 | CLOS |
 | V8 | CLOS |
 | V7 | **CLOSE** — V7-A → V7-H validées (2026-11-10 → 2026-11-11) |
-| V8 | **EN COURS** — V8-B-4-a close (PRs #59-#61). Prochaine étape : V8-B-5 (à préciser). |
+| V8 | **EN COURS** — V8-B-5-a close (PR #63). Prochaine étape : V8-B-6 (à préciser). |
 
 ---
 

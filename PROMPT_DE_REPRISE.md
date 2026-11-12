@@ -1,12 +1,12 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.8
+**Version :** 6.9
 **Date :** 2026-11-12
-**Commit HEAD :** `072fa92` (Merge PR #61 — V8-B-4-a close)
+**Commit HEAD :** `de27047` (Merge PR #63 — V8-B-5-a close)
 **Branche :** master
 **Version en cours :** V8 en cours
-**Dernière étape close :** V8-B-4-a
+**Dernière étape close :** V8-B-5-a
 **Prochaine étape :** V8-B-5 (à préciser par le coordinateur)
 
 ---
@@ -49,9 +49,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 en cours |
-| **HEAD** | `072fa92` (Merge PR #61, V8-B-4-a close) |
-| **Dernière étape close** | **V8-B-4-a** |
-| **Prochaine étape** | **V8-B-5** (à préciser) |
+| **HEAD** | `de27047` (Merge PR #63, V8-B-5-a close) |
+| **Dernière étape close** | **V8-B-5-a** |
+| **Prochaine étape** | **V8-B-6** (à préciser) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -95,6 +95,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` (et non `uuid()`) pour tous les ID Prisma. |
 | (s) | Accessibilité label : tout `<Label>` doit avoir `htmlFor` et l'`<Input>` associé un `id` (pour `getByLabel` et l'accessibilité). |
 | (t) | Tests d'intégration réels hors CI : le script `npm run test:sources` exécute `scripts/test-real-sources.ts` pour valider les sources externes sans bloquer Playwright. |
+| (u) | Réforme gouvernance 3 acteurs (IA externe, coordinateur, IA interne). Rôles clarifiés : IA externe (analyse/planification), coordinateur (décision/transport), IA interne (exécution). |
 
 ### 5 dernières sessions
 
@@ -105,7 +106,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
 | V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
 | V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | ✅ |
-| V8-B-4 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | ✅ |
+| V8-B-4 | 2026-11-12 | Reverse Engineering (liaison Demande → Projet RE, E2E ajout étape) | ✅ |
+| V8-B-5 | 2026-11-12 | Réforme gouvernance 3 acteurs | ✅ |
 
 ---
 
