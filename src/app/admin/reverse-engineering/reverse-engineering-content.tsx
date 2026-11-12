@@ -10,7 +10,6 @@ import {
   updateREStep,
   addCadFile,
   saveCadDimensions,
-  analyzeReverseEngineeringProject,
 } from '@/lib/actions/reverse-engineering';
 import { toast } from 'sonner';
 import { useTransition } from 'react';
@@ -111,9 +110,6 @@ export default function ReverseEngineeringContent({
 
   const [stepDialogOpen, setStepDialogOpen] = React.useState(false);
   const [cadDialogOpen, setCadDialogOpen] = React.useState(false);
-  const [analysisOpen, setAnalysisOpen] = React.useState(false);
-  const [analysisResult, setAnalysisResult] = React.useState<unknown | null>(null);
-  const [isAnalyzing, startAnalyzing] = React.useTransition();
   const [newStep, setNewStep] = React.useState(EMPTY_STEP);
   const [cadUploading, setCadUploading] = React.useState(false);
   const [cadError, setCadError] = React.useState<string | null>(null);
@@ -1046,23 +1042,16 @@ export default function ReverseEngineeringContent({
                   <Button
                     size="sm"
                     className="gap-2 text-xs"
-                    disabled={isAnalyzing}
                     onClick={() => {
-                      console.info('[RE:workspace] Lancement analyse Workspace', {
+                      if (!request) return;
+                      console.info('[RE:workspace] Redirection vers Workspace', {
                         projectId: project.id,
+                        requestId: request.id,
                       });
-                      startAnalyzing(async () => {
-                        const res = await analyzeReverseEngineeringProject(project.id);
-                        if (res.ok) {
-                          setAnalysisResult(res.result);
-                          setAnalysisOpen(true);
-                        } else {
-                          toast.error(res.error);
-                        }
-                      });
+                      router.push(`/workspace?requestId=${request.id}`);
                     }}
                   >
-                    {isAnalyzing ? 'Analyse en cours...' : '✨ Analyser avec le Workspace'}
+                    Analyser avec le Workspace
                   </Button>
 
                   <div className="flex items-center gap-2 rounded-lg border bg-muted/20 p-3 text-xs">
@@ -1244,17 +1233,6 @@ export default function ReverseEngineeringContent({
               Fermer
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Résultat de lanalyse</DialogTitle>
-          </DialogHeader>
-          <pre className="max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">
-            {analysisResult ? JSON.stringify(analysisResult, null, 2) : 'Aucun résultat'}
-          </pre>
         </DialogContent>
       </Dialog>
     </div>
