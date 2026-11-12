@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.7
+**Version :** 6.8
 **Date :** 2026-11-12
-**Commit HEAD :** `6e1e792` (Merge PR #57 — V8-B-3-c close)
+**Commit HEAD :** `072fa92` (Merge PR #61 — V8-B-4-a close)
 **Branche :** master
 **Version en cours :** V8 en cours
-**Dernière étape close :** V8-B-3-c
-**Prochaine étape :** V8-B-4 (à préciser par le coordinateur)
+**Dernière étape close :** V8-B-4-a
+**Prochaine étape :** V8-B-5 (à préciser par le coordinateur)
 
 ---
 
@@ -49,9 +49,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 en cours |
-| **HEAD** | `6e1e792` (Merge PR #57, V8-B-3-c close) |
-| **Dernière étape close** | **V8-B-3-c** |
-| **Prochaine étape** | **V8-B-4** (à préciser) |
+| **HEAD** | `072fa92` (Merge PR #61, V8-B-4-a close) |
+| **Dernière étape close** | **V8-B-4-a** |
+| **Prochaine étape** | **V8-B-5** (à préciser) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -94,6 +94,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives — proposer un smoke test Playwright minimal pour les sous-étapes UI futures. À arbitrer en V8-B-2 ou ultérieur. |
 | (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` (et non `uuid()`) pour tous les ID Prisma. |
 | (s) | Accessibilité label : tout `<Label>` doit avoir `htmlFor` et l'`<Input>` associé un `id` (pour `getByLabel` et l'accessibilité). |
+| (t) | Tests d'intégration réels hors CI : le script `npm run test:sources` exécute `scripts/test-real-sources.ts` pour valider les sources externes sans bloquer Playwright. |
 
 ### 5 dernières sessions
 
@@ -104,6 +105,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
 | V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
 | V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | ✅ |
+| V8-B-4 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | ✅ |
 
 ---
 
@@ -113,9 +115,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-B-4** : à préciser par le coordinateur (périmètre, objectif, livrables).
+**V8-B-5** : à préciser par le coordinateur (périmètre, objectif, livrables).
 
-**Prompt à émettre** : `V8-B-4` (fourni par l'IA externe).
+**Prompt à émettre** : `V8-B-5` (fourni par l'IA externe).
 
 ---
 

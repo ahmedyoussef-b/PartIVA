@@ -10,17 +10,7 @@
 
 ## Haute
 
-### `D-E24-E2E-TIMEOUT-SOURCES` — Timeout des tests `source=all`
-
-- **Statut :** Active
-- **Cause :** `POST /api/search {source:'all'}` interroge des sources externes non configurées (TraceParts, TecDoc, OpenSERP), ce qui prend ~32 s > timeout Playwright de 30 s.
-- **Périmètre :** `e2e/admin/aggregation-tecdoc.spec.ts`, `e2e/admin/performance.spec.ts`, `playwright.config.ts`.
-- **Effort estimé :** Faible (augmenter le timeout à 60 s, ou désactiver les sources non configurées en CI).
-- **Bloquant :** Non (2 tests rouges sur 52 dans le projet `admin`).
-- **Condition de résolution :** les 2 tests `source=all` passent en CI.
-
----
-
+### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
 ### `D-V8-B-1-C-FORM-ACTION-INLINE` — Formulaire [id]/page.tsx cassé (action inline)
 
 - **Statut :** Corrigé (en attente clôture V8-B-1-e)
