@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useDropzone } from 'react-dropzone';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import { OcctViewer } from '@/components/3d/occt-viewer';
 import { CadEditor } from '@/components/3d/cad-editor';
 import { exportCadToStl, downloadStlFromUrl } from '@/lib/export/cad-to-stl';
 import {
@@ -134,6 +135,14 @@ export default function ReverseEngineeringContent({
   };
 
   const MAX_CAD_SIZE = 50 * 1024 * 1024;
+
+  const STEP_EXTENSIONS = ['.step', '.stp'];
+  const IGES_EXTENSIONS = ['.iges', '.igs'];
+
+  function isStepOrIges(fileName: string): boolean {
+    const ext = fileName.toLowerCase().slice(fileName.lastIndexOf('.'));
+    return STEP_EXTENSIONS.includes(ext) || IGES_EXTENSIONS.includes(ext);
+  }
 
   const {
     getRootProps: getCadDropProps,
@@ -1224,8 +1233,12 @@ export default function ReverseEngineeringContent({
             </Button>
           </DialogHeader>
           <DialogContent className="h-[600px] w-[800px] p-0">
-            {previewSrc ? (
-              <ModelViewer src={previewSrc} alt={previewName ?? ''} height="600px" bare />
+            {previewSrc && previewName ? (
+              isStepOrIges(previewName) ? (
+                <OcctViewer src={previewSrc} fileName={previewName} height="600px" bare />
+              ) : (
+                <ModelViewer src={previewSrc} alt={previewName} height="600px" bare />
+              )
             ) : null}
           </DialogContent>
           <DialogFooter>
