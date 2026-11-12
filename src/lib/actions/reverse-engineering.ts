@@ -22,7 +22,7 @@ const UpdateREProjectStatusSchema = z.object({
 });
 
 const AddREStepSchema = z.object({
-  projectId: z.string().uuid(),
+  projectId: z.string().cuid(),
   name: z.string().min(1, "Le nom de l'étape est requis"),
   description: z.string().optional(),
   order: z.number().int().min(0),
