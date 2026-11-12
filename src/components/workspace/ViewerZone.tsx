@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
-import { CadViewer } from '@/components/3d/cad-viewer';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import { OcctViewer } from '@/components/3d/occt-viewer';
 import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
 import type { MeasureMode } from '@/components/workspace/MeasureTool';
@@ -50,6 +50,21 @@ function detectCadFormat(url: string): 'STEP' | 'IGES' | 'STL' | 'OBJ' | '3MF' |
     default:
       return null;
   }
+}
+
+function getFileNameFromUrl(url: string, fallback: string = 'model'): string {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const fileName = pathname.split('/').pop();
+    if (fileName && fileName.includes('.')) return fileName;
+  } catch {
+    // Not a valid URL (could be data: URL)
+  }
+  // Fallback: construct a filename based on format
+  const fmt = detectCadFormat(url);
+  const ext = fmt === 'STEP' ? '.step' : fmt === 'IGES' ? '.iges' : '.step';
+  return `${fallback}${ext}`;
 }
 
 // STL Viewer Component
@@ -265,13 +280,11 @@ export function ViewerZone({
                 const fmt = detectCadFormat(uploadedFileUrl);
                 if (fmt === 'STEP' || fmt === 'IGES') {
                   return (
-                    <CadViewer
+                    <OcctViewer
                       src={uploadedFileUrl}
+                      fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
+                      height="400px"
                       bare
-                      height={400}
-                      renderMode={renderMode}
-                      sectionEnabled={sectionEnabled}
-                      sectionPosition={sectionPosition}
                     />
                   );
                 }
@@ -318,13 +331,11 @@ export function ViewerZone({
                 const fmt = detectCadFormat(selectedCandidate.fileUrl);
                 if (fmt === 'STEP' || fmt === 'IGES') {
                   return (
-                    <CadViewer
+                    <OcctViewer
                       src={selectedCandidate.fileUrl}
+                      fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
+                      height="400px"
                       bare
-                      height={400}
-                      renderMode={renderMode}
-                      sectionEnabled={sectionEnabled}
-                      sectionPosition={sectionPosition}
                     />
                   );
                 }
@@ -368,16 +379,11 @@ export function ViewerZone({
           const fmt = detectCadFormat(displayUrl);
           if (fmt === 'STEP' || fmt === 'IGES') {
             return (
-              <CadViewer
+              <OcctViewer
                 src={displayUrl}
+                fileName={getFileNameFromUrl(displayUrl, 'model')}
+                height="400px"
                 bare
-                height={400}
-                measureEnabled={measuring}
-                measureMode={measureMode}
-                renderMode={renderMode}
-                sectionEnabled={sectionEnabled}
-                sectionPosition={sectionPosition}
-                onDimensionsExtracted={onDimensionsExtracted}
               />
             );
           }
