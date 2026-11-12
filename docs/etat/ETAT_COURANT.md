@@ -18,7 +18,7 @@
 | V6 | CLOS |
 | V8 | CLOS |
 | V7 | **CLOSE** — V7-A → V7-H validées (2026-11-10 → 2026-11-11) |
-| V8 | **EN COURS** — V8-B-3 (a→c) close (PRs #55-#57). Prochaine étape : V8-B-4 (à préciser). |
+| V8 | **EN COURS** — V8-B-4-a close (PRs #59-#61). Prochaine étape : V8-B-5 (à préciser). |
 
 ---
 
