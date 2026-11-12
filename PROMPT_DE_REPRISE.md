@@ -1,12 +1,12 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.1
+**Version :** 7.2
 **Date :** 2026-11-12
-**Commit HEAD :** `413165d` (Merge PR #70 — V8-B-6-f close)
+**Commit HEAD :** `177e53e` (Merge PR #72 — V8-B-6-g close)
 **Branche :** master
 **Version en cours :** V8 close (V8-B-6 intégralement clôturée)
-**Dernière étape close :** V8-B-6-f (logs manquants ajoutés)
+**Dernière étape close :** V8-B-6-g (correction upload CAO + logs complets)
 **Prochaine étape :** V8-B-7 (à préciser par le coordinateur)
 
 ---
@@ -49,8 +49,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) |
-| **HEAD** | `413165d` (Merge PR #70, V8-B-6-f close) |
-| **Dernière étape close** | **V8-B-6-f** |
+| **HEAD** | `177e53e` (Merge PR #72, V8-B-6-g close) |
+| **Dernière étape close** | **V8-B-6-g** |
 | **Prochaine étape** | **V8-B-7** (à préciser) |
 
 ### Dettes haute / moyenne / basse actives
@@ -119,6 +119,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-B-6-d | 2026-11-12 | Export STL fiable (conversion + étanchéité + unités) | ✅ |
 | V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | ✅ |
 | V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE (total 18 logs) | ✅ |
+| V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | ✅ |
 
 ---
 
