@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useDropzone } from 'react-dropzone';
 import { ModelViewer } from '@/components/3d/model-viewer';
+import { exportCadToStl, downloadStlFromUrl } from '@/lib/export/cad-to-stl';
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ import {
   ChevronRight,
   Upload,
   Loader2,
+  Download,
 } from 'lucide-react';
 
 const EMPTY_MESURE = { cote: '', valeur: '', tolerance: '', note: '' };
@@ -114,6 +116,7 @@ export default function ReverseEngineeringContent({
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
   const [previewName, setPreviewName] = React.useState<string | null>(null);
+  const [exporting, setExporting] = React.useState<string | null>(null);
 
   const ACCEPT_CAD = {
     'application/step': ['.step', '.stp'],
@@ -761,19 +764,51 @@ export default function ReverseEngineeringContent({
                                 <p className="text-[10px] text-primary">{file.fileType}</p>
                               </div>
                               {isPreviewable ? (
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  className="h-6 w-6 text-xs"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPreviewSrc(file.url);
-                                    setPreviewName(file.name);
-                                    setPreviewOpen(true);
-                                  }}
-                                >
-                                  <Cpu className="h-3 w-3" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPreviewSrc(file.url);
+                                      setPreviewName(file.name);
+                                      setPreviewOpen(true);
+                                    }}
+                                  >
+                                    <Cpu className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    disabled={exporting === file.id}
+                                    className="h-6 w-6 text-xs"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      setExporting(file.id);
+                                      try {
+                                        const result = await exportCadToStl(file.url, file.name);
+                                        if (result.success && result.stlUrl) {
+                                          downloadStlFromUrl(
+                                            result.stlUrl,
+                                            file.name.replace(/\.[^/.]+$/, '') + '.stl',
+                                          );
+                                          if (result.watertight === false) {
+                                            toast.warning(
+                                              'Attention : le maillage peut ne pas être étanche (non watertight)',
+                                            );
+                                          }
+                                        } else {
+                                          toast.error(result.error || "Échec de l'export STL");
+                                        }
+                                      } finally {
+                                        setExporting(null);
+                                      }
+                                    }}
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               ) : (
                                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                               )}
