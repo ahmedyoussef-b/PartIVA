@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { writeFileSync } from 'fs';
 
 test('OCCT POC page renders cube', async ({ page }) => {
   const logs: string[] = [];
@@ -17,10 +18,10 @@ test('OCCT POC page renders cube', async ({ page }) => {
   await page.waitForTimeout(5000);
 
   const screenshot = await page.screenshot({ fullPage: true });
-  require('fs').writeFileSync('occt-poc-screenshot.png', screenshot);
+  writeFileSync('occt-poc-screenshot.png', screenshot);
 
   const content = await page.content();
-  require('fs').writeFileSync('occt-poc-page.html', content);
+  writeFileSync('occt-poc-page.html', content);
 
   console.log('=== PAGE CONTENT (first 2000 chars) ===');
   console.log(content.slice(0, 2000));

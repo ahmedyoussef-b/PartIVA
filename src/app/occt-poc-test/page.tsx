@@ -11,7 +11,7 @@ export default function OcctPocTestPage() {
   return (
     <div className="p-8">
       <h1>POC OpenCascade.js (public)</h1>
-      <p>Cette page teste l'extraction OCCT → Three.js.</p>
+      <p>Cette page teste l&apos;extraction OCCT &rarr; Three.js.</p>
       <OcctPoc />
     </div>
   );
