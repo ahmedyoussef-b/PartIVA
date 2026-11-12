@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDropzone } from 'react-dropzone';
+import { ModelViewer } from '@/components/3d/model-viewer';
 import {
   Dialog,
   DialogContent,
@@ -110,6 +111,9 @@ export default function ReverseEngineeringContent({
   const [newStep, setNewStep] = React.useState(EMPTY_STEP);
   const [cadUploading, setCadUploading] = React.useState(false);
   const [cadError, setCadError] = React.useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
+  const [previewName, setPreviewName] = React.useState<string | null>(null);
 
   const ACCEPT_CAD = {
     'application/step': ['.step', '.stp'],
@@ -723,6 +727,17 @@ export default function ReverseEngineeringContent({
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {project.cadFiles.length > 0
                       ? project.cadFiles.map((file) => {
+                          const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+                          const isPreviewable = [
+                            '.step',
+                            '.stp',
+                            '.iges',
+                            '.igs',
+                            '.stl',
+                            '.obj',
+                            '.3mf',
+                            '.brep',
+                          ].includes(ext);
                           const Icon = file.fileType.startsWith('CAD')
                             ? Cpu
                             : file.fileType === 'PDF'
@@ -731,14 +746,37 @@ export default function ReverseEngineeringContent({
                           return (
                             <div
                               key={file.id}
-                              className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-4"
+                              className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:bg-muted/30"
+                              onClick={() => {
+                                if (isPreviewable) {
+                                  setPreviewSrc(file.url);
+                                  setPreviewName(file.name);
+                                  setPreviewOpen(true);
+                                }
+                              }}
                             >
                               <Icon className="h-5 w-5 shrink-0 text-primary" />
                               <div className="min-w-0 flex-1">
                                 <p className="truncate text-xs font-medium">{file.name}</p>
                                 <p className="text-[10px] text-primary">{file.fileType}</p>
                               </div>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              {isPreviewable ? (
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  className="h-6 w-6 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPreviewSrc(file.url);
+                                    setPreviewName(file.name);
+                                    setPreviewOpen(true);
+                                  }}
+                                >
+                                  <Cpu className="h-3 w-3" />
+                                </Button>
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              )}
                             </div>
                           );
                         })
@@ -969,6 +1007,24 @@ export default function ReverseEngineeringContent({
               }}
             >
               Annuler
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="p-0">
+          <DialogHeader>
+            <DialogTitle>Preview 3D — {previewName}</DialogTitle>
+          </DialogHeader>
+          <DialogContent className="h-[600px] w-[800px] p-0">
+            {previewSrc ? (
+              <ModelViewer src={previewSrc} alt={previewName ?? ''} height="600px" bare />
+            ) : null}
+          </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setPreviewOpen(false)}>
+              Fermer
             </Button>
           </DialogFooter>
         </DialogContent>
