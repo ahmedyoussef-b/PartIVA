@@ -259,6 +259,9 @@ export default function ReverseEngineeringContent({
   };
 
   const handleSave = () => {
+    console.info('[RE:save] Sauvegarde dossier RE', {
+      projectId: project.id,
+    });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -283,13 +286,32 @@ export default function ReverseEngineeringContent({
               </p>
             </div>
             {request ? (
-              <Button asChild variant="outline" size="sm">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.info('[RE:navigation] Passage à la Méthode 4', {
+                    requestId: request.id,
+                    projectId: project.id,
+                  });
+                }}
+              >
                 <Link href={`/admin/demandes/${request.id}/import-cad?sequential=1`}>
                   Passer à la Méthode 4 →
                 </Link>
               </Button>
             ) : (
-              <Button asChild variant="outline" size="sm">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.info('[RE:navigation] Sélection demande', {
+                    projectId: project.id,
+                  });
+                }}
+              >
                 <Link href="/admin/demandes">Sélectionner une demande</Link>
               </Button>
             )}
@@ -318,7 +340,16 @@ export default function ReverseEngineeringContent({
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 gap-1 p-2 text-xs">
+                <Button
+                  variant="ghost"
+                  className="h-8 gap-1 p-2 text-xs"
+                  onClick={() => {
+                    console.info('[RE:status] Ouverture menu statut', {
+                      projectId: project.id,
+                      currentStatus: project.status,
+                    });
+                  }}
+                >
                   <Badge variant={statusStyle.variant} className="text-xs">
                     {statusStyle.label}
                   </Badge>
@@ -444,6 +475,11 @@ export default function ReverseEngineeringContent({
                   <Button
                     size="sm"
                     className="mt-2 w-full gap-2 bg-emerald-600 text-xs font-bold hover:bg-emerald-700"
+                    onClick={() => {
+                      console.info('[RE:workflow] Validation → Lancer Usinage', {
+                        projectId: project.id,
+                      });
+                    }}
                   >
                     <Hammer className="h-3.5 w-3.5" />
                     Valider → Lancer Usinage
@@ -544,9 +580,13 @@ export default function ReverseEngineeringContent({
                             <td className="px-3 py-2.5 text-muted-foreground">{m.note}</td>
                             <td className="px-2 py-2.5">
                               <button
-                                onClick={() =>
-                                  setMesures((prev) => prev.filter((_, idx) => idx !== i))
-                                }
+                                onClick={() => {
+                                  console.info('[RE:mesure] Suppression cote', {
+                                    index: i,
+                                    cote: mesures[i]?.cote,
+                                  });
+                                  setMesures((prev) => prev.filter((_, idx) => idx !== i));
+                                }}
                                 className="rounded p-1 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -608,6 +648,10 @@ export default function ReverseEngineeringContent({
                       variant="outline"
                       onClick={() => {
                         if (newMesure.cote && newMesure.valeur) {
+                          console.info('[RE:mesure] Ajout cote', {
+                            cote: newMesure.cote,
+                            valeur: newMesure.valeur,
+                          });
                           setMesures((prev) => [...prev, newMesure]);
                           setNewMesure(EMPTY_MESURE);
                         }
@@ -929,6 +973,9 @@ export default function ReverseEngineeringContent({
                     className="gap-2 text-xs"
                     disabled={isAnalyzing}
                     onClick={() => {
+                      console.info('[RE:workspace] Lancement analyse Workspace', {
+                        projectId: project.id,
+                      });
                       startAnalyzing(async () => {
                         const res = await analyzeReverseEngineeringProject(project.id);
                         if (res.ok) {
