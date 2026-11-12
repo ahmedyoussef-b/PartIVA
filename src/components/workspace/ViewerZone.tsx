@@ -283,16 +283,16 @@ export function ViewerZone({
                     <OcctViewer
                       src={uploadedFileUrl}
                       fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
-                      height="400px"
+                      height="500px"
                       bare
                     />
                   );
                 }
                 if (fmt === 'STL') {
-                  return <StlViewer src={uploadedFileUrl} style={{ height: 400 }} />;
+                  return <StlViewer src={uploadedFileUrl} style={{ height: 500 }} />;
                 }
                 if (fmt === 'OBJ') {
-                  return <ObjViewer src={uploadedFileUrl} style={{ height: 400 }} />;
+                  return <ObjViewer src={uploadedFileUrl} style={{ height: 500 }} />;
                 }
                 if (fmt === '3MF') {
                   return <ThreeMFFallback />;
@@ -301,7 +301,7 @@ export function ViewerZone({
                   <ModelViewer
                     src={uploadedFileUrl}
                     bare
-                    height={400}
+                    height={500}
                     renderMode={renderMode}
                     sectionEnabled={sectionEnabled}
                     sectionPosition={sectionPosition}
@@ -334,16 +334,16 @@ export function ViewerZone({
                     <OcctViewer
                       src={selectedCandidate.fileUrl}
                       fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
-                      height="400px"
+                      height="500px"
                       bare
                     />
                   );
                 }
                 if (fmt === 'STL') {
-                  return <StlViewer src={selectedCandidate.fileUrl} style={{ height: 400 }} />;
+                  return <StlViewer src={selectedCandidate.fileUrl} style={{ height: 500 }} />;
                 }
                 if (fmt === 'OBJ') {
-                  return <ObjViewer src={selectedCandidate.fileUrl} style={{ height: 400 }} />;
+                  return <ObjViewer src={selectedCandidate.fileUrl} style={{ height: 500 }} />;
                 }
                 if (fmt === '3MF') {
                   return <ThreeMFFallback />;
@@ -352,7 +352,7 @@ export function ViewerZone({
                   <ModelViewer
                     src={selectedCandidate.fileUrl}
                     bare
-                    height={400}
+                    height={500}
                     renderMode={renderMode}
                     sectionEnabled={sectionEnabled}
                     sectionPosition={sectionPosition}
@@ -375,41 +375,43 @@ export function ViewerZone({
           </p>
         </div>
       ) : (
-        (() => {
-          const fmt = detectCadFormat(displayUrl);
-          if (fmt === 'STEP' || fmt === 'IGES') {
+        <div style={{ height: '500px' }} className="w-full">
+          {(() => {
+            const fmt = detectCadFormat(displayUrl);
+            if (fmt === 'STEP' || fmt === 'IGES') {
+              return (
+                <OcctViewer
+                  src={displayUrl}
+                  fileName={getFileNameFromUrl(displayUrl, 'model')}
+                  height="500px"
+                  bare
+                />
+              );
+            }
+            if (fmt === 'STL') {
+              return <StlViewer src={displayUrl} style={{ height: 500 }} />;
+            }
+            if (fmt === 'OBJ') {
+              return <ObjViewer src={displayUrl} style={{ height: 500 }} />;
+            }
+            if (fmt === '3MF') {
+              return <ThreeMFFallback />;
+            }
             return (
-              <OcctViewer
+              <ModelViewer
                 src={displayUrl}
-                fileName={getFileNameFromUrl(displayUrl, 'model')}
-                height="400px"
                 bare
+                height={500}
+                measureEnabled={measuring}
+                measureMode={measureMode}
+                renderMode={renderMode}
+                sectionEnabled={sectionEnabled}
+                sectionPosition={sectionPosition}
+                onDimensionsExtracted={onDimensionsExtracted}
               />
             );
-          }
-          if (fmt === 'STL') {
-            return <StlViewer src={displayUrl} style={{ height: 400 }} />;
-          }
-          if (fmt === 'OBJ') {
-            return <ObjViewer src={displayUrl} style={{ height: 400 }} />;
-          }
-          if (fmt === '3MF') {
-            return <ThreeMFFallback />;
-          }
-          return (
-            <ModelViewer
-              src={displayUrl}
-              bare
-              height={400}
-              measureEnabled={measuring}
-              measureMode={measureMode}
-              renderMode={renderMode}
-              sectionEnabled={sectionEnabled}
-              sectionPosition={sectionPosition}
-              onDimensionsExtracted={onDimensionsExtracted}
-            />
-          );
-        })()
+          })()}
+        </div>
       )}
     </div>
   );

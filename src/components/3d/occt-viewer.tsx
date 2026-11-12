@@ -73,7 +73,10 @@ export function OcctViewer({ src, fileName, height = '600px', bare }: OcctViewer
 
   if (loading) {
     const fallback = (
-      <div className="flex h-full items-center justify-center text-muted-foreground">
+      <div
+        style={{ height: '100%', width: '100%' }}
+        className="flex items-center justify-center text-muted-foreground"
+      >
         Chargement OpenCascade.js…
       </div>
     );
@@ -86,7 +89,10 @@ export function OcctViewer({ src, fileName, height = '600px', bare }: OcctViewer
   }
   if (error) {
     const fallback = (
-      <div className="flex h-full items-center justify-center text-sm text-red-500">
+      <div
+        style={{ height: '100%', width: '100%' }}
+        className="flex items-center justify-center text-sm text-red-500"
+      >
         Erreur : {error}
       </div>
     );
@@ -100,7 +106,10 @@ export function OcctViewer({ src, fileName, height = '600px', bare }: OcctViewer
 
   const viewer = (
     <div style={{ height }} className="w-full rounded-lg border border-border bg-muted/10">
-      <Canvas camera={{ position: [15, 15, 15], fov: 50 }}>
+      <Canvas
+        camera={{ position: [15, 15, 15], fov: 50 }}
+        style={{ height: '100%', width: '100%' }}
+      >
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Grid infiniteGrid />
