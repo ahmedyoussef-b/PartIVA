@@ -60,6 +60,7 @@
 | V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE | CRUD RE | ✅ | PR #70 |
 | V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | CRUD RE | ✅ | PR #72 |
 | V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture | CRUD RE | ✅ | PR #74 |
+| V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade + page détail [id] | CRUD RE | ✅ | PRs #77, #78 |
 
 ---
 
