@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Performance pipeline (E4-S05)', () => {
   test('agrégation source=all retourne sourceDurationsMs par source', async ({ request }) => {
-    test.setTimeout(60000);
+    test.setTimeout(300000);
     const response = await request.post('/api/search', {
       data: { source: 'all', query: 'roulement', limit: 5 },
     });

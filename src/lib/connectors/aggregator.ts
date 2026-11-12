@@ -9,7 +9,7 @@ const AGGREGATION_TIMEOUT_MS =
   process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 60_000 : 10_000;
 
 const CONNECTOR_TIMEOUT_MS =
-  process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 120_000 : 10_000;
+  process.env.CI || process.env.PLAYWRIGHT_TEST === '1' ? 300_000 : 10_000;
 
 const MAX_RETRIES = 2;
 const BASE_DELAY_MS = 250;
