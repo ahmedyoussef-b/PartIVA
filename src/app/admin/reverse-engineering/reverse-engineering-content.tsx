@@ -147,6 +147,9 @@ export default function ReverseEngineeringContent({
         type: file.type,
       });
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -154,7 +157,16 @@ export default function ReverseEngineeringContent({
         const uploadRes = await fetch('/api/upload/cad', {
           method: 'POST',
           body: formData,
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
+
+        console.info('[RE:upload] Réponse reçue', { status: uploadRes.status });
+
+        if (!uploadRes.ok) {
+          const errorJson = await uploadRes.json().catch(() => ({}));
+          throw new Error(errorJson.error || `HTTP ${uploadRes.status}`);
+        }
 
         const uploadJson = await uploadRes.json();
 
@@ -191,11 +203,15 @@ export default function ReverseEngineeringContent({
         toast.success('Fichier CAO ajouté');
         router.refresh();
       } catch (err) {
-        setCadError((err as Error)?.message || 'Erreur inattendue');
-        console.error('[RE:upload] Échec upload', {
-          fileName: file.name,
-          error: (err as Error).message,
-        });
+        clearTimeout(timeoutId);
+        const error = err as Error;
+        if (error.name === 'AbortError') {
+          setCadError("Délai d'attente dépassé (30s). Vérifiez votre connexion.");
+          console.error('[RE:upload] Timeout upload', { fileName: file.name });
+        } else {
+          setCadError(error.message || 'Erreur inattendue');
+          console.error('[RE:upload] Échec upload', { fileName: file.name, error: error.message });
+        }
         setCadUploading(false);
       }
     },
@@ -1086,7 +1102,7 @@ export default function ReverseEngineeringContent({
                   ? 'border-primary bg-primary/5'
                   : cadUploading
                     ? 'pointer-events-none border-muted/30 bg-muted/30 opacity-60'
-                    : 'border-border bg-muted/20 hover:border-primary/50'
+                    : 'cursor-pointer border-border bg-muted/20 hover:border-primary/50'
               }`}
             >
               <input {...getCadInputProps()} />
