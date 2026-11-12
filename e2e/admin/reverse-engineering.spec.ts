@@ -155,7 +155,7 @@ test.describe('ADMIN - Ajout étape RE (V8-B-2-d)', () => {
     });
     await page.getByRole('button', { name: /Ajouter une étape/i }).click();
 
-    await page.getByPlaceholder(/ex: Validation CAO/i).fill('Test Étape E2E V8-B-2-d');
+    await page.getByLabel(/Nom de l.étape/i).fill('Test Étape E2E V8-B-2-d');
     await page.getByRole('button', { name: /^Ajouter$/i }).click();
 
     await expect(page.getByText('Test Étape E2E V8-B-2-d')).toBeVisible({ timeout: 10000 });
