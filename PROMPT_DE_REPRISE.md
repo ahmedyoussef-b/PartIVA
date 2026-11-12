@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.3
+**Version :** 7.4
 **Date :** 2026-11-12
-**Commit HEAD :** `5e74501` (Merge PR #74 — V8-B-6-h close)
+**Commit HEAD :** `3b734f3` (Merge PR #78 — V8-C-2a page détail [id])
 **Branche :** master
-**Version en cours :** V8 close (V8-B-6 intégralement clôturée)
-**Dernière étape close :** V8-B-6-h (éditeur 3D + sauvegarde partielle)
-**Prochaine étape :** V8-B-7 (à préciser par le coordinateur)
+**Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close
+**Dernière étape close :** V8-C-2a (pipeline STEP/IGES + page détail [id])
+**Prochaine étape :** V8-C-1c (validation Tauri) ou V8-C-3 (opérations paramétriques)
 
 ---
 
@@ -48,10 +48,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) |
-| **HEAD** | `177e53e` (Merge PR #72, V8-B-6-g close) |
-| **Dernière étape close** | **V8-B-6-g** |
-| **Prochaine étape** | **V8-B-7** (à préciser) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close |
+| **HEAD** | `3b734f3` (Merge PR #78, V8-C-2a page détail [id]) |
+| **Dernière étape close** | **V8-C-2a** |
+| **Prochaine étape** | **V8-C-1c** (validation POC Tauri) ou **V8-C-3** (opérations paramétriques) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -101,6 +101,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (t) | Tests d'intégration réels hors CI : script `npm run test:sources` |
 | (u) | Réforme gouvernance 3 acteurs (IA externe, coordinateur, IA interne) |
 | (v) | Logs structurés `[RE:...]` dans le flux Reverse Engineering (V8-B-6-e) |
+| (w) | Logs complets sur tous les boutons du flux RE (18 logs `console.info('[RE:...]`) — V8-B-6-f |
+| (x) | Upload CAO robuste (AbortController 30s, cursor-pointer dropzone, logs complets) — V8-B-6-g |
+| (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h |
+| (z) | Pipeline STEP/IGES via libcascade (importCadFile + tessellateShape + OcctViewer) — V8-C-2a |
 
 ### 5 dernières sessions
 
@@ -121,6 +125,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE (total 18 logs) | ✅ |
 | V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | ✅ |
 | V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture + sauvegarde dimensions (partielle) | ✅ |
+| V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade (importCadFile, tessellateShape, OcctViewer) + page détail [id] | ✅ |
 
 ---
 
@@ -130,9 +135,13 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-B-7** : à préciser par le coordinateur (périmètre, objectif, livrables).
+**V8-C-1c** : validation visuelle du POC Tauri (cube OCCT dans desktop) — déjà configuré (tauri.conf.json, libcascade, OcctPoc).
 
-**Prompt à émettre** : `V8-B-7` (fourni par l'IA externe).
+**OU**
+
+**V8-C-3** : opérations paramétriques (congé, perçage booléen) + Feature Tree.
+
+**Prompt à émettre** : `V8-C-1c` ou `V8-C-3` (fourni par l'IA externe).
 
 ---
 
