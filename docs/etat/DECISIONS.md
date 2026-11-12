@@ -320,3 +320,4 @@
 | (v) | Logs structurés `[RE:...]` dans le flux Reverse Engineering (upload, preview, export, statut, étape, projet). V8-B-6-e. |
 | (w) | Logs complets sur tous les boutons du flux RE (18 logs `console.info('[RE:...]`) — V8-B-6-f. |
 | (x) | Upload CAO robuste (AbortController 30s, cursor-pointer dropzone, logs complets) — V8-B-6-g. |
+| (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h. |

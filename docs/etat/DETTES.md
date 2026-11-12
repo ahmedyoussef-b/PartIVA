@@ -35,6 +35,17 @@
 
 ---
 
+### `D-RE-CAD-DIMENSIONS-PERSIST` — Dimensions éditées dans CadEditor non persistées
+
+- **Statut :** Active
+- **Cause :** pas de champ `metadata` sur `CadFile` (nécessiterait une migration Prisma). Les dimensions éditées via `CadEditor` sont loguées en console mais non persistées.
+- **Périmètre :** `src/components/3d/cad-editor.tsx`, `src/lib/actions/reverse-engineering.ts`.
+- **Effort estimé :** Moyen (ajout champ `metadata Json?` sur `CadFile` + migration Prisma).
+- **Bloquant :** Non.
+- **Condition de résolution :** migration Prisma ajoutant `metadata` à `CadFile`, puis persistance effective dans `saveCadDimensions`.
+
+---
+
 ### `D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED` — Route admin download bloquée par auth
 
 - **Statut :** Active (bloquée V1.5)
