@@ -313,3 +313,4 @@
 | --- | --- |
 | (p) | Specs E2E admin → emplacement `e2e/admin/` (seul projet Playwright injecte `storageState`). Toute nouvelle spec admin DOIT y être placée. |
 | (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives — proposer un smoke test Playwright minimal pour les sous-étapes UI futures. À arbitrer en V8-B-2 ou ultérieur. |
+| (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` (et non `uuid()`) pour tous les ID Prisma. |

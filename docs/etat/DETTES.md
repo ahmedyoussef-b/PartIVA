@@ -34,6 +34,28 @@
 
 ## Moyenne
 
+### `D-REVERSE-SCHEMAS-UUID-CUID` — Schémas Zod RE utilisent uuid() au lieu de cuid()
+
+- **Statut :** Active
+- **Cause :** `UpdateREStepSchema` (`stepId: z.string().uuid()`) et `AddCadFileSchema` (`projectId: z.string().uuid()`) rejettent les ID Prisma (cuid). Même bug que `AddREStepSchema` corrigé en V8-B-2-c.
+- **Périmètre :** `src/lib/actions/reverse-engineering.ts`
+- **Effort estimé :** Faible
+- **Bloquant :** Non (mais cause des échecs silencieux)
+- **Condition de résolution :** Remplacer `uuid()` par `cuid()` dans tous les schémas RE.
+
+---
+
+### `D-REVERSE-UPDATE-STEP` — Erreur lors de la mise à jour d'une étape
+
+- **Statut :** Active
+- **Cause :** Le toast "Erreur lors de la mise à jour de l'étape" apparaît sur `/admin/reverse-engineering/[id]` (probablement `UpdateREStepSchema` avec `uuid()` au lieu de `cuid()`).
+- **Périmètre :** `src/lib/actions/reverse-engineering.ts`, `src/app/admin/reverse-engineering/reverse-engineering-content.tsx`
+- **Effort estimé :** Faible
+- **Bloquant :** Non
+- **Condition de résolution :** Corriger `UpdateREStepSchema` (uuid → cuid) et tester manuellement la mise à jour d'étape.
+
+---
+
 ### `D-ADMIN-TEST-COVERAGE` — Pas de tests E2E admin dédiés
 
 - **Statut :** Partiellement couverte (part-templates)
@@ -239,6 +261,28 @@
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
 - **Condition de résolution :** acté dans §5 (fait en V8-B-0).
+
+---
+
+### `D-GIT-STASH-RESIDUELS` — 2 stashes résiduels jamais nettoyés
+
+- **Statut :** Active
+- **Cause :** `stash@{0}: On master: temp stash before E9-R3.a` et `stash@{1}: On master: wip-e9-r3a-premature` — sessions antérieures.
+- **Périmètre :** `.git/refs/stash` (local)
+- **Effort estimé :** Faible
+- **Bloquant :** Non
+- **Condition de résolution :** Examiner puis `git stash drop` si obsolètes.
+
+---
+
+### `D-V8-B-2-D-GETBYPLACEHOLDER` — Test E2E utilise getByPlaceholder
+
+- **Statut :** Active
+- **Cause :** `e2e/admin/reverse-engineering.spec.ts` (V8-B-2-d) utilise `page.getByPlaceholder(/ex: Validation CAO/i)` au lieu de `page.getByLabel(/Nom de l'étape/i)` (moins robuste).
+- **Périmètre :** `e2e/admin/reverse-engineering.spec.ts`
+- **Effort estimé :** Faible
+- **Bloquant :** Non
+- **Condition de résolution :** Remplacer `getByPlaceholder` par `getByLabel`.
 
 ---
 

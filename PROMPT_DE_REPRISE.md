@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 6.5
-**Date :** 2026-11-11
-**Commit HEAD :** `f9eb675` (Merge PR #48 — V8-B-1-d close)
+**Version :** 6.6
+**Date :** 2026-11-12
+**Commit HEAD :** `e626b86` (Merge PR #53 — V8-B-2-d close)
 **Branche :** master
 **Version en cours :** V8 en cours
-**Dernière étape close :** V8-B-1-d
-**Prochaine étape :** V8-B-2 (à préciser par le coordinateur)
+**Dernière étape close :** V8-B-2-d
+**Prochaine étape :** V8-B-3 (à préciser par le coordinateur)
 
 ---
 
@@ -49,9 +49,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 en cours |
-| **HEAD** | `f9eb675` (Merge PR #48, V8-B-1-d close) |
-| **Dernière étape close** | **V8-B-1-d** |
-| **Prochaine étape** | **V8-B-2** (à préciser) |
+| **HEAD** | `e626b86` (Merge PR #53, V8-B-2-d close) |
+| **Dernière étape close** | **V8-B-2-d** |
+| **Prochaine étape** | **V8-B-3** (à préciser) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -66,11 +66,15 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
 | `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
+| `D-REVERSE-SCHEMAS-UUID-CUID` | Moyenne | `UpdateREStepSchema` et `AddCadFileSchema` utilisent `z.string().uuid()` au lieu de `cuid()` (même bug que `AddREStepSchema` corrigé en V8-B-2-c). |
+| `D-REVERSE-UPDATE-STEP` | Moyenne | Toast "Erreur lors de la mise à jour de l'étape" sur `/admin/reverse-engineering/[id]` (probablement `UpdateREStepSchema` avec `uuid()` au lieu de `cuid()`). |
 | `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` (V8-B-0) conservée en parallèle de `/new` (V8-B-1-c). |
 | `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/` (pas racine `e2e/`). Décision (p) actée dans DECISIONS.md. Clôture : ce PR. |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
 | `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
 | `D-ESLINT-IGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
+| `D-GIT-STASH-RESIDUELS` | Basse | 2 stashes résiduels (`E9-R3.a`, `wip-e9-r3a-premature`) jamais nettoyés. |
+| `D-V8-B-2-D-GETBYPLACEHOLDER` | Basse | Test E2E V8-B-2-d utilise `getByPlaceholder` au lieu de `getByLabel` (moins robuste). |
 
 **Note :** `D-PROCEDURE-HEAD-FAUX` n'existe pas dans ce registre (jamais créée formellement, PR #45). Rien à clôturer.
 
@@ -93,6 +97,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (o) | V8-P0 = 4 étapes (option C) |
 | (p) | Specs E2E admin → emplacement `e2e/admin/` (seul projet Playwright injecte `storageState`) |
 | (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives — proposer un smoke test Playwright minimal pour les sous-étapes UI futures. À arbitrer en V8-B-2 ou ultérieur. |
+| (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` (et non `uuid()`) pour tous les ID Prisma. |
 
 ### 5 dernières sessions
 
@@ -102,7 +107,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V7-H | 2026-11-11 | Clôture doc V7 (PR #37) | ✅ |
 | V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
 | V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
-| V8-B-1 | 2026-11-11 | CRUD templates UI+API+E2E (PR #46, #47, #48) | ✅ |
+| V8-B-2 | 2026-11-12 | Reverse Engineering (liaison Demande → Projet RE, E2E ajout étape) | ✅ |
 
 ---
 
@@ -112,9 +117,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-B-2** : à préciser par le coordinateur (périmètre, objectif, livrables).
+**V8-B-3** : à préciser par le coordinateur (périmètre, objectif, livrables).
 
-**Prompt à émettre** : `V8-B-2` (fourni par l'IA externe).
+**Prompt à émettre** : `V8-B-3` (fourni par l'IA externe).
 
 ---
 
