@@ -69,6 +69,7 @@ export async function createREProject(
     revalidatePath('/admin/reverse-engineering');
     revalidatePath('/admin/reverse-engineering/[id]');
 
+    console.info('[RE:project] Projet créé', { projectId: project.id, name: validated.name });
     return { success: true, data: project };
   } catch (error) {
     console.error('Error creating RE project:', error);
@@ -119,8 +120,9 @@ export async function createREProjectFromRequest(
     });
 
     revalidatePath('/admin/reverse-engineering');
-    revalidatePath('/admin/demandes/[id]');
+    revalidatePath('/admin/reverse-engineering/[id]');
 
+    console.info('[RE:project] Projet créé depuis demande', { projectId: project.id, requestId });
     return { success: true, projectId: project.id };
   } catch (error) {
     console.error('Error creating RE project from request:', error);
@@ -178,6 +180,11 @@ export async function updateREProjectStatus(
     revalidatePath('/admin/reverse-engineering');
     revalidatePath('/admin/reverse-engineering/[id]');
 
+    console.info('[RE:status] Statut mis à jour', {
+      projectId: input.id,
+      status: validated.status,
+    });
+
     return { success: true, data: project };
   } catch (error) {
     console.error('Error updating RE project status:', error);
@@ -210,6 +217,11 @@ export async function addREStep(
     });
 
     revalidatePath('/admin/reverse-engineering/[id]');
+
+    console.info('[RE:step] Étape ajoutée', {
+      projectId: validated.projectId,
+      stepName: validated.name,
+    });
 
     return { success: true, data: step };
   } catch (error) {
@@ -268,6 +280,11 @@ export async function addCadFile(
     });
 
     revalidatePath('/admin/reverse-engineering/[id]');
+
+    console.info('[RE:upload] Fichier CAO ajouté en base', {
+      projectId: validated.projectId,
+      fileName: validated.name,
+    });
 
     return { success: true, data: cadFile };
   } catch (error) {

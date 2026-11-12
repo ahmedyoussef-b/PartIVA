@@ -146,14 +146,17 @@ export async function exportCadToStl(
   fileName: string,
 ): Promise<{ success: boolean; stlUrl?: string; error?: string; watertight?: boolean }> {
   try {
+    console.info('[RE:export] Conversion CAO → STL', { fileName });
     const ext = extensionOf(fileName);
 
     if (MESH_EXTENSIONS.includes(ext) || fileUrl.startsWith('data:application/stl')) {
+      console.info('[RE:export] Fichier STL direct (pas de conversion)', { fileName });
       return { success: true, stlUrl: fileUrl, watertight: undefined };
     }
 
     const format = detectFormat(fileName);
     if (!format) {
+      console.error('[RE:export] Format CAO non supporté', { fileName });
       return { success: false, error: "Format CAO non supporté pour l'export STL" };
     }
 
@@ -161,6 +164,7 @@ export async function exportCadToStl(
     const result = await parseOcctResult(buffer, format);
 
     if (!result.success || !result.meshes?.[0]) {
+      console.error('[RE:export] Échec parsing CAO', { fileName, error: 'Parsing failed' });
       return { success: false, error: 'Échec du parsing du fichier CAO' };
     }
 
@@ -186,8 +190,11 @@ export async function exportCadToStl(
     const stlBase64 = arrayBufferToBase64(stlArrayBuffer);
     const stlUrl = `data:model/stl;base64,${stlBase64}`;
 
+    console.info('[RE:export] Conversion réussie', { fileName, watertight });
+
     return { success: true, stlUrl, watertight };
   } catch (err) {
+    console.error('[RE:export] Échec conversion', { fileName, error: (err as Error).message });
     return {
       success: false,
       error: err instanceof Error ? err.message : "Erreur inconnue lors de l'export STL",

@@ -141,6 +141,12 @@ export default function ReverseEngineeringContent({
       setCadUploading(true);
       setCadError(null);
 
+      console.info('[RE:upload] Début upload', {
+        fileName: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -154,6 +160,10 @@ export default function ReverseEngineeringContent({
 
         if (!uploadJson.success) {
           setCadError(uploadJson.error || "Échec de l'upload");
+          console.error('[RE:upload] Échec upload', {
+            fileName: file.name,
+            error: uploadJson.error,
+          });
           return;
         }
 
@@ -168,15 +178,24 @@ export default function ReverseEngineeringContent({
 
         if (!result.success) {
           setCadError(result.error || "Échec de l'ajout du fichier CAO");
+          console.error('[RE:upload] Échec ajout base', {
+            fileName: file.name,
+            error: result.error,
+          });
           return;
         }
 
+        console.info('[RE:upload] Upload réussi', { fileName: file.name, url: uploadJson.url });
         setCadDialogOpen(false);
         setCadUploading(false);
         toast.success('Fichier CAO ajouté');
         router.refresh();
       } catch (err) {
         setCadError((err as Error)?.message || 'Erreur inattendue');
+        console.error('[RE:upload] Échec upload', {
+          fileName: file.name,
+          error: (err as Error).message,
+        });
         setCadUploading(false);
       }
     },
@@ -194,7 +213,9 @@ export default function ReverseEngineeringContent({
       const result = await updateREProjectStatus({ id: project.id, status });
       if (!result.success) {
         toast.error(result.error || 'Erreur lors de la mise à jour du statut');
+        console.error('[RE:status] Échec mise à jour statut', { projectId: project.id, status });
       } else {
+        console.info('[RE:status] Statut mis à jour', { projectId: project.id, status });
         toast.success('Statut du projet mis à jour');
       }
     });
@@ -205,7 +226,9 @@ export default function ReverseEngineeringContent({
       const result = await updateREStep({ stepId, completed });
       if (!result.success) {
         toast.error(result.error || "Erreur lors de la mise à jour de l'étape");
+        console.error('[RE:step] Échec mise à jour étape', { stepId, completed });
       } else {
+        console.info('[RE:step] Étape mise à jour', { stepId, completed });
         setSteps((prev) => prev.map((s) => (s.id === stepId ? { ...s, completed } : s)));
       }
     });
@@ -226,6 +249,7 @@ export default function ReverseEngineeringContent({
       if (!result.success) {
         toast.error(result.error || "Erreur lors de l'ajout de l'étape");
       } else {
+        console.info('[RE:step] Étape ajoutée', { projectId: project.id, stepName: newStep.name });
         setSteps((prev) => [...prev, result.data]);
         setNewStep(EMPTY_STEP);
         setStepDialogOpen(false);
@@ -752,6 +776,10 @@ export default function ReverseEngineeringContent({
                               className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:bg-muted/30"
                               onClick={() => {
                                 if (isPreviewable) {
+                                  console.info('[RE:preview] Ouverture preview', {
+                                    fileName: file.name,
+                                    src: file.url,
+                                  });
                                   setPreviewSrc(file.url);
                                   setPreviewName(file.name);
                                   setPreviewOpen(true);
@@ -771,6 +799,10 @@ export default function ReverseEngineeringContent({
                                     className="h-6 w-6 text-xs"
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      console.info('[RE:preview] Ouverture preview', {
+                                        fileName: file.name,
+                                        src: file.url,
+                                      });
                                       setPreviewSrc(file.url);
                                       setPreviewName(file.name);
                                       setPreviewOpen(true);
@@ -785,6 +817,9 @@ export default function ReverseEngineeringContent({
                                     className="h-6 w-6 text-xs"
                                     onClick={async (e) => {
                                       e.stopPropagation();
+                                      console.info('[RE:export] Début export STL', {
+                                        fileName: file.name,
+                                      });
                                       setExporting(file.id);
                                       try {
                                         const result = await exportCadToStl(file.url, file.name);
@@ -793,12 +828,23 @@ export default function ReverseEngineeringContent({
                                             result.stlUrl,
                                             file.name.replace(/\.[^/.]+$/, '') + '.stl',
                                           );
+                                          console.info('[RE:export] Export STL réussi', {
+                                            fileName: file.name,
+                                            watertight: result.watertight,
+                                          });
                                           if (result.watertight === false) {
+                                            console.warn('[RE:export] Maillage non étanche', {
+                                              fileName: file.name,
+                                            });
                                             toast.warning(
                                               'Attention : le maillage peut ne pas être étanche (non watertight)',
                                             );
                                           }
                                         } else {
+                                          console.error('[RE:export] Échec export STL', {
+                                            fileName: file.name,
+                                            error: result.error,
+                                          });
                                           toast.error(result.error || "Échec de l'export STL");
                                         }
                                       } finally {
@@ -1047,7 +1093,13 @@ export default function ReverseEngineeringContent({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+      <Dialog
+        open={previewOpen}
+        onOpenChange={(open) => {
+          if (!open) console.info('[RE:preview] Fermeture preview');
+          setPreviewOpen(open);
+        }}
+      >
         <DialogContent className="p-0">
           <DialogHeader>
             <DialogTitle>Preview 3D — {previewName}</DialogTitle>
