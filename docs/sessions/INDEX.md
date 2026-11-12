@@ -51,6 +51,7 @@
 | V8-B-2 | 2026-11-12 | Reverse Engineering (liaison Demande → Projet RE, E2E ajout étape) | CRUD RE | ✅ | PRs #50-#53 |
 | V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | Dettes RE | ✅ | PRs #55-#57 |
 | V8-B-4 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | Dettes RE | ✅ | PRs #59-#61 |
+| V8-B-5 | 2026-11-12 | Réforme gouvernance 3 acteurs | Gouvernance | ✅ | PR #63 |
 
 ---
 

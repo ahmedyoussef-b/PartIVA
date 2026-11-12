@@ -199,16 +199,7 @@
 
 ---
 
-### `D-PROCEDURE-3-ACTEURS-INAPPLICABLE` — Procédure 3 acteurs → 2 acteurs (R2)
-
-- **Statut :** Active
-- **Cause :** environnement réel = coordinateur-exécutant + IA externe. Pas d'IA interne séparée. Décision R2 (2026-11-11).
-- **Périmètre :** `docs/gouvernance/PROCEDURE_INTERACTION.md` §2, `PROCEDURE_COORDINATEUR.md`, `PROCEDURE_IA_INTERNE.md`.
-- **Effort estimé :** Moyen.
-- **Bloquant :** Non (mode R2 acté).
-- **Condition de résolution :** procédures révisées pour 2 acteurs.
-
----
+### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
 
 ### `D-PROCEDURE-LONGUEUR-PROMPTS` — Subdivision en sous-étapes
 
