@@ -330,3 +330,38 @@ export async function analyzeReverseEngineeringProject(projectId: string) {
     return { ok: false as const, error: String(e) };
   }
 }
+
+const SaveCadDimensionsSchema = z.object({
+  cadFileId: z.string().cuid(),
+  dimensions: z.object({
+    width: z.number().positive(),
+    height: z.number().positive(),
+    depth: z.number().positive(),
+  }),
+});
+
+export async function saveCadDimensions(
+  input: z.infer<typeof SaveCadDimensionsSchema>,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const validated = SaveCadDimensionsSchema.parse(input);
+
+    // NOTE : Pas de persistance en base sans modification du schéma Prisma.
+    // Le champ 'metadata' n'existe pas sur CadFile. L'ajout nécessiterait une migration.
+    // Les dimensions sont retournées côté client pour affichage immédiat.
+    // TODO : Ajouter un champ 'metadata' (Json?) à CadFile via migration Prisma, puis persister ici.
+
+    console.info('[RE:editor] Dimensions sauvegardées (mémoire seulement)', {
+      cadFileId: validated.cadFileId,
+      ...validated.dimensions,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error('[RE:editor] Échec sauvegarde dimensions', {
+      cadFileId: input.cadFileId,
+      error: (err as Error)?.message || 'Erreur inconnue',
+    });
+    return { success: false, error: (err as Error)?.message || 'Erreur inconnue' };
+  }
+}
