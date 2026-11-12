@@ -15,6 +15,7 @@
     "typecheck": "node scripts/typecheck.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:backfill-embeddings": "tsx scripts/backfill-embeddings.ts",
+    "test:sources": "tsx scripts/test-real-sources.ts",
     "test:e2e": "playwright test",
     "test:unit": "npx vitest run",
     "campaign:check": "tsx scripts/campaign/check-env.ts",
