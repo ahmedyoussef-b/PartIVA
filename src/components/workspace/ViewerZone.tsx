@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense, Component, ReactNode } from 'react';
 import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
@@ -67,8 +67,36 @@ function getFileNameFromUrl(url: string, fallback: string = 'model'): string {
   return `${fallback}${ext}`;
 }
 
-// STL Viewer Component
-function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
+// Error Boundary for 3D viewers
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ViewerErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  ErrorBoundaryState
+> {
+  override state: ErrorBoundaryState = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[Viewer:ErrorBoundary] Erreur', error, errorInfo);
+  }
+
+  override render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+// STL Viewer Component with error handling
+function StlViewerInner({ src }: { src: string }) {
   const geometry = useLoader(STLLoader, src);
   const mesh = useMemo(
     () =>
@@ -78,23 +106,63 @@ function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
       ),
     [geometry],
   );
+  return <primitive object={mesh} />;
+}
+
+function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
       <ambientLight intensity={0.8} />
       <directionalLight position={[10, 10, 5]} intensity={1.5} />
-      <primitive object={mesh} />
+      <Suspense
+        fallback={
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+            Chargement STL…
+          </div>
+        }
+      >
+        <ViewerErrorBoundary
+          fallback={
+            <div className="flex h-full items-center justify-center text-sm text-red-500">
+              Erreur chargement STL
+            </div>
+          }
+        >
+          <StlViewerInner src={src} />
+        </ViewerErrorBoundary>
+      </Suspense>
     </Canvas>
   );
 }
 
-// OBJ Viewer Component
-function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
+// OBJ Viewer Component with error handling
+function ObjViewerInner({ src }: { src: string }) {
   const object = useLoader(OBJLoader, src);
+  return <primitive object={object} />;
+}
+
+function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
       <ambientLight intensity={0.8} />
       <directionalLight position={[10, 10, 5]} intensity={1.5} />
-      <primitive object={object} />
+      <Suspense
+        fallback={
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+            Chargement OBJ…
+          </div>
+        }
+      >
+        <ViewerErrorBoundary
+          fallback={
+            <div className="flex h-full items-center justify-center text-sm text-red-500">
+              Erreur chargement OBJ
+            </div>
+          }
+        >
+          <ObjViewerInner src={src} />
+        </ViewerErrorBoundary>
+      </Suspense>
     </Canvas>
   );
 }
