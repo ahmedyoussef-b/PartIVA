@@ -6,7 +6,7 @@ import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
 import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
-import type { MeasureMode } from '@/components/workspace/MeasureTool';
+import { MeasureTool, type MeasureMode } from '@/components/workspace/MeasureTool';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
@@ -120,15 +120,36 @@ class ViewerErrorBoundary extends Component<
 }
 
 // STL Viewer Component with error handling
-function StlViewerContent({ src }: { src: string }) {
+function StlViewerContent({
+  src,
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+}: {
+  src: string;
+  sectionEnabled?: boolean;
+  sectionPosition?: number;
+}) {
   const geometry = useLoader(STLLoader, src);
   const mesh = useMemo(
     () =>
       new THREE.Mesh(
         geometry,
-        new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.3, roughness: 0.7 }),
+        new THREE.MeshStandardMaterial({
+          color: 0x888888,
+          metalness: 0.3,
+          roughness: 0.7,
+          clippingPlanes:
+            sectionEnabled && geometry.boundingBox
+              ? [
+                  new THREE.Plane(
+                    new THREE.Vector3(1, 0, 0),
+                    -(sectionPosition * geometry.boundingBox.getSize(new THREE.Vector3()).x),
+                  ),
+                ]
+              : undefined,
+        }),
       ),
-    [geometry],
+    [geometry, sectionEnabled, sectionPosition],
   );
   return (
     <>
@@ -138,7 +159,20 @@ function StlViewerContent({ src }: { src: string }) {
   );
 }
 
-function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
+function StlViewer({
+  src,
+  measureEnabled = false,
+  measureMode = 'distance',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+  ...props
+}: {
+  src: string;
+  measureEnabled?: boolean;
+  measureMode?: MeasureMode;
+  sectionEnabled?: boolean;
+  sectionPosition?: number;
+} & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <ViewerErrorBoundary
       fallback={
@@ -154,10 +188,19 @@ function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
           </div>
         }
       >
-        <Canvas {...props} camera={{ position: [5, 5, 5], fov: 50 }}>
+        <Canvas
+          {...props}
+          camera={{ position: [5, 5, 5], fov: 50 }}
+          gl={{ localClippingEnabled: sectionEnabled }}
+        >
           <ambientLight intensity={0.8} />
           <directionalLight position={[10, 10, 5]} intensity={1.5} />
-          <StlViewerContent src={src} />
+          <StlViewerContent
+            src={src}
+            sectionEnabled={sectionEnabled}
+            sectionPosition={sectionPosition}
+          />
+          {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
           <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
         </Canvas>
       </Suspense>
@@ -166,9 +209,17 @@ function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
 }
 
 // OBJ Viewer Component with error handling
-function ObjViewerContent({ src }: { src: string }) {
+function ObjViewerContent({
+  src,
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+}: {
+  src: string;
+  sectionEnabled?: boolean;
+  sectionPosition?: number;
+}) {
   const object = useLoader(OBJLoader, src);
-  const geometry = useMemo(() => {
+  const geometry = useMemo<THREE.BufferGeometry | null>(() => {
     if (!object) return null;
     // OBJLoader returns a Group, we need to extract the first BufferGeometry
     let geom: THREE.BufferGeometry | null = null;
@@ -182,12 +233,39 @@ function ObjViewerContent({ src }: { src: string }) {
   return (
     <>
       <FitCamera geometry={geometry} />
-      <primitive object={object} />
+      <primitive
+        object={object}
+        material={
+          sectionEnabled && geometry?.boundingBox
+            ? new THREE.MeshStandardMaterial({
+                clippingPlanes: [
+                  new THREE.Plane(
+                    new THREE.Vector3(1, 0, 0),
+                    -(sectionPosition * geometry.boundingBox.getSize(new THREE.Vector3()).x),
+                  ),
+                ],
+              })
+            : undefined
+        }
+      />
     </>
   );
 }
 
-function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
+function ObjViewer({
+  src,
+  measureEnabled = false,
+  measureMode = 'distance',
+  sectionEnabled = false,
+  sectionPosition = 0.5,
+  ...props
+}: {
+  src: string;
+  measureEnabled?: boolean;
+  measureMode?: MeasureMode;
+  sectionEnabled?: boolean;
+  sectionPosition?: number;
+} & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <ViewerErrorBoundary
       fallback={
@@ -203,10 +281,19 @@ function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
           </div>
         }
       >
-        <Canvas {...props} camera={{ position: [5, 5, 5], fov: 50 }}>
+        <Canvas
+          {...props}
+          camera={{ position: [5, 5, 5], fov: 50 }}
+          gl={{ localClippingEnabled: sectionEnabled }}
+        >
           <ambientLight intensity={0.8} />
           <directionalLight position={[10, 10, 5]} intensity={1.5} />
-          <ObjViewerContent src={src} />
+          <ObjViewerContent
+            src={src}
+            sectionEnabled={sectionEnabled}
+            sectionPosition={sectionPosition}
+          />
+          {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
           <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
         </Canvas>
       </Suspense>
@@ -400,14 +487,36 @@ export function ViewerZone({
                       fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
                       height="500px"
                       bare
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
                     />
                   );
                 }
                 if (fmt === 'STL') {
-                  return <StlViewer src={uploadedFileUrl} style={{ height: 500 }} />;
+                  return (
+                    <StlViewer
+                      src={uploadedFileUrl}
+                      style={{ height: 500 }}
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
                 }
                 if (fmt === 'OBJ') {
-                  return <ObjViewer src={uploadedFileUrl} style={{ height: 500 }} />;
+                  return (
+                    <ObjViewer
+                      src={uploadedFileUrl}
+                      style={{ height: 500 }}
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
                 }
                 if (fmt === '3MF') {
                   return <ThreeMFFallback />;
@@ -420,6 +529,8 @@ export function ViewerZone({
                     renderMode={renderMode}
                     sectionEnabled={sectionEnabled}
                     sectionPosition={sectionPosition}
+                    measureEnabled={measuring}
+                    measureMode={measureMode}
                   />
                 );
               })()
@@ -451,14 +562,36 @@ export function ViewerZone({
                       fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
                       height="500px"
                       bare
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
                     />
                   );
                 }
                 if (fmt === 'STL') {
-                  return <StlViewer src={selectedCandidate.fileUrl} style={{ height: 500 }} />;
+                  return (
+                    <StlViewer
+                      src={selectedCandidate.fileUrl}
+                      style={{ height: 500 }}
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
                 }
                 if (fmt === 'OBJ') {
-                  return <ObjViewer src={selectedCandidate.fileUrl} style={{ height: 500 }} />;
+                  return (
+                    <ObjViewer
+                      src={selectedCandidate.fileUrl}
+                      style={{ height: 500 }}
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
                 }
                 if (fmt === '3MF') {
                   return <ThreeMFFallback />;
@@ -471,6 +604,8 @@ export function ViewerZone({
                     renderMode={renderMode}
                     sectionEnabled={sectionEnabled}
                     sectionPosition={sectionPosition}
+                    measureEnabled={measuring}
+                    measureMode={measureMode}
                   />
                 );
               })()
@@ -500,14 +635,36 @@ export function ViewerZone({
                   fileName={getFileNameFromUrl(displayUrl, 'model')}
                   height="500px"
                   bare
+                  measureEnabled={measuring}
+                  measureMode={measureMode}
+                  sectionEnabled={sectionEnabled}
+                  sectionPosition={sectionPosition}
                 />
               );
             }
             if (fmt === 'STL') {
-              return <StlViewer src={displayUrl} style={{ height: 500 }} />;
+              return (
+                <StlViewer
+                  src={displayUrl}
+                  style={{ height: 500 }}
+                  measureEnabled={measuring}
+                  measureMode={measureMode}
+                  sectionEnabled={sectionEnabled}
+                  sectionPosition={sectionPosition}
+                />
+              );
             }
             if (fmt === 'OBJ') {
-              return <ObjViewer src={displayUrl} style={{ height: 500 }} />;
+              return (
+                <ObjViewer
+                  src={displayUrl}
+                  style={{ height: 500 }}
+                  measureEnabled={measuring}
+                  measureMode={measureMode}
+                  sectionEnabled={sectionEnabled}
+                  sectionPosition={sectionPosition}
+                />
+              );
             }
             if (fmt === '3MF') {
               return <ThreeMFFallback />;

@@ -10,6 +10,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
 import { Object3D } from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MeasureTool, type MeasureMode } from '@/components/workspace/MeasureTool';
 import {
   CAMERA_HOME,
   ViewerBridge,
@@ -37,6 +38,10 @@ interface StlViewerProps {
   sectionEnabled?: boolean;
   /** Position du plan de coupe (0-1) */
   sectionPosition?: number;
+  /** Active l'outil de mesure */
+  measureEnabled?: boolean;
+  /** Mode de mesure : distance, angle ou diamètre */
+  measureMode?: MeasureMode;
 }
 
 function GltfScene({ src }: { src: string }) {
@@ -169,6 +174,8 @@ function StlViewerCanvas({
   isObjOr3mf,
   obj,
   bridgeRef,
+  measureEnabled = false,
+  measureMode = 'distance',
 }: {
   mesh: Mesh | null;
   src: string;
@@ -176,6 +183,8 @@ function StlViewerCanvas({
   isObjOr3mf: boolean;
   obj: Object3D | null;
   bridgeRef: React.RefObject<ViewerBridge>;
+  measureEnabled?: boolean;
+  measureMode?: MeasureMode;
 }) {
   return (
     <Canvas
@@ -214,6 +223,7 @@ function StlViewerCanvas({
         ) : null}
       </Suspense>
       <ViewerSceneBridge bridgeRef={bridgeRef} />
+      {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
       <OrbitControls enableZoom enablePan enableRotate makeDefault target={[0, 0, 0]} />
     </Canvas>
   );
@@ -227,6 +237,8 @@ export function StlViewer({
   renderMode = 'solid',
   sectionEnabled = false,
   sectionPosition = 0.5,
+  measureEnabled = false,
+  measureMode = 'distance',
 }: StlViewerProps) {
   const isObjOr3mf = src ? /\.(obj|3mf)$/i.test(src) : false;
   const objMesh = useMeshObject(isObjOr3mf ? src : undefined);
@@ -278,6 +290,8 @@ export function StlViewer({
           isObjOr3mf={isObjOr3mf}
           obj={objMesh.obj}
           bridgeRef={bridgeRef}
+          measureEnabled={measureEnabled}
+          measureMode={measureMode}
         />
       )}
     </ViewerShell>

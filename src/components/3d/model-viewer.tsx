@@ -122,6 +122,8 @@ export function ModelViewer({
       renderMode={renderMode}
       sectionEnabled={sectionEnabled}
       sectionPosition={sectionPosition}
+      measureEnabled={measureEnabled}
+      measureMode={measureMode}
     />
   );
 }
