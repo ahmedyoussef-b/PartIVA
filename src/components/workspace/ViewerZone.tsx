@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, Suspense, Component, ReactNode } from 'react';
+import { useState, useMemo, useEffect, Suspense, Component, ReactNode } from 'react';
 import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
@@ -11,7 +11,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import * as THREE from 'three';
-import { Canvas, useLoader } from '@react-three/fiber';
+import { Canvas, useLoader, useThree } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -67,6 +68,29 @@ function getFileNameFromUrl(url: string, fallback: string = 'model'): string {
   return `${fallback}${ext}`;
 }
 
+// FitCamera component to auto-fit camera to geometry
+function FitCamera({ geometry }: { geometry: THREE.BufferGeometry | null }) {
+  const { camera, controls } = useThree();
+  useEffect(() => {
+    if (!geometry) return;
+    geometry.computeBoundingSphere();
+    const sphere = geometry.boundingSphere;
+    if (!sphere) return;
+    const center = sphere.center;
+    const radius = sphere.radius;
+    const distance = radius * 3;
+    camera.position.set(center.x + distance, center.y + distance, center.z + distance);
+    camera.lookAt(center);
+    camera.updateProjectionMatrix();
+    if (controls && 'target' in controls) {
+      const c = controls as unknown as { target: THREE.Vector3; update: () => void };
+      c.target.copy(center);
+      c.update();
+    }
+  }, [geometry, camera, controls]);
+  return null;
+}
+
 // Error Boundary for 3D viewers
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -96,7 +120,7 @@ class ViewerErrorBoundary extends Component<
 }
 
 // STL Viewer Component with error handling
-function StlViewerInner({ src }: { src: string }) {
+function StlViewerContent({ src }: { src: string }) {
   const geometry = useLoader(STLLoader, src);
   const mesh = useMemo(
     () =>
@@ -106,7 +130,12 @@ function StlViewerInner({ src }: { src: string }) {
       ),
     [geometry],
   );
-  return <primitive object={mesh} />;
+  return (
+    <>
+      <FitCamera geometry={geometry} />
+      <primitive object={mesh} />
+    </>
+  );
 }
 
 function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
@@ -125,10 +154,11 @@ function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
           </div>
         }
       >
-        <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
+        <Canvas {...props} camera={{ position: [5, 5, 5], fov: 50 }}>
           <ambientLight intensity={0.8} />
           <directionalLight position={[10, 10, 5]} intensity={1.5} />
-          <StlViewerInner src={src} />
+          <StlViewerContent src={src} />
+          <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
         </Canvas>
       </Suspense>
     </ViewerErrorBoundary>
@@ -136,9 +166,25 @@ function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
 }
 
 // OBJ Viewer Component with error handling
-function ObjViewerInner({ src }: { src: string }) {
+function ObjViewerContent({ src }: { src: string }) {
   const object = useLoader(OBJLoader, src);
-  return <primitive object={object} />;
+  const geometry = useMemo(() => {
+    if (!object) return null;
+    // OBJLoader returns a Group, we need to extract the first BufferGeometry
+    let geom: THREE.BufferGeometry | null = null;
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.geometry instanceof THREE.BufferGeometry) {
+        geom = child.geometry;
+      }
+    });
+    return geom;
+  }, [object]);
+  return (
+    <>
+      <FitCamera geometry={geometry} />
+      <primitive object={object} />
+    </>
+  );
 }
 
 function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
@@ -157,10 +203,11 @@ function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
           </div>
         }
       >
-        <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
+        <Canvas {...props} camera={{ position: [5, 5, 5], fov: 50 }}>
           <ambientLight intensity={0.8} />
           <directionalLight position={[10, 10, 5]} intensity={1.5} />
-          <ObjViewerInner src={src} />
+          <ObjViewerContent src={src} />
+          <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
         </Canvas>
       </Suspense>
     </ViewerErrorBoundary>
