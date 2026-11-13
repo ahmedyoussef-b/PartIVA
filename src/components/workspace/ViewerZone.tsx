@@ -111,9 +111,13 @@ function StlViewerInner({ src }: { src: string }) {
 
 function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[10, 10, 5]} intensity={1.5} />
+    <ViewerErrorBoundary
+      fallback={
+        <div className="flex h-full items-center justify-center text-sm text-red-500">
+          Erreur chargement STL
+        </div>
+      }
+    >
       <Suspense
         fallback={
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -121,17 +125,13 @@ function StlViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
           </div>
         }
       >
-        <ViewerErrorBoundary
-          fallback={
-            <div className="flex h-full items-center justify-center text-sm text-red-500">
-              Erreur chargement STL
-            </div>
-          }
-        >
+        <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[10, 10, 5]} intensity={1.5} />
           <StlViewerInner src={src} />
-        </ViewerErrorBoundary>
+        </Canvas>
       </Suspense>
-    </Canvas>
+    </ViewerErrorBoundary>
   );
 }
 
@@ -143,9 +143,13 @@ function ObjViewerInner({ src }: { src: string }) {
 
 function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[10, 10, 5]} intensity={1.5} />
+    <ViewerErrorBoundary
+      fallback={
+        <div className="flex h-full items-center justify-center text-sm text-red-500">
+          Erreur chargement OBJ
+        </div>
+      }
+    >
       <Suspense
         fallback={
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -153,17 +157,13 @@ function ObjViewer({ src, ...props }: { src: string } & React.ComponentPropsWith
           </div>
         }
       >
-        <ViewerErrorBoundary
-          fallback={
-            <div className="flex h-full items-center justify-center text-sm text-red-500">
-              Erreur chargement OBJ
-            </div>
-          }
-        >
+        <Canvas {...props} camera={{ position: [50, 50, 50], fov: 50 }}>
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[10, 10, 5]} intensity={1.5} />
           <ObjViewerInner src={src} />
-        </ViewerErrorBoundary>
+        </Canvas>
       </Suspense>
-    </Canvas>
+    </ViewerErrorBoundary>
   );
 }
 
