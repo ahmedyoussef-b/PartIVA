@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useMemo, useEffect, Suspense, Component, ReactNode } from 'react';
-import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
+import {
+  Ruler,
+  Scissors,
+  Columns,
+  Download,
+  Box,
+  AlertTriangle,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
 import { OcctProvider } from '@/components/3d/occt-context';
@@ -14,6 +23,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import * as THREE from 'three';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { useFullscreen } from './WorkspaceLayout';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -343,6 +353,7 @@ export function ViewerZone({
   const [sectionPosition, setSectionPosition] = useState(0.5);
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
+  const { fullscreen, setFullscreen } = useFullscreen();
 
   if (
     displayUrl &&
@@ -448,6 +459,21 @@ export function ViewerZone({
             aria-label="Position du plan de coupe"
           />
         )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => setFullscreen(!fullscreen)}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                fullscreen ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+              }`}
+            >
+              {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              Plein écran
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Basculer en mode plein écran.</TooltipContent>
+        </Tooltip>
         {displayUrl &&
           (displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl')) && (
             <button
@@ -487,7 +513,7 @@ export function ViewerZone({
                       <OcctViewer
                         src={uploadedFileUrl}
                         fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
-                        height="500px"
+                        height="100%"
                         bare
                         measureEnabled={measuring}
                         measureMode={measureMode}
@@ -501,7 +527,7 @@ export function ViewerZone({
                   return (
                     <StlViewer
                       src={uploadedFileUrl}
-                      style={{ height: 500 }}
+                      style={{ height: '100%' }}
                       measureEnabled={measuring}
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
@@ -513,7 +539,7 @@ export function ViewerZone({
                   return (
                     <ObjViewer
                       src={uploadedFileUrl}
-                      style={{ height: 500 }}
+                      style={{ height: '100%' }}
                       measureEnabled={measuring}
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
@@ -528,7 +554,7 @@ export function ViewerZone({
                   <ModelViewer
                     src={uploadedFileUrl}
                     bare
-                    height={500}
+                    height="100%"
                     renderMode={renderMode}
                     sectionEnabled={sectionEnabled}
                     sectionPosition={sectionPosition}
@@ -564,7 +590,7 @@ export function ViewerZone({
                       <OcctViewer
                         src={selectedCandidate.fileUrl}
                         fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
-                        height="500px"
+                        height="100%"
                         bare
                         measureEnabled={measuring}
                         measureMode={measureMode}
@@ -578,7 +604,7 @@ export function ViewerZone({
                   return (
                     <StlViewer
                       src={selectedCandidate.fileUrl}
-                      style={{ height: 500 }}
+                      style={{ height: '100%' }}
                       measureEnabled={measuring}
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
@@ -590,7 +616,7 @@ export function ViewerZone({
                   return (
                     <ObjViewer
                       src={selectedCandidate.fileUrl}
-                      style={{ height: 500 }}
+                      style={{ height: '100%' }}
                       measureEnabled={measuring}
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
@@ -605,7 +631,7 @@ export function ViewerZone({
                   <ModelViewer
                     src={selectedCandidate.fileUrl}
                     bare
-                    height={500}
+                    height="100%"
                     renderMode={renderMode}
                     sectionEnabled={sectionEnabled}
                     sectionPosition={sectionPosition}
@@ -630,7 +656,7 @@ export function ViewerZone({
           </p>
         </div>
       ) : (
-        <div style={{ height: '500px' }} className="w-full">
+        <div className="w-full flex-1">
           {(() => {
             const fmt = detectCadFormat(displayUrl);
             if (fmt === 'STEP' || fmt === 'IGES') {
@@ -639,7 +665,7 @@ export function ViewerZone({
                   <OcctViewer
                     src={displayUrl}
                     fileName={getFileNameFromUrl(displayUrl, 'model')}
-                    height="500px"
+                    height="100%"
                     bare
                     measureEnabled={measuring}
                     measureMode={measureMode}
@@ -653,7 +679,7 @@ export function ViewerZone({
               return (
                 <StlViewer
                   src={displayUrl}
-                  style={{ height: 500 }}
+                  style={{ height: '100%' }}
                   measureEnabled={measuring}
                   measureMode={measureMode}
                   sectionEnabled={sectionEnabled}
@@ -665,7 +691,7 @@ export function ViewerZone({
               return (
                 <ObjViewer
                   src={displayUrl}
-                  style={{ height: 500 }}
+                  style={{ height: '100%' }}
                   measureEnabled={measuring}
                   measureMode={measureMode}
                   sectionEnabled={sectionEnabled}
@@ -680,7 +706,7 @@ export function ViewerZone({
               <ModelViewer
                 src={displayUrl}
                 bare
-                height={500}
+                height="100%"
                 measureEnabled={measuring}
                 measureMode={measureMode}
                 renderMode={renderMode}
