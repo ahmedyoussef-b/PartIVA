@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, Suspense, Component, ReactNode } from 're
 import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
+import { OcctProvider } from '@/components/3d/occt-context';
 import { downloadStl } from '@/lib/export/stl-export';
 import type { ReconstructCandidate } from '@/core/ai-engine/skills/reconstruct/types';
 import { MeasureTool, type MeasureMode } from '@/components/workspace/MeasureTool';
@@ -482,16 +483,18 @@ export function ViewerZone({
                 const fmt = detectCadFormat(uploadedFileUrl);
                 if (fmt === 'STEP' || fmt === 'IGES') {
                   return (
-                    <OcctViewer
-                      src={uploadedFileUrl}
-                      fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
-                      height="500px"
-                      bare
-                      measureEnabled={measuring}
-                      measureMode={measureMode}
-                      sectionEnabled={sectionEnabled}
-                      sectionPosition={sectionPosition}
-                    />
+                    <OcctProvider key="uploaded">
+                      <OcctViewer
+                        src={uploadedFileUrl}
+                        fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
+                        height="500px"
+                        bare
+                        measureEnabled={measuring}
+                        measureMode={measureMode}
+                        sectionEnabled={sectionEnabled}
+                        sectionPosition={sectionPosition}
+                      />
+                    </OcctProvider>
                   );
                 }
                 if (fmt === 'STL') {
@@ -557,16 +560,18 @@ export function ViewerZone({
                 const fmt = detectCadFormat(selectedCandidate.fileUrl);
                 if (fmt === 'STEP' || fmt === 'IGES') {
                   return (
-                    <OcctViewer
-                      src={selectedCandidate.fileUrl}
-                      fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
-                      height="500px"
-                      bare
-                      measureEnabled={measuring}
-                      measureMode={measureMode}
-                      sectionEnabled={sectionEnabled}
-                      sectionPosition={sectionPosition}
-                    />
+                    <OcctProvider key={selectedCandidate.id}>
+                      <OcctViewer
+                        src={selectedCandidate.fileUrl}
+                        fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
+                        height="500px"
+                        bare
+                        measureEnabled={measuring}
+                        measureMode={measureMode}
+                        sectionEnabled={sectionEnabled}
+                        sectionPosition={sectionPosition}
+                      />
+                    </OcctProvider>
                   );
                 }
                 if (fmt === 'STL') {
@@ -630,16 +635,18 @@ export function ViewerZone({
             const fmt = detectCadFormat(displayUrl);
             if (fmt === 'STEP' || fmt === 'IGES') {
               return (
-                <OcctViewer
-                  src={displayUrl}
-                  fileName={getFileNameFromUrl(displayUrl, 'model')}
-                  height="500px"
-                  bare
-                  measureEnabled={measuring}
-                  measureMode={measureMode}
-                  sectionEnabled={sectionEnabled}
-                  sectionPosition={sectionPosition}
-                />
+                <OcctProvider key="main">
+                  <OcctViewer
+                    src={displayUrl}
+                    fileName={getFileNameFromUrl(displayUrl, 'model')}
+                    height="500px"
+                    bare
+                    measureEnabled={measuring}
+                    measureMode={measureMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                  />
+                </OcctProvider>
               );
             }
             if (fmt === 'STL') {
