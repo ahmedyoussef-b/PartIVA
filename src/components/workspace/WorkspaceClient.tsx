@@ -173,66 +173,73 @@ export function WorkspaceClient({ isSequential = false }: WorkspaceClientProps) 
 
   return (
     <TooltipProvider>
-      <WorkspaceLayout>
-        <div className="min-h-0 overflow-y-auto rounded-lg border bg-background">
-          {isSequential && requestId && (
-            <div className="m-3 mb-0 rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-amber-600">
-                    Étape 2/4 — Méthode 2 : Workspace IA
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Analysez les photos. Si la reconstruction échoue, passez à la méthode suivante.
-                  </p>
+      <WorkspaceLayout
+        collecte={
+          <div className="min-h-0 overflow-y-auto rounded-lg border bg-background">
+            {isSequential && requestId && (
+              <div className="m-3 mb-0 rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-amber-600">
+                      Étape 2/4 — Méthode 2 : Workspace IA
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Analysez les photos. Si la reconstruction échoue, passez à la méthode
+                      suivante.
+                    </p>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/admin/reverse-engineering/${requestId}?sequential=1`}>
+                      Passer à la Méthode 3 →
+                    </Link>
+                  </Button>
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/admin/reverse-engineering/${requestId}?sequential=1`}>
-                    Passer à la Méthode 3 →
-                  </Link>
-                </Button>
               </div>
-            </div>
-          )}
-          <IngestZone
-            photos={photos}
-            cadFiles={cadFiles}
-            onPhotosChange={setPhotos}
-            onCadFilesChange={setCadFiles}
-            dimensions={dimensions}
-            onDimensionsChange={setDimensions}
-            extractedDimensions={extractedDimensions}
-            description={description}
-            onDescriptionChange={setDescription}
-            mode={mode}
-            onModeChange={setMode}
-            onSubmit={handleSubmit}
-            loading={status === 'loading'}
-            onClearWorkspace={handleClearWorkspace}
-            selectedPhotoIndex={selectedPhotoIndex}
-            onSelectPhoto={setSelectedPhotoIndex}
-          />
-        </div>
-        <div className="flex min-h-0 flex-col rounded-lg border bg-background">
-          <ViewerZone
-            fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
-            uploadedFileUrl={cadFiles[0] ?? photos[selectedPhotoIndex ?? 0] ?? null}
-            candidates={result?.reconstruct?.candidates ?? []}
-            onDimensionsExtracted={handleDimensionsExtracted}
-            photos={photos}
-            selectedPhotoIndex={selectedPhotoIndex}
-          />
-        </div>
-        <div className="flex min-h-0 flex-col rounded-lg border bg-background">
-          <AssistantZone
-            result={result}
-            status={status}
-            error={error}
-            onValidate={handleValidate}
-            onInvalidate={handleInvalidate}
-          />
-        </div>
-      </WorkspaceLayout>
+            )}
+            <IngestZone
+              photos={photos}
+              cadFiles={cadFiles}
+              onPhotosChange={setPhotos}
+              onCadFilesChange={setCadFiles}
+              dimensions={dimensions}
+              onDimensionsChange={setDimensions}
+              extractedDimensions={extractedDimensions}
+              description={description}
+              onDescriptionChange={setDescription}
+              mode={mode}
+              onModeChange={setMode}
+              onSubmit={handleSubmit}
+              loading={status === 'loading'}
+              onClearWorkspace={handleClearWorkspace}
+              selectedPhotoIndex={selectedPhotoIndex}
+              onSelectPhoto={setSelectedPhotoIndex}
+            />
+          </div>
+        }
+        viewport={
+          <div className="flex min-h-0 flex-col rounded-lg border bg-background">
+            <ViewerZone
+              fileUrl={result?.reconstruct?.candidates?.[0]?.fileUrl ?? null}
+              uploadedFileUrl={cadFiles[0] ?? photos[selectedPhotoIndex ?? 0] ?? null}
+              candidates={result?.reconstruct?.candidates ?? []}
+              onDimensionsExtracted={handleDimensionsExtracted}
+              photos={photos}
+              selectedPhotoIndex={selectedPhotoIndex}
+            />
+          </div>
+        }
+        assistant={
+          <div className="flex min-h-0 flex-col rounded-lg border bg-background">
+            <AssistantZone
+              result={result}
+              status={status}
+              error={error}
+              onValidate={handleValidate}
+              onInvalidate={handleInvalidate}
+            />
+          </div>
+        }
+      />
     </TooltipProvider>
   );
 }

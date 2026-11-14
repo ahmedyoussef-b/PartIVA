@@ -1,20 +1,52 @@
 ﻿'use client';
 
-import { ReactNode } from 'react';
+import * as React from 'react';
 
-export function WorkspaceLayout({ children }: { children: ReactNode }) {
+interface FullscreenContextValue {
+  fullscreen: boolean;
+  setFullscreen: (value: boolean) => void;
+}
+
+const FullscreenContext = React.createContext<FullscreenContextValue | null>(null);
+
+export function useFullscreen() {
+  const ctx = React.useContext(FullscreenContext);
+  if (!ctx) {
+    throw new Error('useFullscreen must be used within WorkspaceLayout');
+  }
+  return ctx;
+}
+
+interface WorkspaceLayoutProps {
+  collecte: React.ReactNode;
+  viewport: React.ReactNode;
+  assistant: React.ReactNode;
+}
+
+export function WorkspaceLayout({ collecte, viewport, assistant }: WorkspaceLayoutProps) {
+  const [fullscreen, setFullscreen] = React.useState(false);
+
+  const contextValue = React.useMemo(() => ({ fullscreen, setFullscreen }), [fullscreen]);
+
+  if (fullscreen) {
+    return (
+      <FullscreenContext.Provider value={contextValue}>
+        <div className="flex h-[calc(100vh-4rem)] flex-col">
+          <div className="flex-1 overflow-hidden">{viewport}</div>
+        </div>
+      </FullscreenContext.Provider>
+    );
+  }
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-gray-50">
-      <header className="border-b bg-white px-6 py-4 shadow-sm">
-        <h1 className="text-xl font-bold text-gray-900">Workspace d&apos;Ingénierie Assistée</h1>
-        <p className="text-sm text-gray-500">
-          Déposez vos fichiers, décrivez votre pièce, et laissez l&apos;IA vous proposer des
-          candidats 3D.
-        </p>
-      </header>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-3">
-        {children}
+    <FullscreenContext.Provider value={contextValue}>
+      <div className="grid h-[calc(100vh-4rem)] grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr_1fr]">
+        <div className="overflow-auto">{collecte}</div>
+        <div className="flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-hidden">{viewport}</div>
+        </div>
+        <div className="overflow-auto">{assistant}</div>
       </div>
-    </div>
+    </FullscreenContext.Provider>
   );
 }

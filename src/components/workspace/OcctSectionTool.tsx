@@ -81,7 +81,7 @@ export function OcctSectionTool({ enabled, position }: OcctSectionToolProps) {
       for (let i = 1; i <= edgeCount; i++) {
         const edge = oc.TopoDS.Edge(edgeMap.FindKey(i));
 
-        // Get polygon on the edge (triangulation)
+        // Try to get polygon from existing triangulation first
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const location = new (oc.TopLoc_Location as any)();
         const result = oc.BRep_Tool.PolygonOnTriangulation(edge, location, 0);
@@ -110,10 +110,39 @@ export function OcctSectionTool({ enabled, position }: OcctSectionToolProps) {
 
           polygon.delete();
           triangulation.delete();
-        } else if (result && result.P) {
-          result.P.delete();
-        } else if (result && result.T) {
-          result.T.delete();
+        } else {
+          // Fallback: discretize the edge using BRepAdaptor_Curve
+          console.log('[OCCT:section] No triangulation on edge, discretizing curve...');
+          try {
+            const adaptor = new oc.BRepAdaptor_Curve(edge);
+            const firstParam = adaptor.FirstParameter();
+            const lastParam = adaptor.LastParameter();
+            const numSegments = 20;
+            const offset = vertices.length / 3;
+
+            for (let seg = 0; seg <= numSegments; seg++) {
+              const param = firstParam + ((lastParam - firstParam) * seg) / numSegments;
+              const point = new oc.gp_Pnt();
+              adaptor.D0(param, point);
+              vertices.push(point.X(), point.Y(), point.Z());
+            }
+
+            // Create line segments
+            for (let seg = 0; seg < numSegments; seg++) {
+              indices.push(offset + seg, offset + seg + 1);
+            }
+            console.log('[OCCT:section] Curve discretized', { segments: numSegments });
+          } catch (curveErr) {
+            console.warn('[OCCT:section] Curve discretization failed', curveErr);
+          }
+        }
+        // Cleanup result if it had partial data
+        if (result) {
+          if (result.P) {
+            result.P.delete();
+          } else if (result.T) {
+            result.T.delete();
+          }
         }
       }
 
