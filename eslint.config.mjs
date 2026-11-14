@@ -91,7 +91,10 @@ const config = [
   // Les deux autres set-state-in-effect (app-mode.ts, cad-viewer.tsx) sont
   // corrigés en D74 car ils ont une alternative SSR-safe.
   {
-    files: ['src/components/layout/theme-toggle.tsx', 'src/components/workspace/OcctMeasureTool.tsx'],
+    files: [
+      'src/components/layout/theme-toggle.tsx',
+      'src/components/workspace/OcctMeasureTool.tsx',
+    ],
     rules: {
       'react-hooks/set-state-in-effect': 'off',
     },
