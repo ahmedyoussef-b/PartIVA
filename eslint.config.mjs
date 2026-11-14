@@ -94,6 +94,7 @@ const config = [
     files: [
       'src/components/layout/theme-toggle.tsx',
       'src/components/workspace/OcctMeasureTool.tsx',
+      'src/components/workspace/OcctSectionTool.tsx',
     ],
     rules: {
       'react-hooks/set-state-in-effect': 'off',
