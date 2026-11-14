@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { importCadFile } from '@/lib/occt/import-step';
 import { tessellateShape } from '@/lib/occt/tessellate';
 import { OcctMeasureTool, type MeasureMode } from '@/components/workspace/OcctMeasureTool';
+import { OcctSectionTool } from '@/components/workspace/OcctSectionTool';
 import { useOcctShape } from '@/components/3d/occt-context';
 
 interface OcctViewerProps {
@@ -156,6 +157,7 @@ export function OcctViewer({
           </mesh>
         )}
         {measureEnabled && <OcctMeasureTool enabled={measureEnabled} mode={measureMode} />}
+        {sectionEnabled && <OcctSectionTool enabled={sectionEnabled} position={sectionPosition} />}
         <OrbitControls enableZoom enablePan enableRotate />
       </Canvas>
     </div>
