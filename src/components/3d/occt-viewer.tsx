@@ -6,7 +6,8 @@ import { OrbitControls, Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { importCadFile } from '@/lib/occt/import-step';
 import { tessellateShape } from '@/lib/occt/tessellate';
-import { MeasureTool, type MeasureMode } from '@/components/workspace/MeasureTool';
+import { OcctMeasureTool, type MeasureMode } from '@/components/workspace/OcctMeasureTool';
+import { useOcctShape } from '@/components/3d/occt-context';
 
 interface OcctViewerProps {
   /** URL du fichier STEP/IGES */
@@ -50,6 +51,7 @@ export function OcctViewer({
   const [geometry, setGeometry] = React.useState<THREE.BufferGeometry | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const { setShape } = useOcctShape();
 
   React.useEffect(() => {
     let mounted = true;
@@ -71,8 +73,11 @@ export function OcctViewer({
           throw new Error(importResult.error || 'Import failed');
         }
 
+        const shape = importResult.shape;
+        setShape(shape); // exposer la shape via le contexte
+
         // Tesseller
-        const geom = tessellateShape(importResult.shape);
+        const geom = tessellateShape(shape);
         if (mounted) {
           setGeometry(geom);
           setLoading(false);
@@ -85,9 +90,10 @@ export function OcctViewer({
     }
     load();
     return () => {
+      setShape(null);
       mounted = false;
     };
-  }, [src, fileName]);
+  }, [src, fileName, setShape]);
 
   if (loading) {
     const fallback = (
@@ -149,7 +155,7 @@ export function OcctViewer({
             />
           </mesh>
         )}
-        {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
+        {measureEnabled && <OcctMeasureTool enabled={measureEnabled} mode={measureMode} />}
         <OrbitControls enableZoom enablePan enableRotate />
       </Canvas>
     </div>
