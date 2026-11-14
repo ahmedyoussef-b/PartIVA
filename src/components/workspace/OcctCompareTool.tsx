@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import oc from 'libcascade';
 import type { TopoDS_Shape } from 'libcascade';
@@ -56,6 +57,66 @@ function booleanCommon(s1: TopoDS_Shape, s2: TopoDS_Shape): TopoDS_Shape {
     throw new Error('BRepAlgoAPI_Common a échoué');
   }
   return common.Shape();
+}
+
+/**
+ * Calcule la bounding sphere de l'union des géométries (uploaded + candidat + cut + common).
+ * Permet de recentrer la caméra pour que tout soit visible.
+ */
+function unionBoundingSphere(geometries: Array<THREE.BufferGeometry | null>): THREE.Sphere | null {
+  const sphere = new THREE.Sphere();
+  let found = false;
+  for (const g of geometries) {
+    if (!g) continue;
+    g.computeBoundingSphere();
+    const gs = g.boundingSphere;
+    if (!gs || gs.radius === 0) continue;
+    if (!found) {
+      sphere.copy(gs);
+      found = true;
+    } else {
+      sphere.union(gs);
+    }
+  }
+  return found ? sphere : null;
+}
+
+/**
+ * Repositionne la caméra pour que la bounding sphere soit entièrement visible.
+ * distance = radius * 3, centre = centre de la bounding sphere.
+ */
+function fitCameraToSphere(
+  camera: THREE.Camera & { updateProjectionMatrix: () => void },
+  controls: unknown,
+  sphere: THREE.Sphere,
+): void {
+  const center = sphere.center;
+  const radius = sphere.radius;
+  const distance = radius * 3;
+  camera.position.set(center.x + distance, center.y + distance, center.z + distance);
+  camera.lookAt(center);
+  camera.updateProjectionMatrix();
+  if (controls && typeof controls === 'object' && 'target' in controls) {
+    const c = controls as unknown as { target: THREE.Vector3; update: () => void };
+    c.target.copy(center);
+    c.update();
+  }
+}
+
+/**
+ * Composant enfant du `<Canvas>` (utilise `useThree`) qui auto-fit la caméra
+ * sur l'union des géométries une fois celles-ci chargées.
+ */
+function FitCamera({ geometries }: { geometries: Array<THREE.BufferGeometry | null> }) {
+  const { camera, controls } = useThree();
+  const sphere = React.useMemo(() => unionBoundingSphere(geometries), [geometries]);
+
+  React.useEffect(() => {
+    if (!sphere || sphere.radius === 0) return;
+    fitCameraToSphere(camera, controls, sphere);
+  }, [sphere, camera, controls]);
+
+  return null;
 }
 
 export function OcctCompareTool({
@@ -142,8 +203,11 @@ export function OcctCompareTool({
     return null;
   }
 
+  const geometries = [uploadedGeom, candidateGeom, cutGeom, commonGeom];
+
   return (
     <>
+      <FitCamera geometries={geometries} />
       {uploadedGeom && (
         <mesh geometry={uploadedGeom}>
           <meshStandardMaterial color="red" opacity={0.5} transparent />
