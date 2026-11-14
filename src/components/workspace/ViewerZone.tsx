@@ -10,6 +10,9 @@ import {
   AlertTriangle,
   Maximize2,
   Minimize2,
+  RotateCcw,
+  Grid3x3,
+  Axis3d,
 } from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
@@ -22,8 +25,14 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import * as THREE from 'three';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Grid, OrbitControls } from '@react-three/drei';
 import { useFullscreen } from './WorkspaceLayout';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -79,26 +88,51 @@ function getFileNameFromUrl(url: string, fallback: string = 'model'): string {
   return `${fallback}${ext}`;
 }
 
+// Fit camera to geometry's bounding sphere
+function fitCameraToObject(
+  camera: THREE.Camera & { updateProjectionMatrix: () => void },
+  controls: unknown,
+  geometry: THREE.BufferGeometry,
+): void {
+  geometry.computeBoundingSphere();
+  const sphere = geometry.boundingSphere;
+  if (!sphere) return;
+  const center = sphere.center;
+  const radius = sphere.radius;
+  const distance = radius * 3;
+  camera.position.set(center.x + distance, center.y + distance, center.z + distance);
+  camera.lookAt(center);
+  camera.updateProjectionMatrix();
+  if (controls && typeof controls === 'object' && 'target' in controls) {
+    const c = controls as unknown as { target: THREE.Vector3; update: () => void };
+    c.target.copy(center);
+    c.update();
+  }
+}
+
 // FitCamera component to auto-fit camera to geometry
 function FitCamera({ geometry }: { geometry: THREE.BufferGeometry | null }) {
   const { camera, controls } = useThree();
   useEffect(() => {
     if (!geometry) return;
-    geometry.computeBoundingSphere();
-    const sphere = geometry.boundingSphere;
-    if (!sphere) return;
-    const center = sphere.center;
-    const radius = sphere.radius;
-    const distance = radius * 3;
-    camera.position.set(center.x + distance, center.y + distance, center.z + distance);
-    camera.lookAt(center);
-    camera.updateProjectionMatrix();
-    if (controls && 'target' in controls) {
-      const c = controls as unknown as { target: THREE.Vector3; update: () => void };
-      c.target.copy(center);
-      c.update();
-    }
+    fitCameraToObject(camera, controls, geometry);
   }, [geometry, camera, controls]);
+  return null;
+}
+
+// CameraReset component — recenters the camera on the geometry when `signal` changes
+function CameraReset({
+  signal,
+  geometry,
+}: {
+  signal: number;
+  geometry: THREE.BufferGeometry | null;
+}) {
+  const { camera, controls } = useThree();
+  useEffect(() => {
+    if (signal === 0 || !geometry) return;
+    fitCameraToObject(camera, controls, geometry);
+  }, [signal, geometry, camera, controls]);
   return null;
 }
 
@@ -135,10 +169,16 @@ function StlViewerContent({
   src,
   sectionEnabled = false,
   sectionPosition = 0.5,
+  showGrid = false,
+  showAxes = false,
+  resetSignal = 0,
 }: {
   src: string;
   sectionEnabled?: boolean;
   sectionPosition?: number;
+  showGrid?: boolean;
+  showAxes?: boolean;
+  resetSignal?: number;
 }) {
   const geometry = useLoader(STLLoader, src);
   const mesh = useMemo(
@@ -165,6 +205,9 @@ function StlViewerContent({
   return (
     <>
       <FitCamera geometry={geometry} />
+      <CameraReset signal={resetSignal} geometry={geometry} />
+      {showGrid && <Grid infiniteGrid />}
+      {showAxes && <axesHelper args={[100]} />}
       <primitive object={mesh} />
     </>
   );
@@ -176,6 +219,9 @@ function StlViewer({
   measureMode = 'distance',
   sectionEnabled = false,
   sectionPosition = 0.5,
+  showGrid = false,
+  showAxes = false,
+  resetSignal = 0,
   ...props
 }: {
   src: string;
@@ -183,6 +229,9 @@ function StlViewer({
   measureMode?: MeasureMode;
   sectionEnabled?: boolean;
   sectionPosition?: number;
+  showGrid?: boolean;
+  showAxes?: boolean;
+  resetSignal?: number;
 } & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <ViewerErrorBoundary
@@ -210,6 +259,9 @@ function StlViewer({
             src={src}
             sectionEnabled={sectionEnabled}
             sectionPosition={sectionPosition}
+            showGrid={showGrid}
+            showAxes={showAxes}
+            resetSignal={resetSignal}
           />
           {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
           <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
@@ -224,10 +276,16 @@ function ObjViewerContent({
   src,
   sectionEnabled = false,
   sectionPosition = 0.5,
+  showGrid = false,
+  showAxes = false,
+  resetSignal = 0,
 }: {
   src: string;
   sectionEnabled?: boolean;
   sectionPosition?: number;
+  showGrid?: boolean;
+  showAxes?: boolean;
+  resetSignal?: number;
 }) {
   const object = useLoader(OBJLoader, src);
   const geometry = useMemo<THREE.BufferGeometry | null>(() => {
@@ -244,6 +302,9 @@ function ObjViewerContent({
   return (
     <>
       <FitCamera geometry={geometry} />
+      <CameraReset signal={resetSignal} geometry={geometry} />
+      {showGrid && <Grid infiniteGrid />}
+      {showAxes && <axesHelper args={[100]} />}
       <primitive
         object={object}
         material={
@@ -269,6 +330,9 @@ function ObjViewer({
   measureMode = 'distance',
   sectionEnabled = false,
   sectionPosition = 0.5,
+  showGrid = false,
+  showAxes = false,
+  resetSignal = 0,
   ...props
 }: {
   src: string;
@@ -276,6 +340,9 @@ function ObjViewer({
   measureMode?: MeasureMode;
   sectionEnabled?: boolean;
   sectionPosition?: number;
+  showGrid?: boolean;
+  showAxes?: boolean;
+  resetSignal?: number;
 } & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <ViewerErrorBoundary
@@ -303,6 +370,9 @@ function ObjViewer({
             src={src}
             sectionEnabled={sectionEnabled}
             sectionPosition={sectionPosition}
+            showGrid={showGrid}
+            showAxes={showAxes}
+            resetSignal={resetSignal}
           />
           {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
           <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
@@ -353,6 +423,9 @@ export function ViewerZone({
   const [sectionPosition, setSectionPosition] = useState(0.5);
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
+  const [showGrid, setShowGrid] = useState(false);
+  const [showAxes, setShowAxes] = useState(false);
+  const [resetSignal, setResetSignal] = useState(0);
   const { fullscreen, setFullscreen } = useFullscreen();
 
   if (
@@ -463,6 +536,51 @@ export function ViewerZone({
           <TooltipTrigger asChild>
             <button
               type="button"
+              onClick={() => setResetSignal((v) => v + 1)}
+              className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs text-gray-700 shadow"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset vue
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Réinitialise la caméra (recadre le modèle).</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => setShowGrid((v) => !v)}
+              aria-pressed={showGrid}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                showGrid ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+              }`}
+            >
+              <Grid3x3 className="h-4 w-4" />
+              Grille
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Affiche/masque la grille au sol (viewers STL/OBJ).</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => setShowAxes((v) => !v)}
+              aria-pressed={showAxes}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                showAxes ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+              }`}
+            >
+              <Axis3d className="h-4 w-4" />
+              Axes
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Affiche/masque les axes XYZ (viewers STL/OBJ).</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
               onClick={() => setFullscreen(!fullscreen)}
               className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
                 fullscreen ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
@@ -474,17 +592,33 @@ export function ViewerZone({
           </TooltipTrigger>
           <TooltipContent>Basculer en mode plein écran.</TooltipContent>
         </Tooltip>
-        {displayUrl &&
-          (displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl')) && (
-            <button
-              type="button"
-              onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
-              className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
-            >
-              <Download className="h-4 w-4" />
-              Exporter STL
-            </button>
-          )}
+        {displayUrl && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs text-gray-700 shadow"
+              >
+                <Download className="h-4 w-4" />
+                Exporter
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                disabled={
+                  !(displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl'))
+                }
+                onClick={() => downloadStl(displayUrl, 'piece-export.stl')}
+              >
+                STL
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>STEP (bientôt disponible)</DropdownMenuItem>
+              <DropdownMenuItem disabled>IGES (bientôt disponible)</DropdownMenuItem>
+              <DropdownMenuItem disabled>OBJ (bientôt disponible)</DropdownMenuItem>
+              <DropdownMenuItem disabled>GLTF (bientôt disponible)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -532,6 +666,9 @@ export function ViewerZone({
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
                       sectionPosition={sectionPosition}
+                      showGrid={showGrid}
+                      showAxes={showAxes}
+                      resetSignal={resetSignal}
                     />
                   );
                 }
@@ -544,6 +681,9 @@ export function ViewerZone({
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
                       sectionPosition={sectionPosition}
+                      showGrid={showGrid}
+                      showAxes={showAxes}
+                      resetSignal={resetSignal}
                     />
                   );
                 }
@@ -609,6 +749,9 @@ export function ViewerZone({
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
                       sectionPosition={sectionPosition}
+                      showGrid={showGrid}
+                      showAxes={showAxes}
+                      resetSignal={resetSignal}
                     />
                   );
                 }
@@ -621,6 +764,9 @@ export function ViewerZone({
                       measureMode={measureMode}
                       sectionEnabled={sectionEnabled}
                       sectionPosition={sectionPosition}
+                      showGrid={showGrid}
+                      showAxes={showAxes}
+                      resetSignal={resetSignal}
                     />
                   );
                 }
@@ -684,6 +830,9 @@ export function ViewerZone({
                   measureMode={measureMode}
                   sectionEnabled={sectionEnabled}
                   sectionPosition={sectionPosition}
+                  showGrid={showGrid}
+                  showAxes={showAxes}
+                  resetSignal={resetSignal}
                 />
               );
             }
@@ -696,6 +845,9 @@ export function ViewerZone({
                   measureMode={measureMode}
                   sectionEnabled={sectionEnabled}
                   sectionPosition={sectionPosition}
+                  showGrid={showGrid}
+                  showAxes={showAxes}
+                  resetSignal={resetSignal}
                 />
               );
             }
