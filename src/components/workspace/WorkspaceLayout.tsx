@@ -41,11 +41,9 @@ export function WorkspaceLayout({ collecte, viewport, assistant }: WorkspaceLayo
   return (
     <FullscreenContext.Provider value={contextValue}>
       <div className="grid h-[calc(100vh-4rem)] grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr_1fr]">
-        <div className="overflow-auto">{collecte}</div>
-        <div className="flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-hidden">{viewport}</div>
-        </div>
-        <div className="overflow-auto">{assistant}</div>
+        <div className="min-h-0 overflow-auto">{collecte}</div>
+        <div className="flex min-h-0 flex-col overflow-hidden">{viewport}</div>
+        <div className="min-h-0 overflow-auto">{assistant}</div>
       </div>
     </FullscreenContext.Provider>
   );
