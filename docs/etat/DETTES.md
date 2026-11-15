@@ -310,17 +310,6 @@
 
 ---
 
-### `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` — Fichiers de test non trackés
-
-- **Statut :** Active
-- **Cause :** public/models/cube-3mm.step et cube-3p5mm.step non trackés (artefacts de test).
-- **Périmètre :** public/models/.
-- **Effort estimé :** Faible.
-- **Bloquant :** Non.
-- **Condition de résolution :** Ajouter au .gitignore, committer dans public/models/, ou supprimer.
-
----
-
 ### `D-WORKSPACE-LAYOUT-CSS` — Layout CSS source de bugs
 
 - **Statut :** Active
