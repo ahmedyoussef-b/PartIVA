@@ -322,5 +322,6 @@
 | (x) | Upload CAO robuste (AbortController 30s, cursor-pointer dropzone, logs complets) — V8-B-6-g. |
 | (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h. |
 | (z) | Pipeline STEP/IGES via libcascade (importCadFile + tessellateShape + OcctViewer) — V8-C-2a. |
+| (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) au lieu de grid (grid-cols-[1fr_2fr_1fr]) — plus fiable avec Tailwind 4. |
 
 ---

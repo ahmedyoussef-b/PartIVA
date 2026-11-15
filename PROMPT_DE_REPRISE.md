@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.4
-**Date :** 2026-11-12
-**Commit HEAD :** `3b734f3` (Merge PR #78 — V8-C-2a page détail [id])
+**Version :** 7.5
+**Date :** 2026-11-15
+**Commit HEAD :** `0edfb85` (Merge PR #94 — V8-D-4 layout flex, close avec dette)
 **Branche :** master
-**Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close
-**Dernière étape close :** V8-C-2a (pipeline STEP/IGES + page détail [id])
-**Prochaine étape :** V8-C-1c (validation Tauri) ou V8-C-3 (opérations paramétriques)
+**Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close, V8-D-4 close (avec dette)
+**Dernière étape close :** V8-D-4 (comparaison OCCT + layout flex)
+**Prochaine étape :** V8-D-5 (assistant IA)
 
 ---
 
@@ -48,10 +48,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close |
-| **HEAD** | `3b734f3` (Merge PR #78, V8-C-2a page détail [id]) |
-| **Dernière étape close** | **V8-C-2a** |
-| **Prochaine étape** | **V8-C-1c** (validation POC Tauri) ou **V8-C-3** (opérations paramétriques) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (avec dette) |
+| **HEAD** | `0edfb85` (Merge PR #94, V8-D-4 layout flex) |
+| **Dernière étape close** | **V8-D-4** (close avec dette) |
+| **Prochaine étape** | **V8-D-5** (assistant IA) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -66,16 +66,15 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
 | `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
+| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer (4 couleurs) non fournie (PR #91/#92/#94 mergées) |
 | `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` (V8-B-0) conservée en parallèle de `/new` (V8-B-1-c). |
-| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/` (pas racine `e2e/`). Décision (p) actée dans DECISIONS.md. Clôture : ce PR. |
+| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/` (pas racine `e2e/`). Décision (p) actée dans DECISIONS.md. |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
 | `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
 | `D-ESLINT-IGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
 | `D-GIT-STASH-RESIDUELS` | Basse | Travail E9-R3.a en attente (2 stashes : sidebar Tauri + backend Tauri avec commandes unifiées). Stashes conservés (pas de suppression). |
-| `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre pendant V8-B-0-FIX-1 (F1). Tracée, non bloquante. |
-| `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/nouveau` conservée en parallèle de `/new`. |
-| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/`. Décision (p) actée dans DECISIONS.md. |
 | `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` | Basse | Découpage strict des prompts (réforme du 2026-11-11, Mode R2). |
+| `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` | Basse | `public/models/cube-3mm.step`, `cube-3p5mm.step` non trackés (artefacts test) |
 
 ### Décisions clés
 
@@ -105,27 +104,17 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (x) | Upload CAO robuste (AbortController 30s, cursor-pointer dropzone, logs complets) — V8-B-6-g |
 | (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h |
 | (z) | Pipeline STEP/IGES via libcascade (importCadFile + tessellateShape + OcctViewer) — V8-C-2a |
+| (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) au lieu de grid (grid-cols-[1fr_2fr_1fr]) — plus fiable avec Tailwind 4 |
 
 ### 5 dernières sessions
 
 | ID | Date | Objet | Statut |
 | --- | --- | --- | --- |
-| V7-G | 2026-11-11 | Reconstruction CAO (PR #36) | ✅ |
-| V7-H | 2026-11-11 | Clôture doc V7 (PR #37) | ✅ |
-| V8-P0 | 2026-11-11 | Fiabilisation inter-sessions (PR #38) | ✅ |
-| V8-P0-5 | 2026-11-11 | Prompt de reprise v6.0 (PR #39) | ✅ |
-| V8-B-3 | 2026-11-12 | Dettes Reverse Engineering (schémas cuid, getByLabel, stash E9-R3.a) | ✅ |
-| V8-B-4 | 2026-11-12 | Reverse Engineering (liaison Demande → Projet RE, E2E ajout étape) | ✅ |
-| V8-B-5 | 2026-11-12 | Réforme gouvernance 3 acteurs | ✅ |
-| V8-B-6-a | 2026-11-12 | État des lieux workflow RE | ✅ |
-| V8-B-6-b | 2026-11-12 | Upload réel de fichiers CAO (dropzone + /api/upload/cad + addCadFile) | ✅ |
-| V8-B-6-c | 2026-11-12 | Preview 3D des fichiers CAO (ModelViewer) | ✅ |
-| V8-B-6-d | 2026-11-12 | Export STL fiable (conversion + étanchéité + unités) | ✅ |
-| V8-B-6-e | 2026-11-12 | Logs structurés [RE:...] dans le flux RE | ✅ |
-| V8-B-6-f | 2026-11-12 | Logs manquants sur les 8 boutons du flux RE (total 18 logs) | ✅ |
 | V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | ✅ |
-| V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture + sauvegarde dimensions (partielle) | ✅ |
-| V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade (importCadFile, tessellateShape, OcctViewer) + page détail [id] | ✅ |
+| V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture | ✅ |
+| V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade + page détail [id] | ✅ |
+| V8-D-4 | 2026-11-15 | Comparaison OCCT (OcctCompareTool + Cut/Common + FitCamera) + layout flex | ✅ (dette) |
+| — | — | — | — |
 
 ---
 
@@ -135,13 +124,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-C-1c** : validation visuelle du POC Tauri (cube OCCT dans desktop) — déjà configuré (tauri.conf.json, libcascade, OcctPoc).
+**V8-D-5** : assistant IA (workspace) — prompt à émettre par l'IA externe.
 
-**OU**
-
-**V8-C-3** : opérations paramétriques (congé, perçage booléen) + Feature Tree.
-
-**Prompt à émettre** : `V8-C-1c` ou `V8-C-3` (fourni par l'IA externe).
+*(Options alternatives selon arbitrage : V8-C-1c validation POC Tauri, V8-C-3 opérations paramétriques, traitement dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION`.)*
 
 ---
 
