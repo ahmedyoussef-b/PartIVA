@@ -97,14 +97,24 @@
 
 ---
 
-### `D-WORKSPACE-PANELS-COLLAPSIBLE` — Panneaux Collecte et Assistant non rétractables
+### `D-WORKSPACE-PANELS-COLLAPSIBLE` — Panneaux Collecte et Assistant rétractables
+
+- **Statut :** Résolue (PR #97, merge `334706c`)
+- **Cause :** Les panneaux latéraux (Collecte, Assistant) prenaient 25% chacun en permanence, réduisant l'espace du viewport 3D. Aucun bouton pour les masquer.
+- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`, `src/components/workspace/ViewerZone.tsx`.
+- **Solution :** WorkspaceContext (`collecteVisible`/`assistantVisible`) + boutons PanelLeft/PanelRight dans ViewerZone. Le viewport s'élargit (`w-2/4` → `w-3/4` → `flex-1`) selon les panneaux visibles.
+- **Condition de résolution :** Code mergé (PR #97). Validation visuelle en attente (`D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION`).
+
+---
+
+### `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` — Validation visuelle des panneaux rétractables non effectuée
 
 - **Statut :** Active
-- **Cause :** Les panneaux latéraux (Collecte, Assistant) prennent 25% chacun en permanence, réduisant l'espace du viewport 3D. Aucun bouton pour les masquer.
-- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`, `src/components/workspace/ViewerZone.tsx`.
-- **Effort estimé :** Faible (ajout de 2 états + 2 boutons toggle).
+- **Cause :** Les panneaux Collecte et Assistant sont rétractables (WorkspaceContext + boutons PanelLeft/PanelRight, PR #97), mais la validation visuelle n'a pas été effectuée car l'upload de fichier via PowerShell 5.1 a échoué (multipart/form-data non supporté par Invoke-WebRequest).
+- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`, `ViewerZone.tsx`.
+- **Effort estimé :** Faible (test manuel dans le navigateur).
 - **Bloquant :** Non.
-- **Condition de résolution :** Ajouter boutons PanelLeft/PanelRight pour toggle `collecteVisible`/`assistantVisible`. Le viewport s'élargit quand les panneaux sont masqués.
+- **Condition de résolution :** Uploader un fichier STEP via l'interface, cliquer sur les boutons de toggle, vérifier que le viewport s'élargit, capturer l'écran.
 
 ---
 
