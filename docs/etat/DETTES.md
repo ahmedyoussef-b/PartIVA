@@ -97,16 +97,6 @@
 
 ---
 
-### `D-WORKSPACE-PANELS-COLLAPSIBLE` — Panneaux Collecte et Assistant rétractables
-
-- **Statut :** Résolue (PR #97, merge `334706c`)
-- **Cause :** Les panneaux latéraux (Collecte, Assistant) prenaient 25% chacun en permanence, réduisant l'espace du viewport 3D. Aucun bouton pour les masquer.
-- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`, `src/components/workspace/ViewerZone.tsx`.
-- **Solution :** WorkspaceContext (`collecteVisible`/`assistantVisible`) + boutons PanelLeft/PanelRight dans ViewerZone. Le viewport s'élargit (`w-2/4` → `w-3/4` → `flex-1`) selon les panneaux visibles.
-- **Condition de résolution :** Code mergé (PR #97). Validation visuelle en attente (`D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION`).
-
----
-
 ### `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` — Validation visuelle des panneaux rétractables non effectuée
 
 - **Statut :** Active
@@ -339,6 +329,64 @@
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
 - **Condition de résolution :** Documenter la solution retenue (flex) dans DECISIONS.md (aa). Ne plus utiliser `grid-cols-[1fr_2fr_1fr]`.
+
+### `D-V8-D-5-ASSISTANT-LLM-REAL` — Assistant IA en mode squelette (pas de LLM réel)
+
+- **Statut :** Active
+- **Cause :** L'assistant IA (TÂCHE 2) est un squelette : `AI_MOCK` court-circuite le fournisseur réel (`route.ts` l.9-11), et le seul mock E2E est `page.route('**/api/ai/chat')` (`assistant-chat.spec.ts` l.4). Aucun appel LLM réel n'est effectué.
+- **Périmètre :** `src/app/api/ai/chat/route.ts`, `src/lib/ai/providers.ts`, `src/lib/ai/groq-client.ts`.
+- **Effort estimé :** Moyen (branchement provider réel + gestion erreurs + tests).
+- **Bloquant :** Non.
+- **Condition de résolution :** appel LLM réel fonctionnel (Groq ou autre), testé manuellement et en E2E avec un provider mocké.
+
+---
+
+### `D-CHAT-TESTABILITY` — Textarea chat non pilotable par fill/pressSequentially
+
+- **Statut :** Active
+- **Cause :** Le textarea de `ChatInput` n'est pas pilotable par `fill`/`pressSequentially` (tracker React) → `onChange` non déclenché. Contournement : setter natif `HTMLTextAreaElement.prototype` + `input` event + `waitForChatHydrated` (`__reactProps`) dans `e2e/workspace/assistant-chat.spec.ts` l.13-24. Couplage aux internes React.
+- **Périmètre :** `src/components/workspace/ChatInput.tsx`, `e2e/workspace/assistant-chat.spec.ts`.
+- **Effort estimé :** Faible (ajout `data-testid` ou `type()` post-hydratation).
+- **Bloquant :** Non.
+- **Condition de résolution :** textarea pilotable par Playwright sans setter natif (data-testid + `type()`), spec simplifiée.
+
+---
+
+### `D-V8-D-5-USE-AI-CHAT-UNIFY` — Double implémentation chat (fetch direct vs useAiChat)
+
+- **Statut :** Active
+- **Cause :** Deux chemins clients vers `/api/ai/chat` : `AssistantZone.tsx` l.60 (`handleSend`, fetch direct) et l.232 (`handleGenerateFiche`), **et** `src/lib/ai/use-ai-chat.ts` l.139 (hook non branché). Unification non faite (décision §4.b = garder fetch direct).
+- **Périmètre :** `src/components/workspace/AssistantZone.tsx`, `src/lib/ai/use-ai-chat.ts`.
+- **Effort estimé :** Moyen (migration vers `useAiChat` + suppression fetch direct + tests).
+- **Bloquant :** Non.
+- **Condition de résolution :** un seul chemin client vers `/api/ai/chat` (`useAiChat`), `AssistantZone` migré, tests E2E verts.
+
+---
+
+### `D-REGISTRE-ETAT-NETTOYAGE` — Nettoyage global du registre DETTES.md (violations §10)
+
+- **Statut :** Active
+- **Cause :** `DETTES.md` viole §10 (« dettes non résolues uniquement ») sur au moins 8 entrées + 1 triplon + 1 anomalie structurelle :
+  - triplon `D-MIGRATION-CHECKSUM-MANUAL` (L13 orphelin / L72 / L245) ;
+  - entrées résolues encore listées : `D-MIGRATION-FK-ONUPDATE` (L81), `D-V8-B-1-C-FORM-ACTION-INLINE` (PR #48 mergée), `D-WORKSPACE-LAYOUT-CSS` (condition = décision (aa) `DECISIONS.md:325`), `D-V8-B-1-D-SPEC-EMPLACEMENT` (décision (p) `DECISIONS.md:315`), `D-PROCEDURE-LONGUEUR-PROMPTS`, `D-PROCEDURE-WRAPPER-KILO`, `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` ;
+  - anomalie structurelle : heading L13 orphelin (sans corps), séparateurs `---` manquants.
+- **Périmètre :** `docs/etat/DETTES.md`.
+- **Effort estimé :** Faible (diff auditable dédié).
+- **Bloquant :** Non.
+- **Condition de résolution :** registre conforme §10 (aucune entrée résolue, aucun doublon, structure valide), diff auditable, preuve brute.
+
+---
+
+### `D-AI-MOCK-NON-CABLÉ` — Drapeau AI_MOCK non câblé en E2E ni en .env.example
+
+- **Statut :** Active
+- **Cause :** `AI_MOCK` n'apparaît **que** dans `route.ts:9` (seule occurrence du dépôt). Absent de `.env`, `.env.local`, `.env.test`, `.env.example`, et absent de `playwright.config.ts:102-109` (`webServer.env`). Le drapeau est **inactivable** en E2E comme en `.env.example` — seul `page.route('**/api/ai/chat')` mocke réellement en test.
+- **Périmètre :** `src/app/api/ai/chat/route.ts`, `playwright.config.ts`, `.env.example`.
+- **Effort estimé :** Faible (documenter `AI_MOCK` dans `.env.example` ou retirer le drapeau).
+- **Bloquant :** Non.
+- **Condition de résolution :** `AI_MOCK` soit documenté dans `.env.example`, soit retiré de `route.ts` (remplacé par `page.route` seul).
+
+---
 
 ## Notes
 

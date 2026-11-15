@@ -87,7 +87,8 @@ export default defineConfig({
     {
       name: 'workspace',
       testDir: './e2e/workspace',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/user.json' },
+      dependencies: ['setup', 'ids-setup'],
       retries: 1,
     },
   ],

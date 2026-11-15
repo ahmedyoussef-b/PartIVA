@@ -6,6 +6,7 @@ import { availableProviders } from '@/lib/ai/providers';
 import { useSession } from '@/lib/auth-client';
 import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
+import { MessageList } from './MessageList';
 import { CandidateCard } from './CandidateCard';
 import { generateSuggestions } from '@/lib/ai/suggestions';
 import { Download, FileText } from 'lucide-react';
@@ -349,11 +350,7 @@ export function AssistantZone({
             ))}
           </div>
         ) : null}
-        {chatMessages.map((m, i) => (
-          <div key={i} className="mb-2 whitespace-pre-wrap">
-            {m.content}
-          </div>
-        ))}
+        <MessageList messages={chatMessages} />
         <ChatInput onSend={handleSend} isStreaming={isStreaming} />
       </div>
     </div>
