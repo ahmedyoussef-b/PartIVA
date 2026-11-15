@@ -1,19 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, Suspense, Component, ReactNode } from 'react';
-import {
-  Ruler,
-  Scissors,
-  Columns,
-  Download,
-  Box,
-  AlertTriangle,
-  Maximize2,
-  Minimize2,
-  RotateCcw,
-  Grid3x3,
-  Axis3d,
-} from 'lucide-react';
+import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
 import { OcctProvider } from '@/components/3d/occt-context';
@@ -25,15 +13,7 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import * as THREE from 'three';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
-import { Grid, OrbitControls } from '@react-three/drei';
-import { useFullscreen } from './WorkspaceLayout';
-import { OcctCompareTool } from '@/components/workspace/OcctCompareTool';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { OrbitControls } from '@react-three/drei';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -74,11 +54,6 @@ function detectCadFormat(url: string): 'STEP' | 'IGES' | 'STL' | 'OBJ' | '3MF' |
   }
 }
 
-function isStepOrIges(url: string | null | undefined): boolean {
-  const fmt = url ? detectCadFormat(url) : null;
-  return fmt === 'STEP' || fmt === 'IGES';
-}
-
 function getFileNameFromUrl(url: string, fallback: string = 'model'): string {
   try {
     const urlObj = new URL(url);
@@ -94,51 +69,26 @@ function getFileNameFromUrl(url: string, fallback: string = 'model'): string {
   return `${fallback}${ext}`;
 }
 
-// Fit camera to geometry's bounding sphere
-function fitCameraToObject(
-  camera: THREE.Camera & { updateProjectionMatrix: () => void },
-  controls: unknown,
-  geometry: THREE.BufferGeometry,
-): void {
-  geometry.computeBoundingSphere();
-  const sphere = geometry.boundingSphere;
-  if (!sphere) return;
-  const center = sphere.center;
-  const radius = sphere.radius;
-  const distance = radius * 3;
-  camera.position.set(center.x + distance, center.y + distance, center.z + distance);
-  camera.lookAt(center);
-  camera.updateProjectionMatrix();
-  if (controls && typeof controls === 'object' && 'target' in controls) {
-    const c = controls as unknown as { target: THREE.Vector3; update: () => void };
-    c.target.copy(center);
-    c.update();
-  }
-}
-
 // FitCamera component to auto-fit camera to geometry
 function FitCamera({ geometry }: { geometry: THREE.BufferGeometry | null }) {
   const { camera, controls } = useThree();
   useEffect(() => {
     if (!geometry) return;
-    fitCameraToObject(camera, controls, geometry);
+    geometry.computeBoundingSphere();
+    const sphere = geometry.boundingSphere;
+    if (!sphere) return;
+    const center = sphere.center;
+    const radius = sphere.radius;
+    const distance = radius * 3;
+    camera.position.set(center.x + distance, center.y + distance, center.z + distance);
+    camera.lookAt(center);
+    camera.updateProjectionMatrix();
+    if (controls && 'target' in controls) {
+      const c = controls as unknown as { target: THREE.Vector3; update: () => void };
+      c.target.copy(center);
+      c.update();
+    }
   }, [geometry, camera, controls]);
-  return null;
-}
-
-// CameraReset component — recenters the camera on the geometry when `signal` changes
-function CameraReset({
-  signal,
-  geometry,
-}: {
-  signal: number;
-  geometry: THREE.BufferGeometry | null;
-}) {
-  const { camera, controls } = useThree();
-  useEffect(() => {
-    if (signal === 0 || !geometry) return;
-    fitCameraToObject(camera, controls, geometry);
-  }, [signal, geometry, camera, controls]);
   return null;
 }
 
@@ -175,16 +125,10 @@ function StlViewerContent({
   src,
   sectionEnabled = false,
   sectionPosition = 0.5,
-  showGrid = false,
-  showAxes = false,
-  resetSignal = 0,
 }: {
   src: string;
   sectionEnabled?: boolean;
   sectionPosition?: number;
-  showGrid?: boolean;
-  showAxes?: boolean;
-  resetSignal?: number;
 }) {
   const geometry = useLoader(STLLoader, src);
   const mesh = useMemo(
@@ -211,9 +155,6 @@ function StlViewerContent({
   return (
     <>
       <FitCamera geometry={geometry} />
-      <CameraReset signal={resetSignal} geometry={geometry} />
-      {showGrid && <Grid infiniteGrid />}
-      {showAxes && <axesHelper args={[100]} />}
       <primitive object={mesh} />
     </>
   );
@@ -225,9 +166,6 @@ function StlViewer({
   measureMode = 'distance',
   sectionEnabled = false,
   sectionPosition = 0.5,
-  showGrid = false,
-  showAxes = false,
-  resetSignal = 0,
   ...props
 }: {
   src: string;
@@ -235,9 +173,6 @@ function StlViewer({
   measureMode?: MeasureMode;
   sectionEnabled?: boolean;
   sectionPosition?: number;
-  showGrid?: boolean;
-  showAxes?: boolean;
-  resetSignal?: number;
 } & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <ViewerErrorBoundary
@@ -265,9 +200,6 @@ function StlViewer({
             src={src}
             sectionEnabled={sectionEnabled}
             sectionPosition={sectionPosition}
-            showGrid={showGrid}
-            showAxes={showAxes}
-            resetSignal={resetSignal}
           />
           {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
           <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
@@ -282,16 +214,10 @@ function ObjViewerContent({
   src,
   sectionEnabled = false,
   sectionPosition = 0.5,
-  showGrid = false,
-  showAxes = false,
-  resetSignal = 0,
 }: {
   src: string;
   sectionEnabled?: boolean;
   sectionPosition?: number;
-  showGrid?: boolean;
-  showAxes?: boolean;
-  resetSignal?: number;
 }) {
   const object = useLoader(OBJLoader, src);
   const geometry = useMemo<THREE.BufferGeometry | null>(() => {
@@ -308,9 +234,6 @@ function ObjViewerContent({
   return (
     <>
       <FitCamera geometry={geometry} />
-      <CameraReset signal={resetSignal} geometry={geometry} />
-      {showGrid && <Grid infiniteGrid />}
-      {showAxes && <axesHelper args={[100]} />}
       <primitive
         object={object}
         material={
@@ -336,9 +259,6 @@ function ObjViewer({
   measureMode = 'distance',
   sectionEnabled = false,
   sectionPosition = 0.5,
-  showGrid = false,
-  showAxes = false,
-  resetSignal = 0,
   ...props
 }: {
   src: string;
@@ -346,9 +266,6 @@ function ObjViewer({
   measureMode?: MeasureMode;
   sectionEnabled?: boolean;
   sectionPosition?: number;
-  showGrid?: boolean;
-  showAxes?: boolean;
-  resetSignal?: number;
 } & React.ComponentPropsWithoutRef<'div'>) {
   return (
     <ViewerErrorBoundary
@@ -376,9 +293,6 @@ function ObjViewer({
             src={src}
             sectionEnabled={sectionEnabled}
             sectionPosition={sectionPosition}
-            showGrid={showGrid}
-            showAxes={showAxes}
-            resetSignal={resetSignal}
           />
           {measureEnabled && <MeasureTool enabled={measureEnabled} mode={measureMode} />}
           <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
@@ -429,10 +343,6 @@ export function ViewerZone({
   const [sectionPosition, setSectionPosition] = useState(0.5);
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
-  const [showGrid, setShowGrid] = useState(false);
-  const [showAxes, setShowAxes] = useState(false);
-  const [resetSignal, setResetSignal] = useState(0);
-  const { fullscreen, setFullscreen } = useFullscreen();
 
   if (
     displayUrl &&
@@ -538,93 +448,17 @@ export function ViewerZone({
             aria-label="Position du plan de coupe"
           />
         )}
-        <Tooltip>
-          <TooltipTrigger asChild>
+        {displayUrl &&
+          (displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl')) && (
             <button
               type="button"
-              onClick={() => setResetSignal((v) => v + 1)}
-              className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs text-gray-700 shadow"
+              onClick={() => downloadStl(displayUrl, 'piece-uploaded-printable.stl')}
+              className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs shadow"
             >
-              <RotateCcw className="h-4 w-4" />
-              Reset vue
+              <Download className="h-4 w-4" />
+              Exporter STL
             </button>
-          </TooltipTrigger>
-          <TooltipContent>Réinitialise la caméra (recadre le modèle).</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => setShowGrid((v) => !v)}
-              aria-pressed={showGrid}
-              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-                showGrid ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-              }`}
-            >
-              <Grid3x3 className="h-4 w-4" />
-              Grille
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Affiche/masque la grille au sol (viewers STL/OBJ).</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => setShowAxes((v) => !v)}
-              aria-pressed={showAxes}
-              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-                showAxes ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-              }`}
-            >
-              <Axis3d className="h-4 w-4" />
-              Axes
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Affiche/masque les axes XYZ (viewers STL/OBJ).</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => setFullscreen(!fullscreen)}
-              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
-                fullscreen ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-              }`}
-            >
-              {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              Plein écran
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Basculer en mode plein écran.</TooltipContent>
-        </Tooltip>
-        {displayUrl && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center gap-1 rounded-md border bg-white px-2 py-1 text-xs text-gray-700 shadow"
-              >
-                <Download className="h-4 w-4" />
-                Exporter
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                disabled={
-                  !(displayUrl.endsWith('.stl') || displayUrl.startsWith('data:application/stl'))
-                }
-                onClick={() => downloadStl(displayUrl, 'piece-export.stl')}
-              >
-                STL
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled>STEP (bientôt disponible)</DropdownMenuItem>
-              <DropdownMenuItem disabled>IGES (bientôt disponible)</DropdownMenuItem>
-              <DropdownMenuItem disabled>OBJ (bientôt disponible)</DropdownMenuItem>
-              <DropdownMenuItem disabled>GLTF (bientôt disponible)</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+          )}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -642,182 +476,151 @@ export function ViewerZone({
         </Tooltip>
       </div>
       {compareEnabled ? (
-        uploadedFileUrl &&
-        selectedCandidate?.fileUrl &&
-        isStepOrIges(uploadedFileUrl) &&
-        isStepOrIges(selectedCandidate.fileUrl) ? (
-          <div className="h-full w-full">
-            <Canvas camera={{ position: [5, 5, 5], fov: 50 }}>
-              <ambientLight intensity={0.8} />
-              <directionalLight position={[10, 10, 5]} intensity={1.5} />
-              <OcctCompareTool
-                uploadedUrl={uploadedFileUrl}
-                uploadedName={getFileNameFromUrl(uploadedFileUrl)}
-                candidateUrl={selectedCandidate.fileUrl}
-                candidateName={getFileNameFromUrl(selectedCandidate.fileUrl)}
-              />
-              <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
-            </Canvas>
-          </div>
-        ) : (
-          <div className="grid h-full grid-cols-2 gap-2 p-2">
-            <div className="min-h-0">
-              {uploadedFileUrl ? (
-                (() => {
-                  const fmt = detectCadFormat(uploadedFileUrl);
-                  if (fmt === 'STEP' || fmt === 'IGES') {
-                    return (
-                      <OcctProvider key="uploaded">
-                        <OcctViewer
-                          src={uploadedFileUrl}
-                          fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
-                          height="100%"
-                          bare
-                          measureEnabled={measuring}
-                          measureMode={measureMode}
-                          sectionEnabled={sectionEnabled}
-                          sectionPosition={sectionPosition}
-                        />
-                      </OcctProvider>
-                    );
-                  }
-                  if (fmt === 'STL') {
-                    return (
-                      <StlViewer
-                        src={uploadedFileUrl}
-                        style={{ height: '100%' }}
-                        measureEnabled={measuring}
-                        measureMode={measureMode}
-                        sectionEnabled={sectionEnabled}
-                        sectionPosition={sectionPosition}
-                        showGrid={showGrid}
-                        showAxes={showAxes}
-                        resetSignal={resetSignal}
-                      />
-                    );
-                  }
-                  if (fmt === 'OBJ') {
-                    return (
-                      <ObjViewer
-                        src={uploadedFileUrl}
-                        style={{ height: '100%' }}
-                        measureEnabled={measuring}
-                        measureMode={measureMode}
-                        sectionEnabled={sectionEnabled}
-                        sectionPosition={sectionPosition}
-                        showGrid={showGrid}
-                        showAxes={showAxes}
-                        resetSignal={resetSignal}
-                      />
-                    );
-                  }
-                  if (fmt === '3MF') {
-                    return <ThreeMFFallback />;
-                  }
+        <div className="grid h-full grid-cols-2 gap-2 p-2">
+          <div className="min-h-0">
+            {uploadedFileUrl ? (
+              (() => {
+                const fmt = detectCadFormat(uploadedFileUrl);
+                if (fmt === 'STEP' || fmt === 'IGES') {
                   return (
-                    <ModelViewer
+                    <OcctProvider key="uploaded">
+                      <OcctViewer
+                        src={uploadedFileUrl}
+                        fileName={getFileNameFromUrl(uploadedFileUrl, 'uploaded')}
+                        height="500px"
+                        bare
+                        measureEnabled={measuring}
+                        measureMode={measureMode}
+                        sectionEnabled={sectionEnabled}
+                        sectionPosition={sectionPosition}
+                      />
+                    </OcctProvider>
+                  );
+                }
+                if (fmt === 'STL') {
+                  return (
+                    <StlViewer
                       src={uploadedFileUrl}
-                      bare
-                      height="100%"
-                      renderMode={renderMode}
-                      sectionEnabled={sectionEnabled}
-                      sectionPosition={sectionPosition}
+                      style={{ height: 500 }}
                       measureEnabled={measuring}
                       measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
                     />
                   );
-                })()
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                  Aucun fichier uploadé
-                </div>
-              )}
-            </div>
-            <div className="min-h-0">
-              <select
-                value={selectedCandidate?.id ?? ''}
-                onChange={(e) => setSelectedCandidateId(e.target.value)}
-                className="mb-1 w-full rounded border bg-white px-2 py-1 text-xs shadow"
-              >
-                {validCandidates.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.id}
-                  </option>
-                ))}
-              </select>
-              {selectedCandidate?.fileUrl ? (
-                (() => {
-                  const fmt = detectCadFormat(selectedCandidate.fileUrl);
-                  if (fmt === 'STEP' || fmt === 'IGES') {
-                    return (
-                      <OcctProvider key={selectedCandidate.id}>
-                        <OcctViewer
-                          src={selectedCandidate.fileUrl}
-                          fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
-                          height="100%"
-                          bare
-                          measureEnabled={measuring}
-                          measureMode={measureMode}
-                          sectionEnabled={sectionEnabled}
-                          sectionPosition={sectionPosition}
-                        />
-                      </OcctProvider>
-                    );
-                  }
-                  if (fmt === 'STL') {
-                    return (
-                      <StlViewer
-                        src={selectedCandidate.fileUrl}
-                        style={{ height: '100%' }}
-                        measureEnabled={measuring}
-                        measureMode={measureMode}
-                        sectionEnabled={sectionEnabled}
-                        sectionPosition={sectionPosition}
-                        showGrid={showGrid}
-                        showAxes={showAxes}
-                        resetSignal={resetSignal}
-                      />
-                    );
-                  }
-                  if (fmt === 'OBJ') {
-                    return (
-                      <ObjViewer
-                        src={selectedCandidate.fileUrl}
-                        style={{ height: '100%' }}
-                        measureEnabled={measuring}
-                        measureMode={measureMode}
-                        sectionEnabled={sectionEnabled}
-                        sectionPosition={sectionPosition}
-                        showGrid={showGrid}
-                        showAxes={showAxes}
-                        resetSignal={resetSignal}
-                      />
-                    );
-                  }
-                  if (fmt === '3MF') {
-                    return <ThreeMFFallback />;
-                  }
+                }
+                if (fmt === 'OBJ') {
                   return (
-                    <ModelViewer
-                      src={selectedCandidate.fileUrl}
-                      bare
-                      height="100%"
-                      renderMode={renderMode}
-                      sectionEnabled={sectionEnabled}
-                      sectionPosition={sectionPosition}
+                    <ObjViewer
+                      src={uploadedFileUrl}
+                      style={{ height: 500 }}
                       measureEnabled={measuring}
                       measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
                     />
                   );
-                })()
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                  Aucun candidat
-                </div>
-              )}
-            </div>
+                }
+                if (fmt === '3MF') {
+                  return <ThreeMFFallback />;
+                }
+                return (
+                  <ModelViewer
+                    src={uploadedFileUrl}
+                    bare
+                    height={500}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                    measureEnabled={measuring}
+                    measureMode={measureMode}
+                  />
+                );
+              })()
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                Aucun fichier uploadé
+              </div>
+            )}
           </div>
-        )
+          <div className="min-h-0">
+            <select
+              value={selectedCandidate?.id ?? ''}
+              onChange={(e) => setSelectedCandidateId(e.target.value)}
+              className="mb-1 w-full rounded border bg-white px-2 py-1 text-xs shadow"
+            >
+              {validCandidates.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.id}
+                </option>
+              ))}
+            </select>
+            {selectedCandidate?.fileUrl ? (
+              (() => {
+                const fmt = detectCadFormat(selectedCandidate.fileUrl);
+                if (fmt === 'STEP' || fmt === 'IGES') {
+                  return (
+                    <OcctProvider key={selectedCandidate.id}>
+                      <OcctViewer
+                        src={selectedCandidate.fileUrl}
+                        fileName={getFileNameFromUrl(selectedCandidate.fileUrl, 'candidate')}
+                        height="500px"
+                        bare
+                        measureEnabled={measuring}
+                        measureMode={measureMode}
+                        sectionEnabled={sectionEnabled}
+                        sectionPosition={sectionPosition}
+                      />
+                    </OcctProvider>
+                  );
+                }
+                if (fmt === 'STL') {
+                  return (
+                    <StlViewer
+                      src={selectedCandidate.fileUrl}
+                      style={{ height: 500 }}
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
+                }
+                if (fmt === 'OBJ') {
+                  return (
+                    <ObjViewer
+                      src={selectedCandidate.fileUrl}
+                      style={{ height: 500 }}
+                      measureEnabled={measuring}
+                      measureMode={measureMode}
+                      sectionEnabled={sectionEnabled}
+                      sectionPosition={sectionPosition}
+                    />
+                  );
+                }
+                if (fmt === '3MF') {
+                  return <ThreeMFFallback />;
+                }
+                return (
+                  <ModelViewer
+                    src={selectedCandidate.fileUrl}
+                    bare
+                    height={500}
+                    renderMode={renderMode}
+                    sectionEnabled={sectionEnabled}
+                    sectionPosition={sectionPosition}
+                    measureEnabled={measuring}
+                    measureMode={measureMode}
+                  />
+                );
+              })()
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                Aucun candidat
+              </div>
+            )}
+          </div>
+        </div>
       ) : !displayUrl ? (
         <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
           <Box className="h-10 w-10 text-gray-300" />
@@ -827,7 +630,7 @@ export function ViewerZone({
           </p>
         </div>
       ) : (
-        <div className="w-full flex-1">
+        <div style={{ height: '500px' }} className="w-full">
           {(() => {
             const fmt = detectCadFormat(displayUrl);
             if (fmt === 'STEP' || fmt === 'IGES') {
@@ -836,7 +639,7 @@ export function ViewerZone({
                   <OcctViewer
                     src={displayUrl}
                     fileName={getFileNameFromUrl(displayUrl, 'model')}
-                    height="100%"
+                    height="500px"
                     bare
                     measureEnabled={measuring}
                     measureMode={measureMode}
@@ -850,14 +653,11 @@ export function ViewerZone({
               return (
                 <StlViewer
                   src={displayUrl}
-                  style={{ height: '100%' }}
+                  style={{ height: 500 }}
                   measureEnabled={measuring}
                   measureMode={measureMode}
                   sectionEnabled={sectionEnabled}
                   sectionPosition={sectionPosition}
-                  showGrid={showGrid}
-                  showAxes={showAxes}
-                  resetSignal={resetSignal}
                 />
               );
             }
@@ -865,14 +665,11 @@ export function ViewerZone({
               return (
                 <ObjViewer
                   src={displayUrl}
-                  style={{ height: '100%' }}
+                  style={{ height: 500 }}
                   measureEnabled={measuring}
                   measureMode={measureMode}
                   sectionEnabled={sectionEnabled}
                   sectionPosition={sectionPosition}
-                  showGrid={showGrid}
-                  showAxes={showAxes}
-                  resetSignal={resetSignal}
                 />
               );
             }
@@ -883,7 +680,7 @@ export function ViewerZone({
               <ModelViewer
                 src={displayUrl}
                 bare
-                height="100%"
+                height={500}
                 measureEnabled={measuring}
                 measureMode={measureMode}
                 renderMode={renderMode}
