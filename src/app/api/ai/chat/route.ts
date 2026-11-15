@@ -6,6 +6,9 @@ export async function POST(req: Request) {
   const message = body?.message ?? '';
   const providerId = body?.providerId;
   const context = body?.context ?? null;
+  if (process.env.AI_MOCK === 'true') {
+    return NextResponse.json({ reply: `[MOCK] ${message}`, source: 'mock' });
+  }
   const provider = getProvider(providerId);
   if (!provider.isAvailable) {
     return NextResponse.json({ reply: `${provider.name} indisponible`, source: 'mock' });
