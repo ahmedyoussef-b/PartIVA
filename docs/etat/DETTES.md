@@ -11,14 +11,11 @@
 ## Haute
 
 ### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
-### `D-V8-B-1-C-FORM-ACTION-INLINE` — Formulaire [id]/page.tsx cassé (action inline)
 
-- **Statut :** Corrigé (en attente clôture V8-B-1-e)
-- **Cause :** `src/app/admin/part-templates/[id]/page.tsx` utilisait `action={handleUpdate}` (fonction inline définie dans le composant serveur) dans V8-B-1-c. Next.js rejette : *"Functions cannot be passed directly to Client Components unless you explicitly expose it by marking it with 'use server'"*. Le formulaire d'édition était cassé au rendu : le champ `getByLabel(/Nom/i)` était introuvable.
-- **Périmètre :** `src/app/admin/part-templates/[id]/page.tsx`, `src/app/admin/part-templates/[id]/edit-form.tsx`.
-- **Effort estimé :** Faible (déplacer la logique dans un composant client `EditTemplateForm` avec `onSubmit` + `updatePartTemplate`/`deletePartTemplate` + `router.push`, suivant le pattern `editer/part-template-form.tsx`).
-- **Bloquant :** Oui (pour le test E2E "mettre à jour" en V8-B-1-d).
-- **Condition de résolution :** correction validée — 4 tests E2E CRUD passent (PR #48). Retirer de DETTES.md au merge du PR de clôture V8-B-1-e.
+- **Statut :** Active (documentée)
+- **Cause :** la migration `20261110215229_v7d_cadfile_request_link` a été trackée manuellement en DB (`_prisma_migrations.checksum`) lors de V7-D-2.1-fix3, puis corrigée en V7-D-2.9-fix. Le checksum est désormais aligné sur le SHA256 réel du fichier (`82d167a2...`).
+- **Action future :** tout nouveau dev qui clone le repo doit lancer `migrate dev` (qui recalculera le checksum si besoin) — pas de fix manuel nécessaire.
+- **Condition de résolution :** documenté pour traçabilité (pas d'action corrective requise).
 
 ---
 
@@ -69,23 +66,6 @@
 
 ---
 
-### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
-
-- **Statut :** Active (documentée)
-- **Cause :** la migration `20261110215229_v7d_cadfile_request_link` a été trackée manuellement en DB (`_prisma_migrations.checksum`) lors de V7-D-2.1-fix3, puis corrigée en V7-D-2.9-fix. Le checksum est désormais aligné sur le SHA256 réel du fichier (`82d167a2...`).
-- **Action future :** tout nouveau dev qui clone le repo doit lancer `migrate dev` (qui recalculera le checksum si besoin) — pas de fix manuel nécessaire.
-- **Condition de résolution :** documenté pour traçabilité (pas d'action corrective requise).
-
----
-
-### `D-MIGRATION-FK-ONUPDATE` — Drift FK cad_files_requestId_fkey (résolue)
-
-- **Statut :** Résolue (V7-D-2.9-fix)
-- **Cause :** la FK `cad_files_requestId_fkey` avait été appliquée sans `ON UPDATE CASCADE` (V7-D-2.1-fix2, application manuelle), puis le fichier `migration.sql` commité en V7-D-2.7 contenait `ON UPDATE CASCADE`. Drift corrigé (DB alignée sur fichier).
-- **Condition de résolution :** dette fermée.
-
----
-
 ### `D-V8-D-4-COMPARE-VISUAL-VALIDATION` — Validation visuelle du mode Comparer non effectuée
 
 - **Statut :** Active
@@ -94,17 +74,6 @@
 - **Effort estimé :** Faible (test manuel).
 - **Bloquant :** Non.
 - **Condition de résolution :** Exécuter le protocole manuel (upload cube-3mm + cube-3p5mm, clic Comparer, vérification 4 couleurs, capture d'écran).
-
----
-
-### `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` — Validation visuelle des panneaux rétractables non effectuée
-
-- **Statut :** Active
-- **Cause :** Les panneaux Collecte et Assistant sont rétractables (WorkspaceContext + boutons PanelLeft/PanelRight, PR #97), mais la validation visuelle n'a pas été effectuée car l'upload de fichier via PowerShell 5.1 a échoué (multipart/form-data non supporté par Invoke-WebRequest).
-- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`, `ViewerZone.tsx`.
-- **Effort estimé :** Faible (test manuel dans le navigateur).
-- **Bloquant :** Non.
-- **Condition de résolution :** Uploader un fichier STEP via l'interface, cliquer sur les boutons de toggle, vérifier que le viewport s'élargit, capturer l'écran.
 
 ---
 
@@ -232,30 +201,6 @@
 
 ---
 
-### `D-MIGRATION-CHECKSUM-MANUAL` — Checksum migration V7-D recalculé manuellement
-
-### `D-PROCEDURE-LONGUEUR-PROMPTS` — Subdivision en sous-étapes
-
-- **Statut :** Active
-- **Cause :** prompts trop longs → refus de l'outil d'exécution. Subdivision actée en V8-B-0.
-- **Périmètre :** `docs/gouvernance/PROCEDURE_INTERACTION.md` §5.
-- **Effort estimé :** Faible.
-- **Bloquant :** Non.
-- **Condition de résolution :** acté dans §5 (fait en V8-B-0).
-
----
-
-### `D-PROCEDURE-WRAPPER-KILO` — `bash` Kilo = wrapper PowerShell
-
-- **Statut :** Active
-- **Cause :** l'outil `bash` de Kilo invoque PowerShell. Autorisé en lecture/écriture.
-- **Périmètre :** `docs/gouvernance/PROCEDURE_INTERACTION.md` §5.
-- **Effort estimé :** Faible.
-- **Bloquant :** Non.
-- **Condition de résolution :** acté dans §5 (fait en V8-B-0).
-
----
-
 ### `D-GIT-STASH-RESIDUELS` — Travail E9-R3.a en attente (2 stashes)
 
 - **Statut :** Active (travail en cours)
@@ -291,34 +236,6 @@
 
 ---
 
-### `D-V8-B-1-D-SPEC-EMPLACEMENT` — Spec E2E placée dans `e2e/admin/`
-
-- **Statut :** Active (décision (p) actée)
-- **Cause :** V8-B-1-d a placé la spec `admin-part-templates.spec.ts` dans `e2e/admin/` (pas racine `e2e/`). Justification : seul le projet Playwright `admin` injecte `storageState: '.auth/admin.json'`. Une spec à la racine tournerait sur le projet `chromium` sans auth admin → tests en 401.
-- **Périmètre :** `e2e/admin/`, `playwright.config.ts`.
-- **Effort estimé :** Faible.
-- **Bloquant :** Non.
-- **Condition de résolution :** décision (p) ajoutée dans DECISIONS.md. Retirer de DETTES.md au merge du PR de clôture V8-B-1-e.
-
----
-
-### `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` — Découpage strict des prompts
-
-- **Statut :** Active
-- **Cause :** réforme du 2026-11-11 (Mode R2). Les prompts doivent être divisés en étapes et sous-étapes, avec validation intermédiaire obligatoire.
-- **Condition de résolution :** procédures `PROCEDURE_INTERACTION.md` §13 et `PROCEDURE_COORDINATEUR.md` §6 actées.
-
----
-
-### `D-WORKSPACE-LAYOUT-CSS` — Layout CSS source de bugs
-
-- **Statut :** Active
-- **Cause :** `grid-cols-[1fr_2fr_1fr]` ne s'appliquait pas correctement (Tailwind 4). Le layout a été stabilisé en `flex` avec `w-1/4, w-2/4, w-1/4`.
-- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`.
-- **Effort estimé :** Faible.
-- **Bloquant :** Non.
-- **Condition de résolution :** Documenter la solution retenue (flex) dans DECISIONS.md (aa). Ne plus utiliser `grid-cols-[1fr_2fr_1fr]`.
-
 ### `D-V8-D-5-ASSISTANT-LLM-REAL` — Assistant IA en mode squelette (pas de LLM réel)
 
 - **Statut :** Active
@@ -349,20 +266,6 @@
 - **Effort estimé :** Moyen (migration vers `useAiChat` + suppression fetch direct + tests).
 - **Bloquant :** Non.
 - **Condition de résolution :** un seul chemin client vers `/api/ai/chat` (`useAiChat`), `AssistantZone` migré, tests E2E verts.
-
----
-
-### `D-REGISTRE-ETAT-NETTOYAGE` — Nettoyage global du registre DETTES.md (violations §10)
-
-- **Statut :** Active
-- **Cause :** `DETTES.md` viole §10 (« dettes non résolues uniquement ») sur au moins 8 entrées + 1 triplon + 1 anomalie structurelle :
-  - triplon `D-MIGRATION-CHECKSUM-MANUAL` (L13 orphelin / L72 / L245) ;
-  - entrées résolues encore listées : `D-MIGRATION-FK-ONUPDATE` (L81), `D-V8-B-1-C-FORM-ACTION-INLINE` (PR #48 mergée), `D-WORKSPACE-LAYOUT-CSS` (condition = décision (aa) `DECISIONS.md:325`), `D-V8-B-1-D-SPEC-EMPLACEMENT` (décision (p) `DECISIONS.md:315`), `D-PROCEDURE-LONGUEUR-PROMPTS`, `D-PROCEDURE-WRAPPER-KILO`, `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` ;
-  - anomalie structurelle : heading L13 orphelin (sans corps), séparateurs `---` manquants.
-- **Périmètre :** `docs/etat/DETTES.md`.
-- **Effort estimé :** Faible (diff auditable dédié).
-- **Bloquant :** Non.
-- **Condition de résolution :** registre conforme §10 (aucune entrée résolue, aucun doublon, structure valide), diff auditable, preuve brute.
 
 ---
 
