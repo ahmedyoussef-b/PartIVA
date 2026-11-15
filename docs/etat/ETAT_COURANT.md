@@ -1,9 +1,9 @@
 # État courant du projet
 
 **Date de mise à jour :** 2026-11-15
-**HEAD actuel :** `334706c` (Merge PR #97 — V8-D-5 panneaux rétractables, close avec dette)
+**HEAD actuel :** `b4fcc5f` (Merge PR #99 — V8-D-5 / TÂCHE 2 assistant IA workspace, close)
 **Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dettes). V8-D-5 / TÂCHE 1 close (avec dette : validation visuelle panneaux rétractables).
+**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dettes). V8-D-5 / TÂCHE 1 close (avec dette : validation visuelle panneaux rétractables). V8-D-5 / TÂCHE 2 close (assistant IA — squelette chat, MessageList, E2E ; dettes testabilité/LLM).
 
 ---
 
@@ -20,7 +20,7 @@
 | V7 | **CLOSE** — V7-A → V7-H validées (2026-11-10 → 2026-11-11) |
 | V8 | **CLOS** — V8-B-6 intégralement clôturée (PR #64 → #74) |
 | V8-C | **CLOSE** — V8-C-2a close (pipeline STEP/IGES + page détail) |
-| V8-D | **EN COURS** — V8-D-4 close (comparaison OCCT + layout flex, dettes), V8-D-5 / TÂCHE 1 close (panneaux rétractables, dette validation visuelle) |
+| V8-D | **EN COURS** — V8-D-4 close (comparaison OCCT + layout flex, dettes), V8-D-5 / TÂCHE 1 close (panneaux rétractables, dette validation visuelle), V8-D-5 / TÂCHE 2 close (assistant IA, dettes) |
 
 ---
 
@@ -133,14 +133,29 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session V8-D-5 / TÂCHE 2 — Assistant IA (close avec dettes)
+
+- `src/components/workspace/MessageList.tsx` (nouveau) : extraction du rendu des messages du chat.
+- `src/components/workspace/AssistantZone.tsx` : branchement de `MessageList` (suppression du rendu inline).
+- `src/app/api/ai/chat/route.ts` : court-circuit `AI_MOCK` (drapeau non câblé en E2E, cf. `D-AI-MOCK-NON-CABLÉ`).
+- `playwright.config.ts` : projet `workspace` (`storageState: '.auth/user.json'`, `dependencies: ['setup', 'ids-setup']`).
+- `e2e/workspace/assistant-chat.spec.ts` (nouveau) : round-trip message → mock reply (`page.route('**/api/ai/chat')`, setter natif React).
+- `public/models/cube-3mm.step`, `public/models/cube-3p5mm.step` : fixtures de test committées (arbitrage F).
+- PR #99 : merge `b4fcc5f` / commit `85ec27f` (branche `feat/v8-d-5-assistant-ia`).
+- Checks CI : Build pass, ESLint+Prettier pass, TypeScript pass, Vercel pass.
+- **Dettes :** `D-V8-D-5-ASSISTANT-LLM-REAL` (pas de LLM réel), `D-CHAT-TESTABILITY` (textarea non pilotable par `fill`), `D-V8-D-5-USE-AI-CHAT-UNIFY` (double chemin client), `D-AI-MOCK-NON-CABLÉ` (drapeau non câblé), `D-REGISTRE-ETAT-NETTOYAGE` (registre `DETTES.md`).
+
+---
+
 ## Dernière session
 
 - **SESSION-2026-11-15-V8-D-5** (clôturée avec dette) : Panneaux rétractables (WorkspaceContext + PanelLeft/PanelRight) — PR #97 mergée, validation visuelle en attente (dette tracée).
+- **SESSION-2026-11-15-V8-D-5-T2** (close avec dettes) : Assistant IA du workspace (squelette chat, MessageList, E2E) — PR #99 mergée (`b4fcc5f`).
 
 ---
 
 ## Prochaine étape
 
-**V8-D-5 / TÂCHE 2** : assistant IA (workspace) — prompt à émettre par l'IA externe.
+**V8-D-5 / TÂCHE 3** : automatisation E2E des panneaux rétractables (résout `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` ; **NE clôt PAS** `D-V8-D-4-COMPARE-VISUAL-VALIDATION`).
 
-*(Options alternatives selon arbitrage : traitement dette `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION`, `D-V8-D-4-COMPARE-VISUAL-VALIDATION`.)*
+*(Options alternatives selon arbitrage : traitement manuel `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-REGISTRE-ETAT-NETTOYAGE`.)*
