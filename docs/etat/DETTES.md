@@ -86,6 +86,17 @@
 
 ---
 
+### `D-V8-D-4-COMPARE-VISUAL-VALIDATION` — Validation visuelle du mode Comparer non effectuée
+
+- **Statut :** Active
+- **Cause :** Les correctifs FitCamera (PR #92), OcctCompareTool (PR #91) et layout flex (PR #94) sont mergés, mais la preuve visuelle des 4 couleurs (rouge, bleu, orange, vert) n'a pas été fournie.
+- **Périmètre :** Workspace mode Comparer (STEP/IGES).
+- **Effort estimé :** Faible (test manuel).
+- **Bloquant :** Non.
+- **Condition de résolution :** Exécuter le protocole manuel (upload cube-3mm + cube-3p5mm, clic Comparer, vérification 4 couleurs, capture d'écran).
+
+---
+
 ## Basse
 
 ### `D-V2-CACHE-HIT-LATENCY-12S` — Mesure POST HIT à faire
@@ -285,6 +296,17 @@
 - **Statut :** Active
 - **Cause :** réforme du 2026-11-11 (Mode R2). Les prompts doivent être divisés en étapes et sous-étapes, avec validation intermédiaire obligatoire.
 - **Condition de résolution :** procédures `PROCEDURE_INTERACTION.md` §13 et `PROCEDURE_COORDINATEUR.md` §6 actées.
+
+---
+
+### `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` — Fichiers de test non trackés
+
+- **Statut :** Active
+- **Cause :** public/models/cube-3mm.step et cube-3p5mm.step non trackés (artefacts de test).
+- **Périmètre :** public/models/.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Ajouter au .gitignore, commiter dans public/models/, ou supprimer.
 
 ---
 

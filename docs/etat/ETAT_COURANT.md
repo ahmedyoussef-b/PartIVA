@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-12
-**HEAD actuel :** `3b734f3` (Merge PR #78 — V8-C-2a page détail [id])
+**Date de mise à jour :** 2026-11-15
+**HEAD actuel :** `0edfb85` (Merge PR #94 — V8-D-4 layout flex, close avec dette)
 **Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close.
+**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dette).
 
 ---
 
@@ -20,6 +20,7 @@
 | V7 | **CLOSE** — V7-A → V7-H validées (2026-11-10 → 2026-11-11) |
 | V8 | **CLOS** — V8-B-6 intégralement clôturée (PR #64 → #74) |
 | V8-C | **EN COURS** — V8-C-2a close (pipeline STEP/IGES + page détail) |
+| V8-D | **EN COURS** — V8-D-4 close (comparaison OCCT + layout flex, dette validation visuelle) |
 
 ---
 
@@ -110,23 +111,26 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session V8-D-4 — Comparaison OCCT (close avec dette)
+
+- `src/components/workspace/OcctCompareTool.tsx` : composant comparaison STEP/IGES (Cut/Common via BRepAlgoAPI, maillages + légende couleurs).
+- `src/components/workspace/ViewerZone.tsx` : intégration mode "Comparer" + chargement comparateur.
+- PR #91 : ajout comparaison OCCT (merge `6157b82` / commit `f65dd13`).
+- PR #92 : auto-fit caméra `FitCamera`/`fitCameraToSphere` dans `OcctCompareTool` (merge `4a9f5c6` / commit `abf6662`).
+- PR #93 : ajustement ratio layout `1fr_2fr_1fr` (merge `e13629b`).
+- PR #94 : layout Workspace en flex `w-1/4 w-2/4 w-1/4` (merge `0edfb85` / commit `b2d85fe`) — layout validé visuellement (3 colonnes).
+- **Dette :** `D-V8-D-4-COMPARE-VISUAL-VALIDATION` (preuve visuelle 4 couleurs rouge/bleu/orange/vert + logs `[OCCT:compare]` non fournie). `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` (`public/models/cube-3mm.step`, `cube-3p5mm.step` non trackés).
+
+---
+
 ## Dernière session
 
-- **SESSION-2026-11-12-V8-C-2a** (clôturée) : Pipeline STEP/IGES complet + page détail [id] — 7 tâches, 2 PR mergées (#77, #78), 3 checks CI verts à chaque PR.
+- **SESSION-2026-11-15-V8-D-4** (clôturée avec dette) : Comparaison OCCT (OcctCompareTool, Cut/Common, FitCamera) + layout flex — PRs #91, #92, #93, #94 mergées, validation visuelle 4 couleurs en attente (dette tracée).
 
 ---
 
 ## Prochaine étape
 
-**V8-C-1c** : validation visuelle du POC Tauri (cube OCCT dans desktop) — déjà configuré (tauri.conf.json, libcascade, OcctPoc).
+**V8-D-5** : assistant IA (workspace) — prompt à émettre par l'IA externe.
 
-**OU**
-
-**V8-C-3** : opérations paramétriques (congé, perçage booléen) + Feature Tree.
-
-Pistes possibles :
-- Traiter `D-GIT-STASH-RESIDUELS` (E9-R3.a).
-- Traiter `D-ADMIN-TEST-COVERAGE`.
-- Traiter `D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED`.
-- Photogrammétrie réelle.
-- Autre.
+*(Options alternatives selon arbitrage : V8-C-1c validation POC Tauri, V8-C-3 opérations paramétriques, traitement dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION`.)*
