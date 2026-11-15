@@ -62,6 +62,7 @@
 | V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture | CRUD RE | ✅ | PR #74 |
 | V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade + page détail [id] | CRUD RE | ✅ | PRs #77, #78 |
 | V8-D-4 | 2026-11-15 | Comparaison OCCT (OcctCompareTool + Cut/Common) + layout flex | CRUD RE | ✅ (avec dettes) | PRs #91, #92, #93, #94 |
+| V8-D-5 | 2026-11-15 | Panneaux rétractables (PanelLeft/PanelRight) | CRUD RE | ✅ (avec dette) | PR #97 |
 
 ---
 
