@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.5
+**Version :** 7.6
 **Date :** 2026-11-15
 **Commit HEAD :** `0edfb85` (Merge PR #94 — V8-D-4 layout flex, close avec dette)
 **Branche :** master
 **Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close, V8-D-4 close (avec dette)
-**Dernière étape close :** V8-D-4 (comparaison OCCT + layout flex)
-**Prochaine étape :** V8-D-5 (assistant IA)
+**Dernière étape close :** V8-D-4 (comparaison OCCT + layout flex, dettes : panneaux rétractables, layout CSS, validation visuelle Comparer, fixtures non trackés)
+**Prochaine étape :** V8-D-5 (assistant IA + panneaux rétractables)
 
 ---
 
@@ -67,6 +67,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
 | `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
 | `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer (4 couleurs) non fournie (PR #91/#92/#94 mergées) |
+| `D-WORKSPACE-PANELS-COLLAPSIBLE` | Moyenne | Panneaux Collecte et Assistant non rétractables (pas de bouton toggle). À implémenter en V8-D-5. |
 | `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` (V8-B-0) conservée en parallèle de `/new` (V8-B-1-c). |
 | `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/` (pas racine `e2e/`). Décision (p) actée dans DECISIONS.md. |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
@@ -75,6 +76,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-GIT-STASH-RESIDUELS` | Basse | Travail E9-R3.a en attente (2 stashes : sidebar Tauri + backend Tauri avec commandes unifiées). Stashes conservés (pas de suppression). |
 | `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` | Basse | Découpage strict des prompts (réforme du 2026-11-11, Mode R2). |
 | `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` | Basse | `public/models/cube-3mm.step`, `cube-3p5mm.step` non trackés (artefacts test) |
+| `D-WORKSPACE-LAYOUT-CSS` | Basse | Layout CSS source de bugs (grid-cols-[1fr_2fr_1fr] cassé en Tailwind 4). Solution retenue : flex w-1/4/w-2/4/w-1/4. |
 
 ### Décisions clés
 
@@ -105,6 +107,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h |
 | (z) | Pipeline STEP/IGES via libcascade (importCadFile + tessellateShape + OcctViewer) — V8-C-2a |
 | (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) au lieu de grid (grid-cols-[1fr_2fr_1fr]) — plus fiable avec Tailwind 4 |
+| (ab) | Workspace : panneaux Collecte et Assistant rétractables (toggle PanelLeft/PanelRight) pour maximiser l'espace du viewport. À implémenter en V8-D-5. |
 
 ### 5 dernières sessions
 

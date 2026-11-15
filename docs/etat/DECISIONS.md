@@ -1,6 +1,6 @@
 # DÉCISIONS VALIDÉES — PartIVA
 
-**Dernière mise à jour :** 2026-11-11
+**Dernière mise à jour :** 2026-11-15
 **Source :** Création E3-S3 (référencé par `ETAT_COURANT.md` §5) ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V7-C → V7-H (session V7H).
 **Statut :** Registre des décisions validées.
 
@@ -323,5 +323,6 @@
 | (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h. |
 | (z) | Pipeline STEP/IGES via libcascade (importCadFile + tessellateShape + OcctViewer) — V8-C-2a. |
 | (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) au lieu de grid (grid-cols-[1fr_2fr_1fr]) — plus fiable avec Tailwind 4. |
+| (ab) | Workspace : panneaux Collecte et Assistant rétractables (toggle PanelLeft/PanelRight) pour maximiser l'espace du viewport. À implémenter en V8-D-5. |
 
 ---

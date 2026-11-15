@@ -3,7 +3,7 @@
 **Date de mise à jour :** 2026-11-15
 **HEAD actuel :** `0edfb85` (Merge PR #94 — V8-D-4 layout flex, close avec dette)
 **Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dette).
+**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dettes : panneaux rétractables, layout CSS, validation visuelle Comparer, fixtures non trackés).
 
 ---
 
