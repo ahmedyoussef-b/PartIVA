@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useMemo, useEffect, Suspense, Component, ReactNode } from 'react';
-import { Ruler, Scissors, Columns, Download, Box, AlertTriangle } from 'lucide-react';
+import {
+  Ruler,
+  Scissors,
+  Columns,
+  Download,
+  Box,
+  AlertTriangle,
+  PanelLeft,
+  PanelRight,
+} from 'lucide-react';
 import { ModelViewer } from '@/components/3d/model-viewer';
 import { OcctViewer } from '@/components/3d/occt-viewer';
 import { OcctProvider } from '@/components/3d/occt-context';
@@ -14,6 +23,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import * as THREE from 'three';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { useWorkspaceContext } from '@/components/workspace/WorkspaceLayout';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -343,6 +353,8 @@ export function ViewerZone({
   const [sectionPosition, setSectionPosition] = useState(0.5);
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
+  const { collecteVisible, setCollecteVisible, assistantVisible, setAssistantVisible } =
+    useWorkspaceContext();
 
   if (
     displayUrl &&
@@ -473,6 +485,36 @@ export function ViewerZone({
             </button>
           </TooltipTrigger>
           <TooltipContent>Compare le fichier uploadé avec un candidat.</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => setCollecteVisible(!collecteVisible)}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                collecteVisible ? 'bg-white text-gray-700' : 'bg-blue-600 text-white'
+              }`}
+            >
+              <PanelLeft className="h-4 w-4" />
+              {collecteVisible ? 'Masquer Collecte' : 'Collecte'}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Affiche ou masque le panneau Collecte.</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => setAssistantVisible(!assistantVisible)}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                assistantVisible ? 'bg-white text-gray-700' : 'bg-blue-600 text-white'
+              }`}
+            >
+              <PanelRight className="h-4 w-4" />
+              {assistantVisible ? 'Masquer Assistant' : 'Assistant'}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Affiche ou masque le panneau Assistant.</TooltipContent>
         </Tooltip>
       </div>
       {compareEnabled ? (
