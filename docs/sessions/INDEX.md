@@ -1,6 +1,6 @@
 # INDEX DES SESSIONS — PartIVA
 
-**Dernière mise à jour :** 2026-11-11
+**Dernière mise à jour :** 2026-11-15
 **Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V7-C → V7-H (session V7H).
 **Statut :** Index des sessions.
 
@@ -61,7 +61,7 @@
 | V8-B-6-g | 2026-11-12 | Correction upload CAO (AbortController 30s + cursor-pointer) | CRUD RE | ✅ | PR #72 |
 | V8-B-6-h | 2026-11-12 | Éditeur 3D CadEditor + croix fermeture | CRUD RE | ✅ | PR #74 |
 | V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade + page détail [id] | CRUD RE | ✅ | PRs #77, #78 |
-| V8-D-4 | 2026-11-15 | Comparaison OCCT (OcctCompareTool + Cut/Common) + layout flex | CRUD RE | ✅ | PRs #91, #92, #93, #94 |
+| V8-D-4 | 2026-11-15 | Comparaison OCCT (OcctCompareTool + Cut/Common) + layout flex | CRUD RE | ✅ (avec dettes) | PRs #91, #92, #93, #94 |
 
 ---
 

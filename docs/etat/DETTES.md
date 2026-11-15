@@ -1,6 +1,6 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-11-12
+**Dernière mise à jour :** 2026-11-15
 **Source :** `PROMPT DE PASSATION — Superviseur IA Externe — v12` §3 (2026-11-10)
 **Statut :** Registre actif — dettes non résolues uniquement (charte §10).
 
@@ -94,6 +94,17 @@
 - **Effort estimé :** Faible (test manuel).
 - **Bloquant :** Non.
 - **Condition de résolution :** Exécuter le protocole manuel (upload cube-3mm + cube-3p5mm, clic Comparer, vérification 4 couleurs, capture d'écran).
+
+---
+
+### `D-WORKSPACE-PANELS-COLLAPSIBLE` — Panneaux Collecte et Assistant non rétractables
+
+- **Statut :** Active
+- **Cause :** Les panneaux latéraux (Collecte, Assistant) prennent 25% chacun en permanence, réduisant l'espace du viewport 3D. Aucun bouton pour les masquer.
+- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`, `src/components/workspace/ViewerZone.tsx`.
+- **Effort estimé :** Faible (ajout de 2 états + 2 boutons toggle).
+- **Bloquant :** Non.
+- **Condition de résolution :** Ajouter boutons PanelLeft/PanelRight pour toggle `collecteVisible`/`assistantVisible`. Le viewport s'élargit quand les panneaux sont masqués.
 
 ---
 
@@ -306,9 +317,18 @@
 - **Périmètre :** public/models/.
 - **Effort estimé :** Faible.
 - **Bloquant :** Non.
-- **Condition de résolution :** Ajouter au .gitignore, commiter dans public/models/, ou supprimer.
+- **Condition de résolution :** Ajouter au .gitignore, committer dans public/models/, ou supprimer.
 
 ---
+
+### `D-WORKSPACE-LAYOUT-CSS` — Layout CSS source de bugs
+
+- **Statut :** Active
+- **Cause :** `grid-cols-[1fr_2fr_1fr]` ne s'appliquait pas correctement (Tailwind 4). Le layout a été stabilisé en `flex` avec `w-1/4, w-2/4, w-1/4`.
+- **Périmètre :** `src/components/workspace/WorkspaceLayout.tsx`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Documenter la solution retenue (flex) dans DECISIONS.md (aa). Ne plus utiliser `grid-cols-[1fr_2fr_1fr]`.
 
 ## Notes
 
