@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { requirementBlocks } from '@/lib/pcb/requirement-blocks';
 import { detectIncoherences } from '@/lib/pcb/incoherence-detector';
 import type { RequirementAnswer } from '@/lib/pcb/types';
 
 export function RequirementForm({ projectId }: { projectId?: string }) {
+  const router = useRouter();
   const [answers, setAnswers] = useState<RequirementAnswer[]>([]);
   const [currentBlock, setCurrentBlock] = useState(0);
   const [incoherences, setIncoherences] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const block = requirementBlocks[currentBlock];
   if (!block) return null;
@@ -111,6 +115,12 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
         </div>
       )}
 
+      {error && (
+        <div className="mt-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="mt-8 flex justify-between">
         <button
           type="button"
@@ -123,13 +133,34 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
         {isLastBlock ? (
           <button
             type="button"
-            className="rounded bg-blue-600 px-4 py-2 text-white"
-            onClick={() => {
-              // TODO 7-c : sauvegarder en BDD + lancer Requirement Engine
-              console.log('Valider le cahier des charges', { answers, projectId });
+            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+            disabled={submitting}
+            onClick={async () => {
+              setSubmitting(true);
+              setError(null);
+              try {
+                const res = await fetch('/api/pcb/requirements/parse', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ projectId, answers }),
+                });
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                  throw new Error(data.error || `Erreur ${res.status}`);
+                }
+                if (data.projectId) {
+                  router.push(`/admin/pcb/${data.projectId}`);
+                } else {
+                  setError('Projet créé mais projectId manquant');
+                }
+              } catch (e) {
+                setError(e instanceof Error ? e.message : 'Erreur');
+              } finally {
+                setSubmitting(false);
+              }
             }}
           >
-            Valider le cahier des charges
+            {submitting ? 'Validation...' : 'Valider le cahier des charges'}
           </button>
         ) : (
           <button
