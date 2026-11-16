@@ -5,18 +5,18 @@ test.describe('PCB - Formulaire intelligent + Requirement Engine', () => {
     await page.goto('/admin/pcb/nouveau');
 
     // Bloc 1
-    await expect(page.getByText(/Contexte d'usage/i)).toBeVisible();
-    await page.getByRole('combobox').first().selectOption('prototype');
-    await page.getByRole('textbox').first().fill('0-40°C');
+    await expect(page.getByTestId('block-title')).toContainText(/Contexte d'usage/i);
+    await page.getByTestId('select-usage_type').selectOption('prototype');
+    await page.getByTestId('input-temp_range').fill('0-40°C');
     await page.getByRole('button', { name: /Suivant/i }).click();
 
     // Bloc 2
-    await expect(page.getByText(/Fonctions principales/i)).toBeVisible();
-    await page.getByRole('textbox').first().fill('Mesurer la température');
+    await expect(page.getByTestId('block-title')).toContainText(/Fonctions principales/i);
+    await page.getByTestId('input-main_functions').fill('Mesurer la température');
     await page.getByRole('button', { name: /Suivant/i }).click();
 
     // Naviguer jusqu'au dernier bloc
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       await page.getByRole('button', { name: /Suivant/i }).click();
     }
 
@@ -29,12 +29,12 @@ test.describe('PCB - Formulaire intelligent + Requirement Engine', () => {
     await page.goto('/admin/pcb/nouveau');
 
     // Bloc 1
-    await page.getByRole('combobox').first().selectOption('industriel');
-    await page.getByRole('textbox').first().fill('0-40°C');
+    await page.getByTestId('select-usage_type').selectOption('industriel');
+    await page.getByTestId('input-temp_range').fill('0 à 40°C');
     await page.getByRole('button', { name: /Suivant/i }).click();
 
     // Bloc 2 : capteur + 3.3V
-    await page.getByRole('textbox').first().fill('mesure');
+    await page.getByTestId('input-main_functions').fill('mesure');
     await page.getByRole('button', { name: /Suivant/i }).click();
 
     // Vérifier qu'une incohérence est détectée
