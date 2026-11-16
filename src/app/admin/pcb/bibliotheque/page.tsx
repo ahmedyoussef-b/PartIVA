@@ -1,6 +1,8 @@
 import { listCatalog } from '@/lib/pcb/catalog';
 import { CatalogTable } from '@/components/pcb/CatalogTable';
 
+export const dynamic = 'force-dynamic';
+
 export default async function BibliothequePage() {
   const components = await listCatalog();
   return (
