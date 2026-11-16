@@ -91,6 +91,13 @@ export default defineConfig({
       dependencies: ['setup', 'ids-setup'],
       retries: 1,
     },
+    {
+      name: 'pcb',
+      testDir: './e2e/pcb',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/admin.json' },
+      dependencies: ['setup', 'ids-setup'],
+      retries: 1,
+    },
   ],
   webServer: {
     command: 'npm run build && npm run start',
