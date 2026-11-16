@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { action, socketPath, project } = body as {
-      action: 'detect' | 'getProject' | 'updateProject';
+      action: 'detect' | 'getVersion' | 'getProject' | 'updateProject';
       socketPath?: string;
       project?: { name: string; path: string; components: number; nets: number };
     };
@@ -13,6 +13,11 @@ export async function POST(req: Request) {
     if (action === 'detect') {
       const info = await detectKicadIpc();
       return NextResponse.json(info);
+    }
+
+    if (action === 'getVersion') {
+      const info = await detectKicadIpc();
+      return NextResponse.json({ version: info.version, available: info.available });
     }
 
     if (!socketPath) {
