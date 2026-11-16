@@ -325,5 +325,17 @@
 | (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) au lieu de grid (grid-cols-[1fr_2fr_1fr]) — plus fiable avec Tailwind 4. |
 | (ab) | Workspace : panneaux Collecte et Assistant rétractables (toggle PanelLeft/PanelRight) pour maximiser l'espace du viewport. À implémenter en V8-D-5. |
 | (ac) | Assistant IA (V8-D-5 / TÂCHE 2) : mock `AI_MOCK` en variable d'environnement de **dev manuel** (non câblée dans `playwright.config.ts` — voir `D-AI-MOCK-NON-CABLÉ`) ; `page.route('**/api/ai/chat')` = **seul mock E2E effectif** (`e2e/workspace/assistant-chat.spec.ts`) ; textarea React non pilotable par `fill`/`pressSequentially` → setter natif `HTMLTextAreaElement.prototype` + `input` event + `waitForChatHydrated` (`__reactProps`) — voir `D-CHAT-TESTABILITY`. |
+| (ad) | Automatisation E2E des panneaux rétractables (V8-D-5 / TÂCHE 3) : `e2e/workspace/collapsible-panels.spec.ts` — 3 tests (toggle Collecte, toggle Assistant, masquage simultané) avec seed `localStorage['partiva-workspace-state']` et vérification du viewport (`w-2/4` / `w-3/4` / `flex-1`). Résout `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION`. |
+| (ae) | PCB Core = source de vérité ; KiCad = représentation synchronisée. L'IA propose des actions structurées, le Core valide. |
+| (af) | V1 = mode guidé uniquement ; mode automatique en V8-D-9. |
+| (ag) | Bibliothèque curatée (50 composants) + prix ajustables admin. |
+| (ah) | Mode Tauri hybride (IPC + CLI) — contourne les limitations IPC 9/10. |
+| (ai) | Approvisionnement intelligent (BOM → prix/stock/alternatives). |
+| (aj) | Revue de conception automatisée (design review). |
+| (ak) | Simulation first-pass (SI/PI/EMC/Thermique). |
+| (al) | Autoroutage assisté (Freerouting). |
+| (am) | Templates de circuits de référence. |
+| (an) | BDD locale = catalogue + prix ajustables, injection web → local unidirectionnelle. |
+| (ao) | Formulaire intelligent 7 blocs (questions conditionnelles, suggestions IA, détection incohérences). |
 
 ---

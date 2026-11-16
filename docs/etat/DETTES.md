@@ -280,6 +280,50 @@
 
 ---
 
+### `D-PCB-CATALOG-SYNC` — Injection web → local unidirectionnelle
+
+- **Statut :** Active
+- **Cause :** La bibliothèque de composants (`ComponentCatalog`, `ComponentPrice`) est injectée du web vers le local (Tauri). L'admin local peut ajuster les prix, mais les ajouts locaux ne sont pas synchronisés vers le web (par design).
+- **Périmètre :** `src/lib/pcb/catalog.ts`, `src-tauri/src/pcb/`.
+- **Effort estimé :** Moyen.
+- **Bloquant :** Non.
+- **Condition de résolution :** documenter la limite (injection unidirectionnelle) dans `docs/pcb/limites.md`.
+
+---
+
+### `D-PCB-KICAD-IPC-GUI-DEPENDENCY` — L'IPC KiCad nécessite une instance GUI ouverte
+
+- **Statut :** Active
+- **Cause :** L'API IPC de KiCad 9/10 ne fonctionne qu'avec une instance GUI ouverte. Le mode headless (`kicad-cli api-server`) n'arrive qu'avec KiCad 11 (février 2027).
+- **Périmètre :** `src-tauri/src/pcb/ipc_adapter.rs`, `playwright.config.ts`.
+- **Effort estimé :** Faible (documentation).
+- **Bloquant :** Non (le mode CLI reste disponible pour les exports).
+- **Condition de résolution :** documenter la dépendance dans `docs/pcb/limites.md` + fallback.
+
+---
+
+### `D-PCB-AUTOROUTER-ABSENT` — Pas d'autorouteur IPC natif
+
+- **Statut :** Active
+- **Cause :** KiCad n'a pas d'API d'autoroutage via IPC. Le routage reste manuel dans KiCad GUI. Freerouting (externe) peut être intégré en V8-D-8.
+- **Périmètre :** `src-tauri/src/pcb/`.
+- **Effort estimé :** Faible (documentation).
+- **Bloquant :** Non.
+- **Condition de résolution :** documenter la limite dans `docs/pcb/limites.md`.
+
+---
+
+### `D-PCB-KICAD-VERSION-DEPENDENCY` — `kicad-cli` requis sur le poste Tauri
+
+- **Statut :** Active
+- **Cause :** `kicad-cli` doit être installé sur le poste Tauri pour les exports (Gerber, BOM, 3D) et les vérifications (ERC/DRC). Détection + fallback nécessaires.
+- **Périmètre :** `src-tauri/src/pcb/cli_adapter.rs`.
+- **Effort estimé :** Faible (détection `kicad-cli --version`).
+- **Bloquant :** Non.
+- **Condition de résolution :** implémenter la détection dans `cli_adapter.rs`.
+
+---
+
 ## Notes
 
 - **Registre actif uniquement** (charte §10). Les dettes résolues ne figurent pas ici.

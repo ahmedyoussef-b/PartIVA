@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-15
-**HEAD actuel :** `b4fcc5f` (Merge PR #99 — V8-D-5 / TÂCHE 2 assistant IA workspace, close)
+**Date de mise à jour :** 2026-11-16
+**HEAD actuel :** `097d7e1` (Merge PR #109 — V8-D-7 PCB Design Studio close)
 **Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dettes). V8-D-5 / TÂCHE 1 close (avec dette : validation visuelle panneaux rétractables). V8-D-5 / TÂCHE 2 close (assistant IA — squelette chat, MessageList, E2E ; dettes testabilité/LLM).
+**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dettes). V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 PCB Design Studio close (a→g, PRs #103 → #109).
 
 ---
 
@@ -156,6 +156,6 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ## Prochaine étape
 
-**V8-D-5 / TÂCHE 3** : automatisation E2E des panneaux rétractables (résout `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` ; **NE clôt PAS** `D-V8-D-4-COMPARE-VISUAL-VALIDATION`).
+**V8-D-8** : Intégration Tauri hybride + KiCad (IPC + CLI).
 
-*(Options alternatives selon arbitrage : traitement manuel `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-REGISTRE-ETAT-NETTOYAGE`.)*
+*(Options alternatives selon arbitrage : traitement dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-PCB-CATALOG-SYNC`, ou V8-D-9 mode automatique.)*

@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 7.8
-**Date :** 2026-11-15
-**Commit HEAD :** `b4fcc5f` (Merge PR #99 — V8-D-5 / TÂCHE 2 assistant IA workspace)
+**Version :** 8.0
+**Date :** 2026-11-16
+**Commit HEAD :** `097d7e1` (Merge PR #109 — V8-D-7 PCB Design Studio close)
 **Branche :** master
-**Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close, V8-D-4 close (avec dette), V8-D-5 / TÂCHE 1 close (avec dette), V8-D-5 / TÂCHE 2 close (avec dettes)
-**Dernière étape close :** V8-D-5 / TÂCHE 2 (assistant IA — squelette chat, MessageList, E2E, PR #99, merge `b4fcc5f`)
-**Prochaine étape :** V8-D-5 / TÂCHE 3 (automatisation E2E panneaux rétractables — D3)
+**Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close, V8-D-4 close (avec dette), V8-D-5 / TÂCHE 1/2/3 closes, V8-D-7 PCB Design Studio close (a→g)
+**Dernière étape close :** V8-D-7 (PCB Design Studio — PRs #103 → #109, merge `097d7e1`)
+**Prochaine étape :** V8-D-8 (Intégration Tauri hybride + KiCad — IPC + CLI)
 
 ---
 
@@ -15,7 +15,7 @@
 
 **Avant TOUTE action, lire les fichiers de procédure dans cet ordre :**
 
-1. **`docs/gouvernance/PROCEDURE_INTERACTION.md`** — source unique des règles (R1-R10, L45-L59, formats prompt/accusé).
+1. **`docs/gouvernance/PROCEDURE_INTERACTION.md`** — source unique des règles (R1-R10, L45-L60, formats prompt/accusé).
 2. **`docs/gouvernance/PROCEDURE_IA_INTERNE.md`** — rôle exécution, responsabilités.
 3. **`docs/gouvernance/PROCEDURE_COORDINATEUR.md`** — rôle coordinateur.
 4. **`docs/gouvernance/CHARTE.md`** — principes généraux.
@@ -48,10 +48,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (avec dette) — V8-D-5 / TÂCHE 1 close (avec dette) — V8-D-5 / TÂCHE 2 close (avec dettes) |
-| **HEAD** | `b4fcc5f` (Merge PR #99, V8-D-5 / TÂCHE 2 assistant IA) |
-| **Dernière étape close** | **V8-D-5 / TÂCHE 2** (assistant IA — squelette chat, MessageList, E2E) |
-| **Prochaine étape** | **V8-D-5 / TÂCHE 3** (automatisation E2E panneaux rétractables — D3) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (avec dette) — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) |
+| **HEAD** | `097d7e1` (Merge PR #109, V8-D-7 PCB Design Studio) |
+| **Dernière étape close** | **V8-D-7** (PCB Design Studio — a→g) |
+| **Prochaine étape** | **V8-D-8** (Intégration Tauri hybride + KiCad — IPC + CLI) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -59,28 +59,30 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- | --- |
 | `D-E24-E2E-TIMEOUT-SOURCES` | Haute | Timeout E2E sources |
 | `D-PROCEDURE-3-ACTEURS-INAPPLICABLE` | Haute | Procédure 3 acteurs → 2 acteurs (R2) |
-| `D-V8-B-1-C-FORM-ACTION-INLINE` | Haute | Formulaire `[id]/page.tsx` V8-B-1-c utilisait `action={inline}` rejeté par Next.js (form cassé au rendu). Corrigé en V8-B-1-d (edit-form.tsx, PR #48). Clôture formelle : PR de clôture V8-B-1-e. |
-| `D-ADMIN-TEST-COVERAGE` | Moyenne | Tests E2E admin — partiellement couverte (part-templates, PR #48). Reste à couvrir : autres pages admin (machines, dashboard, etc.). |
+| `D-V8-B-1-C-FORM-ACTION-INLINE` | Haute | Formulaire `[id]/page.tsx` V8-B-1-c utilisait `action={inline}` rejeté par Next.js. Corrigé en V8-B-1-d (edit-form.tsx, PR #48). |
+| `D-E2E-BUTTON-RENAMED` | Haute | `workspace.spec.ts` et `groq.spec.ts` ciblent `/Analyser/i` alors que le bouton réel est `Reconstruire CAO` (`IngestZone.tsx:338-344`). Specs pré-existamment cassées. |
+| `D-ADMIN-TEST-COVERAGE` | Moyenne | Tests E2E admin — partiellement couverte (part-templates, PR #48). |
 | `D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED` | Moyenne | Route admin download bloquée par auth |
 | `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
-| `D-PROCEDURE-LONGUEUR-PROMPTS` | Moyenne | Subdivision en sous-étapes si dépassement |
-| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer (4 couleurs) non fournie (PR #91/#92/#94 mergées) — **NON résolue par (D3)** |
-| `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` | Moyenne | Validation visuelle des panneaux rétractables non effectuée (upload PowerShell 5.1 échoué). PR #97 mergée. **Cible de (D3)** — à retirer après TÂCHE 3 exécutée et prouvée. |
-| `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` (V8-B-0) conservée en parallèle de `/new` (V8-B-1-c). |
-| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/` (pas racine `e2e/`). Décision (p) actée dans DECISIONS.md. |
+| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer (4 couleurs) non fournie |
+| `D-PCB-CATALOG-SYNC` | Moyenne | Injection web → local unidirectionnelle |
+| `D-PCB-KICAD-IPC-GUI-DEPENDENCY` | Moyenne | L'IPC KiCad nécessite une instance GUI ouverte |
+| `D-PCB-KICAD-VERSION-DEPENDENCY` | Moyenne | `kicad-cli` requis sur le poste Tauri |
+| `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` conservée en parallèle de `/new`. |
+| `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/`. Décision (p) actée. |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
 | `D-V8-B-0-FIX-1-HORS-PERIMETRE` | Basse | `test-files.txt` supprimé hors périmètre (tracé) |
 | `D-ESLINT-IGNORE-DEPRECATED` | Basse | `.eslintignore` déprécié |
-| `D-GIT-STASH-RESIDUELS` | Basse | Travail E9-R3.a en attente (2 stashes : sidebar Tauri + backend Tauri avec commandes unifiées). Stashes conservés (pas de suppression). |
-| `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` | Basse | Découpage strict des prompts (réforme du 2026-11-11, Mode R2). |
-| `D-WORKSPACE-LAYOUT-CSS` | Basse | Layout CSS source de bugs (grid-cols-[1fr_2fr_1fr] cassé en Tailwind 4). Solution retenue : flex w-1/4/w-2/4/w-1/4. |
-| `D-V8-D-5-ASSISTANT-LLM-REAL` | Basse | Assistant IA en mode squelette — appel LLM réel reporté (TÂCHE ultérieure ou V8-D-6). |
-| `D-CHAT-TESTABILITY` | Basse | Textarea chat non pilotable par `fill`/`pressSequentially` (tracker React) — contournement setter natif. |
+| `D-GIT-STASH-RESIDUELS` | Basse | Travail E9-R3.a en attente (2 stashes). Stashes conservés. |
+| `D-PROCEDURE-DECOUPAGE-SOUS-ETAPES` | Basse | Découpage strict des prompts (Mode R2). |
+| `D-WORKSPACE-LAYOUT-CSS` | Basse | Layout CSS (flex w-1/4/w-2/4/w-1/4). |
+| `D-V8-D-5-ASSISTANT-LLM-REAL` | Basse | Assistant IA en mode squelette — appel LLM réel reporté. |
+| `D-CHAT-TESTABILITY` | Basse | Textarea chat non pilotable par `fill`/`pressSequentially`. |
 | `D-V8-D-5-USE-AI-CHAT-UNIFY` | Basse | Double implémentation chat (`handleSend` fetch direct vs `useAiChat`). |
-| `D-REGISTRE-ETAT-NETTOYAGE` | Basse | Nettoyage global `DETTES.md` (triplon `D-MIGRATION-CHECKSUM-MANUAL`, 8 entrées résolues listées, anomalie L13 orpheline). |
-| `D-AI-MOCK-NON-CABLÉ` | Basse | Drapeau `AI_MOCK` non câblé en E2E ni en `.env.example` — seul `page.route` mocke effectivement. |
+| `D-AI-MOCK-NON-CABLÉ` | Basse | Drapeau `AI_MOCK` non câblé en E2E ni en `.env.example`. |
+| `D-PCB-AUTOROUTER-ABSENT` | Basse | Pas d'autorouteur IPC natif ; Freerouting externe |
 
 ### Décisions clés
 
@@ -101,28 +103,40 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (o) | V8-P0 = 4 étapes (option C) |
 | (p) | Specs E2E admin → emplacement `e2e/admin/` |
 | (q) | PROPOSITION (non actée) : 3 checks R3 nécessaires mais non suffisants pour UI interactives |
-| (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` pour tous les ID Prisma |
+| (r) | Schémas Zod Reverse Engineering : utiliser `z.string().cuid()` |
 | (s) | Accessibilité label : tout `<Label>` doit avoir `htmlFor` et l'`<Input>` associé un `id` |
 | (t) | Tests d'intégration réels hors CI : script `npm run test:sources` |
 | (u) | Réforme gouvernance 3 acteurs (IA externe, coordinateur, IA interne) |
 | (v) | Logs structurés `[RE:...]` dans le flux Reverse Engineering (V8-B-6-e) |
-| (w) | Logs complets sur tous les boutons du flux RE (18 logs `console.info('[RE:...]`) — V8-B-6-f |
-| (x) | Upload CAO robuste (AbortController 30s, cursor-pointer dropzone, logs complets) — V8-B-6-g |
-| (y) | Éditeur 3D CadEditor (TransformControls, redimensionnement) + sauvegarde dimensions partielle — V8-B-6-h |
-| (z) | Pipeline STEP/IGES via libcascade (importCadFile + tessellateShape + OcctViewer) — V8-C-2a |
-| (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) au lieu de grid (grid-cols-[1fr_2fr_1fr]) — plus fiable avec Tailwind 4 |
-| (ab) | Workspace : panneaux Collecte et Assistant rétractables (toggle PanelLeft/PanelRight) pour maximiser l'espace du viewport. Implémenté en V8-D-5 (PR #97, merge `334706c`). Validation visuelle en attente (`D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION`). |
-| (ac) | Assistant IA (V8-D-5 / TÂCHE 2) : mock `AI_MOCK` en variable d'environnement de **dev manuel** (non câblée dans `playwright.config.ts` — voir `D-AI-MOCK-NON-CABLÉ`) ; `page.route('**/api/ai/chat')` = **seul mock E2E effectif** (`e2e/workspace/assistant-chat.spec.ts`) ; textarea React non pilotable par `fill`/`pressSequentially` → setter natif `HTMLTextAreaElement.prototype` + `input` event + `waitForChatHydrated` (`__reactProps`) — voir `D-CHAT-TESTABILITY`. |
+| (w) | Logs complets sur tous les boutons du flux RE (18 logs) — V8-B-6-f |
+| (x) | Upload CAO robuste (AbortController 30s) — V8-B-6-g |
+| (y) | Éditeur 3D CadEditor (TransformControls) — V8-B-6-h |
+| (z) | Pipeline STEP/IGES via libcascade — V8-C-2a |
+| (aa) | Layout Workspace : flex (w-1/4, w-2/4, w-1/4) |
+| (ab) | Workspace : panneaux rétractables (toggle PanelLeft/PanelRight) |
+| (ac) | Assistant IA (V8-D-5/T2) : mock `AI_MOCK` dev manuel, `page.route` E2E, setter natif React |
+| (ad) | Automatisation E2E panneaux rétractables (V8-D-5/T3) |
+| (ae) | PCB Core = source de vérité ; KiCad = représentation synchronisée |
+| (af) | V1 = mode guidé ; mode automatique en V8-D-9 |
+| (ag) | Bibliothèque curatée (50 composants) + prix ajustables admin |
+| (ah) | Mode Tauri hybride (IPC + CLI) |
+| (ai) | Approvisionnement intelligent (BOM → prix/stock/alternatives) |
+| (aj) | Revue de conception automatisée (design review) |
+| (ak) | Simulation first-pass (SI/PI/EMC/Thermique) |
+| (al) | Autoroutage assisté (Freerouting) |
+| (am) | Templates de circuits de référence |
+| (an) | BDD locale = catalogue + prix ajustables, injection web → local unidirectionnelle |
+| (ao) | Formulaire intelligent 7 blocs (questions conditionnelles, suggestions IA, détection incohérences) |
 
 ### 5 dernières sessions
 
 | ID | Date | Objet | Statut |
 | --- | --- | --- | --- |
-| V8-C-2a | 2026-11-12 | Pipeline STEP/IGES via libcascade + page détail [id] | ✅ |
-| V8-D-4 | 2026-11-15 | Comparaison OCCT (OcctCompareTool + Cut/Common + FitCamera) + layout flex | ✅ (dette) |
-| V8-D-5 | 2026-11-15 | Panneaux rétractables (PanelLeft/PanelRight) | ✅ (dette) |
-| V8-D-5 / T2 | 2026-11-15 | Assistant IA workspace (squelette chat, MessageList, E2E) | ✅ (dettes) |
-| (à venir) | — | V8-D-5 / TÂCHE 3 (automatisation E2E panneaux) | — |
+| V8-D-5 / T2 | 2026-11-15 | Assistant IA workspace (squelette chat, MessageList, E2E) | ✅ |
+| V8-D-5 / T3 | 2026-11-15 | Automatisation E2E panneaux rétractables (3 tests, viewport) | ✅ |
+| D-REGISTRE-ETAT-NETTOYAGE | 2026-11-15 | Nettoyage DETTES.md (triplon, entrées résolues, anomalie L13) | ✅ |
+| V8-D-7 (a→g) | 2026-11-16 | PCB Design Studio : modèle Prisma, formulaire, bibliothèque, AI Engine, checkpoints, UI | ✅ |
+| (à venir) | — | V8-D-8 (Intégration Tauri hybride + KiCad) | — |
 
 ---
 
@@ -132,9 +146,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-D-5 / TÂCHE 3** : automatisation E2E des panneaux rétractables (résout `D-V8-D-5-COLLAPSIBLE-VISUAL-VALIDATION` ; **NE clôt PAS** `D-V8-D-4-COMPARE-VISUAL-VALIDATION`).
+**V8-D-8** : Intégration Tauri hybride + KiCad (IPC + CLI).
 
-*(Options alternatives selon arbitrage : traitement manuel `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-REGISTRE-ETAT-NETTOYAGE`.)*
+*(Options alternatives selon arbitrage : traitement dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-PCB-CATALOG-SYNC`, ou V8-D-9 mode automatique.)*
 
 ---
 
@@ -170,3 +184,5 @@ Structure à mettre à jour :
 - **Wrapper Kilo** : `bash` Kilo = PowerShell, autorisé.
 - **Longueur** : subdiviser en sous-étapes si dépassement de la limite d'acceptation.
 - **Preuves brutes** : obligatoires (L50/R9). Un rapport n'est pas une preuve.
+- **L59** : substituer tout placeholder `<hash>` / `<PR_NUMBER>` avant exécution.
+- **L60** : pas de backtick `` ` `` dans les chaînes à guillemets doubles — utiliser `[char]96`.
