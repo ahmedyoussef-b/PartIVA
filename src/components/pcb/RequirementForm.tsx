@@ -49,7 +49,9 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
         </p>
       </div>
 
-      <h2 className="text-2xl font-bold">{block.title}</h2>
+      <h2 className="text-2xl font-bold" data-testid="block-title">
+        {block.title}
+      </h2>
       <p className="mb-6 text-gray-600">{block.description}</p>
 
       <div className="space-y-4">
@@ -60,6 +62,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
             </label>
             {q.type === 'select' && (
               <select
+                data-testid={`select-${q.id}`}
                 className="mt-1 w-full rounded border p-2"
                 onChange={(e) => handleAnswer(q.id, e.target.value)}
               >
@@ -73,6 +76,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
             )}
             {q.type === 'text' && (
               <input
+                data-testid={`input-${q.id}`}
                 type="text"
                 className="mt-1 w-full rounded border p-2"
                 onChange={(e) => handleAnswer(q.id, e.target.value)}
