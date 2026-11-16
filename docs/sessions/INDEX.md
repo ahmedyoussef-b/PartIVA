@@ -64,6 +64,7 @@
 | V8-D-4 | 2026-11-15 | Comparaison OCCT (OcctCompareTool + Cut/Common) + layout flex | CRUD RE | ✅ (avec dettes) | PRs #91, #92, #93, #94 |
 | V8-D-5 | 2026-11-15 | Panneaux rétractables (PanelLeft/PanelRight) | CRUD RE | ✅ (avec dette) | PR #97 |
 | V8-D-5 / T2 | 2026-11-15 | Assistant IA workspace (squelette chat, MessageList, E2E) | CRUD RE | ✅ (avec dettes) | PR #99 (merge `b4fcc5f`) |
+| V8-D-7 | 2026-11-16 | PCB Design Studio (a→g : modèle Prisma, formulaire, bibliothèque, AI Engine, checkpoints, UI) | PCB | ✅ | PRs #103 → #109 (merge `097d7e1`) |
 
 ---
 
