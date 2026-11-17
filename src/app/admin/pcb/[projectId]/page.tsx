@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import CompliancePanel from '@/components/pcb/CompliancePanel';
 import SourcingTable from '@/components/pcb/SourcingTable';
+import DesignReviewPanel from '@/components/pcb/DesignReviewPanel';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -97,6 +98,8 @@ export default async function PcbProjectPage({
               <SourcingTable results={sourcingResults} />
             </div>
           </div>
+
+          <DesignReviewPanel projectId={projectId} />
         </div>
       </div>
     </div>
