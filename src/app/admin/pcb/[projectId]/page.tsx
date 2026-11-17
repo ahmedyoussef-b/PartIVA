@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import CompliancePanel from '@/components/pcb/CompliancePanel';
 import SourcingTable from '@/components/pcb/SourcingTable';
 import DesignReviewPanel from '@/components/pcb/DesignReviewPanel';
+import ExportButtons from '@/components/pcb/ExportButtons';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -100,6 +101,24 @@ export default async function PcbProjectPage({
           </div>
 
           <DesignReviewPanel projectId={projectId} />
+
+          <div className="overflow-hidden rounded-lg border bg-white">
+            <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+              Fabrication
+            </div>
+            <div className="p-4">
+              <ExportButtons
+                projectId={projectId}
+                components={project.components.map((c) => ({
+                  id: c.id,
+                  refDes: c.reference,
+                  mpn: c.catalogId ?? undefined,
+                  description: c.name,
+                  footprint: c.footprint ?? undefined,
+                }))}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
