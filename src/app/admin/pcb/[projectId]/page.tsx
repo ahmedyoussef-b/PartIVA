@@ -3,6 +3,7 @@ import CompliancePanel from '@/components/pcb/CompliancePanel';
 import SourcingTable from '@/components/pcb/SourcingTable';
 import DesignReviewPanel from '@/components/pcb/DesignReviewPanel';
 import ExportButtons from '@/components/pcb/ExportButtons';
+import VisualComparisonOverlay from '@/components/pcb/VisualComparisonOverlay';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -117,6 +118,15 @@ export default async function PcbProjectPage({
                   footprint: c.footprint ?? undefined,
                 }))}
               />
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border bg-white">
+            <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+              Visualisation
+            </div>
+            <div className="p-4">
+              <VisualComparisonOverlay projectId={projectId} />
             </div>
           </div>
         </div>
