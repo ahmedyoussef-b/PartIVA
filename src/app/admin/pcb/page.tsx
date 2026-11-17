@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { KiCadStatus } from '@/components/pcb/KiCadStatus';
+import { AutoModePanel } from '@/components/pcb/AutoModePanel';
 
 export default function PcbStudioPage() {
   return (
@@ -37,6 +38,8 @@ export default function PcbStudioPage() {
           </p>
         </div>
       </div>
+
+      <AutoModePanel />
     </main>
   );
 }

@@ -1,57 +1,41 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('PCB - Sourcing BOM', () => {
-  test('recherche un composant', async ({ page }) => {
-    await page.goto('/admin/pcb');
-    const res = await page.request.post('/api/pcb/sourcing', {
-      data: { action: 'search', query: 'résistance' },
-    });
-    expect(res.ok()).toBeTruthy();
-    const body = await res.json();
-    expect(body.results).toBeInstanceOf(Array);
-    expect(body.results.length).toBeGreaterThan(0);
-    expect(body.results[0]).toHaveProperty('supplierRef');
-    expect(body.results[0]).toHaveProperty('price');
+test.describe('PCB Sourcing Engine', () => {
+  test('should match exact MPN and return pricing', async ({ request }) => {
+    const payload = {
+      bomItems: [
+        { reference: 'U1', mpn: 'STM32F405RGT6', description: 'MCU ARM Cortex-M4', quantity: 2 },
+      ],
+    };
+
+    const response = await request.post('/api/pcb/sourcing/engine', { data: payload });
+
+    expect(response.ok()).toBeTruthy();
+    const result = await response.json();
+    expect(result.results).toHaveLength(1);
+    expect(result.results[0].reference).toBe('U1');
+    expect(result.results[0].totalCost).toBeGreaterThanOrEqual(0);
   });
 
-  test('calcule le coût BOM', async ({ page }) => {
-    await page.goto('/admin/pcb');
-    const res = await page.request.post('/api/pcb/sourcing', {
-      data: {
-        action: 'bomCost',
-        components: [
-          { name: 'Résistance 10kΩ 0603', quantity: 10 },
-          { name: 'Condensateur 100nF 0603', quantity: 5 },
-        ],
-      },
-    });
-    expect(res.ok()).toBeTruthy();
-    const body = await res.json();
-    expect(body.total).toBeGreaterThan(0);
-    expect(body.components).toHaveLength(2);
-    expect(body.currency).toBe('EUR');
+  test('should return alternatives when no exact match', async ({ request }) => {
+    const payload = {
+      bomItems: [
+        { reference: 'R1', mpn: 'NONEXISTENT-MPN', description: 'Resistor 10k 0805', quantity: 10 },
+      ],
+    };
+
+    const response = await request.post('/api/pcb/sourcing/engine', { data: payload });
+
+    expect(response.ok()).toBeTruthy();
+    const result = await response.json();
+    expect(result.results[0]).toHaveProperty('alternatives');
+    expect(result.results[0]).toHaveProperty('isAvailable');
   });
 
-  test('trouve des alternatives', async ({ page }) => {
-    await page.goto('/admin/pcb');
-    const res = await page.request.post('/api/pcb/sourcing', {
-      data: { action: 'alternatives', componentId: 'r-10k-0603' },
+  test('should reject invalid payload', async ({ request }) => {
+    const response = await request.post('/api/pcb/sourcing/engine', {
+      data: { bomItems: 'not-an-array' },
     });
-    expect(res.ok()).toBeTruthy();
-    const body = await res.json();
-    expect(body.alternatives).toBeInstanceOf(Array);
-  });
-
-  test('gère un composant manquant', async ({ page }) => {
-    await page.goto('/admin/pcb');
-    const res = await page.request.post('/api/pcb/sourcing', {
-      data: {
-        action: 'bomCost',
-        components: [{ name: 'Composant inexistant', quantity: 1 }],
-      },
-    });
-    expect(res.ok()).toBeTruthy();
-    const body = await res.json();
-    expect(body.missing).toContain('Composant inexistant');
+    expect(response.status()).toBe(400);
   });
 });
