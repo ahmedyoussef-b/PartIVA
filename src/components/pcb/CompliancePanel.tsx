@@ -15,9 +15,14 @@ interface RealStateAnalysis {
   checkedRules: number;
 }
 
-export default function CompliancePanel({ projectId }: { projectId?: string }) {
+interface CompliancePanelProps {
+  projectId?: string;
+  initialResult?: RealStateAnalysis;
+}
+
+export default function CompliancePanel({ projectId, initialResult }: CompliancePanelProps) {
   void projectId;
-  const [analysis, setAnalysis] = useState<RealStateAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<RealStateAnalysis | null>(initialResult ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
