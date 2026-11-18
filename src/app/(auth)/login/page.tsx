@@ -21,6 +21,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
+      // T4.0 (V8-D-14) — auth réelle via le sidecar Next.js (cookie navigateur).
       await login(email, password);
       // Navigation native (compatible Tauri + export)
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination

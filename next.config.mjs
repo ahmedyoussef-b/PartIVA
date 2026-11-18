@@ -2,6 +2,9 @@ import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const isExport = process.env.NEXT_EXPORT === 'true';
+// B4 (V8-D-14) — build desktop : `output: 'standalone'`.
+// Posé par desktop/scripts/build-server.cjs ; non défini pour le build web Vercel.
+const isDesktopBuild = process.env.DESKTOP_BUILD === 'true';
 
 const nextConfig = {
   env: {
@@ -9,7 +12,7 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_COMMIT_SHA || process.env.COMMIT_SHA || '',
   },
   serverExternalPackages: ['libcascade'],
-  output: isExport ? 'export' : undefined,
+  output: isDesktopBuild ? 'standalone' : isExport ? 'export' : undefined,
   typescript: isExport ? { ignoreBuildErrors: true } : {},
   reactStrictMode: true,
   images: {

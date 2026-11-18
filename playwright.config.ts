@@ -105,7 +105,9 @@ export default defineConfig({
     reuseExistingServer: false,
     stdout: 'pipe',
     stderr: 'pipe',
-    timeout: 300_000,
+    // 600_000 : décision mesurée (P6.1a-i, 2026-11-17) — cache froid > 300 s
+    // (mesure #2 : compile 3,2 min + TypeScript) ; 300_000 insuffisant.
+    timeout: 600_000,
     env: {
       E2E_DISABLE_RATE_LIMIT: 'true',
       BETTER_AUTH_URL: 'http://localhost:3000',

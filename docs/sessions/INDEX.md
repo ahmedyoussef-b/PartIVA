@@ -1,6 +1,6 @@
 # INDEX DES SESSIONS — PartIVA
 
-**Dernière mise à jour :** 2026-11-15
+**Dernière mise à jour :** 2026-11-18
 **Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V7-C → V7-H (session V7H).
 **Statut :** Index des sessions.
 
@@ -65,6 +65,11 @@
 | V8-D-5 | 2026-11-15 | Panneaux rétractables (PanelLeft/PanelRight) | CRUD RE | ✅ (avec dette) | PR #97 |
 | V8-D-5 / T2 | 2026-11-15 | Assistant IA workspace (squelette chat, MessageList, E2E) | CRUD RE | ✅ (avec dettes) | PR #99 (merge `b4fcc5f`) |
 | V8-D-7 | 2026-11-16 | PCB Design Studio (a→g : modèle Prisma, formulaire, bibliothèque, AI Engine, checkpoints, UI) | PCB | ✅ | PRs #103 → #109 (merge `097d7e1`) |
+| FIX-DOC-REPRISE | 2026-11-17 | Mise à jour traçabilité post-`216ed3e` (ETAT_COURANT, DETTES, INDEX, PROMPT_DE_REPRISE v8.1) | Gouvernance | ✅ | Ce document (§2) |
+| P5 | 2026-11-17 | Cartographie V8-D-8 → V8-D-13 + résorption traçabilité (14 entrées `DECISIONS.md` §14) | Gouvernance | ✅ | `DECISIONS.md` §14 |
+| T3.1 | 2026-11-17 | Spec V8-D-14 : pont PCB ↔ desktop Tauri (sidecar) | Gouvernance | ✅ | `docs/v8-d14-pcb-desktop-spec.md` |
+| T3.1-quater | 2026-11-17 | Décision (h) sidecar connecté + amendement spec V8-D-14 | Gouvernance | ✅ | `DECISIONS.md` §13 (ar) |
+| V8-D-14 | 2026-11-18 | Desktop Tauri fonctionnel (sidecar, auth réelle, PCB Studio, KiCad IPC, MSI/NSIS) | Desktop, Auth, PCB, KiCad IPC | ✅ | `docs/v8-d14-pcb-desktop-spec.md` |
 
 ---
 

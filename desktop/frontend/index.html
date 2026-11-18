@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PartIVA Desktop</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* T4.3 (V8-D-14) — fond transparent : pas de flash sombre avant la
+           redirection vers le sidecar. */
+        background: transparent;
+        color: #f8fafc;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        text-align: center;
+      }
+      /* Placeholder invisible (évite le flash) ; l'écran d'erreur Rust
+         (injecté dans body.innerHTML) reste visible, lui. */
+      main {
+        opacity: 0;
+        max-width: 32rem;
+        padding: 2rem;
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+      }
+      p {
+        margin: 0;
+        font-size: 0.875rem;
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PartIVA Desktop</h1>
+      <p id="status">Démarrage du serveur local…</p>
+    </main>
+    <script>
+      // T4.2 (V8-D-14) — désenregistrer tout Service Worker au chargement
+      // (évite qu'un ancien SW/cache serve des chunks obsolètes → ChunkLoadError).
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .getRegistrations()
+          .then(function (regs) {
+            regs.forEach(function (reg) {
+              reg.unregister();
+            });
+          })
+          .catch(function () {});
+      }
+      window.setTimeout(function () {
+        var el = document.getElementById("status");
+        if (el) {
+          el.textContent =
+            "Le serveur local n'a pas répondu. Fermez puis relancez l'application.";
+        }
+      }, 30000);
+    </script>
+  </body>
+</html>

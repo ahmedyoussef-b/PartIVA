@@ -132,16 +132,30 @@ export async function getPlastiques() {
 // Le token est stocké dans le keyring Windows (géré par auth.rs)
 
 export async function login(email: string, password: string): Promise<void> {
-  if (isTauri()) {
-    return window.__TAURI_INTERNALS__!.invoke('login', { email, password });
-  }
-  // Web : BetterAuth gère le login via /api/auth/sign-in
+  // T4.0 (V8-D-14) — auth via le sidecar Next.js (Better Auth/Postgres) : le cookie
+  // de session est posé côté navigateur (requis par proxy.ts + getSession). On
+  // n'utilise plus invoke('login') (Rust) car il ne pose pas de cookie navigateur.
   const res = await fetch('/api/auth/sign-in/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
+  }).catch(() => {
+    // T4.0 (V8-D-14) — message clair si le backend (sidecar/Vercel) est injoignable.
+    throw new Error('Connexion impossible : vérifiez votre connexion internet.');
   });
   if (!res.ok) throw new Error('Login failed');
+  // Pont keyring (admin/layout.tsx en mode Tauri) : on stocke le token de session
+  // RÉEL dans le keyring Windows. Best-effort (ne bloque pas le login navigateur).
+  if (isTauri()) {
+    try {
+      const data = (await res.json()) as { token?: string };
+      if (data?.token) {
+        await window.__TAURI_INTERNALS__!.invoke('save_token', { token: data.token });
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
 }
 
 export async function saveToken(token: string): Promise<void> {

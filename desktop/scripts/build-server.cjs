@@ -19,7 +19,10 @@ console.log('Starting server build...');
 console.log('Current directory:', process.cwd());
 
 // Step 1: Run Next.js build
+// B4 — force le mode standalone pour le sidecar (next.config.mjs l.12).
+// Le build web Vercel reste output: undefined (guard local à ce process).
 console.log('Running Next.js build...');
+process.env.DESKTOP_BUILD = 'true';
 execSync('npm run build', { stdio: 'inherit' });
 
 // Step 2: Copy standalone output to server directory
@@ -46,12 +49,35 @@ function copyDir(src, dest) {
 
 copyDir(standaloneSrc, serverDir);
 
+// B10 — Next copie `.env` dans `.next/standalone` : le retirer systématiquement
+// de serverDir, sinon un secret partirait dans le bundle quelle que soit la gate.
+for (const f of fs.readdirSync(serverDir)) {
+  if (f.startsWith('.env')) {
+    fs.rmSync(path.join(serverDir, f), { force: true });
+  }
+}
+console.log('B10 — .env* retirés de', serverDir);
+
 // Step 3: Copy static assets (.next/static -> desktop/server/.next/static)
 console.log('Copying static assets...');
 const staticSrc = path.join(root, '.next', 'static');
 const staticDest = path.join(serverDir, '.next', 'static');
 copyDir(staticSrc, staticDest);
 console.log('Copié .next/static →', staticDest);
+
+// T4.2 (V8-D-14) — GARANTIE : après copie, .next/static/chunks doit exister et
+// contenir des .js. Sinon on ÉCHOUE le build (évite de livrer un server.js dont
+// les chunks référencés sont absents → ChunkLoadError "404 sur chunk").
+const chunksDir = path.join(staticDest, 'chunks');
+const chunkCount = fs.existsSync(chunksDir)
+  ? fs.readdirSync(chunksDir).filter((f) => f.endsWith('.js')).length
+  : 0;
+if (chunkCount === 0) {
+  throw new Error(
+    `build-server: .next/static/chunks vide ou absent (${chunksDir}) — build incohérent, abandon.`,
+  );
+}
+console.log('T4.2 — vérifié .next/static/chunks →', chunkCount, 'chunks JS');
 
 const publicSrc = path.join(root, 'public');
 const publicDest = path.join(serverDir, 'public');
@@ -61,53 +87,46 @@ if (fs.existsSync(publicSrc)) {
 }
 
 // Step 3b: Copy and tailor .env for local sidecar
+// B10 — aucun secret dans le bundle par défaut : copie conditionnée à
+// PARTIVA_BUNDLE_ENV=1 (opt-in explicite pour un build de test local).
 const envSrc = path.join(root, '.env');
 const envDest = path.join(serverDir, '.env');
-if (fs.existsSync(envSrc)) {
-  console.log('Copying and tailoring .env for server directory...');
-  let envContent = fs.readFileSync(envSrc, 'utf8');
-  // Neutralize static BETTER_AUTH_URL so sidecar uses dynamic loopback origin and port
-  envContent = envContent.replace(
-    /^BETTER_AUTH_URL=.*$/gm,
-    '# BETTER_AUTH_URL (set dynamically by PartIVA hook)',
-  );
-  fs.writeFileSync(envDest, envContent, 'utf8');
-  console.log('Tailored .env written to', envDest);
+if (process.env.PARTIVA_BUNDLE_ENV === '1') {
+  if (fs.existsSync(envSrc)) {
+    console.log('Copying and tailoring .env for server directory...');
+    let envContent = fs.readFileSync(envSrc, 'utf8');
+    // Neutralize static BETTER_AUTH_URL so sidecar uses dynamic loopback origin and port
+    envContent = envContent.replace(
+      /^BETTER_AUTH_URL=.*$/gm,
+      '# BETTER_AUTH_URL (set dynamically by PartIVA hook)',
+    );
+    fs.writeFileSync(envDest, envContent, 'utf8');
+    console.log('Tailored .env written to', envDest);
+  }
+} else {
+  console.log('PARTIVA_BUNDLE_ENV != 1 → .env NON copié (aucun secret dans le bundle).');
 }
 
 // Step 4: Patch server.js for dynamic port allocation (D-E9-R1-6) and 127.0.0.1 bind (D-E9-R1-10)
-console.log('Patching server.js for dynamic port allocation...');
+// C1 (V8-D-14, 2026-11-17) — PATCH NEUTRALISÉ : Next.js 16 génère un server.js ESM ;
+// le hook CJS (require('http')) provoquait "Cannot access 'require' before initialization"
+// et le sidecar mourait au démarrage. Le port est désormais injecté par Rust
+// (.env PORT/HOSTNAME) — le server.js standalone les lit nativement.
+console.log('Step 4 (patch server.js) neutralisé — port injecté par env (V8-D-14).');
 const serverJsPath = path.join(serverDir, 'server.js');
 if (fs.existsSync(serverJsPath)) {
   const originalServerJs = fs.readFileSync(serverJsPath, 'utf8');
-  const hookCode = `// --- PartIVA Dynamic Port Hook (D-E9-R1-6 & D-E9-R1-10) ---
-const http = require('http');
-const origListen = http.Server.prototype.listen;
-http.Server.prototype.listen = function(...args) {
-  if (process.env.PORT === '0' || !process.env.PORT || args[0] === 3000) {
-    args[0] = 0;
-  }
-  if (args[1] === '0.0.0.0' || !args[1]) {
-    args[1] = '127.0.0.1';
-  }
-  this.once('listening', () => {
-    const addr = this.address();
-    const port = typeof addr === 'object' && addr ? addr.port : addr;
-    process.env.PORT = String(port);
-    process.env.BETTER_AUTH_URL = \`http://127.0.0.1:\${port}\`;
-    process.env.NEXT_PUBLIC_APP_URL = \`http://127.0.0.1:\${port}\`;
-    process.stdout.write(\`PARTIVA_SERVER_PORT=\${port}\\n\`);
-  });
-  return origListen.apply(this, args);
-};
-// --- End PartIVA Hook ---
-
+  const hookCode = `// --- PartIVA Dynamic Port Hook (D-E9-R1-6 & D-E9-R1-10) — DÉSACTIVÉ (V8-D-14) ---
+// Ce hook CJS est incompatible avec le server.js ESM de Next.js 16.
+// L'injection du port se fait via .env() côté Rust (PORT / HOSTNAME).
 `;
-  fs.writeFileSync(serverJsPath, hookCode + originalServerJs, 'utf8');
-  console.log('server.js patched successfully.');
+  void hookCode;
+  void originalServerJs;
+  console.log('server.js laissé intact (aucun patch).');
 } else {
   console.error('Warning: server.js not found in', serverDir);
 }
+
 
 // Step 5: Copy Node.js executable to binaries with target triple suffix
 console.log('Copying Node.js executable...');
