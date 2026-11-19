@@ -14,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useSyncStore } from '@/lib/stores/sync-store';
 import { useAppMode } from '@/lib/app-mode';
 import { useSession, signOut } from '@/lib/auth-client';
-import { loadToken, logout } from '@/lib/data-client';
 import { ShieldAlert, ArrowLeft, Lock, LogOut } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,30 +21,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { triggerSync } = useSyncStore();
   const { isTauri } = useAppMode();
   const { data: session, isPending } = useSession();
-
-  const [tauriAuthed, setTauriAuthed] = React.useState(!isTauri);
-  const [tauriChecking, setTauriChecking] = React.useState(isTauri);
-
-  React.useEffect(() => {
-    if (!isTauri) {
-      return;
-    }
-    let mounted = true;
-    async function checkAuth() {
-      try {
-        const token = await loadToken();
-        if (mounted) setTauriAuthed(!!token);
-      } catch {
-        if (mounted) setTauriAuthed(false);
-      } finally {
-        if (mounted) setTauriChecking(false);
-      }
-    }
-    checkAuth();
-    return () => {
-      mounted = false;
-    };
-  }, [isTauri]);
 
   React.useEffect(() => {
     if (!isTauri) return;
@@ -55,13 +30,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => clearInterval(timer);
   }, [triggerSync, isTauri]);
 
-  // Web : session.role === 'ADMIN' — Tauri : token exists
-  const isAdmin = isTauri
-    ? tauriAuthed
-    : (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
-  const isLoading = isTauri ? tauriChecking : isPending;
+  // T4.7 (V8-D-14) — auth par la session Better Auth (plus le keyring).
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
+  const isLoading = isPending;
 
-  if (isLoading || !isAdmin) {
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-sm text-muted-foreground">Chargement…</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
         <Card className="w-full max-w-2xl border-border/80 shadow-2xl">
@@ -160,11 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               variant="outline"
               size="sm"
               onClick={async () => {
-                if (isTauri) {
-                  await logout();
-                } else {
-                  await signOut();
-                }
+                await signOut();
                 router.push('/login');
               }}
               className="h-8 gap-1.5 px-3 text-xs text-gray-600 hover:text-gray-900"

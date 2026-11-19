@@ -61,6 +61,20 @@ export async function proxy(request: NextRequest) {
 
   const role = (session?.user as { role?: string } | undefined)?.role;
 
+  // T4.3 (V8-D-14) — diagnostic : noms des cookies + présence session
+  // (JAMAIS les valeurs → pas de fuite du token de session).
+  try {
+    const names = request.cookies
+      .getAll()
+      .map((c) => c.name)
+      .join(',');
+    console.log(
+      `[proxy] ${pathname} cookies=[${names}] session=${session ? `OK(${role ?? '?'})` : 'NULL'}`,
+    );
+  } catch {
+    /* diagnostic best-effort */
+  }
+
   if (pathname.startsWith('/admin')) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url));

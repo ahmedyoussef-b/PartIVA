@@ -5,9 +5,9 @@
   "identifier": "com.partiva.desktop",
   "build": {
     "devUrl": "http://localhost:3100",
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
-    "frontendDist": "../"
+    "beforeDevCommand": "node ./scripts/build-server.cjs",
+    "beforeBuildCommand": "node ./scripts/build-server.cjs",
+    "frontendDist": "../frontend"
   },
   "app": {
     "windows": [
@@ -34,16 +34,21 @@
         "visible": false
       }
     ],
-    "security": {
-      "csp": "default-src 'self' data: http://127.0.0.1:* https: tauri: ipc: asset: http://ipc.localhost; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://127.0.0.1:* https: tauri: ipc: asset: http://ipc.localhost; style-src 'self' 'unsafe-inline' http://127.0.0.1:* https:; img-src 'self' data: blob: http://127.0.0.1:* https:; font-src 'self' data: http://127.0.0.1:* https:; connect-src 'self' http://127.0.0.1:* https: wss: tauri: ipc: asset: http://ipc.localhost;"
-    }
+"security": {
+        "csp": "default-src 'self' data: http://127.0.0.1:* https: tauri: ipc: asset: http://ipc.localhost; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://127.0.0.1:* https: tauri: ipc: asset: http://ipc.localhost; style-src 'self' 'unsafe-inline' http://127.0.0.1:* https:; img-src 'self' data: blob: http://127.0.0.1:* https:; font-src 'self' data: http://127.0.0.1:* https:; connect-src 'self' http://127.0.0.1:* https: wss: tauri: ipc: asset: http://ipc.localhost;",
+        "dangerousDisableAssetCspModification": ["style-src"]
+      }
   },
   "bundle": {
     "active": true,
-    "resources": [
-      "../../public/*.wasm"
+    "resources": {
+      "../../desktop/server": "server",
+      "../../public": "public"
+    },
+    "externalBin": [
+      "binaries/node"
     ],
-    "targets": ["nsis"],
+    "targets": ["nsis", "msi"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -64,6 +69,9 @@
         "installMode": "currentUser",
         "languages": ["French", "English"],
         "displayLanguageSelector": false
+      },
+      "wix": {
+        "language": ["fr-FR", "en-US"]
       }
     }
   }

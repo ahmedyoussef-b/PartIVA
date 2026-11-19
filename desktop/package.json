@@ -5,7 +5,7 @@
   "description": "PartIVA Desktop — application Tauri 2 (E8P)",
   "type": "module",
   "scripts": {
-    "build:desktop": "cd ../ && npm run build && cd desktop/src-tauri && npx tauri build",
+    "build:desktop": "cd src-tauri && npx tauri build",
     "tauri": "npx tauri",
     "tauri:dev": "npx tauri dev",
     "tauri:build": "npx tauri build"

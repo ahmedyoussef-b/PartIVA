@@ -19,18 +19,43 @@ export interface KicadIpcProject {
   nets: number;
 }
 
-function findKicadSocket(): string | null {
-  const kicadDir = join(tmpdir(), 'kicad');
-  if (!existsSync(kicadDir)) {
-    return null;
+const PIPE_PREFIX = '\\\\.\\pipe\\';
+
+/**
+ * T5.1 (V8-D-14) — le socket IPC KiCad est :
+ * - Windows : un NAMED PIPE dont le nom est le chemin complet (`\\.\pipe\<path>`),
+ *   **PAS un fichier** (`fs.existsSync` échoue). Seul `readdirSync('\\.\pipe\\')` le voit.
+ * - Linux/macOS : un socket de fichier `<path>`.
+ */
+function socketExists(socketPath: string): boolean {
+  if (existsSync(socketPath)) {
+    return true;
   }
   try {
-    const files = readdirSync(kicadDir);
-    const socket = files.find((f) => f.startsWith('api') && f.endsWith('.sock'));
-    return socket ? join(kicadDir, socket) : null;
+    const pipes = readdirSync(PIPE_PREFIX);
+    return pipes.some((p) => p === socketPath || p.toLowerCase() === socketPath.toLowerCase());
   } catch {
-    return null;
+    return false;
   }
+}
+
+function findKicadSocket(): string | null {
+  const sockPath = join(tmpdir(), 'kicad', 'api.sock');
+  if (socketExists(sockPath)) {
+    return sockPath;
+  }
+  // Windows : le nom du pipe peut différer du chemin exact → recherche large.
+  try {
+    const found = readdirSync(PIPE_PREFIX).find(
+      (p) => p.toLowerCase().includes('kicad') && p.toLowerCase().endsWith('.sock'),
+    );
+    if (found) {
+      return found;
+    }
+  } catch {
+    /* pas de namespace pipe (Linux/macOS) */
+  }
+  return null;
 }
 
 function readKicadVersion(): string | null {
@@ -47,6 +72,12 @@ function readKicadVersion(): string | null {
 
 export async function detectKicadIpc(): Promise<KicadIpcInfo> {
   const socketPath = findKicadSocket();
+  console.log(
+    '[KICAD:ipc] socket path =',
+    socketPath,
+    'exists =',
+    socketPath ? socketExists(socketPath) : false,
+  );
   if (!socketPath) {
     return { available: false, socketPath: null, version: null };
   }
@@ -57,7 +88,7 @@ export async function detectKicadIpc(): Promise<KicadIpcInfo> {
 export async function getKicadProject(socketPath: string): Promise<KicadIpcProject | null> {
   // TODO V8-D-8-d : implémenter la lecture réelle via IPC (nécessite KiCad GUI ouvert)
   // Pour l'instant, retourne un projet mock si le socket existe
-  if (!existsSync(socketPath)) {
+  if (!socketExists(socketPath)) {
     return null;
   }
   return {
@@ -73,7 +104,7 @@ export async function updateKicadProject(
   project: KicadIpcProject,
 ): Promise<boolean> {
   // TODO V8-D-8-d : implémenter l'écriture réelle via IPC
-  if (!existsSync(socketPath)) {
+  if (!socketExists(socketPath)) {
     return false;
   }
   void project;

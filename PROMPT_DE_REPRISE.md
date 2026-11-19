@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.0
-**Date :** 2026-11-16
-**Commit HEAD :** `097d7e1` (Merge PR #109 — V8-D-7 PCB Design Studio close)
+**Version :** 8.6
+**Date :** 2026-11-18
+**Commit HEAD :** `e1f63db` (à amender après commit)
 **Branche :** master
-**Version en cours :** V8 close (V8-B-6 intégralement clôturée), V8-C-2a close, V8-D-4 close (avec dette), V8-D-5 / TÂCHE 1/2/3 closes, V8-D-7 PCB Design Studio close (a→g)
-**Dernière étape close :** V8-D-7 (PCB Design Studio — PRs #103 → #109, merge `097d7e1`)
-**Prochaine étape :** V8-D-8 (Intégration Tauri hybride + KiCad — IPC + CLI)
+**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri).
+**Dernière étape close :** V8-D-14 (Desktop Tauri) — preuves : KiCad GUI connecté (named pipe `%TEMP%\kicad\api.sock` détecté), dashboard admin accessible (auth réelle Postgres/Neon), healthcheck `/api/health` 200, installeurs `.exe` (NSIS) + `.msi` (fr-FR, en-US), logs JSON `partiva-desktop.log`.
+**Prochaine étape :** P6.3 (clôture `D-V8-D-4` si P6.1b validé) puis P7 (leçons L74→L87 + arbitrage prochaine étape code)
 
 ---
 
@@ -35,6 +35,8 @@
 3. Vérifier `git log --oneline -3` (HEAD).
 4. Émettre le prompt de la prochaine étape (§4).
 
+> **CLAUSE DE CLÔTURE** — cette régénération v8.6 est déclenchée par la validation coordinateur de V8-D-14. Elle ne déclenche AUCUNE autre étape.
+
 ---
 
 ## 1. Rôle de l'IA externe (résumé)
@@ -48,10 +50,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (avec dette) — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) |
-| **HEAD** | `097d7e1` (Merge PR #109, V8-D-7 PCB Design Studio) |
-| **Dernière étape close** | **V8-D-7** (PCB Design Studio — a→g) |
-| **Prochaine étape** | **V8-D-8** (Intégration Tauri hybride + KiCad — IPC + CLI) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** |
+| **HEAD** | `e1f63db` (à amender après commit) |
+| **Dernière étape close** | **V8-D-14** (Desktop Tauri) — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe), healthcheck 200, installeurs NSIS + MSI |
+| **Prochaine étape** | **P6.3** (clôture `D-V8-D-4` si P6.1b validé) puis **P7** (leçons L74→L87 + arbitrage prochaine étape code) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -66,7 +68,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
-| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer (4 couleurs) non fournie |
+| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer — **résolution partielle PR #128** (`621e1a4`) : overlay 4 couleurs + slider opacité + spec E2E ; zone de visualisation encore en placeholder, capture d'écran et logs `[OCCT:compare]` non fournis |
 | `D-PCB-CATALOG-SYNC` | Moyenne | Injection web → local unidirectionnelle |
 | `D-PCB-KICAD-IPC-GUI-DEPENDENCY` | Moyenne | L'IPC KiCad nécessite une instance GUI ouverte |
 | `D-PCB-KICAD-VERSION-DEPENDENCY` | Moyenne | `kicad-cli` requis sur le poste Tauri |
@@ -127,6 +129,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | (am) | Templates de circuits de référence |
 | (an) | BDD locale = catalogue + prix ajustables, injection web → local unidirectionnelle |
 | (ao) | Formulaire intelligent 7 blocs (questions conditionnelles, suggestions IA, détection incohérences) |
+| (ap-1) | Écart L56 toléré pour un fix ciblé §8 — fond vérifié (pas de BOM, accents intacts via `ReadAllBytes` + `Select-String`). Réf. FIX-DOC-REPRISE 2026-11-17. |
+| (ap-2) | Dépassement §8 assumé sur `ETAT_COURANT.md` (+48/−6) — tableau des 19 PR incompressible sans création de fichier non listé. Réf. FIX-DOC-REPRISE 2026-11-17. |
+| (ap-3) | `D-V8-D-4-COMPARE-VISUAL-VALIDATION` maintenue OUVERTE, requalifiée « résolution partielle — PR #128 » (overlay UI + slider ; rendu géométrique absent, pas de capture, pas de log `[OCCT:compare]`). Preuve : `git show 621e1a4`. Fermeture impossible sans preuve (charte §10). |
+| (ap-4) | Leçon L61 — en Mode R2, si le prompt unitaire et le READY sont reçus dans le même tour, l'IA interne signale l'écart dans l'accusé et poursuit. L60 reste attribuée (pas de backtick dans guillemets doubles). |
 
 ### 5 dernières sessions
 
@@ -136,7 +142,15 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | V8-D-5 / T3 | 2026-11-15 | Automatisation E2E panneaux rétractables (3 tests, viewport) | ✅ |
 | D-REGISTRE-ETAT-NETTOYAGE | 2026-11-15 | Nettoyage DETTES.md (triplon, entrées résolues, anomalie L13) | ✅ |
 | V8-D-7 (a→g) | 2026-11-16 | PCB Design Studio : modèle Prisma, formulaire, bibliothèque, AI Engine, checkpoints, UI | ✅ |
-| (à venir) | — | V8-D-8 (Intégration Tauri hybride + KiCad) | — |
+| FIX-DOC-REPRISE | 2026-11-17 | Mise à jour traçabilité post-`216ed3e` (HEAD, statut, §Écarts détectés, requalification D-V8-D-4) | ✅ |
+| FIX-DOC-DECISIONS-AP | 2026-11-17 | Solde S1 : (ap-1..ap-5) + L60/L61 dans `DECISIONS.md`, v8.2, clause de clôture | ✅ |
+| P1 → P3 | 2026-11-17 | Revert `playwright.config.ts` (300_000), dette `D-E2E-PREEXISTANT-FAILURES`, amendement + commit `e1f63db` du doc sidecar, requalification `D-V8-D-4` | ✅ |
+| P4 | 2026-11-17 | Leçons L62→L73 dans `DECISIONS.md` §7 + passage v8.3 + clause de clôture | ✅ |
+| P5.1a | 2026-11-17 | `DECISIONS.md` §14 (14 entrées V8-D-8 → V8-D-13) + `INDEX.md` (entrée P5) | ✅ |
+| P5.1b | 2026-11-17 | DETTES.md : `D-V8-D-8-E2E-NON-PROUVE` + recoupe D-V8-D-4 ; `PROMPT_DE_REPRISE.md` v8.4 | ✅ |
+| P6.1a-ii | 2026-11-17 | Rejeu `--project=pcb` : 62 passed / 1 skipped / 0 failed (388 s) | ✅ |
+| V8-D-14 | 2026-11-18 | Desktop Tauri fonctionnel (sidecar, auth réelle, PCB Studio, KiCad IPC, MSI/NSIS) | ✅ |
+| (à venir) | — | P6.3 : clôture `D-V8-D-4` ; P7 : leçons L74→L87 + arbitrage prochaine étape code | — |
 
 ---
 
@@ -146,9 +160,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**V8-D-8** : Intégration Tauri hybride + KiCad (IPC + CLI).
+**P6.3** : clôture de `D-V8-D-4` (si P6.1b — câblage `GlbViewer` — validé ; preuve E2E = run P6.1a-ii vert).
+Puis **P7** : leçons L74→L87 + arbitrage de la prochaine étape code.
 
-*(Options alternatives selon arbitrage : traitement dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-PCB-CATALOG-SYNC`, ou V8-D-9 mode automatique.)*
+*Options restant ouvertes après P6.3 : (a) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (b) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (c) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (d) `D-PCB-*` — dettes Basse. (V8-D-14 est close — l'option « nouvelle étape code V8-D-14 » n'a plus lieu d'être. Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
 
 ---
 

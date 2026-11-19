@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-16
-**HEAD actuel :** `097d7e1` (Merge PR #109 — V8-D-7 PCB Design Studio close)
-**Branche courante :** `master`
-**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close (avec dettes). V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 PCB Design Studio close (a→g, PRs #103 → #109).
+**Date de mise à jour :** 2026-11-18
+**HEAD actuel :** `e1f63db` (à amender après commit)
+**Branche courante :** `master` (= `origin/master` — vérifié par `git rev-parse`)
+**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON.
 
 ---
 
@@ -20,7 +20,7 @@
 | V7 | **CLOSE** — V7-A → V7-H validées (2026-11-10 → 2026-11-11) |
 | V8 | **CLOS** — V8-B-6 intégralement clôturée (PR #64 → #74) |
 | V8-C | **CLOSE** — V8-C-2a close (pipeline STEP/IGES + page détail) |
-| V8-D | **EN COURS** — V8-D-4 close (comparaison OCCT + layout flex, dettes), V8-D-5 / TÂCHE 1 close (panneaux rétractables, dette validation visuelle), V8-D-5 / TÂCHE 2 close (assistant IA, dettes) |
+| V8-D | **CLOSE** — V8-D-4 close (comparaison OCCT + layout flex ; correctif `621e1a4` PR #128 — dette validation visuelle **partiellement résolue**), V8-D-5 / TÂCHE 1 close (panneaux rétractables), V8-D-5 / TÂCHE 2 close (assistant IA), V8-D-7 close (PRs #103 → #109), V8-D-8-a → V8-D-13-b **livrés** (PRs #112 → #127), **V8-D-14 close (Desktop Tauri, 2026-11-18)** |
 
 ---
 
@@ -120,6 +120,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - PR #93 : ajustement ratio layout `1fr_2fr_1fr` (merge `e13629b`).
 - PR #94 : layout Workspace en flex `w-1/4 w-2/4 w-1/4` (merge `0edfb85` / commit `b2d85fe`) — layout validé visuellement (3 colonnes).
 - **Dette :** `D-V8-D-4-COMPARE-VISUAL-VALIDATION` (preuve visuelle 4 couleurs rouge/bleu/orange/vert + logs `[OCCT:compare]` non fournie). `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` (`public/models/cube-3mm.step`, `cube-3p5mm.step` non trackés).
+- **Correctif PR #128 (`621e1a4`, merge `216ed3e`) :** `VisualComparisonOverlay.tsx` (4 modes : Original / Après Revue / Après Sourcing / Prêt Export — bleu / vert / ambre / violet) + slider d'opacité + `e2e/pcb/visual-comparison.spec.ts` (3 tests). **Résolution partielle** : la zone de superposition reste un placeholder (pas de rendu géométrique), aucune capture d'écran ni log `[OCCT:compare]` n'est fourni, et l'exécution de la spec n'est pas prouvée. La dette reste active (cf. `DETTES.md`).
 
 ---
 
@@ -147,15 +148,49 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Écarts détectés (audit FIX-DOC-REPRISE, 2026-11-17)
+
+**Constat :** 19 merges séparent `097d7e1` (dernier HEAD tracé) de `216ed3e`. Un seul (#110) correspond à la clôture documentaire V8-D-7 ; **18 PR (#111 → #128) ne sont tracées dans aucun registre** (ni `ETAT_COURANT.md`, ni `DETTES.md`, ni `DECISIONS.md`, ni `INDEX.md`, ni `PROMPT_DE_REPRISE.md` v8.0).
+
+| PR | Merge | Objet (d'après message de commit) | Traçabilité |
+|---|---|---|---|
+| #110 | `d972891` | docs V8-D-7 clôture (5 fichiers) | ✅ tracée (`c66b234`) |
+| #111 | `9e503e9` | fix V8-D-7-i/j : formulaire appelle API + lien menu PCB Studio | ❌ |
+| #112 | `8f91d80` | feat V8-D-8-a : CLI Adapter `kicad-cli` (ERC, DRC, exports) | ❌ |
+| #113 | `d3c1f8e` | fix V8-D-7-l : `frontendDist` Tauri → build Next.js racine | ❌ |
+| #114 | `247a441` | feat V8-D-8-b : IPC Adapter (détection KiCad GUI, stubs) | ❌ |
+| #115 | `e59daad` | feat V8-D-8-c : IPC Adapter — détection version KiCad + tests | ❌ |
+| #116 | `08860cb` | feat V8-D-8-d : parsing ERC/DRC (lecture JSON kicad-cli) | ❌ |
+| #117 | `b4b0fec` | feat V8-D-8-e : UI statut KiCad + tableau de bord PCB Studio | ❌ |
+| #118 | `9e15f01` | feat V8-D-8-f : sourcing BOM (recherche, coût, alternatives) | ❌ |
+| #119 | `14416e6` | feat V8-D-8 : PCB Design Studio complet (design-review, autoroute, GLB viewer) | ❌ |
+| #120 | `292dd2d` | feat V8-D-10-a : sourcing engine + V8-D-9 mode auto | ❌ |
+| #121 | `525d3ad` | refactor V8-D-11-a : real state analysis + V8-D-10-b sourcing UI | ❌ |
+| #122 | `5aae7cd` | feat V8-D-11-b : PCB compliance panel UI (real-state violations) | ❌ |
+| #123 | `e3e61b8` | feat V8-D-11-c : intégration sourcing + compliance panels | ❌ |
+| #124 | `127556b` | feat V8-D-12-a : design review engine (règles + sévérité) | ❌ |
+| #125 | `23f4b82` | feat V8-D-12-b : design review panel UI | ❌ |
+| #126 | `0aee274` | feat V8-D-13-a : PCB export engine (BOM XLSX/CSV + Gerber ZIP) | ❌ |
+| #127 | `1d873bd` | feat V8-D-13-b : PCB export UI buttons | ❌ |
+| #128 | `216ed3e` | fix D-V8-D-4 : visual comparison overlay (4 couleurs + opacité) | ❌ |
+
+**Conséquence :** cet audit documentaire (FIX-DOC-REPRISE) corrige le HEAD et signale les écarts ; il **ne les résorbe pas**. La résorption (entrées `INDEX.md`, décisions `DECISIONS.md`, statut des sous-étapes V8-D-8 → V8-D-13-b) nécessite un arbitrage du coordinateur.
+
+---
+
 ## Dernière session
 
 - **SESSION-2026-11-15-V8-D-5** (clôturée avec dette) : Panneaux rétractables (WorkspaceContext + PanelLeft/PanelRight) — PR #97 mergée, validation visuelle en attente (dette tracée).
 - **SESSION-2026-11-15-V8-D-5-T2** (close avec dettes) : Assistant IA du workspace (squelette chat, MessageList, E2E) — PR #99 mergée (`b4fcc5f`).
+- **FIX-DOC-REPRISE** (2026-11-17) : refonte de la traçabilité documentaire sur HEAD `216ed3e` — `ETAT_COURANT.md` (HEAD, statut, §Écarts détectés), `DETTES.md` (requalification `D-V8-D-4-COMPARE-VISUAL-VALIDATION`), `INDEX.md`, `PROMPT_DE_REPRISE.md` v8.1.
+- **T3.1** (2026-11-17) : spec V8-D-14 rédigée — pont PCB ↔ desktop Tauri sous sidecar (10 bloquants B1→B10, arbitrage DB sidecar ouvert, 7 critères Done). `docs/v8-d14-pcb-desktop-spec.md`.
+- **T3.1-quater** (2026-11-17) : décision (ar) actée — desktop = **sidecar connecté** (Next.js + Postgres/Neon) pour PCB/IA, catalogue offline Rust/SQLite ; spec amendée ; dette `D-V8-D-14-DB-CONFIG-POST-INSTALL` créée.
+- **V8-D-14** (2026-11-18) : Desktop Tauri fonctionnel — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI. Preuves : `[proxy] session=OK(ADMIN)`, `POST /api/pcb/ipc {action:"detect"}` → `available:true`.
 
 ---
 
 ## Prochaine étape
 
-**V8-D-8** : Intégration Tauri hybride + KiCad (IPC + CLI).
+**P6.3** : clôture de `D-V8-D-4` (si P6.1b — câblage `GlbViewer` — validé ; preuve E2E = run P6.1a-ii vert). Puis **P7** : leçons L74→L87 + arbitrage de la prochaine étape code.
 
-*(Options alternatives selon arbitrage : traitement dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION`, `D-PCB-CATALOG-SYNC`, ou V8-D-9 mode automatique.)*
+*V8-D-14 close (Desktop Tauri). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
