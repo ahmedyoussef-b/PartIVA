@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.6
-**Date :** 2026-11-18
-**Commit HEAD :** `e1f63db` (à amender après commit)
+**Version :** 8.7
+**Date :** 2026-11-19
+**Commit HEAD :** `88fcaff` (Merge PR #129, 2026-11-19)
 **Branche :** master
 **Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri).
-**Dernière étape close :** V8-D-14 (Desktop Tauri) — preuves : KiCad GUI connecté (named pipe `%TEMP%\kicad\api.sock` détecté), dashboard admin accessible (auth réelle Postgres/Neon), healthcheck `/api/health` 200, installeurs `.exe` (NSIS) + `.msi` (fr-FR, en-US), logs JSON `partiva-desktop.log`.
-**Prochaine étape :** P6.3 (clôture `D-V8-D-4` si P6.1b validé) puis P7 (leçons L74→L87 + arbitrage prochaine étape code)
+**Dernière étape close :** V8-D-14 (Desktop Tauri) — preuves : KiCad GUI connecté (named pipe `%TEMP%\kicad\api.sock` détecté), dashboard admin accessible (auth réelle Postgres/Neon), healthcheck `/api/health` 200, installeurs `.exe` (NSIS) + `.msi` (fr-FR, en-US), logs JSON `partiva-desktop.log`. Merge PR #129 (`88fcaff`, 2026-11-19).
+**Prochaine étape :** P6.3 (clôture `D-V8-D-4` si P6.1b validé) puis P7 (leçons L80→L87 + création éventuelle L74→L79 + arbitrage prochaine étape code)
 
 ---
 
@@ -35,7 +35,7 @@
 3. Vérifier `git log --oneline -3` (HEAD).
 4. Émettre le prompt de la prochaine étape (§4).
 
-> **CLAUSE DE CLÔTURE** — cette régénération v8.6 est déclenchée par la validation coordinateur de V8-D-14. Elle ne déclenche AUCUNE autre étape.
+> **CLAUSE DE CLÔTURE** — cette régénération v8.7 est déclenchée par la validation coordinateur de V8-D-14 (merge PR #129, `88fcaff`). Elle ne déclenche AUCUNE autre étape.
 
 ---
 
@@ -51,9 +51,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** |
-| **HEAD** | `e1f63db` (à amender après commit) |
+| **HEAD** | `88fcaff` |
 | **Dernière étape close** | **V8-D-14** (Desktop Tauri) — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe), healthcheck 200, installeurs NSIS + MSI |
-| **Prochaine étape** | **P6.3** (clôture `D-V8-D-4` si P6.1b validé) puis **P7** (leçons L74→L87 + arbitrage prochaine étape code) |
+| **Prochaine étape** | **P6.3** (clôture `D-V8-D-4` si P6.1b validé) puis **P7** (leçons L80→L87 + création éventuelle L74→L79 + arbitrage prochaine étape code) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -63,6 +63,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-PROCEDURE-3-ACTEURS-INAPPLICABLE` | Haute | Procédure 3 acteurs → 2 acteurs (R2) |
 | `D-V8-B-1-C-FORM-ACTION-INLINE` | Haute | Formulaire `[id]/page.tsx` V8-B-1-c utilisait `action={inline}` rejeté par Next.js. Corrigé en V8-B-1-d (edit-form.tsx, PR #48). |
 | `D-E2E-BUTTON-RENAMED` | Haute | `workspace.spec.ts` et `groq.spec.ts` ciblent `/Analyser/i` alors que le bouton réel est `Reconstruire CAO` (`IngestZone.tsx:338-344`). Specs pré-existamment cassées. |
+| `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` | Haute | `public/models/cube-3mm.step` et `cube-3p5mm.step` non trackés (preuve `ETAT_COURANT.md` l.122, [5.4]) |
 | `D-ADMIN-TEST-COVERAGE` | Moyenne | Tests E2E admin — partiellement couverte (part-templates, PR #48). |
 | `D-V14-ADMIN-DOWNLOAD-AUTH-BLOCKED` | Moyenne | Route admin download bloquée par auth |
 | `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
@@ -85,6 +86,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-V8-D-5-USE-AI-CHAT-UNIFY` | Basse | Double implémentation chat (`handleSend` fetch direct vs `useAiChat`). |
 | `D-AI-MOCK-NON-CABLÉ` | Basse | Drapeau `AI_MOCK` non câblé en E2E ni en `.env.example`. |
 | `D-PCB-AUTOROUTER-ABSENT` | Basse | Pas d'autorouteur IPC natif ; Freerouting externe |
+
+*Note P6.3-a (2026-11-19) : `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` est référencée dans `ETAT_COURANT.md` l.122 mais absente du `PROMPT_DE_REPRISE.md` v8.6. Ajoutée ici pour cohérence (charte §4). Vérifier son portage effectif au registre `DETTES.md` — arbitrage coordinateur distinct.*
 
 ### Décisions clés
 
@@ -150,7 +153,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | P5.1b | 2026-11-17 | DETTES.md : `D-V8-D-8-E2E-NON-PROUVE` + recoupe D-V8-D-4 ; `PROMPT_DE_REPRISE.md` v8.4 | ✅ |
 | P6.1a-ii | 2026-11-17 | Rejeu `--project=pcb` : 62 passed / 1 skipped / 0 failed (388 s) | ✅ |
 | V8-D-14 | 2026-11-18 | Desktop Tauri fonctionnel (sidecar, auth réelle, PCB Studio, KiCad IPC, MSI/NSIS) | ✅ |
-| (à venir) | — | P6.3 : clôture `D-V8-D-4` ; P7 : leçons L74→L87 + arbitrage prochaine étape code | — |
+| V8-D-14 (merge) | 2026-11-19 | Merge PR #129 (`88fcaff`) — desktop Tauri + gouvernance v8.6 | ✅ |
+| (à venir) | — | P6.3 : clôture `D-V8-D-4` ; P7 : leçons L80→L87 + création éventuelle L74→L79 + arbitrage prochaine étape code | — |
 
 ---
 
@@ -161,7 +165,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 ## 4. Prochaine action attendue
 
 **P6.3** : clôture de `D-V8-D-4` (si P6.1b — câblage `GlbViewer` — validé ; preuve E2E = run P6.1a-ii vert).
-Puis **P7** : leçons L74→L87 + arbitrage de la prochaine étape code.
+Puis **P7** : leçons L80→L87 + création éventuelle L74→L79 + arbitrage de la prochaine étape code.
+
+*Note P6.3-a (2026-11-19) : les leçons L74→L79 sont ABSENTES de `DECISIONS.md` §7 (preuve [5.2] : séquence réelle L45→L73, L80→L87). Le périmètre P7 est corrigé en conséquence ; la création éventuelle de L74→L79 fera l'objet d'un arbitrage coordinateur distinct.*
 
 *Options restant ouvertes après P6.3 : (a) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (b) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (c) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (d) `D-PCB-*` — dettes Basse. (V8-D-14 est close — l'option « nouvelle étape code V8-D-14 » n'a plus lieu d'être. Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
 
@@ -201,3 +207,4 @@ Structure à mettre à jour :
 - **Preuves brutes** : obligatoires (L50/R9). Un rapport n'est pas une preuve.
 - **L59** : substituer tout placeholder `<hash>` / `<PR_NUMBER>` avant exécution.
 - **L60** : pas de backtick `` ` `` dans les chaînes à guillemets doubles — utiliser `[char]96`.
+- **L88** (à consigner en P7, proposition IA externe 2026-11-19) : `Select-String -Pattern '^## X'` sur `Get-Content -Raw` ne matche pas les débuts de ligne (mode `-Raw` = chaîne unique). Utiliser `Select-String -Path` (ligne par ligne) ou `(?m)^## X` (mode multiline). Preuve : Bloc 3 vs [5.1] de la session P6.3-a.
