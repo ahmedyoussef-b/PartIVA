@@ -1,7 +1,7 @@
 # INDEX DES SESSIONS — PartIVA
 
-**Dernière mise à jour :** 2026-11-18
-**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V7-C → V7-H (session V7H).
+**Dernière mise à jour :** 2026-11-19
+**Source :** Création E4-S1 ; synchronisation 2026-11-10 (session DOC-SYNC) ; ouverture V7 (session V7-OUVERTURE) ; clôture V7-B (session V7B) ; clôture V7-C → V7-H (session V7H) ; indexation P6.1a-ii → P6.3-c2 (2026-11-19).
 **Statut :** Index des sessions.
 
 ---
@@ -70,6 +70,10 @@
 | T3.1 | 2026-11-17 | Spec V8-D-14 : pont PCB ↔ desktop Tauri (sidecar) | Gouvernance | ✅ | `docs/v8-d14-pcb-desktop-spec.md` |
 | T3.1-quater | 2026-11-17 | Décision (h) sidecar connecté + amendement spec V8-D-14 | Gouvernance | ✅ | `DECISIONS.md` §13 (ar) |
 | V8-D-14 | 2026-11-18 | Desktop Tauri fonctionnel (sidecar, auth réelle, PCB Studio, KiCad IPC, MSI/NSIS) | Desktop, Auth, PCB, KiCad IPC | ✅ | `docs/v8-d14-pcb-desktop-spec.md` |
+| P6.1a-ii | 2026-11-17 | Rejeu E2E projet `pcb` (62 passed / 1 skipped) | PCB, E2E | ✅ | `DETTES.md` (Réf. P6.1a-ii) |
+| P6.3-b-2 | 2026-11-19 | Câblage GlbViewer multi-sources Niveau 1 (source a statique + d upload, logs `[GLB:viewer]`, fallback `cube-test.glb`) | CRUD RE, 3D | ✅ | commit `28198eb` |
+| P6.3-c1 | 2026-11-19 | Overlay Comparer SVG 4 couches + spec E2E geometric canvas | CRUD RE, E2E | ✅ | PR #131 (merge `b193259`, commit `7b5a7eb`) |
+| P6.3-c2 | 2026-11-19 | Fix Next.js 16.4.6 + anti-FOUC next-themes (`scriptProps`) | Gouvernance, Dépendances | ✅ | PR #130 (merge `40b3850`, commit `f71693c`) |
 
 ---
 
