@@ -83,8 +83,6 @@ function LayerMesh({
 
   useEffect(() => {
     let mounted = true;
-    setGeometry(null);
-    setError(null);
 
     async function load() {
       try {
