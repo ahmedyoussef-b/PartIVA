@@ -187,7 +187,7 @@
 
 ---
 
-## 7. Leçons (L45 → L73)
+## 7. Leçons (L45 → L87)
 
 - **L45** — `prettier --check` échoue souvent sur les fichiers modifiés par l'IA interne → toujours `prettier --write` avant commit.
 - **L46** — Les commits poussés après le merge d'une PR nécessitent une **nouvelle PR** (ne pas réutiliser la branche supprimée).
@@ -218,6 +218,12 @@
 - **L71** — `Get-Content "chemin/[projectId]/fichier"` échoue (crochets = wildcard) ; `-LiteralPath` obligatoire.
 - **L72** — `git show <commit>` ne prouve pas l'exécution des tests ; les artefacts `test-results/` sont la seule preuve (succès OU échec).
 - **L73** — `Select-String -SimpleMatch` ne matche pas les accents (`geometr` ≠ `géométrique`) ; doubler par lecture intégrale (L57 renforcée).
+- **L74** — Un grep de mot-clé anglais sur du code ou des commentaires français produit des faux négatifs. Toujours doubler la requête par le terme français ET sa forme sans accent (réf. L73).
+- **L75** — Ne jamais qualifier un mojibake de « bloquant » sur la seule sortie `Get-Content`. Trancher impérativement par `[System.IO.File]::ReadAllBytes` + `UTF8.GetString`. Citer une leçon ne suffit pas à l'appliquer.
+- **L76** — Vérifier la surface réelle d'une applet PowerShell 5.1 par `Get-Command <applet> -Syntax` avant émission. `Format-Hex` n'a pas de paramètre `-Count` en 5.1.
+- **L77** — Toujours préfixer `git diff` / `git log` / `git show` par `--no-pager` dans les blocs non interactifs, sinon la preuve est tronquée au premier écran (violation R9).
+- **L78** — Un rapport d'agent intercalé dans une sortie brute n'est pas une preuve. S'il contredit les commandes réellement exécutées, il doit être écarté intégralement.
+- **L79** — Ne jamais publier ou afficher une commande annulée ou erronée dans un prompt ; ne fournir que la version conforme (L60) pour éviter toute confusion d'exécution.
 - **L80** — Vérifier la surface du crate installé (`~/.cargo/registry/src/<index>/<crate>-<version>/src/`) avant d'écrire du code : l'API core de Tauri 2.12.3 n'expose **aucun** sidecar (`process.rs` = `current_binary` + `restart` uniquement) ; le spawn passe par `tauri-plugin-shell` (`ShellExt::sidecar`).
 - **L81** — Sur Windows, normaliser les chemins Tauri (`resource_dir()` renvoie un chemin verbatim `\\?\F:\…`) **avant** de les passer à un process enfant : Node échoue sinon en `EISDIR: lstat 'F:'`. Utiliser un helper de suppression du préfixe `\\?\`.
 - **L82** — Pour une app GUI (windows subsystem), `log::info!` sur stdout est invisible : lancer l'exe via `Start-Process -RedirectStandardOutput/-RedirectStandardError` pour toute preuve de log ; `tauri-plugin-log` y écrit (niveau INFO inclus).

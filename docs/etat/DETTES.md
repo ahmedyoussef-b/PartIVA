@@ -1,6 +1,6 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-11-17
+**Dernière mise à jour :** 2026-11-19
 **Source :** `PROMPT DE PASSATION — Superviseur IA Externe — v12` §3 (2026-11-10)
 **Statut :** Registre actif — dettes non résolues uniquement (charte §10).
 
@@ -68,7 +68,7 @@
 
 ### `D-V8-D-4-COMPARE-VISUAL-VALIDATION` — Validation visuelle du mode Comparer non effectuée
 
-- **Statut :** Active — **résolution partielle (PR #128, `621e1a4`)**
+- **Statut :** Active — **résolution partielle v2 (PR #128, `621e1a4` ; PR #131, `7b5a7eb`)**
 - **Cause :** Les correctifs FitCamera (PR #92), OcctCompareTool (PR #91) et layout flex (PR #94) sont mergés, mais la preuve visuelle des 4 couleurs (rouge, bleu, orange, vert) n'a pas été fournie.
 - **Fait nouveau (P3, 2026-11-17) :** les 3 tests E2E de la PR #128 (`e2e/pcb/visual-comparison.spec.ts`) **ont été exécutés et ont échoué** (artefacts `test-results/pcb-visual-comparison-*`, horodatés 2026-11-17 19:21). Cause racine : redirection auth (page « Connexion » au lieu du composant), `storageState: .auth/admin.json` absent/périmé au moment du run ; `.auth/*.json` régénérés à 19:32 **après** les échecs, specs **non rejouées** depuis. **Succès non prouvé à ce jour.** Recoupe `D-E2E-PREEXISTANT-FAILURES` (même famille de cause : harness/auth), sans fusion (critères de résolution distincts).
 - **Recoupe (P5.1b) :** `D-V8-D-8-E2E-NON-PROUVE` (même harness auth ; 26/27 specs PCB sans preuve).
@@ -79,7 +79,8 @@
 - **Bloquant :** Non.
 - **Condition de résolution :** Exécuter le protocole manuel (upload cube-3mm + cube-3p5mm, clic Comparer, vérification 4 couleurs, capture d'écran) **et** prouver l'exécution de `e2e/pcb/visual-comparison.spec.ts`. La preuve doit être jointe à l'accusé (charte §10 : une déclaration de réussite non vérifiée ne suffit pas).
 - **Précision (P3) :** le run E2E doit être **vert** (pas seulement exécuté) ; les artefacts `test-results/` doivent être absents ou vides pour cette spec ; une capture d'écran du rendu géométrique (4 couleurs superposées) doit être jointe à l'accusé.
-- **Réf. :** P3-ETAT-LIEUX-D-V8-D-4 (2026-11-17) ; PR #128 (`621e1a4`).
+- **Fait nouveau (P6.3-c1, 2026-11-19) :** le rendu est désormais un **SVG géométrique** (4 couches, slider d'opacité) et non plus un placeholder — la superposition est calculée (cannevas géométrique). Il s'agit toutefois d'une représentation **schématique indépendante des données CAO réelles**. Preuve visuelle E2E ajoutée (`e2e/pcb/visual-comparison.spec.ts`, test « geometric canvas »), mais les logs runtime `[OCCT:compare]` restent **absents en mode Desktop**.
+- **Réf. :** P3-ETAT-LIEUX-D-V8-D-4 (2026-11-17) ; PR #128 (`621e1a4`) ; PR #131 (`7b5a7eb`, P6.3-c1).
 
 ---
 
@@ -117,6 +118,36 @@
 - **Bloquant :** Non pour la gate CI (`e2e` = `workflow_dispatch`) ; Oui pour toute preuve de non-régression PCB.
 - **Condition de résolution :** run complet vert (530/530, durée mesurée) avec artefacts `test-results/` vides ou absents pour chaque spec `e2e/pcb/`. Recoupe `D-E2E-PREEXISTANT-FAILURES` (même famille de cause : harness/auth), sans fusion (périmètres distincts : `e2e/pcb/` vs `e2e/`).
 - **Réf. :** P5-ETAT-LIEUX-CARTOGRAPHIE (2026-11-17) ; P5.1a (`DECISIONS.md` §14).
+
+---
+
+### `D-SESSIONS-P1-P6-NON-INDEXEES` — Sessions historiques absentes de l'index
+
+- **Statut :** Active
+- **Description :** Les sessions P1 à P6 (incluant V8-D-14) ne sont pas tracées dans `docs/sessions/INDEX.md`, violant la charte §7.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Ajout des entrées manquantes dans l'index.
+
+---
+
+### `D-PREUVES-NON-PERSISTEES` — Artefacts de preuve volatils
+
+- **Statut :** Active
+- **Description :** Les captures d'écran et logs runtime (`partiva-desktop.log`) sont produits dans `%TEMP%` et ne sont pas persistés dans le dépôt. Aucune preuve rejouable pour les tests E2E visuels.
+- **Effort estimé :** Moyen.
+- **Bloquant :** Non.
+- **Condition de résolution :** Mécanisme de capture automatique dans `test-results/` ou persistance des logs dans le repo.
+
+---
+
+### `D-CLOUDINARY-KEY-LOGGED` — Fuite d'API Key dans les logs de build
+
+- **Statut :** Active
+- **Description :** L'API Key Cloudinary (`api_key: '844862'`) est imprimée en clair dans les logs de build Next.js (`[CLOUDINARY-CONFIG-FINAL]`).
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Suppression du `console.log` ou masquage des credentials.
 
 ---
 
@@ -421,6 +452,16 @@
 - **Statut :** Résolue
 - **Cause :** `output: 'standalone'` ne copie pas `.next/static` ; une installation périmée/mélangée (server.js récent + chunks旧) provoquait un `ChunkLoadError` (404 sur chunk).
 - **Résolution (T4.2/T5.0, 2026-11-18) :** `build-server.cjs` copie `.next/static` et **vérifie** la présence des chunks (throw si vide) ; rebuild propre + réinstallation. Preuve : 95 chunks servis (HTTP 200).
+
+---
+
+### `D-NEXT-IMAGES-DOMAINS-DEPRECATED` — Dépréciation `images.domains`
+
+- **Statut :** Active
+- **Description :** Warning Next.js demandant de migrer vers `images.remotePatterns` dans `next.config.mjs`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** Mise à jour de la configuration Next.js.
 
 ---
 

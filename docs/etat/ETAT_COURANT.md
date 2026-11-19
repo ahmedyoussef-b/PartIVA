@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-18
-**HEAD actuel :** `e1f63db` (à amender après commit)
+**Date de mise à jour :** 2026-11-19
+**HEAD actuel :** `b193259` (merge PR #131)
 **Branche courante :** `master` (= `origin/master` — vérifié par `git rev-parse`)
-**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON.
+**Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
 ---
 
@@ -120,7 +120,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - PR #93 : ajustement ratio layout `1fr_2fr_1fr` (merge `e13629b`).
 - PR #94 : layout Workspace en flex `w-1/4 w-2/4 w-1/4` (merge `0edfb85` / commit `b2d85fe`) — layout validé visuellement (3 colonnes).
 - **Dette :** `D-V8-D-4-COMPARE-VISUAL-VALIDATION` (preuve visuelle 4 couleurs rouge/bleu/orange/vert + logs `[OCCT:compare]` non fournie). `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` : **résolue** — fixtures `public/models/cube-3mm.step` et `cube-3p5mm.step` trackées depuis `85ec27f` (PR #99, `git ls-files` confirmé le 2026-11-19). Aucune action requise.
-- **Correctif PR #128 (`621e1a4`, merge `216ed3e`) :** `VisualComparisonOverlay.tsx` (4 modes : Original / Après Revue / Après Sourcing / Prêt Export — bleu / vert / ambre / violet) + slider d'opacité + `e2e/pcb/visual-comparison.spec.ts` (3 tests). **Résolution partielle** : la zone de superposition reste un placeholder (pas de rendu géométrique), aucune capture d'écran ni log `[OCCT:compare]` n'est fourni, et l'exécution de la spec n'est pas prouvée. La dette reste active (cf. `DETTES.md`).
+- **Correctif PR #128 (`621e1a4`, merge `216ed3e`) :** `VisualComparisonOverlay.tsx` (4 modes : Original / Après Revue / Après Sourcing / Prêt Export — bleu / vert / ambre / violet) + slider d'opacité + `e2e/pcb/visual-comparison.spec.ts` (3 tests). **Résolution partielle v2 (P6.3-c1, PR #131, `7b5a7eb`)** : le rendu est désormais un **SVG géométrique** (4 couches, slider d'opacité) et non plus un placeholder ; une preuve visuelle E2E a été ajoutée (spec « geometric canvas », `e2e/pcb/visual-comparison.spec.ts`). Limites subsistantes : représentation **schématique indépendante des données CAO réelles**, logs `[OCCT:compare]` toujours absents en mode Desktop. La dette reste active (cf. `DETTES.md`).
 
 ---
 
@@ -186,11 +186,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - **T3.1** (2026-11-17) : spec V8-D-14 rédigée — pont PCB ↔ desktop Tauri sous sidecar (10 bloquants B1→B10, arbitrage DB sidecar ouvert, 7 critères Done). `docs/v8-d14-pcb-desktop-spec.md`.
 - **T3.1-quater** (2026-11-17) : décision (ar) actée — desktop = **sidecar connecté** (Next.js + Postgres/Neon) pour PCB/IA, catalogue offline Rust/SQLite ; spec amendée ; dette `D-V8-D-14-DB-CONFIG-POST-INSTALL` créée.
 - **V8-D-14** (2026-11-18) : Desktop Tauri fonctionnel — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI. Preuves : `[proxy] session=OK(ADMIN)`, `POST /api/pcb/ipc {action:"detect"}` → `available:true`.
+- **P6.3-b-2** (2026-11-19) : câblage GlbViewer multi-sources Niveau 1 (source a statique + d upload, logs `[GLB:viewer]`, fallback `cube-test.glb`) — commit `28198eb`.
+- **P6.3-c1** (2026-11-19) : overlay Comparer SVG 4 couches + spec E2E geometric canvas — PR #131 (merge `b193259`, commit `7b5a7eb`).
+- **P6.3-c2** (2026-11-19) : fix Next.js 16.4.6 + anti-FOUC next-themes (`scriptProps`) — PR #130 (merge `40b3850`, commit `f71693c`).
+- **Dettes (P6.3, 2026-11-19) :** `D-SESSIONS-P1-P6-NON-INDEXEES` (Moyenne), `D-PREUVES-NON-PERSISTEES` (Moyenne), `D-CLOUDINARY-KEY-LOGGED` (Moyenne), `D-NEXT-IMAGES-DOMAINS-DEPRECATED` (Basse). `D-V8-D-4-COMPARE-VISUAL-VALIDATION` : **résolution partielle v2** (PR #131, `7b5a7eb`).
 
 ---
 
 ## Prochaine étape
 
-**P6.3** : clôture de `D-V8-D-4` (si P6.1b — câblage `GlbViewer` — validé ; preuve E2E = run P6.1a-ii vert). Puis **P7** : leçons L74→L87 + arbitrage de la prochaine étape code.
+**P7** : leçons L74→L79 désormais actées (`DECISIONS.md` §7 = L45→L87) ; prochaine étape = **arbitrage de la prochaine étape code**. La clôture de `D-V8-D-4-COMPARE-VISUAL-VALIDATION` reste conditionnée à une preuve visuelle (capture + logs `[OCCT:compare]`).
 
 *V8-D-14 close (Desktop Tauri). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
