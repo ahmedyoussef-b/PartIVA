@@ -18,7 +18,11 @@
            redirection vers le sidecar. */
         background: transparent;
         color: #f8fafc;
-        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
         text-align: center;
       }
       /* Placeholder invisible (évite le flash) ; l'écran d'erreur Rust
@@ -47,7 +51,7 @@
     <script>
       // T4.2 (V8-D-14) — désenregistrer tout Service Worker au chargement
       // (évite qu'un ancien SW/cache serve des chunks obsolètes → ChunkLoadError).
-      if ("serviceWorker" in navigator) {
+      if ('serviceWorker' in navigator) {
         navigator.serviceWorker
           .getRegistrations()
           .then(function (regs) {
@@ -58,10 +62,9 @@
           .catch(function () {});
       }
       window.setTimeout(function () {
-        var el = document.getElementById("status");
+        var el = document.getElementById('status');
         if (el) {
-          el.textContent =
-            "Le serveur local n'a pas répondu. Fermez puis relancez l'application.";
+          el.textContent = "Le serveur local n'a pas répondu. Fermez puis relancez l'application.";
         }
       }, 30000);
     </script>

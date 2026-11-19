@@ -69,9 +69,7 @@ export async function proxy(request: NextRequest) {
       .map((c) => c.name)
       .join(',');
     console.log(
-      `[proxy] ${pathname} cookies=[${names}] session=${
-        session ? `OK(${role ?? '?'})` : 'NULL'
-      }`,
+      `[proxy] ${pathname} cookies=[${names}] session=${session ? `OK(${role ?? '?'})` : 'NULL'}`,
     );
   } catch {
     /* diagnostic best-effort */

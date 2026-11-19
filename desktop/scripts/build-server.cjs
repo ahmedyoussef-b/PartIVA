@@ -127,7 +127,6 @@ if (fs.existsSync(serverJsPath)) {
   console.error('Warning: server.js not found in', serverDir);
 }
 
-
 // Step 5: Copy Node.js executable to binaries with target triple suffix
 console.log('Copying Node.js executable...');
 fs.mkdirSync(binariesDir, { recursive: true });

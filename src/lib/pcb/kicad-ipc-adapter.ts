@@ -33,9 +33,7 @@ function socketExists(socketPath: string): boolean {
   }
   try {
     const pipes = readdirSync(PIPE_PREFIX);
-    return pipes.some(
-      (p) => p === socketPath || p.toLowerCase() === socketPath.toLowerCase(),
-    );
+    return pipes.some((p) => p === socketPath || p.toLowerCase() === socketPath.toLowerCase());
   } catch {
     return false;
   }
