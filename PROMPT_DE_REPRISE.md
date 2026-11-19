@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.10
+**Version :** 8.11
 **Date :** 2026-11-19
-**Commit HEAD :** `61c7471` (Merge PR #135, 2026-11-19)
+**Commit HEAD :** `20332f6` (Merge PR #137, 2026-11-19)
 **Branche :** master
-**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 close (Next 16.4.6 + overlay Comparer SVG), P7 close (fix Cloudinary + Next images + roadmap), P8 close (câblage OCCT).
-**Dernière étape close :** P8 (câblage OCCT dans `VisualComparisonOverlay` — Canvas Three.js + fallback SVG + `docs/roadmap/P8_STATUS.md`) — PR #135 (merge `61c7471`).
-**Prochaine étape :** P9 — Branchement des données CAO (`layers`) dans la page projet (cf. `docs/roadmap/P8_STATUS.md` §4)
+**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 close (Next 16.4.6 + overlay Comparer SVG), P7 close (fix Cloudinary + Next images + roadmap), P8 close (câblage OCCT), P9 close (branchement défensif données CAO).
+**Dernière étape close :** P9 (branchement défensif des données CAO dans la page projet — `layers` + `docs/roadmap/P9_STATUS.md`) — PR #137 (merge `20332f6`).
+**Prochaine étape :** P10 — Migration Prisma (`cadFileUrl`) + activation du rendu CAO (cf. `docs/roadmap/P9_STATUS.md` §4)
 
 ---
 
@@ -35,7 +35,7 @@
 3. Vérifier `git log --oneline -3` (HEAD).
 4. Émettre le prompt de la prochaine étape (§4).
 
-> **CLAUSE DE CLÔTURE** — cette régénération v8.10 est déclenchée par la validation coordinateur de P8 (merge PR #135, `61c7471`). Elle ne déclenche AUCUNE autre étape.
+> **CLAUSE DE CLÔTURE** — cette régénération v8.11 est déclenchée par la validation coordinateur de P9 (merge PR #137, `20332f6`). Elle ne déclenche AUCUNE autre étape.
 
 ---
 
@@ -50,10 +50,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** — **P6.3 close (2026-11-19)** — **P7 close (2026-11-19)** — **P8 close (2026-11-19)** |
-| **HEAD** | `61c7471` |
-| **Dernière étape close** | **P8** (câblage OCCT `VisualComparisonOverlay`, PR #135) — préc. P7 (fix Cloudinary + Next images, PR #133) |
-| **Prochaine étape** | **P9** — Branchement des données CAO (`layers`) dans la page projet (cf. `docs/roadmap/P8_STATUS.md` §4) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** — **P6.3 close (2026-11-19)** — **P7 close (2026-11-19)** — **P8 close (2026-11-19)** — **P9 close (2026-11-19)** |
+| **HEAD** | `20332f6` |
+| **Dernière étape close** | **P9** (branchement défensif données CAO, PR #137) — préc. P8 (câblage OCCT, PR #135) |
+| **Prochaine étape** | **P10** — Migration Prisma (`cadFileUrl`) + activation du rendu CAO (cf. `docs/roadmap/P9_STATUS.md` §4) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -68,7 +68,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
-| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer — **composant prêt** : rendu CAO réel implémenté via Three.js/OCCT (`Canvas` + `importCadFile`/`tessellateShape`), repli SVG conservé (PR #135 `61c7471`). **En attente de branchement des données** depuis la page projet (`layers`). Réf. `docs/roadmap/P8_STATUS.md`. |
+| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer — **composant câblé à la page projet** : rendu CAO réel implémenté (Three.js/OCCT) et prop `layers` alimentée depuis `page.tsx` (PR #137 `20332f6`) ; repli SVG conservé. **Activation réelle en attente de la migration Prisma** (ajout `cadFileUrl`). Réf. `docs/roadmap/P9_STATUS.md`. |
 | `D-PCB-CATALOG-SYNC` | Moyenne | Injection web → local unidirectionnelle |
 | `D-PCB-KICAD-IPC-GUI-DEPENDENCY` | Moyenne | L'IPC KiCad nécessite une instance GUI ouverte |
 | `D-PCB-KICAD-VERSION-DEPENDENCY` | Moyenne | `kicad-cli` requis sur le poste Tauri |
@@ -160,6 +160,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | P6.3-c2 | 2026-11-19 | Fix Next.js 16.4.6 + anti-FOUC next-themes — PR #130 (`40b3850`) | ✅ |
 | P7 | 2026-11-19 | Fix Cloudinary (logs) + migration `images.remotePatterns` + Roadmap P7 (D-V8-D-4) — PR #133 (`262a788`) | ✅ |
 | P8 | 2026-11-19 | Câblage OCCT dans `VisualComparisonOverlay` (Canvas Three.js + fallback SVG) + `P8_STATUS.md` — PR #135 (`61c7471`) | ✅ |
+| P9 | 2026-11-19 | Branchement défensif des données CAO (`layers`) dans la page projet + `P9_STATUS.md` — PR #137 (`20332f6`) | ✅ |
 
 ---
 
@@ -169,11 +170,11 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**P9** : branchement des données CAO (`layers`) dans la page projet — alimenter `VisualComparisonOverlay` avec les fichiers STEP/IGES réels du projet PCB. Prérequis : vérifier le schéma Prisma `pcbProject` (persistance / URLs des fichiers CAO). Réf. `docs/roadmap/P8_STATUS.md` §4.
+**P10** : migration Prisma — ajouter `cadFileUrl` / `cadFileName` à `PcbProject`, générer le client (`prisma generate`), appliquer la migration, puis retirer le cast défensif `as ProjectWithOptionalCad` dans la page projet. Activation effective du rendu CAO réel. Réf. `docs/roadmap/P9_STATUS.md` §4.
 
-*Note v8.10 (2026-11-19) : P8 close (PR #135, `61c7471`) — câblage OCCT implémenté (`Canvas` Three.js + repli SVG). `D-V8-D-4-COMPARE-VISUAL-VALIDATION` mise à jour : composant prêt, rendu CAO réel implémenté ; en attente de branchement des données.*
+*Note v8.11 (2026-11-19) : P9 close (PR #137, `20332f6`) — branchement défensif réalisé ; `layers` alimenté depuis la page projet, activation automatique dès que le champ `cadFileUrl` existera. `D-V8-D-4-COMPARE-VISUAL-VALIDATION` mise à jour : composant câblé, en attente de migration Prisma.*
 
-*Options restant ouvertes : (a) P9 — branchement des données CAO dans la page projet (prochaine étape code actée) ; (b) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (c) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (d) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (e) `D-PCB-*` — dettes Basse. (Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
+*Options restant ouvertes : (a) P10 — migration Prisma `cadFileUrl` + activation du rendu CAO (prochaine étape code actée) ; (b) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (c) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (d) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (e) `D-PCB-*` — dettes Basse. (Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
 
 ---
 
