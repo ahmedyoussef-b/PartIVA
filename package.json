@@ -56,7 +56,7 @@
     "libcascade": "^3.1.0",
     "lucide-react": "^0.475.0",
     "manifold-3d": "^3.5.4",
-    "next": "^16.4.1",
+    "next": "^16.4.6",
     "next-cloudinary": "^6.19.3",
     "next-themes": "^0.4.6",
     "nodemailer": "^10.3.1",
