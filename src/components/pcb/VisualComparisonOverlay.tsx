@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type ComparisonMode = 'original' | 'reviewed' | 'sourced' | 'exported';
 
@@ -38,11 +38,30 @@ const MODE_CONFIG: Record<
   },
 };
 
-export default function VisualComparisonOverlay({ projectId }: VisualComparisonOverlayProps) {
-  void projectId; // Lint fix (A4)
+const MODE_ORDER: ComparisonMode[] = ['original', 'reviewed', 'sourced', 'exported'];
 
+const PLATE = {
+  cx: 100,
+  halfWidth: 70,
+  halfHeight: 24,
+  thickness: 9,
+  baseY: 150,
+  step: 30,
+};
+
+export default function VisualComparisonOverlay({ projectId }: VisualComparisonOverlayProps) {
   const [activeModes, setActiveModes] = useState<Set<ComparisonMode>>(new Set(['original']));
   const [opacity, setOpacity] = useState(0.7);
+
+  useEffect(() => {
+    console.log('[OCCT:compare] VisualComparisonOverlay état', {
+      projectId,
+      activeModes: [...activeModes],
+      opacity,
+    });
+  }, [projectId, activeModes, opacity]);
+
+  const activeList = MODE_ORDER.filter((mode) => activeModes.has(mode));
 
   const toggleMode = (mode: ComparisonMode) => {
     setActiveModes((prev) => {
@@ -102,27 +121,61 @@ export default function VisualComparisonOverlay({ projectId }: VisualComparisonO
         <span className="w-8 text-[10px] text-gray-500">{Math.round(opacity * 100)}%</span>
       </div>
 
-      {/* Zone de visualisation (placeholder) */}
-      <div className="relative flex min-h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-        <p className="mb-2 text-sm text-gray-500">Zone de superposition visuelle</p>
+      {/* Rendu géométrique : plaques isométriques superposées */}
+      <div
+        data-testid="visual-comparison-canvas"
+        className="relative flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-gray-300 bg-gray-50 p-4"
+      >
+        {activeList.length > 0 ? (
+          <svg
+            viewBox="0 0 200 180"
+            className="h-[180px] w-full max-w-[280px]"
+            role="img"
+            aria-label="Superposition géométrique des couches actives"
+          >
+            {activeList.map((mode, index) => {
+              const config = MODE_CONFIG[mode];
+              const cy = PLATE.baseY - index * PLATE.step;
+              const top = `${PLATE.cx},${cy - PLATE.halfHeight}`;
+              const right = `${PLATE.cx + PLATE.halfWidth},${cy}`;
+              const bottom = `${PLATE.cx},${cy + PLATE.halfHeight}`;
+              const left = `${PLATE.cx - PLATE.halfWidth},${cy}`;
+              const bottomLow = `${PLATE.cx},${cy + PLATE.halfHeight + PLATE.thickness}`;
+              const rightLow = `${PLATE.cx + PLATE.halfWidth},${cy + PLATE.thickness}`;
+              const leftLow = `${PLATE.cx - PLATE.halfWidth},${cy + PLATE.thickness}`;
+              return (
+                <g key={mode}>
+                  <polygon
+                    points={`${left} ${bottom} ${bottomLow} ${leftLow}`}
+                    fill={config.color}
+                    fillOpacity={opacity * 0.75}
+                    stroke={config.color}
+                    strokeWidth={1}
+                  />
+                  <polygon
+                    points={`${bottom} ${right} ${rightLow} ${bottomLow}`}
+                    fill={config.color}
+                    fillOpacity={opacity * 0.6}
+                    stroke={config.color}
+                    strokeWidth={1}
+                  />
+                  <polygon
+                    points={`${top} ${right} ${bottom} ${left}`}
+                    fill={config.color}
+                    fillOpacity={opacity}
+                    stroke={config.color}
+                    strokeWidth={1.5}
+                  />
+                </g>
+              );
+            })}
+          </svg>
+        ) : null}
         <p className="text-[10px] text-gray-400">
           {activeModes.size === 0
             ? 'Sélectionnez au moins un mode'
             : `${activeModes.size} couche(s) active(s)`}
         </p>
-
-        {/* Indicateurs visuels des couches actives */}
-        <div className="mt-4 flex gap-2">
-          {[...activeModes].map((mode) => (
-            <div
-              key={mode}
-              className="flex h-8 w-8 items-center justify-center rounded text-[10px] font-bold text-white shadow-sm"
-              style={{ backgroundColor: MODE_CONFIG[mode].color, opacity }}
-            >
-              {MODE_CONFIG[mode].label[0]}
-            </div>
-          ))}
-        </div>
       </div>
 
       <p className="text-[10px] text-gray-400 italic">
