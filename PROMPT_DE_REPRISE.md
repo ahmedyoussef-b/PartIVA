@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.8
+**Version :** 8.9
 **Date :** 2026-11-19
-**Commit HEAD :** `b193259` (Merge PR #131, 2026-11-19)
+**Commit HEAD :** `262a788` (Merge PR #133, 2026-11-19)
 **Branche :** master
-**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 close (Next 16.4.6 + overlay Comparer SVG).
-**Dernière étape close :** P6.3-c2 (fix Next.js 16.4.6 + anti-FOUC next-themes `scriptProps`) — PR #130 (merge `40b3850`, commit `f71693c`) ; P6.3-c1 (overlay Comparer SVG 4 couches + spec E2E geometric canvas) — PR #131 (merge `b193259`, commit `7b5a7eb`).
-**Prochaine étape :** P7 (leçons L74→L79 actées — `DECISIONS.md` §7 = L45→L87 — + arbitrage de la prochaine étape code)
+**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 close (Next 16.4.6 + overlay Comparer SVG), P7 close (fix Cloudinary + Next images + roadmap).
+**Dernière étape close :** P7 (fix `[CLOUDINARY-CONFIG-FINAL]` + migration `images.domains`→`remotePatterns` + `docs/roadmap/P7_ROADMAP.md`) — PR #133 (merge `262a788`, commit `727e327`).
+**Prochaine étape :** P8 — Câblage OCCT dans `VisualComparisonOverlay` (cf. `docs/roadmap/P7_ROADMAP.md` §4)
 
 ---
 
@@ -35,7 +35,7 @@
 3. Vérifier `git log --oneline -3` (HEAD).
 4. Émettre le prompt de la prochaine étape (§4).
 
-> **CLAUSE DE CLÔTURE** — cette régénération v8.8 est déclenchée par la validation coordinateur de P6.3-c2 (merge PR #130, `40b3850`) et P6.3-c1 (merge PR #131, `b193259`). Elle ne déclenche AUCUNE autre étape.
+> **CLAUSE DE CLÔTURE** — cette régénération v8.9 est déclenchée par la validation coordinateur de P7 (merge PR #133, `262a788`). Elle ne déclenche AUCUNE autre étape.
 
 ---
 
@@ -50,10 +50,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** — **P6.3 close (2026-11-19)** |
-| **HEAD** | `b193259` |
-| **Dernière étape close** | **P6.3-c2** (Next 16.4.6 + anti-FOUC next-themes, PR #130) — préc. P6.3-c1 (overlay Comparer SVG, PR #131) |
-| **Prochaine étape** | **P7** (leçons L74→L79 actées — §7 = L45→L87 — + arbitrage de la prochaine étape code) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** — **P6.3 close (2026-11-19)** — **P7 close (2026-11-19)** |
+| **HEAD** | `262a788` |
+| **Dernière étape close** | **P7** (fix Cloudinary + Next images + roadmap, PR #133) — préc. P6.3-c2 (Next 16.4.6, PR #130) |
+| **Prochaine étape** | **P8** — Câblage OCCT dans `VisualComparisonOverlay` (cf. `docs/roadmap/P7_ROADMAP.md` §4) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -68,13 +68,12 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-TRACEPARTS-CREDENTIALS` | Moyenne | Credentials réels |
 | `D-MIGRATION-CHECKSUM-MANUAL` | Moyenne | Doc (non bloquant) |
 | `D-V8-B-0-JSON-FIELDS` | Moyenne | `dimensions`/`cadParams`/`analysisData` exclus de V8-B-0 (D2b) |
-| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer — **résolution partielle v2** (PR #128 `621e1a4` + PR #131 `7b5a7eb`) : rendu **SVG géométrique** 4 couches + slider opacité + spec E2E « geometric canvas » ; reste schématique (indépendant des données CAO réelles), logs `[OCCT:compare]` absents en Desktop |
+| `D-V8-D-4-COMPARE-VISUAL-VALIDATION` | Moyenne | Validation visuelle mode Comparer — **résolution partielle v2** (PR #128 `621e1a4` + PR #131 `7b5a7eb`) : rendu **SVG géométrique** 4 couches + slider opacité + spec E2E « geometric canvas » ; reste schématique (indépendant des données CAO réelles), logs `[OCCT:compare]` absents en Desktop. **Plan de résolution : `docs/roadmap/P7_ROADMAP.md` §4 (câblage OCCT = P8).** |
 | `D-PCB-CATALOG-SYNC` | Moyenne | Injection web → local unidirectionnelle |
 | `D-PCB-KICAD-IPC-GUI-DEPENDENCY` | Moyenne | L'IPC KiCad nécessite une instance GUI ouverte |
 | `D-PCB-KICAD-VERSION-DEPENDENCY` | Moyenne | `kicad-cli` requis sur le poste Tauri |
 | `D-SESSIONS-P1-P6-NON-INDEXEES` | Moyenne | Sessions P1→P6 (incl. V8-D-14) non indexées dans `docs/sessions/INDEX.md` |
 | `D-PREUVES-NON-PERSISTEES` | Moyenne | Captures et logs runtime (`partiva-desktop.log`) dans `%TEMP%`, non persistés |
-| `D-CLOUDINARY-KEY-LOGGED` | Moyenne | `api_key` Cloudinary loggée en clair dans les logs de build (`[CLOUDINARY-CONFIG-FINAL]`) |
 | `D-V8-B-1-C-NOUVEAU-DOUBLON` | Basse | Route `/admin/part-templates/nouveau` conservée en parallèle de `/new`. |
 | `D-V8-B-1-D-SPEC-EMPLACEMENT` | Basse | Spec E2E placée dans `e2e/admin/`. Décision (p) actée. |
 | `D-PROCEDURE-WRAPPER-KILO` | Basse | `bash` Kilo = wrapper PowerShell, autorisé |
@@ -88,9 +87,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-V8-D-5-USE-AI-CHAT-UNIFY` | Basse | Double implémentation chat (`handleSend` fetch direct vs `useAiChat`). |
 | `D-AI-MOCK-NON-CABLÉ` | Basse | Drapeau `AI_MOCK` non câblé en E2E ni en `.env.example`. |
 | `D-PCB-AUTOROUTER-ABSENT` | Basse | Pas d'autorouteur IPC natif ; Freerouting externe |
-| `D-NEXT-IMAGES-DOMAINS-DEPRECATED` | Basse | Dépréciation `images.domains` → migrer vers `images.remotePatterns` |
 
-*Note v8.8 (2026-11-19) : `D-V8-D-4-TEST-FIXTURES-NON-TRACKED` **retirée** (résolue — fixtures `cube-3mm.step` / `cube-3p5mm.step` trackées depuis `85ec27f`). `D-V8-D-4-COMPARE-VISUAL-VALIDATION` requalifiée « résolution partielle v2 ». Ajout de `D-SESSIONS-P1-P6-NON-INDEXEES`, `D-PREUVES-NON-PERSISTEES`, `D-CLOUDINARY-KEY-LOGGED` (Moyenne) et `D-NEXT-IMAGES-DOMAINS-DEPRECATED` (Basse).*
+*Note v8.9 (2026-11-19) : `D-CLOUDINARY-KEY-LOGGED` **retirée** (résolue — PR #133, suppression du `console.log` dans `src/lib/cloudinary.ts`). `D-NEXT-IMAGES-DOMAINS-DEPRECATED` **retirée** (résolue — PR #133, retrait de `images.domains`, `remotePatterns` conservé). `D-V8-D-4-COMPARE-VISUAL-VALIDATION` maintenue — plan de résolution référencé vers `docs/roadmap/P7_ROADMAP.md` §4.*
 
 ### Décisions clés
 
@@ -160,7 +158,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | P6.3-b-2 | 2026-11-19 | Câblage GlbViewer multi-sources Niveau 1 (`28198eb`) | ✅ |
 | P6.3-c1 | 2026-11-19 | Overlay Comparer SVG 4 couches + spec E2E geometric canvas — PR #131 (`b193259`) | ✅ |
 | P6.3-c2 | 2026-11-19 | Fix Next.js 16.4.6 + anti-FOUC next-themes — PR #130 (`40b3850`) | ✅ |
-| (à venir) | — | P7 : arbitrage de la prochaine étape code (leçons L74→L79 actées, §7 = L45→L87) | — |
+| P7 | 2026-11-19 | Fix Cloudinary (logs) + migration `images.remotePatterns` + Roadmap P7 (D-V8-D-4) — PR #133 (`262a788`) | ✅ |
 
 ---
 
@@ -170,11 +168,11 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**P7** : leçons L74→L79 désormais actées (`DECISIONS.md` §7 = L45→L87) ; prochaine étape = **arbitrage de la prochaine étape code**.
+**P8** : câblage OCCT dans `VisualComparisonOverlay` (remplacement du rendu SVG schématique par un rendu Three.js alimenté par la géométrie CAO réelle). Plan détaillé : `docs/roadmap/P7_ROADMAP.md` §4.
 
-*Note v8.8 (2026-11-19) : les leçons L74→L79 ont été ajoutées à `DECISIONS.md` §7 (séquence désormais L45→L87 continue). L'arbitrage « création L74→L79 » est clos.*
+*Note v8.9 (2026-11-19) : P7 close (PR #133, `262a788`) — dettes `D-CLOUDINARY-KEY-LOGGED` et `D-NEXT-IMAGES-DOMAINS-DEPRECATED` résolues et retirées ; `D-V8-D-4-COMPARE-VISUAL-VALIDATION` maintenue avec plan de résolution référencé.*
 
-*Options restant ouvertes après P6.3 : (a) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (b) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (c) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (d) `D-PCB-*` — dettes Basse. (V8-D-14 est close — l'option « nouvelle étape code V8-D-14 » n'a plus lieu d'être. Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
+*Options restant ouvertes : (a) P8 — câblage OCCT dans `VisualComparisonOverlay` (prochaine étape code actée) ; (b) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (c) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (d) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (e) `D-PCB-*` — dettes Basse. (Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
 
 ---
 
