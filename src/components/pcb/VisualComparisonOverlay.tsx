@@ -1,11 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
+import { importCadFile } from '@/lib/occt/import-step';
+import { tessellateShape } from '@/lib/occt/tessellate';
 
 type ComparisonMode = 'original' | 'reviewed' | 'sourced' | 'exported';
 
+export interface GeometrySource {
+  url: string;
+  name?: string;
+  color?: string;
+  mode?: ComparisonMode;
+}
+
 interface VisualComparisonOverlayProps {
   projectId: string;
+  layers?: GeometrySource[];
+  autoRotate?: boolean;
 }
 
 const MODE_CONFIG: Record<
@@ -49,19 +63,114 @@ const PLATE = {
   step: 30,
 };
 
-export default function VisualComparisonOverlay({ projectId }: VisualComparisonOverlayProps) {
+function detectFormat(nameOrUrl: string): 'step' | 'iges' {
+  const lower = nameOrUrl.toLowerCase();
+  if (lower.endsWith('.iges') || lower.endsWith('.igs')) return 'iges';
+  return 'step';
+}
+
+function LayerMesh({
+  source,
+  color,
+  opacity,
+}: {
+  source: GeometrySource;
+  color: string;
+  opacity: number;
+}) {
+  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        console.log('[OCCT:compare] LayerMesh chargement', {
+          url: source.url,
+          mode: source.mode ?? 'original',
+        });
+        const res = await fetch(source.url);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        const buffer = await res.arrayBuffer();
+        const result = importCadFile(buffer, detectFormat(source.name ?? source.url));
+        if (!result.success || !result.shape) {
+          throw new Error(result.error ?? 'Import CAO échoué');
+        }
+        const geom = tessellateShape(result.shape);
+        console.log('[OCCT:compare] LayerMesh prêt', {
+          url: source.url,
+          vertices: geom.getAttribute('position')?.count ?? 0,
+        });
+        if (mounted) {
+          setGeometry(geom);
+        } else {
+          geom.dispose();
+        }
+      } catch (err) {
+        console.error('[OCCT:compare] LayerMesh erreur', err);
+        if (mounted) setError((err as Error).message);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [source.url, source.name, source.mode]);
+
+  useEffect(() => {
+    return () => {
+      geometry?.dispose();
+    };
+  }, [geometry]);
+
+  if (error || !geometry) return null;
+
+  return (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial color={color} opacity={opacity} transparent />
+    </mesh>
+  );
+}
+
+function LayerGroup({ autoRotate, children }: { autoRotate: boolean; children: React.ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
+    if (autoRotate && ref.current) {
+      ref.current.rotation.y += delta * 0.2;
+    }
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
+export default function VisualComparisonOverlay({
+  projectId,
+  layers,
+  autoRotate = false,
+}: VisualComparisonOverlayProps) {
   const [activeModes, setActiveModes] = useState<Set<ComparisonMode>>(new Set(['original']));
   const [opacity, setOpacity] = useState(0.7);
+
+  const hasRealGeometry = Boolean(layers && layers.length > 0);
 
   useEffect(() => {
     console.log('[OCCT:compare] VisualComparisonOverlay état', {
       projectId,
       activeModes: [...activeModes],
       opacity,
+      hasRealGeometry,
     });
-  }, [projectId, activeModes, opacity]);
+  }, [projectId, activeModes, opacity, hasRealGeometry]);
 
   const activeList = MODE_ORDER.filter((mode) => activeModes.has(mode));
+
+  const activeLayers = useMemo(
+    () => (layers ?? []).filter((layer) => !layer.mode || activeModes.has(layer.mode)),
+    [layers, activeModes],
+  );
 
   const toggleMode = (mode: ComparisonMode) => {
     setActiveModes((prev) => {
@@ -121,12 +230,30 @@ export default function VisualComparisonOverlay({ projectId }: VisualComparisonO
         <span className="w-8 text-[10px] text-gray-500">{Math.round(opacity * 100)}%</span>
       </div>
 
-      {/* Rendu géométrique : plaques isométriques superposées */}
+      {/* Rendu géométrique : maillages OCCT réels ou SVG schématique de repli */}
       <div
         data-testid="visual-comparison-canvas"
         className="relative flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-gray-300 bg-gray-50 p-4"
       >
-        {activeList.length > 0 ? (
+        {hasRealGeometry ? (
+          <div className="h-[200px] w-full">
+            <Canvas camera={{ position: [15, 15, 15], fov: 50 }}>
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <LayerGroup autoRotate={autoRotate}>
+                {activeLayers.map((layer, index) => (
+                  <LayerMesh
+                    key={`${layer.url}-${layer.mode ?? index}`}
+                    source={layer}
+                    color={layer.color ?? MODE_CONFIG[layer.mode ?? 'original'].color}
+                    opacity={opacity}
+                  />
+                ))}
+              </LayerGroup>
+              <OrbitControls enableZoom enablePan enableRotate />
+            </Canvas>
+          </div>
+        ) : activeList.length > 0 ? (
           <svg
             viewBox="0 0 200 180"
             className="h-[180px] w-full max-w-[280px]"
