@@ -675,6 +675,8 @@ model PcbProject {
   name        String
   description String?
   status      String   @default("draft") // draft | requirements_validated | design_validated | manufacturing_ready
+  cadFileUrl  String?
+  cadFileName String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
