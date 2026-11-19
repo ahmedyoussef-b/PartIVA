@@ -24,6 +24,7 @@ import * as THREE from 'three';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { useWorkspaceContext } from '@/components/workspace/WorkspaceLayout';
+import { GlbViewerZone } from '@/components/workspace/GlbViewerZone';
 
 interface ViewerZoneProps {
   fileUrl?: string | null;
@@ -352,6 +353,7 @@ export function ViewerZone({
   const [sectionEnabled, setSectionEnabled] = useState(false);
   const [sectionPosition, setSectionPosition] = useState(0.5);
   const [compareEnabled, setCompareEnabled] = useState(false);
+  const [glbMode, setGlbMode] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const { collecteVisible, setCollecteVisible, assistantVisible, setAssistantVisible } =
     useWorkspaceContext();
@@ -490,6 +492,22 @@ export function ViewerZone({
           <TooltipTrigger asChild>
             <button
               type="button"
+              onClick={() => setGlbMode((v) => !v)}
+              data-testid="glb-mode-button"
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
+                glbMode ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
+              }`}
+            >
+              <Box className="h-4 w-4" />
+              Mode GLB
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Bascule vers le visualiseur GLB multi-sources (Niveau 1).</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
               onClick={() => setCollecteVisible(!collecteVisible)}
               className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow ${
                 collecteVisible ? 'bg-white text-gray-700' : 'bg-blue-600 text-white'
@@ -517,7 +535,9 @@ export function ViewerZone({
           <TooltipContent>Affiche ou masque le panneau Assistant.</TooltipContent>
         </Tooltip>
       </div>
-      {compareEnabled ? (
+      {glbMode ? (
+        <GlbViewerZone cadFileUrl={displayUrl} />
+      ) : compareEnabled ? (
         <div className="grid h-full grid-cols-2 gap-2 p-2">
           <div className="min-h-0">
             {uploadedFileUrl ? (
