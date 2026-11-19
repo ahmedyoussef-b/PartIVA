@@ -7,9 +7,6 @@ import VisualComparisonOverlay from '@/components/pcb/VisualComparisonOverlay';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
-/** P9 — champ CAO optionnel (absent du schéma Prisma actuel, cf. docs/roadmap/P9_STATUS.md). */
-type ProjectWithOptionalCad = { cadFileUrl?: string | null };
-
 export const dynamic = 'force-dynamic';
 
 export default async function PcbProjectPage({
@@ -57,12 +54,17 @@ export default async function PcbProjectPage({
 
   const criticalCount = complianceResult.violations.filter((v) => v.severity === 'CRITICAL').length;
 
-  // P9 — Branchement des données CAO.
-  // `PcbProject` n'expose pas encore d'URL CAO : lecture défensive qui s'active
-  // automatiquement dès qu'un champ `cadFileUrl` sera ajouté au schéma Prisma.
-  const cadFileUrl = (project as ProjectWithOptionalCad).cadFileUrl ?? undefined;
+  // P10 — Branchement des données CAO (champ `cadFileUrl` désormais officiel).
+  const cadFileUrl = project.cadFileUrl ?? undefined;
   const comparisonLayers = cadFileUrl
-    ? [{ url: cadFileUrl, mode: 'original' as const, color: '#3B82F6' }]
+    ? [
+        {
+          url: cadFileUrl,
+          name: project.cadFileName ?? undefined,
+          mode: 'original' as const,
+          color: '#3B82F6',
+        },
+      ]
     : undefined;
 
   return (
