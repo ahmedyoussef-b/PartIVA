@@ -15,6 +15,8 @@ export interface PlaceFootprintArgs {
   xMm: number;
   yMm: number;
   layer?: string;
+  force?: boolean;
+  allowOutside?: boolean;
 }
 
 export interface KicadBridgeResult {
@@ -22,6 +24,8 @@ export interface KicadBridgeResult {
   message?: string;
   footprintCount?: number;
   wouldPlace?: boolean;
+  backup?: string;
+  verified?: number;
   error?: string;
 }
 
@@ -117,8 +121,31 @@ function parseResult(output: RunOutput): KicadBridgeResult {
 
   if (lastLine) {
     try {
-      const parsed = JSON.parse(lastLine) as KicadBridgeResult;
-      if (typeof parsed.ok === 'boolean') return parsed;
+      const parsed = JSON.parse(lastLine) as {
+        ok?: boolean;
+        message?: string;
+        placed?: number;
+        footprintCount?: number;
+        verified?: number;
+        wouldPlace?: boolean;
+        backup?: string;
+        error?: string;
+      };
+
+      if (typeof parsed.ok === 'boolean') {
+        if (parsed.ok === true) {
+          const count = parsed.footprintCount ?? parsed.placed ?? 0;
+          return {
+            ok: true,
+            message: parsed.message ?? `${count} empreinte(s) placée(s)`,
+            footprintCount: count,
+            wouldPlace: typeof parsed.wouldPlace === 'boolean' ? parsed.wouldPlace : undefined,
+            backup: typeof parsed.backup === 'string' ? parsed.backup : undefined,
+            verified: typeof parsed.verified === 'number' ? parsed.verified : undefined,
+          };
+        }
+        return { ok: false, error: parsed.error ?? 'Échec du placement' };
+      }
     } catch {
       // ligne non JSON : on bascule sur le code de sortie
     }
@@ -162,6 +189,13 @@ function buildArgs(args: PlaceFootprintArgs, isDryRun: boolean): string[] {
   return isDryRun ? [...cli, '--dry-run'] : cli;
 }
 
+function buildFlags(args: { force?: boolean; allowOutside?: boolean }): string[] {
+  const flags: string[] = [];
+  if (args.force === true) flags.push('--force');
+  if (args.allowOutside === true) flags.push('--allow-outside');
+  return flags;
+}
+
 async function execute(args: PlaceFootprintArgs, isDryRun: boolean): Promise<KicadBridgeResult> {
   const pyPath = await detectKicadPython();
   if (!pyPath) {
@@ -180,7 +214,10 @@ async function execute(args: PlaceFootprintArgs, isDryRun: boolean): Promise<Kic
   }
 
   try {
-    const output = await runPython(pyPath, scriptPath, buildArgs(args, isDryRun));
+    const output = await runPython(pyPath, scriptPath, [
+      ...buildArgs(args, isDryRun),
+      ...buildFlags(args),
+    ]);
     return parseResult(output);
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
@@ -218,14 +255,23 @@ function parseBatchResult(output: RunOutput): KicadBridgeResult {
     try {
       const parsed = JSON.parse(lastLine) as {
         ok?: boolean;
+        message?: string;
         placed?: number;
+        verified?: number;
+        backup?: string;
         error?: string;
       };
       if (parsed.ok === false) {
         return { ok: false, error: parsed.error ?? 'Échec du placement batch' };
       }
       if (parsed.ok === true && typeof parsed.placed === 'number') {
-        return { ok: true, message: `placed ${parsed.placed}`, footprintCount: parsed.placed };
+        return {
+          ok: true,
+          message: parsed.message ?? `placed ${parsed.placed}`,
+          footprintCount: parsed.placed,
+          verified: typeof parsed.verified === 'number' ? parsed.verified : undefined,
+          backup: typeof parsed.backup === 'string' ? parsed.backup : undefined,
+        };
       }
     } catch {
       // ligne non JSON : on bascule sur le code de sortie
@@ -243,6 +289,7 @@ function executeBatch(
   boardPath: string,
   footprints: BatchFootprintInput[],
   isDryRun: boolean,
+  flags: { force?: boolean; allowOutside?: boolean },
 ): Promise<KicadBridgeResult> {
   return withMutex(async () => {
     const pyPath = await detectKicadPython();
@@ -271,6 +318,7 @@ function executeBatch(
 
       const cli = ['--board', boardPath, '--input', tmpInput];
       if (isDryRun) cli.push('--dry-run');
+      cli.push(...buildFlags(flags));
 
       const output = await runPython(pyPath, scriptPath, cli);
       return parseBatchResult(output);
@@ -290,9 +338,11 @@ export function placeFootprints(args: {
   boardPath: string;
   footprints: BatchFootprintInput[];
   dryRun?: boolean;
+  force?: boolean;
+  allowOutside?: boolean;
 }): Promise<KicadBridgeResult> {
   if (args.footprints.length === 0) {
     return Promise.resolve({ ok: false, error: 'footprints requis (tableau non vide)' });
   }
-  return executeBatch(args.boardPath, args.footprints, args.dryRun === true);
+  return executeBatch(args.boardPath, args.footprints, args.dryRun === true, args);
 }

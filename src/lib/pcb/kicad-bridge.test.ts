@@ -161,6 +161,97 @@ describe('placeFootprint', () => {
       { ok: true, message: 'placed R1', footprintCount: 26 },
     ]);
   });
+  it('nouveau format: placed + verified + backup', async () => {
+    const promise = bridge.placeFootprint(ARGS);
+    await flushMicrotasks();
+    children[0].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, placed: 1, verified: 1, board: 'b', backup: 'b.bak' }),
+    );
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toEqual({
+      ok: true,
+      message: '1 empreinte(s) placée(s)',
+      footprintCount: 1,
+      verified: 1,
+      backup: 'b.bak',
+    });
+  });
+
+  it('ancien format footprintCount (rétrocompat)', async () => {
+    const promise = bridge.placeFootprint(ARGS);
+    await flushMicrotasks();
+    children[0].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 2 }),
+    );
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({ ok: true, footprintCount: 2 });
+  });
+
+  it('transmet --force', async () => {
+    const promise = bridge.placeFootprints({
+      boardPath: 'C:\\tmp\\board.kicad_pcb',
+      footprints: [
+        { libName: 'Resistor_SMD', footprintName: 'R_0603', reference: 'R1', xMm: 1, yMm: 1 },
+      ],
+      force: true,
+    });
+    await flushMicrotasks();
+
+    const spawnArgs = spawnMock.mock.calls[0] as unknown[];
+    const cliArgs = spawnArgs[1] as string[];
+    expect(cliArgs).toContain('--force');
+    expect(cliArgs).not.toContain('--allow-outside');
+
+    children[0].stdout.emit('data', JSON.stringify({ ok: true, placed: 1, verified: 1 }));
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({ ok: true, footprintCount: 1 });
+  });
+
+  it('transmet --allow-outside', async () => {
+    const promise = bridge.placeFootprints({
+      boardPath: 'C:\\tmp\\board.kicad_pcb',
+      footprints: [
+        { libName: 'Resistor_SMD', footprintName: 'R_0603', reference: 'R1', xMm: 1, yMm: 1 },
+      ],
+      allowOutside: true,
+    });
+    await flushMicrotasks();
+
+    const spawnArgs = spawnMock.mock.calls[0] as unknown[];
+    const cliArgs = spawnArgs[1] as string[];
+    expect(cliArgs).toContain('--allow-outside');
+    expect(cliArgs).not.toContain('--force');
+
+    children[0].stdout.emit('data', JSON.stringify({ ok: true, placed: 1, verified: 1 }));
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({ ok: true });
+  });
+
+  it('n envoie ni --force ni --allow-outside par défaut', async () => {
+    const promise = bridge.placeFootprints({
+      boardPath: 'C:\\tmp\\board.kicad_pcb',
+      footprints: [
+        { libName: 'Resistor_SMD', footprintName: 'R_0603', reference: 'R1', xMm: 1, yMm: 1 },
+      ],
+    });
+    await flushMicrotasks();
+
+    const spawnArgs = spawnMock.mock.calls[0] as unknown[];
+    const cliArgs = spawnArgs[1] as string[];
+    expect(cliArgs).not.toContain('--force');
+    expect(cliArgs).not.toContain('--allow-outside');
+
+    children[0].stdout.emit('data', JSON.stringify({ ok: true, placed: 1, verified: 1 }));
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({ ok: true });
+  });
 });
 
 describe('dryRun', () => {
