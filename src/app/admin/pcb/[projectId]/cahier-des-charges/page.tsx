@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft, FileText, Image as ImageIcon, Paperclip } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { AnalyzeButton } from './analyze-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,6 +95,7 @@ export default async function CahierDesChargesPage({
             </p>
           </div>
         </div>
+        <AnalyzeButton projectId={projectId} />
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">

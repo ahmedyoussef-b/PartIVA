@@ -1,0 +1,139 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-admin';
+import { callGroq } from '@/lib/ai/groq-client';
+import { PcbRequirementSchema } from '@/lib/pcb/requirement-schema';
+
+export const runtime = 'nodejs';
+
+export async function POST(req: Request) {
+  // 1. Auth
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
+  }
+
+  // 2. Parse body
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Body JSON invalide' }, { status: 400 });
+  }
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const projectId = typeof b.projectId === 'string' ? b.projectId.trim() : '';
+  if (!projectId) {
+    return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
+  }
+
+  console.info('[PCB:ANALYZE] Requête reçue', { timestamp: new Date().toISOString(), projectId });
+
+  // 3. Résoudre le projet et le CDC client (requestId = scalaire, pas de relation)
+  const project = await prisma.pcbProject.findUnique({ where: { id: projectId } });
+  if (!project) {
+    return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
+  }
+
+  const clientRequest = project.requestId
+    ? await prisma.request.findUnique({ where: { id: project.requestId } })
+    : null;
+
+  const cdc = clientRequest?.partDescription?.trim();
+  if (!cdc) {
+    return NextResponse.json(
+      { error: 'Aucun cahier des charges client rattaché' },
+      { status: 400 },
+    );
+  }
+
+  // 4. Prompt LLM
+  const prompt = `Tu es un expert en conception de cartes électroniques PCB.
+Analyse le cahier des charges client suivant et produis une liste d'exigences techniques structurées.
+
+Cahier des charges :
+${cdc}
+
+Fonction principale : ${clientRequest?.partFunction ?? 'non précisée'}
+Matériau suspecté : ${clientRequest?.suspectedMaterial ?? 'non précisé'}
+Quantité : ${clientRequest?.quantity ?? 'non précisée'}
+
+Réponds UNIQUEMENT en JSON valide avec cette structure :
+{
+  "requirements": [
+    { "category": "usage|function|processing|mechanical|manufacturing|quality", "key": "nom du champ", "value": "valeur", "status": "proposed" }
+  ]
+}
+
+Règles :
+- category doit être l'une des 6 valeurs exactes.
+- key = nom court du champ (ex. "Tension d'alimentation", "Température max").
+- value = valeur extraite ou déduite du cahier des charges.
+- status = "proposed" par défaut.
+- Propose au moins un champ par catégorie pertinente.
+`;
+
+  // 5. Appel LLM
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: 'GROQ_API_KEY non configurée' }, { status: 502 });
+  }
+
+  let requirements: Array<{ category: string; key: string; value: string; status: string }> = [];
+
+  try {
+    const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
+      model: process.env.GROQ_MODEL,
+      temperature: 0.2,
+      maxTokens: 4096,
+      timeout: 30000,
+      responseFormat: 'json_object',
+    });
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(llmRes.content);
+    } catch {
+      console.error('[PCB:ANALYZE] Réponse LLM non-JSON');
+      return NextResponse.json({ error: 'Réponse LLM non-JSON' }, { status: 502 });
+    }
+
+    const validated = PcbRequirementSchema.safeParse(parsed);
+    if (!validated.success) {
+      console.error('[PCB:ANALYZE] Schéma LLM invalide', validated.error.flatten());
+      return NextResponse.json({ error: 'Schéma LLM invalide' }, { status: 502 });
+    }
+
+    requirements = validated.data.requirements;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Erreur LLM';
+    console.error('[PCB:ANALYZE] Erreur LLM', message);
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
+
+  // 6. Idempotence : deleteMany puis createMany
+  await prisma.pcbRequirement.deleteMany({ where: { projectId } });
+  if (requirements.length > 0) {
+    await prisma.pcbRequirement.createMany({
+      data: requirements.map((r) => ({
+        projectId,
+        category: r.category,
+        key: r.key,
+        value: r.value,
+        status: r.status,
+      })),
+    });
+  }
+
+  // 7. Relire et renvoyer
+  const saved = await prisma.pcbRequirement.findMany({
+    where: { projectId },
+    orderBy: [{ category: 'asc' }, { key: 'asc' }],
+  });
+
+  console.info('[PCB:ANALYZE] Résultat', { count: saved.length });
+  return NextResponse.json({ projectId, requirements: saved, count: saved.length });
+}

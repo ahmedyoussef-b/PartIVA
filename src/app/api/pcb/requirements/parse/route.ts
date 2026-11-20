@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { callPcbLlm } from '@/lib/pcb/llm-client';
+import { callGroq } from '@/lib/ai/groq-client';
 import type { RequirementAnswer } from '@/lib/pcb/types';
+import { PcbEnrichmentSchema } from '@/lib/pcb/requirement-schema';
 import { requireAdmin } from '@/lib/auth-admin';
 
 export async function POST(req: Request) {
@@ -58,11 +59,33 @@ export async function POST(req: Request) {
     // Enrichissement LLM (optionnel — si GROQ_API_KEY présente)
     let llmError: string | undefined;
     try {
-      const prompt = `Tu es un ingénieur électronique. Analyse ces exigences et propose des précisions techniques : ${JSON.stringify(answers)}. Réponds en JSON avec un tableau "enrichments" de {questionId, suggestion, status}.`;
-      const llmRes = await callPcbLlm(prompt);
-      if (llmRes.error) llmError = llmRes.error;
-    } catch {
-      llmError = 'LLM indisponible';
+      const prompt = `Tu es un ingénieur électronique. Analyse ces exigences et propose des précisions techniques : ${JSON.stringify(answers)}. Réponds UNIQUEMENT en JSON valide, sans markdown, avec la structure { "enrichments": [ { "questionId": "...", "suggestion": "...", "status": "proposed" } ] }.`;
+      const apiKey = process.env.GROQ_API_KEY;
+      if (!apiKey) {
+        llmError = 'GROQ_API_KEY non configurée';
+      } else {
+        const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
+          model: process.env.GROQ_MODEL,
+          temperature: 0.2,
+          maxTokens: 4096,
+          timeout: 30000,
+          responseFormat: 'json_object',
+        });
+
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(llmRes.content);
+        } catch {
+          llmError = 'Réponse LLM non-JSON';
+        }
+
+        if (llmError === undefined) {
+          const validated = PcbEnrichmentSchema.safeParse(parsed);
+          llmError = validated.success ? undefined : 'Schéma LLM invalide';
+        }
+      }
+    } catch (e) {
+      llmError = e instanceof Error ? e.message : 'LLM indisponible';
     }
 
     return NextResponse.json({

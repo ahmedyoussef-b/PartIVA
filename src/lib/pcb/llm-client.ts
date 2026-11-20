@@ -1,3 +1,7 @@
+/**
+ * @deprecated Utiliser src/lib/ai/groq-client.ts (GROQ_MODEL, JSON strict).
+ * Conservé pour compatibilité (consommateur restant : src/lib/pcb/ai-engine.ts).
+ */
 // Client LLM isolé pour le PCB Studio
 // Ne dépend PAS de use-ai-chat ni de src/lib/ai/ existant
 

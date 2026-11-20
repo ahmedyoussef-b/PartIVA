@@ -48,7 +48,7 @@ Cadrer, par questions/réponses, la fonctionnalité PCB : l'admin conçoit et im
 | **V24** | Emplacement du corpus et de la bibliothèque | ✅ | **SQLite sur le poste admin** (Q19 = B) — cohérent avec le fichier de carte (V12). Pas de double source de vérité. |
 | **V25** | Architecture réelle de l'application | ✅ | Application **hybride** : **Tauri 2** (`desktop/src-tauri`) embarque un **serveur Next.js en sidecar** (`127.0.0.1`) + une **BDD SQLite locale** (`%APPDATA%\PartIVA\partiva.db`) synchronisée depuis le cloud, et **PostgreSQL** côté serveur. **Conséquence : V12 et V24 tiennent** — les routes API du PCB s'exécutent sur le poste admin, donc elles peuvent écrire les fichiers et joindre KiCad. |
 | **V26** | Pas de fonctionnement hors ligne | ✅ | Le module PCB **exige le réseau** (Q21) : l'IA est indispensable à la chaîne. Le SQLite local (V24) reste un **stockage**, pas un mode hors ligne. |
-| **V27** | Modèle LLM | ✅ | **Groq** (déjà configuré, `GROQ_API_KEY`), modèle **`llama-3.3-70b-versatile`** (Q22 = B), avec **sortie JSON stricte** à schéma fixe. |
+| **V27** | Modèle LLM | ✅ | **Groq** (déjà configuré, `GROQ_API_KEY`), modèle **`openai/gpt-oss-120b` (via `GROQ_MODEL`)** (Q22 = B), avec **sortie JSON stricte** à schéma fixe. *(Mis à jour en B.1 : initialement `llama-3.3-70b-versatile`.)* |
 | **V28** | Nombre d'alternatives affichées | ✅ | **Seuil de compatibilité** (Q23 = C) : tout ce qui dépasse un score (ex. 80 %), avec **minimum 3** et **maximum 8** modèles par champ, plus un lien « voir tout ». |
 | **V29** | Emplacement du pont KiCad | ✅ | **Serveur Node / sidecar** (Q24 = B) : réutilise `/api/pcb/ipc` et `kicad-ipc-adapter.ts`. Aucun code KiCad en Rust. |
 | **V36** | Capitalisation | ✅ | **Chaque projet accompli** est sauvegardé dans la BDD locale (fiche : cahier des charges, proposition validée, composants retenus, positions, fichier). Deux régimes légaux : **modèles de référence** (open source, licence) et **projets accomplis** (internes, sans licence). Les deux alimentent la recherche ultérieure. |
@@ -163,7 +163,7 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 | 2026-11-20 | Q19 = B → **V24** : corpus + bibliothèque en SQLite local. Q20 posée (l'app tourne-t-elle sur le poste admin ?). |
 | 2026-11-20 | Q20 = **hybride** → **V25** : Tauri 2 + sidecar Next local + SQLite local + PostgreSQL serveur. V12 et V24 confirmées. Q21 posée (hors ligne ?). |
 | 2026-11-20 | Q21 = non → **V26** : PCB en ligne uniquement (l'IA est indispensable). Q22 posée (choix du modèle LLM). |
-| 2026-11-20 | Q22 = B → **V27** : Groq `llama-3.3-70b-versatile`, JSON strict. Q23 posée (nombre d'alternatives par composant). |
+| 2026-11-20 | Q22 = B → **V27** : Groq `openai/gpt-oss-120b` (via `GROQ_MODEL` ; maj B.1, initialement `llama-3.3-70b-versatile`), JSON strict. Q23 posée (nombre d'alternatives par composant). |
 | 2026-11-20 | Q23 = C → **V28** : seuil de score, 3 à 8 modèles par champ. **Q10 et Q11 clôturées.** Q24 posée (emplacement du pont KiCad). |
 | 2026-11-20 | Q24 = B → **V29** : pont KiCad côté Node/sidecar. Proposition de **6 innovations de fiabilité** V30-V35 (§5.1), à arbitrer. |
 | 2026-11-20 | V30-V35 validées. **V36** : capitalisation — projets accomplis dans la BDD locale, deux régimes légaux. Q25 posée (recherche intelligente). |
@@ -206,7 +206,7 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 
 **Phase B — Partie droite (cahier des charges + IA)**
 5. Formulaire client restructuré en 6 blocs (rempli par le client dans son profil, V43) + contrôle de complétude/contradictions (V30).
-6. Client LLM : passage à `llama-3.3-70b-versatile`, sortie JSON stricte à schéma fixe (V27).
+6. Client LLM : passage à `openai/gpt-oss-120b` (via `GROQ_MODEL`, maj B.1), sortie JSON stricte à schéma fixe (V27).
 7. Analyse du cahier des charges : provenance obligatoire (V31), double passe (V32).
 8. Corpus + recherche hybride (V37) ; ingestion des 20-50 modèles open source (V18) ; ingestion des projets accomplis (V36).
 9. Proposition validable par bloc + sélection ligne par ligne des composants (V21, Q17).
