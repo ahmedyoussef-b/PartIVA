@@ -41,8 +41,8 @@ export default function PcbRequirementsListPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Cahiers des charges PCB</h1>
-      <p className="text-muted-foreground mb-6">Liste des cahiers des charges reçus.</p>
+      <h1 className="mb-4 text-2xl font-bold">Cahiers des charges PCB</h1>
+      <p className="mb-6 text-muted-foreground">Liste des cahiers des charges reçus.</p>
 
       {loading ? (
         <div className="text-sm text-muted-foreground">Chargement...</div>
@@ -57,7 +57,7 @@ export default function PcbRequirementsListPage() {
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+            <thead className="bg-muted/50 text-left text-xs text-muted-foreground uppercase">
               <tr>
                 <th className="px-4 py-2">ID</th>
                 <th className="px-4 py-2">Description</th>
@@ -71,12 +71,8 @@ export default function PcbRequirementsListPage() {
                 <tr key={r.id} className="border-t hover:bg-muted/30">
                   <td className="px-4 py-2 font-mono text-xs">{r.id.slice(0, 8)}</td>
                   <td className="px-4 py-2">{r.partDescription || '—'}</td>
-                  <td className="px-4 py-2">
-                    {r.client?.name || r.client?.email || '—'}
-                  </td>
-                  <td className="px-4 py-2">
-                    {new Date(r.createdAt).toLocaleDateString('fr-FR')}
-                  </td>
+                  <td className="px-4 py-2">{r.client?.name || r.client?.email || '—'}</td>
+                  <td className="px-4 py-2">{new Date(r.createdAt).toLocaleDateString('fr-FR')}</td>
                   <td className="px-4 py-2">
                     <Link
                       href={`/admin/pcb/requirements/${r.id}`}

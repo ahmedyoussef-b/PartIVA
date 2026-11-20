@@ -35,10 +35,7 @@ export default async function PcbProjetsPage() {
             File d&apos;attente des cahiers des charges reçus et projets locaux en cours.
           </p>
         </div>
-        <Link
-          href="/admin/pcb"
-          className="text-sm text-blue-600 hover:underline"
-        >
+        <Link href="/admin/pcb" className="text-sm text-blue-600 hover:underline">
           ← Retour au Studio
         </Link>
       </header>
@@ -56,7 +53,7 @@ export default async function PcbProjetsPage() {
         ) : (
           <div className="overflow-x-auto rounded border bg-white">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-gray-100 text-left text-xs text-gray-500 uppercase">
                 <tr>
                   <th className="px-4 py-2">ID</th>
                   <th className="px-4 py-2">Description</th>
@@ -108,7 +105,7 @@ export default async function PcbProjetsPage() {
         ) : (
           <div className="overflow-x-auto rounded border bg-white">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-gray-100 text-left text-xs text-gray-500 uppercase">
                 <tr>
                   <th className="px-4 py-2">ID</th>
                   <th className="px-4 py-2">Nom du projet</th>
@@ -133,10 +130,7 @@ export default async function PcbProjetsPage() {
                       {formatDate(p.updatedAt)}
                     </td>
                     <td className="px-4 py-2 text-right">
-                      <Link
-                        href={`/admin/pcb/${p.id}`}
-                        className="text-blue-600 hover:underline"
-                      >
+                      <Link href={`/admin/pcb/${p.id}`} className="text-blue-600 hover:underline">
                         Ouvrir
                       </Link>
                     </td>

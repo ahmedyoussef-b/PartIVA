@@ -101,67 +101,67 @@ export default async function PcbProjectPage({
       </div>
 
       <PcbEditorProvider>
-      <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
-        {/* Colonne gauche : Layout PCB */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
-          <h2 className="mb-4 font-semibold text-gray-800">Layout PCB</h2>
-          <div className="flex flex-1 items-stretch">
-            <PcbCanvas />
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
+          {/* Colonne gauche : Layout PCB */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
+            <h2 className="mb-4 font-semibold text-gray-800">Layout PCB</h2>
+            <div className="flex flex-1 items-stretch">
+              <PcbCanvas />
+            </div>
+          </div>
+
+          {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
+          <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
+            <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
+
+            <div className="overflow-hidden rounded-lg border bg-white">
+              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                Conformité Physique
+              </div>
+              <div className="p-4">
+                <CompliancePanel projectId={projectId} initialResult={complianceResult} />
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-lg border bg-white">
+              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                Approvisionnement
+              </div>
+              <div className="p-4">
+                <SourcingTable results={sourcingResults} />
+              </div>
+            </div>
+
+            <DesignReviewPanel projectId={projectId} />
+
+            <div className="overflow-hidden rounded-lg border bg-white">
+              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                Fabrication
+              </div>
+              <div className="p-4">
+                <ExportButtons
+                  projectId={projectId}
+                  components={project.components.map((c) => ({
+                    id: c.id,
+                    refDes: c.reference,
+                    mpn: c.catalogId ?? undefined,
+                    description: c.name,
+                    footprint: c.footprint ?? undefined,
+                  }))}
+                />
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-lg border bg-white">
+              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                Visualisation
+              </div>
+              <div className="p-4">
+                <VisualComparisonOverlay projectId={projectId} layers={comparisonLayers} />
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
-        <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
-          <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
-
-          <div className="overflow-hidden rounded-lg border bg-white">
-            <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-              Conformité Physique
-            </div>
-            <div className="p-4">
-              <CompliancePanel projectId={projectId} initialResult={complianceResult} />
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border bg-white">
-            <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-              Approvisionnement
-            </div>
-            <div className="p-4">
-              <SourcingTable results={sourcingResults} />
-            </div>
-          </div>
-
-          <DesignReviewPanel projectId={projectId} />
-
-          <div className="overflow-hidden rounded-lg border bg-white">
-            <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-              Fabrication
-            </div>
-            <div className="p-4">
-              <ExportButtons
-                projectId={projectId}
-                components={project.components.map((c) => ({
-                  id: c.id,
-                  refDes: c.reference,
-                  mpn: c.catalogId ?? undefined,
-                  description: c.name,
-                  footprint: c.footprint ?? undefined,
-                }))}
-              />
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border bg-white">
-            <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-              Visualisation
-            </div>
-            <div className="p-4">
-              <VisualComparisonOverlay projectId={projectId} layers={comparisonLayers} />
-            </div>
-          </div>
-        </div>
-      </div>
       </PcbEditorProvider>
     </div>
   );
