@@ -7,7 +7,11 @@ const { spawnMock, existsSyncMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('node:child_process', () => ({ spawn: spawnMock }));
-vi.mock('node:fs', () => ({ existsSync: existsSyncMock }));
+vi.mock('node:fs', () => ({
+  existsSync: existsSyncMock,
+  writeFileSync: vi.fn(),
+  unlinkSync: vi.fn(),
+}));
 
 class FakeChild extends EventEmitter {
   stdout = Object.assign(new EventEmitter(), { setEncoding: vi.fn() });
@@ -36,7 +40,7 @@ let children: FakeChild[];
 
 function mockPathsExist(): void {
   existsSyncMock.mockImplementation(
-    (target: string) => target.includes('python.exe') || target.includes('place_footprint.py'),
+    (target: string) => target.includes('python.exe') || target.includes('place_footprint'),
   );
 }
 
@@ -180,6 +184,92 @@ describe('dryRun', () => {
       wouldPlace: true,
       message: 'dry-run ok: R1',
       footprintCount: 26,
+    });
+  });
+});
+
+describe('placeFootprints', () => {
+  const BATCH = {
+    boardPath: 'C:\\tmp\\board.kicad_pcb',
+    footprints: [
+      {
+        libName: 'Resistor_SMD',
+        footprintName: 'R_0603_1608Metric',
+        reference: 'R1',
+        xMm: 10,
+        yMm: 10,
+      },
+      {
+        libName: 'Capacitor_SMD',
+        footprintName: 'C_0603_1608Metric',
+        reference: 'C1',
+        xMm: 20,
+        yMm: 20,
+      },
+      {
+        libName: 'Package_SO',
+        footprintName: 'SOIC-8_3.9x4.9mm',
+        reference: 'U1',
+        xMm: 30,
+        yMm: 30,
+      },
+    ],
+  };
+
+  it('happy path : place 3 empreintes', async () => {
+    const promise = bridge.placeFootprints(BATCH);
+    await flushMicrotasks();
+
+    children[0].stdout.emit('data', JSON.stringify({ ok: true, placed: 3, board: 'x' }));
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({ ok: true, footprintCount: 3 });
+  });
+
+  it('script batch absent → erreur', async () => {
+    existsSyncMock.mockImplementation((target: string) => target.includes('python.exe'));
+    await expect(bridge.placeFootprints(BATCH)).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/script/i),
+    });
+  });
+
+  it('python absent → erreur', async () => {
+    existsSyncMock.mockReturnValue(false);
+    await expect(bridge.placeFootprints(BATCH)).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/Python/i),
+    });
+  });
+
+  it('dryRun → --dry-run présent dans le spawn', async () => {
+    const promise = bridge.placeFootprints({ ...BATCH, dryRun: true });
+    await flushMicrotasks();
+
+    const spawnArgs = spawnMock.mock.calls[0] as unknown[];
+    const cliArgs = spawnArgs[1] as string[];
+    expect(cliArgs).toContain('--dry-run');
+    expect(cliArgs).toContain('--input');
+
+    children[0].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, wouldPlace: true, placed: 3, board: 'x' }),
+    );
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({ ok: true, footprintCount: 3 });
+  });
+
+  it('stdout non JSON → erreur', async () => {
+    const promise = bridge.placeFootprints(BATCH);
+    await flushMicrotasks();
+
+    children[0].stdout.emit('data', 'pas du json');
+    children[0].emit('close', 0);
+
+    await expect(promise).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/sortie/i),
     });
   });
 });

@@ -2,7 +2,8 @@
 // (script scripts/kicad/place_footprint.py). Aucune dépendance npm : node:* uniquement.
 
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 export interface PlaceFootprintArgs {
@@ -49,12 +50,12 @@ export async function detectKicadPython(): Promise<string | null> {
   return null;
 }
 
-export function resolveScriptPath(): string | null {
+export function resolveScriptPath(fileName = 'place_footprint.py'): string | null {
   const candidates: string[] = [
     process.env.PARTIVA_KICAD_SCRIPT,
-    join(process.cwd(), 'scripts/kicad/place_footprint.py'),
-    resolve(process.cwd(), '../scripts/kicad/place_footprint.py'),
-    join(process.cwd(), 'kicad/place_footprint.py'),
+    join(process.cwd(), 'scripts/kicad', fileName),
+    resolve(process.cwd(), '../scripts/kicad', fileName),
+    join(process.cwd(), 'kicad', fileName),
   ].filter((candidate): candidate is string => Boolean(candidate));
 
   for (const candidate of candidates) {
@@ -192,4 +193,106 @@ export function placeFootprint(args: PlaceFootprintArgs): Promise<KicadBridgeRes
 
 export function dryRun(args: PlaceFootprintArgs): Promise<KicadBridgeResult> {
   return withMutex(() => execute(args, true));
+}
+
+export interface BatchFootprintInput {
+  libName: string;
+  footprintName: string;
+  reference: string;
+  value?: string;
+  xMm: number;
+  yMm: number;
+  layer?: string;
+  rotation?: number;
+}
+
+function parseBatchResult(output: RunOutput): KicadBridgeResult {
+  if (output.timedOut) {
+    return { ok: false, error: `timeout apres ${TIMEOUT_MS / 1000}s` };
+  }
+
+  const lines = output.stdout.split(/\r?\n/);
+  const lastLine = [...lines].reverse().find((line) => line.trim().length > 0);
+
+  if (lastLine) {
+    try {
+      const parsed = JSON.parse(lastLine) as {
+        ok?: boolean;
+        placed?: number;
+        error?: string;
+      };
+      if (parsed.ok === false) {
+        return { ok: false, error: parsed.error ?? 'Échec du placement batch' };
+      }
+      if (parsed.ok === true && typeof parsed.placed === 'number') {
+        return { ok: true, message: `placed ${parsed.placed}`, footprintCount: parsed.placed };
+      }
+    } catch {
+      // ligne non JSON : on bascule sur le code de sortie
+    }
+  }
+
+  if (output.code !== 0) {
+    return { ok: false, error: output.stderr.trim() || `exit code ${output.code}` };
+  }
+
+  return { ok: false, error: 'sortie illisible du script Python (batch)' };
+}
+
+function executeBatch(
+  boardPath: string,
+  footprints: BatchFootprintInput[],
+  isDryRun: boolean,
+): Promise<KicadBridgeResult> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) {
+      return {
+        ok: false,
+        error: 'Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)',
+      };
+    }
+
+    const scriptPath = resolveScriptPath('place_footprints.py');
+    if (!scriptPath) {
+      return {
+        ok: false,
+        error: 'script place_footprints.py introuvable (PARTIVA_KICAD_SCRIPT ou scripts/kicad/)',
+      };
+    }
+
+    const tmpInput = join(
+      tmpdir(),
+      `partiva-kicad-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`,
+    );
+
+    try {
+      writeFileSync(tmpInput, JSON.stringify(footprints), 'utf8');
+
+      const cli = ['--board', boardPath, '--input', tmpInput];
+      if (isDryRun) cli.push('--dry-run');
+
+      const output = await runPython(pyPath, scriptPath, cli);
+      return parseBatchResult(output);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    } finally {
+      try {
+        unlinkSync(tmpInput);
+      } catch {
+        // fichier déjà absent : sans objet
+      }
+    }
+  });
+}
+
+export function placeFootprints(args: {
+  boardPath: string;
+  footprints: BatchFootprintInput[];
+  dryRun?: boolean;
+}): Promise<KicadBridgeResult> {
+  if (args.footprints.length === 0) {
+    return Promise.resolve({ ok: false, error: 'footprints requis (tableau non vide)' });
+  }
+  return executeBatch(args.boardPath, args.footprints, args.dryRun === true);
 }
