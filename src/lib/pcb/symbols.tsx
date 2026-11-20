@@ -121,7 +121,16 @@ const connector: ComponentSymbol = {
   footprint: 'Connector_PinHeader_2.54mm:PinHeader_1x04',
   render: ({ size, color }) => (
     <svg {...svgProps(size)}>
-      <rect x="10" y="10" width="20" height="20" rx="2" fill="none" stroke={color} strokeWidth={2} />
+      <rect
+        x="10"
+        y="10"
+        width="20"
+        height="20"
+        rx="2"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+      />
       <line x1="16" y1="10" x2="16" y2="20" stroke={color} strokeWidth={1.5} />
       <line x1="24" y1="10" x2="24" y2="20" stroke={color} strokeWidth={1.5} />
       <line x1="16" y1="20" x2="16" y2="30" stroke={color} strokeWidth={1.5} />

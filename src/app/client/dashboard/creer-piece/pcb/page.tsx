@@ -162,7 +162,9 @@ export default function CreerPcbPage() {
           </p>
         </div>
         <Link href="/client/dashboard/creer-piece">
-          <Button variant="outline" className="shrink-0">← Changer de parcours</Button>
+          <Button variant="outline" className="shrink-0">
+            ← Changer de parcours
+          </Button>
         </Link>
       </div>
 
@@ -255,8 +257,7 @@ export default function CreerPcbPage() {
                 value={mainFunction}
                 onChange={(e) => {
                   setMainFunction(e.target.value);
-                  if (fieldErrors.mainFunction)
-                    setFieldErrors((p) => ({ ...p, mainFunction: '' }));
+                  if (fieldErrors.mainFunction) setFieldErrors((p) => ({ ...p, mainFunction: '' }));
                 }}
                 className={fieldErrors.mainFunction ? 'border-red-500' : ''}
               />
@@ -358,7 +359,9 @@ export default function CreerPcbPage() {
           </div>
           <div className="flex w-full items-center gap-3 sm:w-auto">
             <Link href="/client/dashboard/creer-piece">
-              <Button type="button" variant="ghost">Annuler</Button>
+              <Button type="button" variant="ghost">
+                Annuler
+              </Button>
             </Link>
             <Button
               type="submit"

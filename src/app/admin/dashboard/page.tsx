@@ -8,7 +8,17 @@ import { Button } from '@/components/ui/button';
 import { KpiCard } from '@/components/shared/kpi-card';
 import AuthGuard from '@/lib/auth-guard';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Inbox, Cpu, Layers, Package, Plus, Activity, Wrench, TrendingUp } from 'lucide-react';
+import {
+  ArrowRight,
+  Inbox,
+  Cpu,
+  Layers,
+  Package,
+  Plus,
+  Activity,
+  Wrench,
+  TrendingUp,
+} from 'lucide-react';
 import Link from 'next/link';
 import type { MappedRequest } from '@/lib/utils/request-mappers';
 
@@ -29,7 +39,12 @@ interface KpiData {
 
 const STAT_CARDS = [
   { title: 'Total Pièces', href: '/admin/pieces', icon: Package, valueKey: 'totalParts' },
-  { title: 'Total Projets RE', href: '/admin/reverse-engineering', icon: Layers, valueKey: 'totalReProjects' },
+  {
+    title: 'Total Projets RE',
+    href: '/admin/reverse-engineering',
+    icon: Layers,
+    valueKey: 'totalReProjects',
+  },
   { title: 'Total Projets PCB', href: '/admin/pcb', icon: Cpu, valueKey: 'totalPcbProjects' },
   { title: 'Demandes en cours', href: '/admin/demandes', icon: Inbox, valueKey: 'pendingRequests' },
 ] as const;
@@ -105,7 +120,9 @@ function AdminDashboardPageContent() {
         <Card className="border-amber-300 bg-amber-50/40">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-sm font-semibold">Pièces reçues (non consultées)</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Pièces reçues (non consultées)
+              </CardTitle>
               <Inbox className="h-4 w-4 text-amber-600" />
             </div>
           </CardHeader>
@@ -164,9 +181,7 @@ function AdminDashboardPageContent() {
         <Button asChild variant="outline" className="h-auto justify-start gap-3 p-4">
           <Link
             href="/admin/pcb/nouveau"
-            onClick={() =>
-              console.info('[DASHBOARD:UI] Action création cliquée', { type: 'pcb' })
-            }
+            onClick={() => console.info('[DASHBOARD:UI] Action création cliquée', { type: 'pcb' })}
           >
             <Plus className="h-5 w-5" />
             <span className="text-sm font-semibold">Nouveau cahier des charges PCB (interne)</span>
@@ -266,7 +281,9 @@ function AdminDashboardPageContent() {
             <CardTitle className="text-sm font-semibold">Activité récente</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={cn('text-sm text-muted-foreground')}>Historique des activités (à venir)</p>
+            <p className={cn('text-sm text-muted-foreground')}>
+              Historique des activités (à venir)
+            </p>
           </CardContent>
         </Card>
       </section>

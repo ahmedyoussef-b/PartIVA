@@ -91,7 +91,7 @@ export function PcbCanvas() {
       </div>
       <div
         ref={wrapperRef}
-        className="relative w-full min-h-[300px] flex-1 overflow-hidden rounded border border-gray-700"
+        className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700"
       >
         <canvas
           ref={canvasRef}
@@ -111,7 +111,7 @@ export function PcbCanvas() {
                 style={{ left: n.x - 20, top: n.y - 20 }}
               >
                 {sym.render({ size: 40, color: '#3b82f6' })}
-                <span className="mt-0.5 text-[10px] font-mono text-gray-200">{n.id}</span>
+                <span className="mt-0.5 font-mono text-[10px] text-gray-200">{n.id}</span>
               </div>
             );
           })}
@@ -123,7 +123,7 @@ export function PcbCanvas() {
             className="absolute z-10 w-48 rounded border border-gray-600 bg-gray-800 p-1 shadow-lg"
             style={{ left: menuLeft, top: menuPos.y }}
           >
-            <div className="px-2 py-1 text-[10px] uppercase text-gray-400">Composant</div>
+            <div className="px-2 py-1 text-[10px] text-gray-400 uppercase">Composant</div>
             {COMPONENT_SYMBOLS.map((s) => (
               <button
                 key={s.id}

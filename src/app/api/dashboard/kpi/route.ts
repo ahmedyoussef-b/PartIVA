@@ -92,14 +92,11 @@ export async function GET() {
 
     console.info('[DASHBOARD:KPI] Données renvoyées', { kpis: result });
 
-    return NextResponse.json(
-      result,
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        },
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
       },
-    );
+    });
   } catch (error) {
     console.error('[api/dashboard/kpi] Failed to fetch:', error);
     return NextResponse.json({ error: 'Failed to fetch KPI data' }, { status: 500 });
