@@ -8,6 +8,7 @@ import { WorkspaceBackButton } from './back-button';
 import { PcbCanvas } from '@/components/pcb/PcbCanvas';
 import { RequirementInput } from './requirement-input';
 import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
+import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -38,6 +39,20 @@ export default async function PcbProjectPage({
         select: { partFunction: true },
       })
     : null;
+
+  const pendingProposals = await prisma.pcbProposal.findMany({
+    where: { projectId, status: 'pending' },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  const serializedProposals = pendingProposals.map((p) => ({
+    id: p.id,
+    action: p.action,
+    target: p.target,
+    payload: p.payload,
+    reason: p.reason,
+    status: p.status,
+  }));
 
   const [sourcingResults, complianceResult] = await Promise.all([
     sourceBom(
@@ -113,6 +128,7 @@ export default async function PcbProjectPage({
           {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
             <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
+            <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
 
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
