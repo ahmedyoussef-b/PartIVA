@@ -677,15 +677,16 @@ enum MaterialCategory {
 // ============================================================
 
 model PcbProject {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  status      String   @default("draft") // draft | requirements_validated | design_validated | manufacturing_ready
-  cadFileUrl  String?
-  cadFileName String?
-  requestId   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  status        String   @default("draft") // draft | requirements_validated | design_validated | manufacturing_ready
+  cadFileUrl    String?
+  cadFileName   String?
+  kicadFilePath String?
+  requestId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   requirements PcbRequirement[]
   components   PcbComponent[]
