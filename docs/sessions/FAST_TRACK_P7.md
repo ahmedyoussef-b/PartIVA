@@ -85,6 +85,8 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 - P7.18-a : `requirement-input.tsx` (client) — bloc "Exigence" en tête de colonne droite (Input + bouton Valider, entrée = submit), log `[PCB:REQ] Exigence soumise { value }`, champ vidé après validation. Prochaine étape P7.18-b : relier la validation à l'ajout d'un composant dans le canvas.
 - P7.18-bis : `PcbCanvas` occupe 100% du panneau gauche — racine `w-full`, wrapper `w-full flex-1`, canvas dimensionné sur `clientWidth/Height` du wrapper (ResizeObserver + DPI). Plus de vide blanc à droite.
 - P7.18-b : canvas enrichi. `lib/pcb/symbols.tsx` (8 symboles SVG R/C/LED/Q/D/L/J/V), `lib/pcb/component-mapping.ts` (FR+EN → composant), `PcbCanvas.tsx` (symboles SVG + menu contextuel au clic, auto-réf `R1/R2…`), `PcbEditorProvider.tsx` (contexte nodes), `requirement-input.tsx` (champ Exigence → `addNodeAtCenter` ou erreur "Composant non reconnu"). 2 chemins d'ajout coexistent (champ = centre, clic = case). Éphémère local.
+- P7.18-c : *(abandonné — voir §3)*.
+- P7.18-d : Writer IPC KiCad 10 (placement réel). À démarrer (après état des lieux P7.18-d-0).
 
 ## 3. Dettes / Tests reportés
 
@@ -101,7 +103,10 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 
 ### Étapes abandonnées
 - P7.10, P7.11, P7.17 : jamais exécutées (plans).
-- P7.18-b : non démarrée (arbitrage IA externe en cours).
+
+### P7.18-c — ABANDONNÉ (remplacé par P7.18-d)
+- Décision : KiCad 10.0.8 confirmé installé et lancé → pas besoin de poser un contrat IPC partiel. On implémente directement P7.18-d.
+- Aucun code écrit pour P7.18-c.
 
 ### Nouvelles dettes P7.18-b
 - **D-FT-P7-SYMBOLS-STATIC** : les 8 symboles sont dessinés en SVG inline (hardcodés). Pas de bibliothèque externe (KiCad symbol lib, etc.).
