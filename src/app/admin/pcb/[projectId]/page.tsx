@@ -32,6 +32,13 @@ export default async function PcbProjectPage({
     return <div className="p-6 text-red-600">Projet introuvable : {projectId}</div>;
   }
 
+  const clientRequest = project.requestId
+    ? await prisma.request.findUnique({
+        where: { id: project.requestId },
+        select: { partFunction: true },
+      })
+    : null;
+
   const [sourcingResults, complianceResult] = await Promise.all([
     sourceBom(
       project.components.map((c) => ({
@@ -105,7 +112,7 @@ export default async function PcbProjectPage({
 
         {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
         <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
-          <RequirementInput />
+          <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
 
           <div className="overflow-hidden rounded-lg border bg-white">
             <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">

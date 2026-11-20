@@ -1,0 +1,241 @@
+# Suivi de discussion — Fonctionnalité PCB (PartIVA)
+
+**Document de travail** — ne remplace pas les procédures officielles.
+**Créé le** : 2026-11-20
+**Statut** : cadrage terminé — 44 étapes validées (V1-V44), 32 questions répondues (Q1-Q32).
+
+## 1. Objectif de la discussion
+
+Cadrer, par questions/réponses, la fonctionnalité PCB : l'admin conçoit et implante une carte depuis l'application, KiCad en arrière-plan, carte à gauche et cahier des charges à droite ; puis intégrer l'IA pour lire le cahier des charges et proposer une structure de carte.
+
+## 2. Étapes validées — Partie GAUCHE (carte)
+
+| # | Étape | Statut | Formulation validée |
+|---|---|---|---|
+| **V1** | Objectif fonctionnel | ✅ | L'admin conçoit/implanète depuis notre app ; KiCad en arrière-plan ; rendu dans notre zone de travail. |
+| **V2** | Répartition de l'écran | ✅ | **Gauche** = carte. **Droite** = cahier des charges. |
+| **V3** | Double affichage | ✅ | (a) fenêtre KiCad embarquée, (b) vue PartIVA. Bascule par bouton, source unique. |
+| **V4** | Mode par défaut | ✅ | **A — vue PartIVA**, KiCad sur demande. |
+| **V5** | Périmètre V1 | ✅ | **A — placement seul** (pas de pistes, pas d'autoroutage). |
+| **V7** | Règles de placement | ✅ | 8 règles (§2.1). |
+| **V8** | Référentiel | ✅ | Origine + dimensions de la carte **obligatoires**. |
+| **V9** | Placement au clic | ✅ (reporté) | Pas de clic pour placer ; la position vient de l'algorithme (V23). |
+| **V10** | Projet neuf | ✅ | Notre app écrit le fichier de carte minimal, au **format KiCad 10** (version installée 10.0.8), squelette minimal valide (en-tête, couches, outline). |
+| **V11** | Démarrage d'un cahier des charges | ✅ | Formulaire de dimensions **éditable** ; création du fichier **automatique**. |
+| **V12** | Emplacement du fichier | ✅ | **A — poste admin** (stable), chemin enregistré. |
+
+### 2.1 Règles de placement (V7)
+
+1. Un champ = un composant. 2. Terme inconnu → message, rien n'est placé. 3. Référence auto (`R1`, `R2`…). 4. Position : proposée par l'algorithme puis **corrigeable** par l'admin (V23, ex-« au centre »), convertie en mm. 5. Grille 2,54 mm. 6. Rotation 0°. 7. KiCad fermé → placement en attente, badge « non synchronisé ». 8. Annuler le dernier placement.
+
+---
+
+## 3. Étapes validées — Partie DROITE (cahier des charges)
+
+| # | Étape | Statut | Formulation validée |
+|---|---|---|---|
+| **V13** | Structure du panneau droit | ✅ | **En haut** : le cahier des charges envoyé par le client, **quel que soit son contenu**, affiché dans une **fenêtre avec défilement**. **En dessous** : la **liste technique des champs et formulaires**, remplis par l'admin en **compilation technique**. |
+| **V14** | Lecture du cahier des charges par l'IA | ✅ | L'IA lit le cahier des charges et **propose** : **dimensions**, **liste de composants**, **structure d'implantation** (zones). L'admin **valide ou corrige** ; rien n'est appliqué automatiquement. |
+| **V15** | Forme du cahier des charges | ✅ | **Texte obligatoire** (Q12 = A) : le client remplit des champs, ou l'admin colle le texte. Pas d'OCR. |
+| **V16** | Formulaire client optimisé | ✅ | Le formulaire envoyé par le client est **restructuré** pour produire un texte directement exploitable par l'IA (blocs alignés sur les catégories existantes `usage / function / processing / mechanical / manufacturing / quality`). |
+| **V17** | Bibliothèque de modèles de référence | ✅ | La BDD locale contient des **modèles de cartes prêts** (fonctionnalités + données de carte attachées). L'IA les **consulte** pour répondre de façon plus **concise et ancrée** au lieu d'inventer. |
+| **V18** | Corpus de référence | ✅ | Cartes **open source** uniquement, **au format lisible** (KiCad), avec **source + licence** obligatoires. Fiche extraite par le lecteur de carte. Cible de départ : **20 à 50 modèles**. |
+| **V19** | Enchaînement | ✅ | Formulaire client → cahier des charges → **analyse IA + corpus** → proposition (dimensions, composants, zones) → validation admin → formulaire de dimensions → création du fichier → placement. *Confirmé par Q16 = C.* |
+| **V20** | Déclenchement de l'IA | ✅ | **Automatique une seule fois à la création du projet**, puis **relance manuelle** obligatoire après toute modification (« Relancer l'analyse »). Pas de relance automatique à chaque ouverture. |
+| **V21** | Choix des composants dans la bibliothèque | ✅ | Après validation/correction, l'admin **relance l'IA** ; elle **interroge la bibliothèque complète de composants** et affiche **dynamiquement** une **liste de champs rétractables** — un champ par composant, contenant **plusieurs modèles** de ce même composant. L'admin **sélectionne et valide** modèle par modèle. |
+| **V22** | Placement réel depuis les coordonnées | ✅ | Pour **chaque champ validé**, l'algorithme calcule les **coordonnées** de la pièce et les **envoie à KiCad**, qui la place sur la carte. |
+| **V23** | Position proposée et corrigeable | ✅ | L'algorithme **propose** une position (répartition par zones, grille 2,54 mm). L'admin peut **la corriger** avant l'envoi à KiCad, par **saisie numérique (X/Y)** et par **glisser-déposer** sur la vue (Q32 = les deux). *Remplace la règle V7.4 « au centre » (Q18 = C).* |
+| **V24** | Emplacement du corpus et de la bibliothèque | ✅ | **SQLite sur le poste admin** (Q19 = B) — cohérent avec le fichier de carte (V12). Pas de double source de vérité. |
+| **V25** | Architecture réelle de l'application | ✅ | Application **hybride** : **Tauri 2** (`desktop/src-tauri`) embarque un **serveur Next.js en sidecar** (`127.0.0.1`) + une **BDD SQLite locale** (`%APPDATA%\PartIVA\partiva.db`) synchronisée depuis le cloud, et **PostgreSQL** côté serveur. **Conséquence : V12 et V24 tiennent** — les routes API du PCB s'exécutent sur le poste admin, donc elles peuvent écrire les fichiers et joindre KiCad. |
+| **V26** | Pas de fonctionnement hors ligne | ✅ | Le module PCB **exige le réseau** (Q21) : l'IA est indispensable à la chaîne. Le SQLite local (V24) reste un **stockage**, pas un mode hors ligne. |
+| **V27** | Modèle LLM | ✅ | **Groq** (déjà configuré, `GROQ_API_KEY`), modèle **`llama-3.3-70b-versatile`** (Q22 = B), avec **sortie JSON stricte** à schéma fixe. |
+| **V28** | Nombre d'alternatives affichées | ✅ | **Seuil de compatibilité** (Q23 = C) : tout ce qui dépasse un score (ex. 80 %), avec **minimum 3** et **maximum 8** modèles par champ, plus un lien « voir tout ». |
+| **V29** | Emplacement du pont KiCad | ✅ | **Serveur Node / sidecar** (Q24 = B) : réutilise `/api/pcb/ipc` et `kicad-ipc-adapter.ts`. Aucun code KiCad en Rust. |
+| **V36** | Capitalisation | ✅ | **Chaque projet accompli** est sauvegardé dans la BDD locale (fiche : cahier des charges, proposition validée, composants retenus, positions, fichier). Deux régimes légaux : **modèles de référence** (open source, licence) et **projets accomplis** (internes, sans licence). Les deux alimentent la recherche ultérieure. |
+| **V37** | Recherche dans la bibliothèque | ✅ | **Hybride** (Q25 = B) : **filtres structurés** (les 6 blocs) pour restreindre, puis **similarité** sur les champs textuels pour classer ; chaque résultat montre **pourquoi** il matche. L'IA ne **réordonne** que le top-5, elle ne crée jamais de ligne. SQLite suffit (cosinus en code ou `sqlite-vec`). |
+| **V38** | Catalogue / stock de composants | ✅ | **Structure liée à la BDD locale** qui **audite et répertorie** les composants électroniques disponibles en stock, et intègre **toutes les données liées** à chaque composant exploité dans le PCB (empreinte, paramètres électriques, prix unitaire, stock, fournisseur, datasheet). **Stock réel avec avertissement seulement** (pas de blocage) (Q26 = B). **Un seul fournisseur par composant** (Q27 = C) — prix unique. Schéma par défaut : voir §3.1 (V41). |
+| **V39** | Compteur de prix | ✅ | À chaque composant **placé/validé** par l'IA, son prix unitaire **s'incrémente** ; affichage du **coût total de la carte** (composants) en fin de chaîne. |
+| **V40** | BDD vectorielle locale | ✅ | **Implantation d'une BDD vectorielle dans la BDD locale** (SQLite + `sqlite-vec`), synchronisée avec le corpus et le catalogue, pour alimenter la recherche hybride (V37) sans service externe. |
+| **V41** | Schéma par défaut du catalogue | ✅ | Schéma par défaut de la table `components` (§3.1), défini pour débloquer la migration. |
+| **V42** | Format de fichier de carte | ✅ | **Version optimale** : KiCad 10 (10.0.8), squelette minimal valide (en-tête, couches, outline), vérifié par ouverture dans KiCad. |
+| **V43** | Remplissage du formulaire 6 blocs | ✅ | Le **client** remplit les 6 blocs dans **son profil**, puis **envoie à l'admin** (crée/met à jour la `Request`). |
+| **V44** | Correction de position | ✅ | L'admin corrige la position proposée par **saisie numérique (X/Y)** et par **glisser-déposer** sur la vue (les deux). |
+
+## 4. Questions ouvertes
+
+| # | Question | État |
+|---|---|---|
+| **Q1-Q8** | Cadrage carte, écran, placement, fichier | ✅ Répondues (voir V1-V12) |
+| **Q9** | Bibliothèque de composants de la V1 | ✅ Répondu par **V21** — une entrée par composant, **plusieurs modèles** par entrée, listes rétractables. |
+| **Q10** | Anti-empilement des placements | ✅ Répondu par **V23** — garanti par l'algorithme de positionnement. |
+| **Q11** | Sous quelle **forme** arrive le cahier des charges client (texte, PDF, Word, photo/scan, mélange) ? | ✅ Répondu par **V15/V16** — texte obligatoire, formulaire en 6 blocs. |
+| **Q12** | L'IA ne peut lire que du **texte** : exiger du texte / OCR / saisie manuelle assistée ? | ✅ Répondu — **A** : texte obligatoire (client ou admin). Pas d'OCR. |
+| **Q13** | Contenu exact du formulaire client optimisé : garde-t-on les 6 blocs proposés, en ajoute-t-on, en retire-t-on ? | ✅ Répondu — **les 6 blocs sont validés**. |
+| **Q14** | D'où viennent les **modèles de référence** (le corpus) : projets déjà réalisés, saisie manuelle, catalogues externes ? | ✅ Répondu — **C** (open source / designs de référence). |
+| **Q15** | Critère d'admission dans le corpus : uniquement les cartes dont on peut **lire le fichier**, ou aussi les fiches partielles ? | ✅ Répondu — **A** : fichiers lisibles uniquement. |
+| **Q16** | Quand l'IA analyse-t-elle : automatiquement à l'ouverture, sur demande (bouton), ou les deux ? | ✅ Répondu — **C** : auto à la création + relance manuelle obligatoire après modification. |
+| **Q17** | Comment l'admin valide-t-il la proposition de l'IA : tout d'un coup, par bloc, ou élément par élément ? | ✅ Confirmé — **par bloc**, puis **sélection ligne par ligne** des composants (V21). |
+| **Q18** | Où sont placées les pièces : **au centre** (règle V7.4) ou **aux coordonnées calculées** par l'algorithme (V22) ? | ✅ Répondu — **C** : position proposée, corrigeable avant l'envoi (V23). |
+| **Q19** | Où vit le **corpus + la bibliothèque de composants** : base **Postgres/Neon** (serveur) ou **SQLite desktop** (poste admin) ? | ✅ Répondu — **B** : SQLite sur le poste admin (V24). |
+| **Q20** | L'application tourne-t-elle **sur le poste admin** (localhost) ou sur un **serveur** ? Conditionne V12 (fichier local) et V24 (SQLite local). | ✅ Répondu — **hybride** : Tauri + sidecar Next local + SQLite local, PostgreSQL côté serveur (V25). |
+| **Q21** | Le module PCB doit-il fonctionner **hors ligne** ? Le code actuel exige PostgreSQL pour le PCB et l'IA. | ✅ Répondu — **non** : le PCB dépend de l'IA, donc du réseau (V26). |
+| **Q22** | Quel **modèle LLM** pour l'analyse du cahier des charges et le choix des composants ? Le modèle actuel est `llama-3.1-8b-instant`. | ✅ Répondu — **B** : Groq, `llama-3.3-70b-versatile`, sortie JSON stricte (V27). |
+| **Q23** | Combien de **modèles par composant** dans chaque champ rétractable : tous les compatibles, les 3 meilleurs, ou un seuil de score ? | ✅ Répondu — **C** : seuil de score, 3 à 8 modèles (V28). |
+| **Q24** | Le **pont KiCad** s'écrit-il côté **Rust (Tauri)** ou côté **serveur Node (sidecar)** ? | ✅ Répondu — **B** : Node/sidecar (V29). |
+| **Q25** | Comment la **recherche dans la bibliothèque** doit-elle se faire pour donner des résultats **valides** ? | ✅ Répondu — **B** : hybride, filtres + similarité, IA en réordonnancement uniquement (V37). |
+| **Q26** | Le catalogue de composants est-il un **vrai stock** (décrément à chaque placement) ou seulement un **référentiel de prix** ? Et **multi-fournisseur** par composant ? | ✅ Répondu — **B** : vrai stock, avertissement seulement, pas de blocage (V38). |
+| **Q27** | **Multi-fournisseur** par composant : on garde le **fournisseur préféré** (prix affiché) avec possibilité de choisir un autre, ou on affiche le **moins cher** automatiquement ? | ✅ Répondu — **C** : prix unique, un seul fournisseur par composant (V38). |
+| **Q28** | Source des embeddings pour V37 | ✅ Répondu — **BDD vectorielle locale** (sqlite-vec) + synchronisation (V40). |
+| **Q29** | Schéma du catalogue (V38) | ✅ Répondu — **défini par défaut** (§10 / V41). |
+| **Q30** | Format minimal du fichier de carte (V10) | ✅ Répondu — **version optimale** : KiCad 10 (V42). |
+| **Q31** | Qui remplit le formulaire client 6 blocs | ✅ Répondu — **le client dans son profil**, puis envoie à l'admin (V43). |
+| **Q32** | UX de correction de position (V23) | ✅ Répondu — **les deux** : saisie numérique + glisser-déposer (V44). |
+
+---
+
+## 5. Contraintes techniques retenues
+
+- Fenêtre KiCad embarquée = **desktop uniquement**, dépendante de la version.
+- Vue PartIVA = disponible partout, repli permanent.
+- Connexion IPC KiCad 10.0.8 **prouvée** ; placement réel **non implémenté**.
+- KiCad doit être **ouvert avec un PCB** ; pas besoin d'être au premier plan.
+- Lecture de la carte (origine, dimensions, composants) = prérequis obligatoire.
+- Poste admin **stable** → pas de synchronisation multi-postes.
+- Routes `/api/pcb/**` **sans authentification** (à traiter avant d'exposer le placement).
+- Routage automatique **impossible via IPC** (hors V1).
+
+---
+
+## 5.1 Innovations de fiabilité (V30-V35, ✅ validées)
+
+Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** fiable, c'est-à-dire **vérifiable** à chaque étape, et non « l'IA a dit ».
+
+| # | Innovation | Étape | Problème qu'elle supprime |
+|---|---|---|---|
+| **V30** | **Complétude + contradictions** avant envoi du formulaire : score de complétude, blocage si une contradiction est détectée (ex. alimentation 3,3 V et actionneur 12 V). | Formulaire client | Un formulaire creux ou incohérent, que l'IA comblera en inventant. |
+| **V31** | **Provenance obligatoire** : chaque valeur proposée cite sa **source** — la phrase du client ou l'**identifiant du modèle** du corpus. Sans source, la valeur est rejetée. | Analyse IA | Les valeurs inventées, indétectables aujourd'hui. |
+| **V32** | **Double passe + détection de divergence** : l'IA est interrogée deux fois, seules les valeurs **stables** sont retenues ; les écarts sont signalés à l'admin. | Analyse IA | L'aléa du modèle sur les dimensions et les composants. |
+| **V33** | **Vérification déterministe des composants** : règles (pas IA) sur tension, courant, nombre de broches, découplage ; **empreinte validée** par modèle de la bibliothèque. | Choix des composants | Une sélection plausible mais électriquement fausse. |
+| **V34** | **Envoi sûr à KiCad** : contrôle géométrique avant envoi (chevauchement, hors carte, zones, dégagement) + **transaction idempotente** + **dry-run** (diff annoncé) + **réconciliation** entre l'état de l'app et le fichier réel. | Placement / KiCad | Les placements à moitié appliqués et les désynchronisations. |
+| **V35** | **Jeu d'évaluation de référence** : 10 cahiers des charges types → proposition attendue, rejoués à chaque changement de prompt ou de modèle, avec score (erreur de dimension, rappel des composants, validité du placement). | Tout | L'absence de mesure : on ne sait pas si une modification dégrade la qualité. |
+
+> Sans **V35**, les cinq autres sont des intentions. C'est la seule qui prouve que la fiabilité progresse.
+
+---
+
+## 6. Points à porter plus tard dans les registres officiels
+
+- Source de vérité des données de carte (décision `(ae)` à réviser ?).
+- One-shot vs daemon persistant.
+- Champ `.kicad_pcb` sur `PcbProject` (migration Prisma).
+- Sécurisation des routes PCB. Dégradation web. Sort de `FAST_TRACK_P7.md`.
+
+---
+
+## 7. Journal
+
+| Date | Événement |
+|---|---|
+| 2026-11-20 | Ouverture. V1, V2 validés. Q3 posée. |
+| 2026-11-20 | Q3 = A → V4. Q4 posée. |
+| 2026-11-20 | Q4 = A (placement seul) → V5. Q5 posée. |
+| 2026-11-20 | Q5 = oui → V6. V7 proposé. Q6 posée. |
+| 2026-11-20 | Q6 = pas de clic → V8, V9. Q7 posée. |
+| 2026-11-20 | Q7 = C → V10. Q8 posée. |
+| 2026-11-20 | Q8 = A + formulaire de dimensions → V11, V12. Q9 posée. |
+| 2026-11-20 | **Partie gauche suspendue** (Q9, Q10 en attente). Passage à la partie droite : V13 validé. Q11 posée. |
+| 2026-11-20 | **Exécution** (voir §8) : champ « Exigence » → « Cahier des charges », bouton « Valider » → « Consulter », placement supprimé, page de consultation créée. |
+| 2026-11-20 | Champ pré-rempli avec la **Fonction principale** du client (`Request.partFunction`), placeholder si absente. |
+| 2026-11-20 | Ouverture de la piste **IA** : lecture du cahier des charges → proposition de structure (V14, 🟡). Q11 et Q12 ouvertes. |
+| 2026-11-20 | Q12 = A. V14, V15, V16 validés : texte obligatoire, formulaire client restructuré en 6 blocs. Q13 posée. |
+| 2026-11-20 | Q13 validé (6 blocs). Piste **corpus/RAG** ouverte. Q14 posée. |
+| 2026-11-20 | Q14 = C, Q15 = A → V17, V18 : corpus open source, fichiers lisibles, source + licence, 20-50 modèles. Q16 posée. |
+| 2026-11-20 | Q16 = C → V19, V20 : auto une fois à la création, relance manuelle après modification. Q17 posée. |
+| 2026-11-20 | Précision du chaînage → **V21** (bibliothèque de composants, listes rétractables de modèles, sélection validée) et **V22** (coordonnées → KiCad). **Q9 répondue**. Q18 ouverte (centre vs coordonnées calculées). |
+| 2026-11-20 | Q18 = C → **V23** : position proposée puis corrigeable. Règle V7.4 mise à jour. Q19 posée (emplacement du corpus). |
+| 2026-11-20 | Q19 = B → **V24** : corpus + bibliothèque en SQLite local. Q20 posée (l'app tourne-t-elle sur le poste admin ?). |
+| 2026-11-20 | Q20 = **hybride** → **V25** : Tauri 2 + sidecar Next local + SQLite local + PostgreSQL serveur. V12 et V24 confirmées. Q21 posée (hors ligne ?). |
+| 2026-11-20 | Q21 = non → **V26** : PCB en ligne uniquement (l'IA est indispensable). Q22 posée (choix du modèle LLM). |
+| 2026-11-20 | Q22 = B → **V27** : Groq `llama-3.3-70b-versatile`, JSON strict. Q23 posée (nombre d'alternatives par composant). |
+| 2026-11-20 | Q23 = C → **V28** : seuil de score, 3 à 8 modèles par champ. **Q10 et Q11 clôturées.** Q24 posée (emplacement du pont KiCad). |
+| 2026-11-20 | Q24 = B → **V29** : pont KiCad côté Node/sidecar. Proposition de **6 innovations de fiabilité** V30-V35 (§5.1), à arbitrer. |
+| 2026-11-20 | V30-V35 validées. **V36** : capitalisation — projets accomplis dans la BDD locale, deux régimes légaux. Q25 posée (recherche intelligente). |
+| 2026-11-20 | Q25 = B → **V37** : recherche hybride (filtres + similarité), IA en réordonnancement. **Q17 reste à confirmer** (implicite : par bloc + sélection ligne par ligne). |
+| 2026-11-20 | **Q17 confirmé.** Cadrage complet. 37 étapes validées (V1-V37), 25 questions répondues (Q1-Q25). |
+| 2026-11-20 | Nouveau besoin : **catalogue/stock de composants + compteur de prix** → V38, V39 proposés. Q26 posée. |
+| 2026-11-20 | Q26 = B → **V38, V39 validées** : vrai stock avec avertissement, compteur de prix. Q27 posée (multi-fournisseur). |
+| 2026-11-20 | Q27 = C → **V38 précisée** : prix unique, un seul fournisseur par composant. Cadrage complet : 39 étapes (V1-V39), 27 questions (Q1-Q27). |
+| 2026-11-20 | **Re-analyse (failles)** : 6 bloquants levés par le coordinateur — V6 supprimé, V40 (BDD vectorielle), V41 (schéma par défaut), V42 (format KiCad 10), V43 (formulaire client), V44 (correction les deux). V9 mis à jour. Q28-Q32 répondues. Cadrage : 44 étapes (V1-V44), 32 questions (Q1-Q32). |
+
+---
+
+## 8. Actions exécutées (hors discussion)
+
+**Écart documenté (charte §11) :** l'IA externe ne modifie pas de fichiers (`PROCEDURE_IA_EXTERNE` §4). Le coordinateur a **explicitement autorisé** cette modification ponctuelle. Elle est tracée ici, non commitée.
+
+| Élément | Détail |
+|---|---|
+| `requirement-input.tsx` | Titre « Cahier des charges » ; champ `Input` inerte (placeholder seul, `readOnly`) ; bouton « Consulter » (lien) ; **suppression** de `resolveComponentFromText` / `addNodeAtCenter` et de l'état local. |
+| `cahier-des-charges/page.tsx` (nouveau) | Page de consultation : demande client (description, fonction, matériau, quantité, urgence, statut, client, date), fichiers transmis (CAO + photos), compilation technique (`PcbRequirement` groupés par catégorie). |
+| `page.tsx` (workspace) | `<RequirementInput projectId={projectId} partFunction={…} />` ; lecture de `Request.partFunction` via `project.requestId`. |
+| `requirement-input.tsx` (complément) | Le champ affiche la **Fonction principale** du client (`Request.partFunction`) ; si elle est absente, le champ reste vide et le **placeholder** s'affiche. |
+| Preuves | `npm run typecheck` → **EXIT 0** ; `prettier` → **OK** sur les 2 fichiers modifiés. |
+| État | **Non commité.** |
+
+**Constat annexe (bloquant CI) :** `prettier --check` échoue sur **9 fichiers** de `src/app/admin/pcb/`, dont des fichiers non touchés ici. Cause identifiée : absence de **saut de ligne final** (le formateur ne change rien d'autre). À corriger avant la PR (R3).
+
+---
+
+## 9. Plan d'exécution ordonné (proposé)
+
+**Phase A — Fondations**
+1. Hygiène CI : ajouter le saut de ligne final aux 9 fichiers `src/app/admin/pcb/` (bloquant PR).
+2. Schéma : ajout du corpus + bibliothèque de composants + catalogue/stock (SQLite desktop, migrations) ; champ `.kicad_pcb` sur `PcbProject` (migration Prisma) ; table `components` selon §10 + table virtuelle `components_vec` (sqlite-vec).
+3. Lecteur de carte KiCad (`.kicad_pcb` → origine, dimensions, composants) — alimente V8, V18, V36.
+4. Pont KiCad côté Node : action `placeFootprint`, transaction idempotente, dry-run, réconciliation (V34).
+5. BDD vectorielle locale : implantation sqlite-vec + synchronisation (V40).
+
+**Phase B — Partie droite (cahier des charges + IA)**
+5. Formulaire client restructuré en 6 blocs (rempli par le client dans son profil, V43) + contrôle de complétude/contradictions (V30).
+6. Client LLM : passage à `llama-3.3-70b-versatile`, sortie JSON stricte à schéma fixe (V27).
+7. Analyse du cahier des charges : provenance obligatoire (V31), double passe (V32).
+8. Corpus + recherche hybride (V37) ; ingestion des 20-50 modèles open source (V18) ; ingestion des projets accomplis (V36).
+9. Proposition validable par bloc + sélection ligne par ligne des composants (V21, Q17).
+
+**Phase C — Partie gauche (placement)**
+10. Algorithme de positionnement : zones, grille 2,54 mm, contrôle géométrique (V23, V34).
+11. UI : champs rétractables avec 3-8 modèles (V28), correction de position avant envoi.
+12. Envoi à KiCad : coordonnées validées → `placeFootprint` (V22).
+
+**Phase D — Fiabilité & capitalisation**
+13. Vérification déterministe des composants (V33) ; envoi sûr à KiCad (V34).
+14. Jeu d'évaluation de référence + score (V35).
+15. Capitalisation automatique des projets accomplis (V36).
+
+## 10. Schéma par défaut du catalogue de composants (V41)
+
+Table SQLite `components` (une ligne = un composant, un seul fournisseur par ligne, Q27 = C) :
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `id` | TEXT PK | Identifiant interne (cuid) |
+| `mpn` | TEXT | Manufacturer Part Number |
+| `manufacturer` | TEXT | Fabricant |
+| `description` | TEXT | Description courte (utilisée pour l'embedding) |
+| `category` | TEXT | Catégorie fonctionnelle (résistance, condensateur, MCU, connecteur, régulateur, …) |
+| `package` | TEXT | Boîtier (0603, SOIC-8, QFP-48, …) |
+| `footprint` | TEXT | Empreinte KiCad (`lib:footprint`) |
+| `symbol` | TEXT | Symbole KiCad (`lib:symbol`) |
+| `electrical` | TEXT (JSON) | Paramètres électriques flexibles par catégorie (tension max, courant, tolérance, valeur, …) |
+| `price` | REAL | Prix unitaire |
+| `currency` | TEXT | Code ISO (défaut EUR) |
+| `supplier` | TEXT | Fournisseur unique (Q27 = C) |
+| `supplier_ref` | TEXT | Référence chez le fournisseur |
+| `stock` | INTEGER | Stock disponible (avertissement seulement, Q26 = B) |
+| `datasheet_url` | TEXT | Lien datasheet |
+| `lifecycle` | TEXT | active / NRND / obsolete |
+| `source` | TEXT | Provenance (id du modèle open source ou du projet accompli) — V31 |
+| `licence` | TEXT | Licence (modèles de référence uniquement) |
+| `created_at`, `updated_at` | TEXT (ISO) | Horodatage |
+
+Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `category` + `electrical`, synchronisée à l'insertion.
