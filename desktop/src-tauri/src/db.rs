@@ -64,6 +64,7 @@ mod tests {
       "sync_metadata",
       "part_specification",
       "part_category",
+      "components",
       "_sqlx_migrations",
     ] {
       assert!(names.contains(&expected), "table manquante : {expected}");
