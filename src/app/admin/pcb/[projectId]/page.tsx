@@ -7,6 +7,7 @@ import VisualComparisonOverlay from '@/components/pcb/VisualComparisonOverlay';
 import { WorkspaceBackButton } from './back-button';
 import { PcbCanvas } from '@/components/pcb/PcbCanvas';
 import { RequirementInput } from './requirement-input';
+import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -92,6 +93,7 @@ export default async function PcbProjectPage({
         </span>
       </div>
 
+      <PcbEditorProvider>
       <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
         {/* Colonne gauche : Layout PCB */}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
@@ -153,6 +155,7 @@ export default async function PcbProjectPage({
           </div>
         </div>
       </div>
+      </PcbEditorProvider>
     </div>
   );
 }

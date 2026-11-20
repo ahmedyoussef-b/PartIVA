@@ -84,6 +84,7 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 - P7.16 : `components/pcb/PcbCanvas.tsx` — éditeur 2D `<canvas>` (grille 20px, fond navy, clic = ajout d'un rectangle `C{n}` avec log `[PCB:EDITOR] Composant ajouté {x,y}`), redessin via `useEffect` + `ResizeObserver` (DPI géré). Placeholder du Layout PCB remplacé par `<PcbCanvas />`. Éphémère (état local, non persisté).
 - P7.18-a : `requirement-input.tsx` (client) — bloc "Exigence" en tête de colonne droite (Input + bouton Valider, entrée = submit), log `[PCB:REQ] Exigence soumise { value }`, champ vidé après validation. Prochaine étape P7.18-b : relier la validation à l'ajout d'un composant dans le canvas.
 - P7.18-bis : `PcbCanvas` occupe 100% du panneau gauche — racine `w-full`, wrapper `w-full flex-1`, canvas dimensionné sur `clientWidth/Height` du wrapper (ResizeObserver + DPI). Plus de vide blanc à droite.
+- P7.18-b : canvas enrichi. `lib/pcb/symbols.tsx` (8 symboles SVG R/C/LED/Q/D/L/J/V), `lib/pcb/component-mapping.ts` (FR+EN → composant), `PcbCanvas.tsx` (symboles SVG + menu contextuel au clic, auto-réf `R1/R2…`), `PcbEditorProvider.tsx` (contexte nodes), `requirement-input.tsx` (champ Exigence → `addNodeAtCenter` ou erreur "Composant non reconnu"). 2 chemins d'ajout coexistent (champ = centre, clic = case). Éphémère local.
 
 ## 3. Dettes / Tests reportés
 
@@ -101,3 +102,8 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 ### Étapes abandonnées
 - P7.10, P7.11, P7.17 : jamais exécutées (plans).
 - P7.18-b : non démarrée (arbitrage IA externe en cours).
+
+### Nouvelles dettes P7.18-b
+- **D-FT-P7-SYMBOLS-STATIC** : les 8 symboles sont dessinés en SVG inline (hardcodés). Pas de bibliothèque externe (KiCad symbol lib, etc.).
+- **D-FT-P7-MAPPING-MANUAL** : mapping nom → composant hardcodé (français + anglais). Pas de NLP, pas de fuzzy matching.
+- **D-FT-P7-FOOTPRINT-UNUSED** : les footprints KiCad sont stockés dans `symbols.tsx` mais **non utilisés** (aucun appel IPC, aucun export). Réservés pour P7.18-c ou phase ultérieure.

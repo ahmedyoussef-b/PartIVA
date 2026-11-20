@@ -1,25 +1,19 @@
 'use client';
 
 import * as React from 'react';
-
-interface PcbNode {
-  id: number;
-  x: number;
-  y: number;
-  type: string;
-}
+import { usePcbEditor } from './PcbEditorProvider';
+import { COMPONENT_SYMBOLS, SYMBOLS_BY_ID } from '@/lib/pcb/symbols';
+import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
 const GRID_SIZE = 20;
-const NODE_W = 36;
-const NODE_H = 18;
 
 export function PcbCanvas() {
+  const { nodes, addNode, setCanvasSize } = usePcbEditor();
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
-  const [nodes, setNodes] = React.useState<PcbNode[]>([]);
-  const nextId = React.useRef(1);
+  const [menuPos, setMenuPos] = React.useState<{ x: number; y: number } | null>(null);
 
-  const draw = React.useCallback(() => {
+  const drawGrid = React.useCallback(() => {
     const canvas = canvasRef.current;
     const wrapper = wrapperRef.current;
     if (!canvas || !wrapper) return;
@@ -39,11 +33,9 @@ export function PcbCanvas() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    // Fond
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, w, h);
 
-    // Grille
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
     ctx.lineWidth = 1;
     for (let x = 0; x <= w; x += GRID_SIZE) {
@@ -59,54 +51,42 @@ export function PcbCanvas() {
       ctx.stroke();
     }
 
-    // Composants
-    nodes.forEach((n) => {
-      ctx.fillStyle = '#3b82f6';
-      ctx.strokeStyle = '#93c5fd';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.rect(n.x - NODE_W / 2, n.y - NODE_H / 2, NODE_W, NODE_H);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = '10px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`C${n.id}`, n.x, n.y);
-    });
-  }, [nodes]);
+    setCanvasSize(w, h);
+  }, [setCanvasSize]);
 
   React.useEffect(() => {
-    draw();
-  }, [draw]);
+    drawGrid();
+  }, [drawGrid]);
 
   React.useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
-    const ro = new ResizeObserver(() => draw());
+    const ro = new ResizeObserver(() => drawGrid());
     ro.observe(wrapper);
     return () => ro.disconnect();
-  }, [draw]);
+  }, [drawGrid]);
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setNodes((prev) => {
-      const node: PcbNode = { id: nextId.current++, x, y, type: 'default' };
-      console.info('[PCB:EDITOR] Composant ajouté', { x, y });
-      return [...prev, node];
-    });
+    setMenuPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
+
+  const pick = (symbol: ResolvedComponent) => {
+    if (!menuPos) return;
+    addNode(symbol, menuPos.x, menuPos.y);
+    setMenuPos(null);
+  };
+
+  const menuLeft = menuPos
+    ? Math.max(4, Math.min(menuPos.x, (wrapperRef.current?.clientWidth ?? 9999) - 190))
+    : 0;
 
   return (
     <div className="flex h-full w-full flex-col">
       <div className="mb-2 flex items-center justify-between text-xs text-gray-400">
-        <span>Cliquez sur la grille pour placer un composant</span>
+        <span>Cliquez sur la grille puis choisissez un composant</span>
         <span className="font-mono">{nodes.length} composant(s)</span>
       </div>
       <div
@@ -116,8 +96,48 @@ export function PcbCanvas() {
         <canvas
           ref={canvasRef}
           onClick={handleClick}
-          className="block h-full w-full cursor-crosshair"
+          className="absolute inset-0 block h-full w-full cursor-crosshair"
         />
+
+        {/* Symboles SVG superposés (non cliquables) */}
+        <div className="pointer-events-none absolute inset-0">
+          {nodes.map((n) => {
+            const sym = SYMBOLS_BY_ID[n.symbolId];
+            if (!sym) return null;
+            return (
+              <div
+                key={n.id}
+                className="absolute flex flex-col items-center"
+                style={{ left: n.x - 20, top: n.y - 20 }}
+              >
+                {sym.render({ size: 40, color: '#3b82f6' })}
+                <span className="mt-0.5 text-[10px] font-mono text-gray-200">{n.id}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Menu contextuel */}
+        {menuPos && (
+          <div
+            className="absolute z-10 w-48 rounded border border-gray-600 bg-gray-800 p-1 shadow-lg"
+            style={{ left: menuLeft, top: menuPos.y }}
+          >
+            <div className="px-2 py-1 text-[10px] uppercase text-gray-400">Composant</div>
+            {COMPONENT_SYMBOLS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => pick({ symbolId: s.id, refPrefix: s.refPrefix, label: s.label })}
+                className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs text-gray-100 hover:bg-gray-700"
+              >
+                <span className="inline-flex">{s.render({ size: 20, color: '#93c5fd' })}</span>
+                <span className="flex-1">{s.label}</span>
+                <span className="font-mono text-[10px] text-gray-400">{s.refPrefix}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
