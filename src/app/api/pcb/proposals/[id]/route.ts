@@ -23,8 +23,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const b = (body ?? {}) as Record<string, unknown>;
-  const status =
-    b.status === 'accepted' ? 'accepted' : b.status === 'rejected' ? 'rejected' : null;
+  const status = b.status === 'accepted' ? 'accepted' : b.status === 'rejected' ? 'rejected' : null;
   if (!status) {
     return NextResponse.json(
       { error: 'status doit être "accepted" ou "rejected"' },

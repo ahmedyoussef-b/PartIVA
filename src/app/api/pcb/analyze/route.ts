@@ -58,7 +58,13 @@ export async function POST(req: Request) {
 
   const candidateMap = new Map<
     string,
-    { id: string; name: string; category: string; footprint: string | null; supplier: string | null }
+    {
+      id: string;
+      name: string;
+      category: string;
+      footprint: string | null;
+      supplier: string | null;
+    }
   >();
 
   for (const kw of keywords) {
@@ -71,7 +77,14 @@ export async function POST(req: Request) {
           { supplierRef: { contains: kw, mode: 'insensitive' } },
         ],
       },
-      select: { id: true, name: true, category: true, footprint: true, supplier: true, supplierRef: true },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        footprint: true,
+        supplier: true,
+        supplierRef: true,
+      },
       take: 10,
       orderBy: { updatedAt: 'desc' },
     });

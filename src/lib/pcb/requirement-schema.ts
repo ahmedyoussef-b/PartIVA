@@ -15,7 +15,14 @@ export type PcbEnrichmentOutput = z.infer<typeof PcbEnrichmentSchema>;
 export const PcbRequirementSchema = z.object({
   requirements: z.array(
     z.object({
-      category: z.enum(['usage', 'function', 'processing', 'mechanical', 'manufacturing', 'quality']),
+      category: z.enum([
+        'usage',
+        'function',
+        'processing',
+        'mechanical',
+        'manufacturing',
+        'quality',
+      ]),
       key: z.string().min(1),
       value: z.string(),
       status: z.enum(['proposed', 'confirmed', 'to_verify', 'missing']).default('proposed'),
