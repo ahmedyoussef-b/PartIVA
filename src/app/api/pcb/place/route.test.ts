@@ -215,7 +215,7 @@ describe('POST /api/pcb/place', () => {
     expect(placeFootprint).not.toHaveBeenCalled();
   });
 
-  it('17. retourne 500 en cas d\'échec du placement', async () => {
+  it("17. retourne 500 en cas d'échec du placement", async () => {
     mockHappyPath();
     vi.mocked(placeFootprint).mockResolvedValue({ ok: false, error: 'Python error' });
 

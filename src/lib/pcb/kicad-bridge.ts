@@ -164,7 +164,10 @@ function buildArgs(args: PlaceFootprintArgs, isDryRun: boolean): string[] {
 async function execute(args: PlaceFootprintArgs, isDryRun: boolean): Promise<KicadBridgeResult> {
   const pyPath = await detectKicadPython();
   if (!pyPath) {
-    return { ok: false, error: 'Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)' };
+    return {
+      ok: false,
+      error: 'Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)',
+    };
   }
 
   const scriptPath = resolveScriptPath();

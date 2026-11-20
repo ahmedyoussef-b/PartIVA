@@ -73,7 +73,10 @@ describe('placeFootprint', () => {
   it('parse un JSON stdout valide', async () => {
     const promise = bridge.placeFootprint(ARGS);
     await flushMicrotasks();
-    children[0].stdout.emit('data', JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }));
+    children[0].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }),
+    );
     children[0].emit('close', 0);
 
     await expect(promise).resolves.toEqual({
@@ -83,7 +86,7 @@ describe('placeFootprint', () => {
     });
   });
 
-  it('gère un JSON d\'erreur', async () => {
+  it("gère un JSON d'erreur", async () => {
     const promise = bridge.placeFootprint(ARGS);
     await flushMicrotasks();
     children[0].stdout.emit('data', JSON.stringify({ ok: false, error: 'librairie introuvable' }));
@@ -117,7 +120,10 @@ describe('placeFootprint', () => {
     await flushMicrotasks();
     children[0].stderr.emit('data', 'Adding duplicate image handler for PNG file\n');
     children[0].stderr.emit('data', 'Adding duplicate image handler for JPEG file\n');
-    children[0].stdout.emit('data', JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }));
+    children[0].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }),
+    );
     children[0].emit('close', 0);
 
     await expect(promise).resolves.toMatchObject({ ok: true, footprintCount: 26 });
@@ -132,12 +138,18 @@ describe('placeFootprint', () => {
     await flushMicrotasks();
     expect(children).toHaveLength(1);
 
-    children[0].stdout.emit('data', JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }));
+    children[0].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }),
+    );
     children[0].emit('close', 0);
     await flushMicrotasks();
     expect(children).toHaveLength(2);
 
-    children[1].stdout.emit('data', JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }));
+    children[1].stdout.emit(
+      'data',
+      JSON.stringify({ ok: true, message: 'placed R1', footprintCount: 26 }),
+    );
     children[1].emit('close', 0);
 
     await expect(Promise.all([first, second])).resolves.toEqual([
