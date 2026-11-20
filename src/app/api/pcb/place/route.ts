@@ -39,6 +39,15 @@ export async function POST(req: Request) {
   const yMm = typeof b.yMm === 'number' ? b.yMm : NaN;
   const layer = typeof b.layer === 'string' && b.layer.trim() ? b.layer.trim() : 'F.Cu';
   const dryRunFlag = b.dryRun === true;
+  const force = b.force === true;
+  const allowOutside = b.allowOutside === true;
+
+  if (b.force !== undefined && typeof b.force !== 'boolean') {
+    return NextResponse.json({ error: 'force doit être un booléen' }, { status: 400 });
+  }
+  if (b.allowOutside !== undefined && typeof b.allowOutside !== 'boolean') {
+    return NextResponse.json({ error: 'allowOutside doit être un booléen' }, { status: 400 });
+  }
 
   if (!projectId || !reference || !libName || !footprintName) {
     return NextResponse.json(
@@ -92,7 +101,18 @@ export async function POST(req: Request) {
   });
 
   // 5. Exécuter
-  const args = { boardPath, libName, footprintName, reference, value, xMm, yMm, layer };
+  const args = {
+    boardPath,
+    libName,
+    footprintName,
+    reference,
+    value,
+    xMm,
+    yMm,
+    layer,
+    force,
+    allowOutside,
+  };
   let result;
   try {
     result = dryRunFlag ? await dryRun(args) : await placeFootprint(args);
@@ -114,10 +134,14 @@ export async function POST(req: Request) {
     footprintCount: result.footprintCount,
   });
 
-  return NextResponse.json({
+  const payload: Record<string, unknown> = {
     ok: true,
     message: result.message,
     footprintCount: result.footprintCount,
-    wouldPlace: result.wouldPlace,
-  });
+  };
+  if (result.wouldPlace !== undefined) payload.wouldPlace = result.wouldPlace;
+  if (result.verified !== undefined) payload.verified = result.verified;
+  if (result.backup !== undefined) payload.backup = result.backup;
+
+  return NextResponse.json(payload);
 }

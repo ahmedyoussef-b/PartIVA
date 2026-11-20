@@ -193,6 +193,8 @@ describe('POST /api/pcb/place', () => {
       xMm: 10,
       yMm: 20,
       layer: 'F.Cu',
+      force: false,
+      allowOutside: false,
     });
   });
 
@@ -223,5 +225,54 @@ describe('POST /api/pcb/place', () => {
 
     expect(res.status).toBe(500);
     await expect(res.json()).resolves.toEqual({ error: 'Python error' });
+  });
+
+  it('force:true transmis a placeFootprint', async () => {
+    mockHappyPath();
+    vi.mocked(placeFootprint).mockResolvedValue({
+      ok: true,
+      message: 'placed R1',
+      footprintCount: 1,
+    });
+    const res = await POST(makeRequest({ ...VALID_BODY, force: true }));
+    expect(res.status).toBe(200);
+    expect(placeFootprint).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+  });
+
+  it('allowOutside:true transmis a placeFootprint', async () => {
+    mockHappyPath();
+    vi.mocked(placeFootprint).mockResolvedValue({
+      ok: true,
+      message: 'placed R1',
+      footprintCount: 1,
+    });
+    const res = await POST(makeRequest({ ...VALID_BODY, allowOutside: true }));
+    expect(res.status).toBe(200);
+    expect(placeFootprint).toHaveBeenCalledWith(expect.objectContaining({ allowOutside: true }));
+  });
+
+  it('400 si force est une chaine', async () => {
+    mockHappyPath();
+    const res = await POST(makeRequest({ ...VALID_BODY, force: 'oui' }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: 'force doit être un booléen' });
+  });
+
+  it('200 : verified et backup remontes', async () => {
+    mockHappyPath();
+    vi.mocked(placeFootprint).mockResolvedValue({
+      ok: true,
+      message: 'placed R1',
+      footprintCount: 1,
+      verified: 3,
+      backup: 'x.bak',
+    });
+
+    const res = await POST(makeRequest(VALID_BODY));
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.verified).toBe(3);
+    expect(data.backup).toBe('x.bak');
   });
 });

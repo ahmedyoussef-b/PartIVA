@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePcbEditor } from '@/components/pcb/PcbEditorProvider';
 import { computePlacement, snapToGrid } from '@/lib/pcb/placement';
 import { SYMBOLS_BY_ID } from '@/lib/pcb/symbols';
+import type { PlacementVerification } from '@/lib/pcb/verify-placement';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -31,7 +32,10 @@ export function PlacementPanel({
   const { nodes, canvasSize } = usePcbEditor();
   const [overrides, setOverrides] = useState<Record<string, Override>>({});
   const [dryRun, setDryRun] = useState(true);
+  const [force, setForce] = useState(false);
+  const [allowOutside, setAllowOutside] = useState(false);
   const [placing, setPlacing] = useState(false);
+  const [verification, setVerification] = useState<PlacementVerification | null>(null);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   const computed = useMemo(
@@ -123,6 +127,7 @@ export function PlacementPanel({
 
     setPlacing(true);
     setResult(null);
+    setVerification(null);
 
     try {
       if (!dryRun) {
@@ -143,7 +148,7 @@ export function PlacementPanel({
       const resPlace = await fetch('/api/pcb/place/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, components: toPlace, dryRun }),
+        body: JSON.stringify({ projectId, components: toPlace, dryRun, force, allowOutside }),
       });
       const dataPlace = await resPlace.json();
 
@@ -154,14 +159,48 @@ export function PlacementPanel({
         return;
       }
 
-      const message = dryRun
+      const base = dryRun
         ? `Simulation OK : ${dataPlace.placed} composant(s)`
         : `${dataPlace.placed} composant(s) placé(s) dans KiCad`;
+
+      let message = base;
+      if (!dryRun) {
+        if (typeof dataPlace.verified === 'number') {
+          message += ` — ${dataPlace.verified} vérifié(s)`;
+        }
+        if (typeof dataPlace.backup === 'string' && dataPlace.backup) {
+          const baseName = dataPlace.backup.split(/[\\/]/).pop() ?? dataPlace.backup;
+          message += ` · sauvegarde : ${baseName}`;
+        }
+      }
 
       toast.success(message);
       setResult({ ok: true, message });
 
-      if (!dryRun) router.refresh();
+      if (!dryRun) {
+        const resVerify = await fetch('/api/pcb/place/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId,
+            requested: toPlace.map((c) => ({
+              reference: String(c.reference),
+              xMm: c.xMm as number,
+              yMm: c.yMm as number,
+              rotation: (c.rotation as number | undefined) ?? 0,
+            })),
+          }),
+        });
+        const dataVerify = await resVerify.json();
+
+        if (resVerify.ok && dataVerify.verification) {
+          setVerification(dataVerify.verification as PlacementVerification);
+        } else {
+          toast.error(dataVerify.error ?? 'Vérification indisponible');
+        }
+
+        router.refresh();
+      }
     } catch {
       toast.error('Erreur réseau');
       setResult({ ok: false, message: 'Erreur réseau' });
@@ -230,6 +269,20 @@ export function PlacementPanel({
             <input type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)} />
             Simulation (dry-run)
           </label>
+          <div className="flex flex-col space-y-1 text-[11px] text-gray-600">
+            <label className="flex items-center gap-1">
+              <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
+              Forcer (ignorer le verrou KiCad)
+            </label>
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={allowOutside}
+                onChange={(e) => setAllowOutside(e.target.checked)}
+              />
+              Autoriser hors plateau
+            </label>
+          </div>
           <Button size="sm" disabled={nodes.length === 0 || placing} onClick={handlePlace}>
             {placing ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
             Placer dans KiCad
@@ -243,6 +296,48 @@ export function PlacementPanel({
           <p className={`text-xs ${result.ok ? 'text-green-700' : 'text-red-700'}`}>
             {result.message}
           </p>
+        )}
+
+        {verification && (
+          <div
+            className={`rounded border p-2 text-xs ${
+              verification.ok
+                ? 'border-green-200 bg-green-50 text-green-700'
+                : 'border-red-200 bg-red-50 text-red-700'
+            }`}
+          >
+            {verification.ok ? (
+              <p>
+                Placement vérifié : {verification.matched}/{verification.checked} conformes
+              </p>
+            ) : (
+              <div>
+                <p>
+                  Vérification incomplète : {verification.matched}/{verification.checked} conformes
+                </p>
+                <ul className="mt-1 space-y-0.5">
+                  {verification.misplaced.slice(0, 10).map((m) => (
+                    <li key={`${m.reference}-${m.reason}`}>
+                      {m.reference} —{' '}
+                      {m.reason === 'position'
+                        ? `position (écart ${(m.deltaMm ?? 0).toFixed(2)} mm)`
+                        : m.reason === 'rotation'
+                          ? 'rotation'
+                          : 'absente de la carte'}
+                    </li>
+                  ))}
+                  {verification.misplaced.length > 10 && <li>…</li>}
+                </ul>
+              </div>
+            )}
+
+            {verification.extra.length > 0 && (
+              <p className="mt-1 text-gray-500">
+                {verification.extra.length} empreinte(s) non demandée(s) sur la carte :{' '}
+                {verification.extra.join(', ')}
+              </p>
+            )}
+          </div>
         )}
       </div>
     </details>

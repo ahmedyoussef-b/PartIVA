@@ -181,6 +181,8 @@ describe('POST /api/pcb/place/batch', () => {
           value: undefined,
         },
       ],
+      force: false,
+      allowOutside: false,
     });
   });
 
@@ -200,5 +202,44 @@ describe('POST /api/pcb/place/batch', () => {
     expect(placeFootprints).toHaveBeenCalledWith(
       expect.objectContaining({ dryRun: true, boardPath: 'C:\\tmp\\board.kicad_pcb' }),
     );
+  });
+
+  it('force:true transmis a placeFootprints', async () => {
+    mockHappyPath();
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1], force: true }));
+    expect(res.status).toBe(200);
+    expect(placeFootprints).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+  });
+
+  it('allowOutside:true transmis a placeFootprints', async () => {
+    mockHappyPath();
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1], allowOutside: true }));
+    expect(res.status).toBe(200);
+    expect(placeFootprints).toHaveBeenCalledWith(expect.objectContaining({ allowOutside: true }));
+  });
+
+  it('400 si allowOutside est une chaine', async () => {
+    mockHappyPath();
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1], allowOutside: 'oui' }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: 'allowOutside doit être un booléen' });
+  });
+
+  it('200 : verified et backup remontes', async () => {
+    mockHappyPath();
+    vi.mocked(placeFootprints).mockResolvedValue({
+      ok: true,
+      message: 'placed 2',
+      footprintCount: 2,
+      verified: 2,
+      backup: 'y.bak',
+    });
+
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1] }));
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.verified).toBe(2);
+    expect(data.backup).toBe('y.bak');
   });
 });

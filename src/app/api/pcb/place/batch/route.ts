@@ -28,6 +28,15 @@ export async function POST(req: Request) {
   const projectId = typeof b.projectId === 'string' ? b.projectId.trim() : '';
   const components = Array.isArray(b.components) ? b.components : [];
   const dryRunFlag = b.dryRun === true;
+  const force = b.force === true;
+  const allowOutside = b.allowOutside === true;
+
+  if (b.force !== undefined && typeof b.force !== 'boolean') {
+    return NextResponse.json({ error: 'force doit être un booléen' }, { status: 400 });
+  }
+  if (b.allowOutside !== undefined && typeof b.allowOutside !== 'boolean') {
+    return NextResponse.json({ error: 'allowOutside doit être un booléen' }, { status: 400 });
+  }
 
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
@@ -111,7 +120,13 @@ export async function POST(req: Request) {
     };
   });
 
-  const result = await placeFootprints({ boardPath: abs, footprints, dryRun: dryRunFlag });
+  const result = await placeFootprints({
+    boardPath: abs,
+    footprints,
+    dryRun: dryRunFlag,
+    force,
+    allowOutside,
+  });
 
   if (!result.ok) {
     console.error('[PCB:PLACE-BATCH] Erreur', result.error);
@@ -126,10 +141,14 @@ export async function POST(req: Request) {
     footprintCount: result.footprintCount,
   });
 
-  return NextResponse.json({
+  const payload: Record<string, unknown> = {
     ok: true,
     placed: result.footprintCount ?? 0,
     dryRun: dryRunFlag,
     message: result.message,
-  });
+  };
+  if (result.verified !== undefined) payload.verified = result.verified;
+  if (result.backup !== undefined) payload.backup = result.backup;
+
+  return NextResponse.json(payload);
 }
