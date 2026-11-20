@@ -50,12 +50,54 @@ export async function POST(req: Request) {
     );
   }
 
+  // 3 bis. Recherche de composants candidats dans le catalogue (contexte LLM)
+  const keywords = cdc
+    .split(/\s+/)
+    .filter((w) => w.length > 3)
+    .slice(0, 5);
+
+  const candidateMap = new Map<
+    string,
+    { id: string; name: string; category: string; footprint: string | null; supplier: string | null }
+  >();
+
+  for (const kw of keywords) {
+    const results = await prisma.componentCatalog.findMany({
+      where: {
+        OR: [
+          { name: { contains: kw, mode: 'insensitive' } },
+          { category: { contains: kw, mode: 'insensitive' } },
+          { footprint: { contains: kw, mode: 'insensitive' } },
+          { supplierRef: { contains: kw, mode: 'insensitive' } },
+        ],
+      },
+      select: { id: true, name: true, category: true, footprint: true, supplier: true, supplierRef: true },
+      take: 10,
+      orderBy: { updatedAt: 'desc' },
+    });
+    for (const r of results) candidateMap.set(r.id, r);
+  }
+
+  const candidates = Array.from(candidateMap.values()).slice(0, 10);
+  console.info('[PCB:ANALYZE] Candidats catalogue', { count: candidates.length });
+
+  const candidateBlock =
+    candidates.length > 0
+      ? `\nComposants disponibles dans le catalogue (utilise-les si pertinents, sinon propose des composants génériques) :\n${candidates
+          .map(
+            (c) =>
+              `- ${c.name} (${c.category}) — empreinte: ${c.footprint ?? 'N/A'}, fournisseur: ${c.supplier ?? 'N/A'}`,
+          )
+          .join('\n')}\n`
+      : '';
+
   // 4. Prompt LLM
   const prompt = `Tu es un expert en conception de cartes électroniques PCB.
 Analyse le cahier des charges client suivant et produis une liste d'exigences techniques structurées.
 
 Cahier des charges :
 ${cdc}
+${candidateBlock}
 
 Fonction principale : ${clientRequest?.partFunction ?? 'non précisée'}
 Matériau suspecté : ${clientRequest?.suspectedMaterial ?? 'non précisé'}
@@ -73,6 +115,7 @@ Règles :
 - key = nom court du champ (ex. "Tension d'alimentation", "Température max").
 - value = valeur extraite ou déduite du cahier des charges.
 - status = "proposed" par défaut.
+- Si des composants du catalogue sont fournis, privilégie-les (indique leur nom exact).
 - Propose au moins un champ par catégorie pertinente.
 `;
 
