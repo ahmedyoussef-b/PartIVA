@@ -9,6 +9,10 @@ import { PcbCanvas } from '@/components/pcb/PcbCanvas';
 import { RequirementInput } from './requirement-input';
 import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
+import { PlacementPanel } from '@/components/pcb/PlacementPanel';
+import { parseKicadPcb } from '@/lib/pcb/kicad-file-reader';
+import fs from 'node:fs';
+import path from 'node:path';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -39,6 +43,22 @@ export default async function PcbProjectPage({
         select: { partFunction: true },
       })
     : null;
+
+  // C.2 — dimensions du plateau (repli 100 x 80 mm si fichier absent/illisible)
+  let boardWidthMm = 100;
+  let boardHeightMm = 80;
+  if (project.kicadFilePath) {
+    try {
+      const abs = path.isAbsolute(project.kicadFilePath)
+        ? project.kicadFilePath
+        : path.join(process.cwd(), project.kicadFilePath);
+      const parsed = parseKicadPcb(fs.readFileSync(abs, 'utf8'));
+      if (parsed.dimensions.width > 0) boardWidthMm = parsed.dimensions.width;
+      if (parsed.dimensions.height > 0) boardHeightMm = parsed.dimensions.height;
+    } catch (e) {
+      console.warn('[PCB:PLACEMENT] Dimensions indisponibles', e);
+    }
+  }
 
   const pendingProposals = await prisma.pcbProposal.findMany({
     where: { projectId, status: 'pending' },
@@ -129,6 +149,11 @@ export default async function PcbProjectPage({
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
             <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
             <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
+            <PlacementPanel
+              projectId={projectId}
+              boardWidthMm={boardWidthMm}
+              boardHeightMm={boardHeightMm}
+            />
 
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
