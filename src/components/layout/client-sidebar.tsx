@@ -21,7 +21,6 @@ import {
   ExternalLink,
   LogOut,
   Cog,
-  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -30,11 +29,6 @@ const CLIENT_NAV = [
     href: '/client/dashboard/creer-piece',
     label: 'Créer une pièce (Upload photos)',
     icon: Camera,
-  },
-  {
-    href: '/client/dashboard/recherche',
-    label: 'Recherche',
-    icon: Search,
   },
   {
     href: '/client/dashboard/pieces-pretes',

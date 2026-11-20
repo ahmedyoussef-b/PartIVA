@@ -7,6 +7,7 @@ export type MappedRequest = {
   id: string;
   clientId?: string;
   machineRef?: string;
+  type: 'PIECE' | 'PCB';
   partDescription: string;
   partFunction?: string;
   suspectedMaterial?: string;
@@ -64,6 +65,7 @@ export function mapRequestToUi(request: RequestWithRelations): MappedRequest {
     id: request.id,
     clientId: request.clientId ?? undefined,
     machineRef: request.machineRef ?? undefined,
+    type: request.type ?? 'PIECE',
     partDescription: request.partDescription,
     partFunction: request.partFunction ?? undefined,
     suspectedMaterial: request.suspectedMaterial ?? undefined,

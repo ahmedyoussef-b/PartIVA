@@ -46,6 +46,8 @@ export async function createRequest(
     const quantity = parseInt((input.get('quantity') as string) || '1', 10) || 1;
     const urgency = input.get('urgency') as string;
     const notes = input.get('notes') as string;
+    const type: 'PIECE' | 'PCB' = (input.get('type') as string) === 'PCB' ? 'PCB' : 'PIECE';
+    const isPcb = type === 'PCB';
 
     // 2. Extraction des fichiers photo
     const rawPhotos = input.getAll('photos');
@@ -55,7 +57,9 @@ export async function createRequest(
 
     // Récupération sécurisée des fichiers
     if (!rawPhotos || rawPhotos.length === 0) {
-      return { success: false, error: 'Aucune photo fournie.' };
+      if (!isPcb) {
+        return { success: false, error: 'Aucune photo fournie.' };
+      }
     }
 
     for (let i = 0; i < rawPhotos.length; i++) {
@@ -100,7 +104,7 @@ export async function createRequest(
       }
     }
 
-    if (uploadedPhotoUrls.length === 0) {
+    if (uploadedPhotoUrls.length === 0 && !isPcb) {
       return { success: false, error: "Échec total de l'upload des photos." };
     }
 
@@ -113,14 +117,22 @@ export async function createRequest(
       machineRef: machineRef || undefined,
       partDescription: notes || undefined,
       partFunction: partName || undefined,
-      suspectedMaterial: material,
+      suspectedMaterial: material || undefined,
       quantity,
       urgency,
       photos: uploadedPhotoUrls, // URLs persistantes
     };
 
     console.log(`${DEBUG_PREFIX} Validation Zod...`);
-    const validated = CreateRequestSchema.parse(payloadForZod);
+    const requestSchema = isPcb
+      ? CreateRequestSchema.extend({
+          photos: z
+            .array(z.string().url({ message: 'URL photo invalide' }))
+            .max(10, 'Maximum 10 photos autorisées')
+            .default([]),
+        })
+      : CreateRequestSchema;
+    const validated = requestSchema.parse(payloadForZod);
 
     // 5. Résolution Client ID
     let clientId: string | undefined;
@@ -161,6 +173,7 @@ export async function createRequest(
       data: {
         clientId,
         machineRef: validated.machineRef,
+        type,
         partDescription: validated.partDescription,
         partFunction: validated.partFunction,
         suspectedMaterial: validated.suspectedMaterial,
