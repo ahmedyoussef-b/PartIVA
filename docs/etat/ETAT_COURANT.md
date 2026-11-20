@@ -1,8 +1,8 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-19
-**HEAD actuel :** `b193259` (merge PR #131)
-**Branche courante :** `master` (= `origin/master` — vérifié par `git rev-parse`)
+**Date de mise à jour :** 2026-11-20
+**HEAD actuel :** `c7b83b4` (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
+**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 18**, non poussée ; `master` = `origin/master` = `d50f4c0`)
 **Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
 ---
@@ -193,8 +193,19 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-20 — Fast-Track P7 (Phases A/B/C — committées)
+
+- Branche de travail : **`fast-track/p7-dashboard-pcb`** (créée depuis `master` à `d50f4c0`), **ahead 18**, **non poussée**.
+- **Phase A** (A1→A8) : hygiène CI Prettier (A1 + style Phase B), schéma SQLite `components` + FTS5 (`0007`, `0008`), `PcbProject.kicadFilePath` + régularisation de la dérive Prisma (A3), lecteur `.kicad_pcb` (A4), pont Node `kicad-bridge` + `POST /api/pcb/place` (A6), `requireAdmin()` sur les 17 routes PCB (A8).
+- **Phase B** (B.1→B.4) : LLM `openai/gpt-oss-120b` (JSON strict + Zod), `POST /api/pcb/analyze` (CDC → `PcbRequirement`) + bouton « Analyser », `GET /api/pcb/catalog/search` + injection candidats, `PcbProposal` persisté + `PATCH /api/pcb/proposals/[id]` + `ProposalsPanel`.
+- **Phase C** (C.1→C.3.2c) : `src/lib/pcb/placement.ts` (px→mm, grille 2,54, références, 16 tests), `PlacementPanel` (dimensions via `parseKicadPcb`, repli 100×80), `POST /api/pcb/components` (persistance, 11 tests), `scripts/kicad/place_footprints.py` (batch transactionnel : 1 `LoadBoard`, 1 `SaveBoard`), `placeFootprints()` (15 tests), `POST /api/pcb/place/batch` (12 tests), bouton « Placer dans KiCad » (dry-run → persistance → placement).
+- **Dette** : `D-FT-P7-PLACEMENT-LOCAL` → **soldée par C.3.1 + C.3.2c** (les overrides d'édition restent locaux, mais l'application persiste les positions et les envoie à KiCad).
+- **Vérifications** : `prettier --check .` ✅ · `npm run typecheck` ✅ · `npm run build` ✅ · `npx vitest run` ✅ (24 fichiers) · `cargo test` (desktop) ✅.
+
+---
+
 ## Prochaine étape
 
-**P7** : leçons L74→L79 désormais actées (`DECISIONS.md` §7 = L45→L87) ; prochaine étape = **arbitrage de la prochaine étape code**. La clôture de `D-V8-D-4-COMPARE-VISUAL-VALIDATION` reste conditionnée à une preuve visuelle (capture + logs `[OCCT:compare]`).
+**Phase D** (Fiabilité & capitalisation) : V33 (vérification déterministe du placement — relire la carte et comparer aux positions demandées), V34 (envoi sûr : sauvegarde du `.kicad_pcb` avant écriture, détection fichier ouvert), V35 (golden set), V36 (capitalisation), V39 (compteur de prix). La clôture de `D-V8-D-4-COMPARE-VISUAL-VALIDATION` reste conditionnée à une preuve visuelle (capture + logs `[OCCT:compare]`).
 
-*V8-D-14 close (Desktop Tauri). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+*Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*

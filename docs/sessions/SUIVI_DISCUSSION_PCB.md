@@ -64,6 +64,7 @@ Cadrer, par questions/réponses, la fonctionnalité PCB : l'admin conçoit et im
 | **V46** | Corpus + recherche FTS5 | ✅ | **A7.1 + FTS5** : composants réels (`ComponentCatalog` web → SQLite local), sync incluse (`SYNC_TABLES` + `upsert_components`), recherche FTS5 (BM25 + stemming) via migration `0008_components_fts.sql`. Vectoriel (V37) différé (API externe, hors Fast-Track). |
 | **V47** | Recherche FTS5 côté Rust | ✅ | `components.rs` : `search_components` (FTS5 + repli LIKE), `search_components_fts`, `search_components_like`, `escape_fts5_query`. Commande Tauri `search_components` exposée. Index vide → repli LIKE. |
 | **V48** | Sécurisation des routes PCB | ✅ | `requireAdmin()` ajouté sur les 17 routes `/api/pcb/*` non protégées (A8). Authentification harmonisée (pattern `parts/route.ts`). Dette `D-FT-P7-PCB-AUTH-GAP` soldée. |
+| **V49** | Analyse du cahier des charges client (Phase B) | ✅ | LLM unifié `callGroq` (`openai/gpt-oss-120b` via `GROQ_MODEL`), `responseFormat: json_object`, validation Zod (`PcbRequirementSchema`). `POST /api/pcb/analyze` : texte CDC → exigences structurées (dimensions, composants, zones) + bouton « Analyser » dans `cahier-des-charges`. `GET /api/pcb/catalog/search` (top-10) injecté comme candidats dans le prompt. `POST /api/pcb/propose` persiste les propositions (`PcbProposal`, `pending`) quand `projectId` est fourni. `PATCH /api/pcb/proposals/[id]` : `accepted`/`rejected` + `resolvedAt` ; si `add_component` accepté → création du `PcbComponent` (`status: proposed`). UI `ProposalsPanel` (colonne droite) : Accepter / Rejeter. |
 
 ## 4. Questions ouvertes
 
@@ -175,6 +176,8 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 | 2026-11-20 | **Re-analyse (failles)** : 6 bloquants levés par le coordinateur — V6 supprimé, V40 (BDD vectorielle), V41 (schéma par défaut), V42 (format KiCad 10), V43 (formulaire client), V44 (correction les deux). V9 mis à jour. Q28-Q32 répondues. Cadrage : 44 étapes (V1-V44), 32 questions (Q1-Q32). |
 | 2026-11-20 | A2 validé : migration `0007_add_component.sql` + test db.rs + README. A3-α + champ `kicadFilePath` validés (R8/R9 mitigés). Prompt A3 émis. |
 | 2026-11-20 | A7 validé : **A7.1 + FTS5** (composants réels, sync incluse, recherche BM25). Vectoriel différé (V37). Prompt A7.1-a émis. |
+| 2026-11-20 | **Phase B close** : B.1 (LLM 120b + JSON strict + Zod), B.2.1/B.2.2/B.2.3 (schéma, `POST /api/pcb/analyze`, bouton Analyser), B.3.1/B.3.2 (recherche catalogue + injection candidats), B.4.1/B.4.2/B.4.3 (persistance `PcbProposal`, PATCH accept/reject, `ProposalsPanel`). Commits `d0029f4`, `7d4ce2d`, `ada4ac3` + `3176384` (style). |
+| 2026-11-20 | **Phase C — Placement** : C.1 `src/lib/pcb/placement.ts` (pur, 16 tests) — `pxToMm` (calibration largeur plateau / largeur canvas), `snapToGrid` 2,54 mm, `generateReference`, `clampToBoard`, `computePlacement`. C.2 `PlacementPanel` (`<details>`, `usePcbEditor()`, dimensions via `parseKicadPcb`, repli 100×80 mm, édition inline). C.3.1 `POST /api/pcb/components` (findFirst + create/update, 11 tests). C.3.2a `scripts/kicad/place_footprints.py` (batch transactionnel : 1 `LoadBoard`, 1 `SaveBoard`, échec = aucune écriture) + `placeFootprints()` (bridge 15 tests). C.3.2b `POST /api/pcb/place/batch` (borne 200, 12 tests). C.3.2c bouton « Placer dans KiCad » (dry-run par défaut → persistance → batch → récap). Commits `c5fb052`, `94a1873`, `5d10585`, `c7b83b4`. |
 
 ---
 
@@ -197,29 +200,29 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 
 ## 9. Plan d'exécution ordonné (proposé)
 
-**Phase A — Fondations**
-1. Hygiène CI : ajouter le saut de ligne final aux 9 fichiers `src/app/admin/pcb/` (bloquant PR).
-2. Schéma : ajout du corpus + bibliothèque de composants + catalogue/stock (SQLite desktop, migrations) ; champ `.kicad_pcb` sur `PcbProject` (migration Prisma) ; table `components` selon §10 + table virtuelle `components_vec` (sqlite-vec).
-3. Lecteur de carte KiCad (`.kicad_pcb` → origine, dimensions, composants) — alimente V8, V18, V36.
-4. Pont KiCad côté Node : action `placeFootprint`, transaction idempotente, dry-run, réconciliation (V34).
-5. BDD vectorielle locale : implantation sqlite-vec + synchronisation (V40).
+**Phase A — Fondations** ✅ *faite et commitée (A1→A8)*
+1. Hygiène CI : ✅ `prettier` sur 7 fichiers (A1) + 7 fichiers Phase B (commit `3176384`).
+2. Schéma : ✅ `0007_add_component.sql` (A2), `kicadFilePath` + régularisation dérive (A3).
+3. Lecteur `.kicad_pcb` : ✅ `kicad-file-reader.ts` (A4).
+4. Pont KiCad Node : ✅ `kicad-bridge.ts` + `POST /api/pcb/place` (A6).
+5. BDD vectorielle locale : ⏭️ **différée** (sqlite-vec = A7.3, hors Fast-Track) — FTS5 réalisé à la place (A7.1/A7.2).
 
-**Phase B — Partie droite (cahier des charges + IA)**
-5. Formulaire client restructuré en 6 blocs (rempli par le client dans son profil, V43) + contrôle de complétude/contradictions (V30).
-6. Client LLM : passage à `openai/gpt-oss-120b` (via `GROQ_MODEL`, maj B.1), sortie JSON stricte à schéma fixe (V27).
-7. Analyse du cahier des charges : provenance obligatoire (V31), double passe (V32).
-8. Corpus + recherche hybride (V37) ; ingestion des 20-50 modèles open source (V18) ; ingestion des projets accomplis (V36).
-9. Proposition validable par bloc + sélection ligne par ligne des composants (V21, Q17).
+**Phase B — Partie droite (cahier des charges + IA)** ✅ *faite et commitée (B.1→B.4)*
+6. Client LLM : ✅ `openai/gpt-oss-120b` + JSON strict + Zod (B.1).
+7. Analyse CDC : ✅ `POST /api/pcb/analyze` (B.2.1/B.2.2) + bouton Analyser (B.2.3).
+8. Corpus + recherche : ✅ `GET /api/pcb/catalog/search` + injection candidats (B.3.1/B.3.2).
+9. Proposition validable : ✅ `PcbProposal` persisté + PATCH accept/reject + `ProposalsPanel` (B.4.1/B.4.2/B.4.3).
 
-**Phase C — Partie gauche (placement)**
-10. Algorithme de positionnement : zones, grille 2,54 mm, contrôle géométrique (V23, V34).
-11. UI : champs rétractables avec 3-8 modèles (V28), correction de position avant envoi.
-12. Envoi à KiCad : coordonnées validées → `placeFootprint` (V22).
+**Phase C — Partie gauche (placement)** ✅ *faite et commitée (C.1→C.3.2c)*
+10. Algorithme de positionnement : ✅ `placement.ts` (px→mm, grille 2,54, références, clamp) (C.1).
+11. UI : ✅ `PlacementPanel` (`<details>`, édition inline X/Y/rotation) (C.2).
+12. Envoi KiCad : ✅ `POST /api/pcb/place/batch` (batch transactionnel, 1 `SaveBoard`) + bouton « Placer dans KiCad » (C.3.2b/c).
 
-**Phase D — Fiabilité & capitalisation**
+**Phase D — Fiabilité & capitalisation** ⏭️ **prochaine**
 13. Vérification déterministe des composants (V33) ; envoi sûr à KiCad (V34).
 14. Jeu d'évaluation de référence + score (V35).
 15. Capitalisation automatique des projets accomplis (V36).
+16. Compteur de prix (V39).
 
 ## 10. Schéma par défaut du catalogue de composants (V41)
 
