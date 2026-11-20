@@ -60,6 +60,10 @@ Cadrer, par questions/réponses, la fonctionnalité PCB : l'admin conçoit et im
 | **V42** | Format de fichier de carte | ✅ | **Version optimale** : KiCad 10 (10.0.8), squelette minimal valide (en-tête, couches, outline), vérifié par ouverture dans KiCad. |
 | **V43** | Remplissage du formulaire 6 blocs | ✅ | Le **client** remplit les 6 blocs dans **son profil**, puis **envoie à l'admin** (crée/met à jour la `Request`). |
 | **V44** | Correction de position | ✅ | L'admin corrige la position proposée par **saisie numérique (X/Y)** et par **glisser-déposer** sur la vue (les deux). |
+| **V45** | Schéma Prisma régularisé | ✅ | **A3-α** : dérive Fast-Track régularisée (`RequestType`, `PcbProject.requestId`) via `migrate diff` + `resolve --applied` (non destructif). Nouveau champ `PcbProject.kicadFilePath String?` (V12). Mitigations R8 (`--config prisma.config.ts`) et R9 (UTF-8 sans BOM). |
+| **V46** | Corpus + recherche FTS5 | ✅ | **A7.1 + FTS5** : composants réels (`ComponentCatalog` web → SQLite local), sync incluse (`SYNC_TABLES` + `upsert_components`), recherche FTS5 (BM25 + stemming) via migration `0008_components_fts.sql`. Vectoriel (V37) différé (API externe, hors Fast-Track). |
+| **V47** | Recherche FTS5 côté Rust | ✅ | `components.rs` : `search_components` (FTS5 + repli LIKE), `search_components_fts`, `search_components_like`, `escape_fts5_query`. Commande Tauri `search_components` exposée. Index vide → repli LIKE. |
+| **V48** | Sécurisation des routes PCB | ✅ | `requireAdmin()` ajouté sur les 17 routes `/api/pcb/*` non protégées (A8). Authentification harmonisée (pattern `parts/route.ts`). Dette `D-FT-P7-PCB-AUTH-GAP` soldée. |
 
 ## 4. Questions ouvertes
 
@@ -90,6 +94,9 @@ Cadrer, par questions/réponses, la fonctionnalité PCB : l'admin conçoit et im
 | **Q30** | Format minimal du fichier de carte (V10) | ✅ Répondu — **version optimale** : KiCad 10 (V42). |
 | **Q31** | Qui remplit le formulaire client 6 blocs | ✅ Répondu — **le client dans son profil**, puis envoie à l'admin (V43). |
 | **Q32** | UX de correction de position (V23) | ✅ Répondu — **les deux** : saisie numérique + glisser-déposer (V44). |
+| **Q33** | Schéma Prisma (A3) | ✅ Répondu — **A3-α** + champ `kicadFilePath String?` (V45). Mitigations R8/R9. |
+| **Q34** | Corpus + recherche (A7) | ✅ Répondu — **A7.1 + FTS5** : composants réels, sync incluse, recherche BM25. Vectoriel différé (V37). |
+| **Q35** | Recherche FTS5 (A7.1-c) | ✅ Répondu — Rust FTS5 + repli LIKE, commande Tauri `search_components`. Index vide → LIKE. |
 
 ---
 
@@ -166,6 +173,8 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 | 2026-11-20 | Q26 = B → **V38, V39 validées** : vrai stock avec avertissement, compteur de prix. Q27 posée (multi-fournisseur). |
 | 2026-11-20 | Q27 = C → **V38 précisée** : prix unique, un seul fournisseur par composant. Cadrage complet : 39 étapes (V1-V39), 27 questions (Q1-Q27). |
 | 2026-11-20 | **Re-analyse (failles)** : 6 bloquants levés par le coordinateur — V6 supprimé, V40 (BDD vectorielle), V41 (schéma par défaut), V42 (format KiCad 10), V43 (formulaire client), V44 (correction les deux). V9 mis à jour. Q28-Q32 répondues. Cadrage : 44 étapes (V1-V44), 32 questions (Q1-Q32). |
+| 2026-11-20 | A2 validé : migration `0007_add_component.sql` + test db.rs + README. A3-α + champ `kicadFilePath` validés (R8/R9 mitigés). Prompt A3 émis. |
+| 2026-11-20 | A7 validé : **A7.1 + FTS5** (composants réels, sync incluse, recherche BM25). Vectoriel différé (V37). Prompt A7.1-a émis. |
 
 ---
 
