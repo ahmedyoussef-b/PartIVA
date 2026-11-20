@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { SyncStatusIndicator } from '@/components/layout/sync-status-indicator';
@@ -18,6 +18,7 @@ import { ShieldAlert, ArrowLeft, Lock, LogOut } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { triggerSync } = useSyncStore();
   const { isTauri } = useAppMode();
   const { data: session, isPending } = useSession();
@@ -102,6 +103,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Card>
       </div>
     );
+  }
+
+  // P7.14 — Espace de travail PCB immersif : plein écran, sans sidebar ni header.
+  const STATIC_PCB_SEGMENTS = new Set(['projets', 'nouveau', 'bibliotheque', 'requirements']);
+  const pcbSegs = pathname.split('/');
+  const isPcbWorkspace =
+    pcbSegs.length === 4 &&
+    pcbSegs[1] === 'admin' &&
+    pcbSegs[2] === 'pcb' &&
+    !STATIC_PCB_SEGMENTS.has(pcbSegs[3] ?? '');
+
+  if (isPcbWorkspace) {
+    return <div className="h-screen w-full overflow-hidden bg-gray-50">{children}</div>;
   }
 
   return (

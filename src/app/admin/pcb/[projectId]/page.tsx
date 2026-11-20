@@ -4,6 +4,9 @@ import SourcingTable from '@/components/pcb/SourcingTable';
 import DesignReviewPanel from '@/components/pcb/DesignReviewPanel';
 import ExportButtons from '@/components/pcb/ExportButtons';
 import VisualComparisonOverlay from '@/components/pcb/VisualComparisonOverlay';
+import { WorkspaceBackButton } from './back-button';
+import { PcbCanvas } from '@/components/pcb/PcbCanvas';
+import { RequirementInput } from './requirement-input';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
@@ -68,13 +71,17 @@ export default async function PcbProjectPage({
     : undefined;
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            ID: {projectId} • {project.components.length} composants • {project.nets.length} réseaux
-          </p>
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-gray-50">
+      <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-2">
+        <div className="flex items-center gap-3">
+          <WorkspaceBackButton />
+          <div>
+            <h1 className="text-lg leading-tight font-bold text-gray-900">{project.name}</h1>
+            <p className="text-xs text-gray-500">
+              ID: {projectId} • {project.components.length} composants • {project.nets.length}{' '}
+              réseaux
+            </p>
+          </div>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-bold ${
@@ -85,17 +92,19 @@ export default async function PcbProjectPage({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        {/* Zone principale : Layout PCB */}
-        <div className="flex min-h-[500px] flex-col rounded-lg border bg-white p-6 xl:col-span-2">
+      <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
+        {/* Colonne gauche : Layout PCB */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
           <h2 className="mb-4 font-semibold text-gray-800">Layout PCB</h2>
-          <div className="flex flex-1 items-center justify-center rounded border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400">
-            Visualiseur PCB / Éditeur (à implémenter)
+          <div className="flex flex-1 items-stretch">
+            <PcbCanvas />
           </div>
         </div>
 
-        {/* Panneaux latéraux empilés */}
-        <div className="space-y-6">
+        {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
+        <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
+          <RequirementInput />
+
           <div className="overflow-hidden rounded-lg border bg-white">
             <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
               Conformité Physique
