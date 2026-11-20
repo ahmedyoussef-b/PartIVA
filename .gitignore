@@ -123,6 +123,9 @@ docs/app/
 # Backups locaux
 .backup/
 
+# Venv Python (Fast-Track P7.18-d — kicad-python, non commité)
+.venv-kicad/
+
 # Artefacts de debug auth (ne jamais commiter)
 cookies.txt
 login.json

@@ -86,7 +86,10 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 - P7.18-bis : `PcbCanvas` occupe 100% du panneau gauche — racine `w-full`, wrapper `w-full flex-1`, canvas dimensionné sur `clientWidth/Height` du wrapper (ResizeObserver + DPI). Plus de vide blanc à droite.
 - P7.18-b : canvas enrichi. `lib/pcb/symbols.tsx` (8 symboles SVG R/C/LED/Q/D/L/J/V), `lib/pcb/component-mapping.ts` (FR+EN → composant), `PcbCanvas.tsx` (symboles SVG + menu contextuel au clic, auto-réf `R1/R2…`), `PcbEditorProvider.tsx` (contexte nodes), `requirement-input.tsx` (champ Exigence → `addNodeAtCenter` ou erreur "Composant non reconnu"). 2 chemins d'ajout coexistent (champ = centre, clic = case). Éphémère local.
 - P7.18-c : *(abandonné — voir §3)*.
-- P7.18-d : Writer IPC KiCad 10 (placement réel). À démarrer (après état des lieux P7.18-d-0).
+- P7.18-d : Writer IPC KiCad 10 (placement réel).
+- P7.18-d-0 : État des lieux IPC → **Option B actée** (kicad-python one-shot ; Node pur écarté : NNG+protobuf). ✅ terminé.
+- P7.18-d-1 : Preuve de connexion `kipy` — `CONNECT_OK`, `VERSION 10.0.8 (10.0.8)`, `PING None` (= succès). venv `.venv-kicad` local (non commité), `kicad-python 0.8.0` + `pynng 0.9.0` (Python 3.13). Dettes `D-FT-P7-KICAD-GUI-REQUIRED`, `D-FT-P7-PYTHON-DEPENDENCY`.
+- P7.18-d-2 : `place_footprint` réel (à venir).
 
 ## 3. Dettes / Tests reportés
 
@@ -107,6 +110,12 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 ### P7.18-c — ABANDONNÉ (remplacé par P7.18-d)
 - Décision : KiCad 10.0.8 confirmé installé et lancé → pas besoin de poser un contrat IPC partiel. On implémente directement P7.18-d.
 - Aucun code écrit pour P7.18-c.
+
+### P7.18-d-1 (preuve de connexion IPC KiCad)
+- **Décision d'architecture actée** : Option B — `kicad-python` (Python one-shot), pas de Node pur (NNG + protobuf infaisable en Fast-Track).
+- **Nouvelle dette** : `D-FT-P7-KICAD-GUI-REQUIRED` — le placement IPC exige KiCad GUI lancé **avec un PCB ouvert** (pas de headless en KiCad 10). Le bouton `[Placer dans KiCad]` devra échouer proprement si board non ouvert.
+- **Nouvelle dette** : `D-FT-P7-PYTHON-DEPENDENCY` — `kicad-python` + `pynng` requis côté poste (venv `.venv-kicad` local, non commité). Charge ops à documenter.
+- **Statut** : preuve OK — `CONNECT_OK`, `VERSION 10.0.8 (10.0.8)`, `PING None`. Contradiction #4 (Get-Process vide) levée : l'API répond.
 
 ### Nouvelles dettes P7.18-b
 - **D-FT-P7-SYMBOLS-STATIC** : les 8 symboles sont dessinés en SVG inline (hardcodés). Pas de bibliothèque externe (KiCad symbol lib, etc.).
