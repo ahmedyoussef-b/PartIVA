@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { analyzeRealState } from '@/lib/pcb/simulation';
+import { requireAdmin } from '@/lib/auth-admin';
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
+  }
   try {
     const { components, nets } = (await req.json()) as {
       components?: Array<{ id: string; footprint?: string; currentDrawn?: number }>;

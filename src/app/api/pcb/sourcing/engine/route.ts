@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { sourceBom } from '@/lib/pcb/sourcing-engine';
+import { requireAdmin } from '@/lib/auth-admin';
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
+  }
   try {
     const { bomItems } = (await req.json()) as {
       bomItems?: Array<{ reference: string; mpn?: string; description?: string; quantity: number }>;

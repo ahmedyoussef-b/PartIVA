@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import { proposeFromRequirements } from '@/lib/pcb/ai-engine';
 import type { RequirementAnswer } from '@/lib/pcb/types';
+import { requireAdmin } from '@/lib/auth-admin';
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
+  }
   try {
     const body = await req.json();
     const { answers } = body as { answers: RequirementAnswer[] };
