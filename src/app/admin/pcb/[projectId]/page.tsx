@@ -10,6 +10,8 @@ import { RequirementInput } from './requirement-input';
 import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
 import { PlacementPanel } from '@/components/pcb/PlacementPanel';
+import { PriceCard } from '@/components/pcb/PriceCard';
+import { computePriceTotal } from '@/lib/pcb/price-total';
 import { parseKicadPcb } from '@/lib/pcb/kicad-file-reader';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -59,6 +61,42 @@ export default async function PcbProjectPage({
       console.warn('[PCB:PLACEMENT] Dimensions indisponibles', e);
     }
   }
+
+  // V39.1 — coût estimé (PcbComponent sans `quantity` → quantité = 1)
+  const priceLines = await prisma.pcbComponent.findMany({
+    where: { projectId },
+    select: { reference: true, catalogId: true },
+  });
+
+  const priceCatalogIds = priceLines
+    .map((c) => c.catalogId)
+    .filter((value): value is string => Boolean(value));
+
+  const pricedCatalogs =
+    priceCatalogIds.length > 0
+      ? await prisma.componentCatalog.findMany({
+          where: { id: { in: priceCatalogIds } },
+          select: {
+            id: true,
+            prices: {
+              orderBy: { updatedAt: 'desc' },
+              take: 1,
+              select: { price: true, currency: true },
+            },
+          },
+        })
+      : [];
+
+  const catalogPrices = pricedCatalogs.map((c) => ({
+    catalogId: c.id,
+    unitPrice: c.prices[0]?.price ?? null,
+    currency: c.prices[0]?.currency ?? undefined,
+  }));
+
+  const priceTotal = computePriceTotal(
+    priceLines.map((c) => ({ reference: c.reference, catalogId: c.catalogId })),
+    catalogPrices,
+  );
 
   const pendingProposals = await prisma.pcbProposal.findMany({
     where: { projectId, status: 'pending' },
@@ -172,6 +210,8 @@ export default async function PcbProjectPage({
                 <SourcingTable results={sourcingResults} />
               </div>
             </div>
+
+            <PriceCard total={priceTotal} />
 
             <DesignReviewPanel projectId={projectId} />
 
