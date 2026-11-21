@@ -210,10 +210,22 @@ export default async function CahierDesChargesPage({
                           className="flex flex-col gap-0.5 py-1.5 sm:flex-row"
                         >
                           <dt className="w-56 shrink-0 text-xs font-semibold text-gray-600">
-                            {requirement.key}
+                            <span className="inline-flex items-center gap-1.5">
+                              {requirement.key}
+                              {requirement.status === 'to_verify' && (
+                                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                                  à vérifier
+                                </span>
+                              )}
+                            </span>
                           </dt>
                           <dd className="flex-1 text-sm whitespace-pre-wrap text-gray-800">
                             {requirement.value}
+                            {requirement.source && (
+                              <span className="mt-0.5 block text-xs text-muted-foreground italic">
+                                Source : {requirement.source.slice(0, 120)}
+                              </span>
+                            )}
                           </dd>
                           <span className="text-[10px] text-gray-400">{requirement.status}</span>
                         </div>
