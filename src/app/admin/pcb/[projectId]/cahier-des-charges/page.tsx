@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft, FileText, Image as ImageIcon, Paperclip } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { AnalyzeButton } from './analyze-button';
+import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,16 @@ export default async function CahierDesChargesPage({
     : null;
 
   const photos = Array.isArray(request?.photos) ? (request?.photos as unknown as string[]) : [];
+
+  const quality = assessCdcQuality(
+    project.requirements.map((r) => ({
+      category: r.category,
+      key: r.key,
+      value: r.value,
+      source: r.source,
+      status: r.status,
+    })),
+  );
 
   const requirementsByCategory = project.requirements.reduce(
     (acc, requirement) => {
@@ -186,6 +197,56 @@ export default async function CahierDesChargesPage({
             </div>
           </section>
         )}
+
+        <section className="overflow-hidden rounded-lg border bg-white">
+          <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+            Qualité du CDC
+          </div>
+          <div className="space-y-2 p-4 text-xs">
+            <p>
+              Complétude :{' '}
+              <span className="font-semibold">
+                {Math.round(quality.completeness.score * 100)} %
+              </span>{' '}
+              <span className="text-gray-500">
+                ({quality.completeness.covered.length}/6 catégories)
+              </span>
+            </p>
+
+            {quality.completeness.missing.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="text-gray-500">Manquantes :</span>
+                {quality.completeness.missing.map((cat) => (
+                  <span
+                    key={cat}
+                    className="rounded border px-1.5 py-0.5 text-[10px] text-gray-600"
+                  >
+                    {CATEGORY_LABELS[cat] ?? cat}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {quality.conflicts.length === 0 ? (
+              <p className="text-muted-foreground">Aucune incohérence détectée.</p>
+            ) : (
+              <ul className="space-y-0.5 text-red-700">
+                {quality.conflicts.slice(0, 5).map((c) => (
+                  <li key={`${c.key}-${c.reason}`}>
+                    {c.key} : {c.entries.map((e) => e.value).join(' vs ')} (
+                    {c.reason === 'values-diverge' ? 'valeurs divergentes' : 'unités incompatibles'}
+                    )
+                  </li>
+                ))}
+                {quality.conflicts.length > 5 && <li>…</li>}
+              </ul>
+            )}
+
+            <p className="text-muted-foreground">
+              {quality.unsourced} exigence(s) sans source · {quality.toVerify} à vérifier
+            </p>
+          </div>
+        </section>
 
         <section className="overflow-hidden rounded-lg border bg-white">
           <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">

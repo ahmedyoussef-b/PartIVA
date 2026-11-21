@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth-admin';
 import { callGroq } from '@/lib/ai/groq-client';
 import { PcbRequirementSchema } from '@/lib/pcb/requirement-schema';
 import { normalizeRequirements, type NormalizedRequirement } from '@/lib/pcb/analyze-mapping';
+import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
 
 export const runtime = 'nodejs';
 
@@ -144,6 +145,7 @@ Règles :
   }
 
   let requirements: NormalizedRequirement[] = [];
+  let quality = assessCdcQuality([]);
 
   try {
     const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
@@ -169,6 +171,7 @@ Règles :
     }
 
     requirements = normalizeRequirements(validated.data.requirements);
+    quality = assessCdcQuality(requirements);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Erreur LLM';
     console.error('[PCB:ANALYZE] Erreur LLM', message);
@@ -194,6 +197,8 @@ Règles :
     total: requirements.length,
     withSource: requirements.filter((r) => r.source && r.source !== 'inféré').length,
     toVerify: requirements.filter((r) => r.status === 'to_verify').length,
+    completeness: quality.completeness.score,
+    conflicts: quality.conflicts.length,
   });
 
   // 7. Relire et renvoyer
@@ -203,5 +208,5 @@ Règles :
   });
 
   console.info('[PCB:ANALYZE] Résultat', { count: saved.length });
-  return NextResponse.json({ projectId, requirements: saved, count: saved.length });
+  return NextResponse.json({ projectId, requirements: saved, count: saved.length, quality });
 }
