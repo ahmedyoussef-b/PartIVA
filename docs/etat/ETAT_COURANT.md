@@ -1,8 +1,9 @@
 # État courant du projet
 
 **Date de mise à jour :** 2026-11-21
-**Dernier commit Phase D :** `1d17b57` (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
-**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 29**, non poussée ; `master` = `origin/master` = `d50f4c0`)
+**Dernière sous-étape :** V37.2 — classement IA des candidats (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
+**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 9**, non poussée ; `master` = `origin/master` = `d50f4c0`)
+**Tests :** 318 (36 fichiers) · `prettier --check .` ✅ · `npm run typecheck` ✅
 **Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
 ---
@@ -216,8 +217,26 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-21 — Fast-Track P7 (Phase E — Qualité de l'analyse, committée)
+
+- **V31 — Provenance** : `PcbRequirement.source String?` (migration `20261121093328`, 1 `ALTER TABLE ADD COLUMN`) + `analyze-mapping.ts` (pur, 10 tests) + prompt exigeant une **citation exacte** / `inféré` / `catalog:<id>` ; **source absente → `status: to_verify`** ; UI « Source : … » + badge « à vérifier ».
+- **V30 — Complétude + contradictions** : `cdc-quality.ts` (pur, 14 tests) — complétude /6, conflits d'unités (écart > 5 % ou familles différentes), `unsourced`, `toVerify` ; panneau « Qualité du CDC ». **DÉCISION : avertir seulement, ne pas bloquer.**
+- **V32 — Double passe** : `consensus.ts` (pur, 12 tests) — valeurs stables, divergences, `onlyInPass1/2` ; **2 appels LLM séquentiels**, dégradation `failed`.
+- **V37 — Réordonnancement** : `rank-candidates.ts` (pur, 11 tests) + classement **top-10 → top-5**, conditionné à `rankCandidates && doublePass && candidates.length > 5` ; dégradation `fallback`.
+- **Dettes Phase E** : `D-FT-P7-DOUBLE-PASS-COST`, `D-FT-P7-DIVERGENCES-NON-PERSISTED`, `D-FT-P7-LLM-CALLS-X3`, `D-FT-P7-CDC-QUALITY-FALSE-POSITIVES`, `D-FT-P7-ORPHAN-PCB-COMPONENTS`.
+- **Vérifications** : `prettier --check .` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (**318 tests / 36 fichiers**).
+
+---
+
 ## Prochaine étape
 
-**V30-V32** (complétude + contradictions, provenance, double passe — qualité de l'analyse CDC) puis **V37** (réordonnancement IA du top-5). La clôture de `D-V8-D-4-COMPARE-VISUAL-VALIDATION` reste conditionnée à une preuve visuelle (capture + logs `[OCCT:compare]`).
+**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **non poussée**.
 
-*Décision de push en attente : branche `fast-track/p7-dashboard-pcb` **ahead 29**, `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+**Prochaines étapes possibles :**
+1. **Mesure des faux positifs** de `cdc-quality` sur le golden set (avant tout blocage éventuel).
+2. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
+3. **Recherche vectorielle** (Cloudflare `bge-small` 384 / HF) — V37.
+6. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
+7. **Décision de push** de la branche.
+
+*Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*

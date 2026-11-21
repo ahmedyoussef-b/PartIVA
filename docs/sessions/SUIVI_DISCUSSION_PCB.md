@@ -226,7 +226,16 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 16. ✅ **V39 — Compteur de prix** : `price-total.ts` (pur) + `PriceCard` + `POST`/`GET /api/pcb/catalog/price` (le **404 de `CatalogTable` est corrigé** : il s'agissait d'une **écriture** de prix, pas d'une lecture).
 17. ✅ **V36 — Capitalisation** : `capitalize.ts` (fiche `accomplished` validée Zod, stockée dans `PcbCheckpoint` label `accomplished`, **idempotente**, **aucune migration**) + `POST /api/pcb/capitalize` + `CapitalizeButton` — régimes `internal` / `reference` (+ licence).
 
-**Reste à faire** : **V30-V32** (complétude + contradictions, provenance, double passe — qualité de l'analyse CDC) et **V37** (réordonnancement IA du top-5).
+**Phase E — Qualité de l'analyse** ✅ *faite et commitée*
+
+18. ✅ **V31 — Provenance** : colonne `source String?` sur `PcbRequirement` (migration `20261121093328`, **1 `ALTER TABLE ADD COLUMN`**) + `analyze-mapping.ts` (pur, 10 tests) + prompt exigeant une **citation exacte**, `inféré` ou `catalog:<id>` ; **source absente → `status: to_verify`** ; UI « Source : … » + badge « à vérifier ».
+19. ✅ **V30 — Complétude + contradictions** : `cdc-quality.ts` (pur, 14 tests) — complétude **/6**, conflits d'unités (V/mV/kV, A/mA/µA, W/mW, Ω/kΩ/MΩ, mm/cm/m ; **écart > 5 %** ou **familles différentes**), `unsourced`, `toVerify`. Exposé dans la réponse API + panneau **« Qualité du CDC »**. **DÉCISION V30.3 : avertir seulement, ne pas bloquer** (faux positifs possibles sur des rails multiples) — blocage à reconsidérer après mesure sur le golden set.
+10. ✅ **V32 — Double passe** : `consensus.ts` (pur, 12 tests) — `mergePasses`, valeurs **stables**, divergences, `onlyInPass1/2`. **Double passe active par défaut** (2 appels LLM **séquentiels**), dégradation `failed` si la seconde échoue.
+11. ✅ **V37 — Réordonnancement** : `rank-candidates.ts` (pur, 11 tests) + classement IA du **top-10 → top-5**, conditionné à `rankCandidates && doublePass && candidates.length > 5`. Dégradation `fallback` (jamais de 502).
+
+**PLAN FAST-TRACK P7 — CLOS** (Phases A → E).
+
+**Reste hors périmètre** : recherche vectorielle (Cloudflare `bge-small` / HF), runner live du golden set, mesure des faux positifs de `cdc-quality`, composants orphelins (`PcbProjectWorkspace`, `PcbPriceCounter`, `PcbProposalDiff`, `PcbCanvas.addNodeAtCenter`).
 
 ### Dettes Phase D (ajoutées au registre)
 
@@ -235,6 +244,16 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 | `D-FT-P7-GOLDEN-CATEGORY-RECALL` | Le `recallScore` du golden set porte sur les **6 catégories**, pas sur les types de composants. |
 | `D-FT-P7-GOLDEN-LIVE-RUN` | Pas de runner rejouant les 10 CDC contre Groq (`analyze` injecté) → exécution **manuelle** uniquement. |
 | `D-FT-P7-CATALOG-PRICE-APPEND` | `POST /api/pcb/catalog/price` crée un `ComponentPrice` à chaque enregistrement (**pas d'upsert**). |
+
+### Dettes Phase E (ajoutées au registre)
+
+| Dette | Description |
+|---|---|
+| `D-FT-P7-DOUBLE-PASS-COST` | Double passe = **2 appels LLM séquentiels** par analyse (coût/latence ×2). |
+| `D-FT-P7-DIVERGENCES-NON-PERSISTED` | Les divergences vivent dans l'état **client** (`report`), pas en base → perdues au `router.refresh()`. |
+| `D-FT-P7-LLM-CALLS-X3` | **3 appels LLM** par analyse quand le classement est actif (1 classement + 2 passes) ; 1 seul appel si `doublePass=false` ou `candidates.length <= 5`. |
+| `D-FT-P7-CDC-QUALITY-FALSE-POSITIVES` | Les heuristiques d'unités de `cdc-quality` peuvent signaler de faux conflits (rails multiples) → **non bloquant**, à mesurer sur le golden set. |
+| `D-FT-P7-ORPHAN-PCB-COMPONENTS` | `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter` : **orphelins** (non montés) → nettoyage différé. |
 
 ## 10. Schéma par défaut du catalogue de composants (V41)
 
