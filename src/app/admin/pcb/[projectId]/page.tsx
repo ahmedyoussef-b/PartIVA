@@ -5,6 +5,7 @@ import DesignReviewPanel from '@/components/pcb/DesignReviewPanel';
 import ExportButtons from '@/components/pcb/ExportButtons';
 import VisualComparisonOverlay from '@/components/pcb/VisualComparisonOverlay';
 import { WorkspaceBackButton } from './back-button';
+import { KicadFileInput } from './kicad-file-input';
 import { PcbCanvas } from '@/components/pcb/PcbCanvas';
 import { RequirementInput } from './requirement-input';
 import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
@@ -157,6 +158,7 @@ export default async function PcbProjectPage({
       <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-2">
         <div className="flex items-center gap-3">
           <WorkspaceBackButton />
+          <KicadFileInput projectId={projectId} current={project.kicadFilePath} />
           <div>
             <h1 className="text-lg leading-tight font-bold text-gray-900">{project.name}</h1>
             <p className="text-xs text-gray-500">

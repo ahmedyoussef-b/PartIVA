@@ -151,6 +151,18 @@
 
 ---
 
+### `D-FT-P7-KICAD-PATH-UNRESTRICTED` — Chemin KiCad non restreint (écrasement fichier arbitraire)
+
+- **Statut :** Active
+- **Cause :** `PATCH /api/pcb/projects/[id]` (A2.5) accepte n'importe quel chemin se terminant par `.kicad_pcb` et l'écrit sur `PcbProject.kicadFilePath`. La validation se limite à l'extension (insensible à la casse) : un admin peut pointer vers — et faire écraser par les opérations de placement — n'importe quel fichier `.kicad_pcb` du serveur.
+- **Périmètre :** `src/app/api/pcb/projects/[id]/route.ts`, `src/app/admin/pcb/[projectId]/kicad-file-input.tsx`.
+- **Effort estimé :** Faible (ancrer les chemins sur un répertoire de base autorisé, refuser tout chemin hors racine).
+- **Bloquant :** Non (admin-only).
+- **Condition de résolution :** validation du chemin contre un répertoire dédié (allowlist / ancrage répertoire) + test.
+- **Réf. :** A2.5 (2026-11-21).
+
+---
+
 ## Basse
 
 ### `D-V2-CACHE-HIT-LATENCY-12S` — Mesure POST HIT à faire
