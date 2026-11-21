@@ -218,11 +218,23 @@ Objectif : rendre la chaîne **formulaire client → carte prête à envoyer** f
 11. UI : ✅ `PlacementPanel` (`<details>`, édition inline X/Y/rotation) (C.2).
 12. Envoi KiCad : ✅ `POST /api/pcb/place/batch` (batch transactionnel, 1 `SaveBoard`) + bouton « Placer dans KiCad » (C.3.2b/c).
 
-**Phase D — Fiabilité & capitalisation** ⏭️ **prochaine**
-13. Vérification déterministe des composants (V33) ; envoi sûr à KiCad (V34).
-14. Jeu d'évaluation de référence + score (V35).
-15. Capitalisation automatique des projets accomplis (V36).
-16. Compteur de prix (V39).
+**Phase D — Fiabilité & capitalisation** ✅ *faite et commitée*
+
+13. ✅ **V33 — Vérification déterministe** : `verify-placement.ts` (pur, tolérances 0,01 mm / 0,5°) + `POST /api/pcb/place/verify` (relecture `parseKicadPcb` du disque) + verdict « N/N conformes » dans `PlacementPanel` — **29 tests**.
+14. ✅ **V34 — Envoi sûr** : scripts Python durcis (**verrou `.lck`**, contrôle bbox `Edge.Cuts`, **backup `.bak`**, **réconciliation avec restauration**), flags `--force` / `--allow-outside`, `parseResult` du bridge corrigé (rétrocompatible, `placed`→`footprintCount`), routes `place` + `place/batch` enrichies (`verified`/`backup`) — **47 tests**.
+15. ✅ **V35 — Golden set** : `golden-set/` (10 CDC réalistes, scorer **0.3 / 0.4 / 0.3**, orchestrateur séquentiel avec **isolation des échecs**) — **20 tests, 0 réseau**.
+16. ✅ **V39 — Compteur de prix** : `price-total.ts` (pur) + `PriceCard` + `POST`/`GET /api/pcb/catalog/price` (le **404 de `CatalogTable` est corrigé** : il s'agissait d'une **écriture** de prix, pas d'une lecture).
+17. ✅ **V36 — Capitalisation** : `capitalize.ts` (fiche `accomplished` validée Zod, stockée dans `PcbCheckpoint` label `accomplished`, **idempotente**, **aucune migration**) + `POST /api/pcb/capitalize` + `CapitalizeButton` — régimes `internal` / `reference` (+ licence).
+
+**Reste à faire** : **V30-V32** (complétude + contradictions, provenance, double passe — qualité de l'analyse CDC) et **V37** (réordonnancement IA du top-5).
+
+### Dettes Phase D (ajoutées au registre)
+
+| Dette | Description |
+|---|---|
+| `D-FT-P7-GOLDEN-CATEGORY-RECALL` | Le `recallScore` du golden set porte sur les **6 catégories**, pas sur les types de composants. |
+| `D-FT-P7-GOLDEN-LIVE-RUN` | Pas de runner rejouant les 10 CDC contre Groq (`analyze` injecté) → exécution **manuelle** uniquement. |
+| `D-FT-P7-CATALOG-PRICE-APPEND` | `POST /api/pcb/catalog/price` crée un `ComponentPrice` à chaque enregistrement (**pas d'upsert**). |
 
 ## 10. Schéma par défaut du catalogue de composants (V41)
 

@@ -1,8 +1,8 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-20
-**HEAD actuel :** `c7b83b4` (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
-**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 18**, non poussée ; `master` = `origin/master` = `d50f4c0`)
+**Date de mise à jour :** 2026-11-21
+**HEAD actuel :** `544211d` (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
+**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 29**, non poussée ; `master` = `origin/master` = `d50f4c0`)
 **Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
 ---
@@ -204,8 +204,20 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-21 — Fast-Track P7 (Phase D — Fiabilité & capitalisation, committée)
+
+- **V33 — Vérification déterministe** : `src/lib/pcb/verify-placement.ts` (pur, tolérances 0,01 mm / 0,5°) + `POST /api/pcb/place/verify` (relecture `parseKicadPcb` du disque) + verdict « N/N conformes » dans `PlacementPanel` — **29 tests**.
+- **V34 — Envoi sûr** : `scripts/kicad/place_footprint(s).py` durcis (**verrou `.lck`**, contrôle bbox `Edge.Cuts`, **backup `.bak`**, **réconciliation avec restauration**), flags `--force` / `--allow-outside` ; `kicad-bridge.ts` (`parseResult` corrigé, rétrocompatible) ; routes `place` + `place/batch` enrichies (`verified` / `backup`) — **47 tests**.
+- **V35 — Golden set** : `src/lib/pcb/golden-set/` (10 CDC réalistes, scorer **0.3 / 0.4 / 0.3**, orchestrateur **séquentiel** avec **isolation des échecs**) — **20 tests, 0 réseau**.
+- **V39 — Compteur de prix** : `src/lib/pcb/price-total.ts` (pur) + `PriceCard` + `POST`/`GET /api/pcb/catalog/price` — le **404 de `CatalogTable` est corrigé** (il s'agissait d'une **écriture** de prix, pas d'une lecture) — **25 tests**.
+- **V36 — Capitalisation** : `src/lib/pcb/capitalize.ts` (fiche `accomplished` validée Zod, stockée dans `PcbCheckpoint` label `accomplished`, **idempotente**, **aucune migration**) + `POST /api/pcb/capitalize` + `CapitalizeButton` — régimes `internal` / `reference` (+ licence) — **23 tests**.
+- **Dettes Phase D** : `D-FT-P7-GOLDEN-CATEGORY-RECALL`, `D-FT-P7-GOLDEN-LIVE-RUN`, `D-FT-P7-CATALOG-PRICE-APPEND`.
+- **Vérifications** : `prettier --check .` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (32 fichiers).
+
+---
+
 ## Prochaine étape
 
-**Phase D** (Fiabilité & capitalisation) : V33 (vérification déterministe du placement — relire la carte et comparer aux positions demandées), V34 (envoi sûr : sauvegarde du `.kicad_pcb` avant écriture, détection fichier ouvert), V35 (golden set), V36 (capitalisation), V39 (compteur de prix). La clôture de `D-V8-D-4-COMPARE-VISUAL-VALIDATION` reste conditionnée à une preuve visuelle (capture + logs `[OCCT:compare]`).
+**V30-V32** (complétude + contradictions, provenance, double passe — qualité de l'analyse CDC) puis **V37** (réordonnancement IA du top-5). La clôture de `D-V8-D-4-COMPARE-VISUAL-VALIDATION` reste conditionnée à une preuve visuelle (capture + logs `[OCCT:compare]`).
 
-*Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+*Décision de push en attente : branche `fast-track/p7-dashboard-pcb` **ahead 29**, `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
