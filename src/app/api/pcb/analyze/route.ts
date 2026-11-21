@@ -5,8 +5,27 @@ import { callGroq } from '@/lib/ai/groq-client';
 import { PcbRequirementSchema } from '@/lib/pcb/requirement-schema';
 import { normalizeRequirements, type NormalizedRequirement } from '@/lib/pcb/analyze-mapping';
 import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
+import { mergePasses, type Divergence } from '@/lib/pcb/consensus';
 
 export const runtime = 'nodejs';
+
+async function callLLM(prompt: string, apiKey: string): Promise<NormalizedRequirement[]> {
+  const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
+    model: process.env.GROQ_MODEL,
+    temperature: 0.2,
+    maxTokens: 4096,
+    timeout: 30000,
+    responseFormat: 'json_object',
+  });
+
+  const parsed = JSON.parse(llmRes.content) as unknown;
+  const validated = PcbRequirementSchema.safeParse(parsed);
+  if (!validated.success) {
+    throw new Error('Schéma LLM invalide');
+  }
+
+  return normalizeRequirements(validated.data.requirements);
+}
 
 export async function POST(req: Request) {
   // 1. Auth
@@ -31,6 +50,11 @@ export async function POST(req: Request) {
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
   }
+
+  if (b.doublePass !== undefined && typeof b.doublePass !== 'boolean') {
+    return NextResponse.json({ error: 'doublePass doit être un booléen' }, { status: 400 });
+  }
+  const doublePassFlag = b.doublePass === undefined ? true : (b.doublePass as boolean);
 
   console.info('[PCB:ANALYZE] Requête reçue', { timestamp: new Date().toISOString(), projectId });
 
@@ -138,7 +162,7 @@ Règles :
 - Propose au moins un champ par catégorie pertinente.
 `;
 
-  // 5. Appel LLM
+  // 5. Appel(s) LLM — séquentiels (rate limit)
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GROQ_API_KEY non configurée' }, { status: 502 });
@@ -146,31 +170,35 @@ Règles :
 
   let requirements: NormalizedRequirement[] = [];
   let quality = assessCdcQuality([]);
+  let divergences: Divergence[] = [];
+  let onlyInPass1: string[] = [];
+  let onlyInPass2: string[] = [];
+  let doublePassStatus: 'ok' | 'disabled' | 'failed' = 'disabled';
 
   try {
-    const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
-      model: process.env.GROQ_MODEL,
-      temperature: 0.2,
-      maxTokens: 4096,
-      timeout: 30000,
-      responseFormat: 'json_object',
-    });
+    const pass1 = await callLLM(prompt, apiKey);
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(llmRes.content);
-    } catch {
-      console.error('[PCB:ANALYZE] Réponse LLM non-JSON');
-      return NextResponse.json({ error: 'Réponse LLM non-JSON' }, { status: 502 });
+    if (!doublePassFlag) {
+      requirements = pass1;
+      doublePassStatus = 'disabled';
+    } else {
+      try {
+        const pass2 = await callLLM(prompt, apiKey);
+        const merged = mergePasses(pass1, pass2);
+        requirements = normalizeRequirements(merged.requirements);
+        divergences = merged.divergences;
+        onlyInPass1 = merged.onlyInPass1;
+        onlyInPass2 = merged.onlyInPass2;
+        doublePassStatus = 'ok';
+      } catch (e) {
+        console.warn('[PCB:ANALYZE] Seconde passe échouée', {
+          error: e instanceof Error ? e.message : String(e),
+        });
+        requirements = pass1;
+        doublePassStatus = 'failed';
+      }
     }
 
-    const validated = PcbRequirementSchema.safeParse(parsed);
-    if (!validated.success) {
-      console.error('[PCB:ANALYZE] Schéma LLM invalide', validated.error.flatten());
-      return NextResponse.json({ error: 'Schéma LLM invalide' }, { status: 502 });
-    }
-
-    requirements = normalizeRequirements(validated.data.requirements);
     quality = assessCdcQuality(requirements);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Erreur LLM';
@@ -199,6 +227,9 @@ Règles :
     toVerify: requirements.filter((r) => r.status === 'to_verify').length,
     completeness: quality.completeness.score,
     conflicts: quality.conflicts.length,
+    divergences: divergences.length,
+    dropped: onlyInPass1.length + onlyInPass2.length,
+    doublePass: doublePassStatus,
   });
 
   // 7. Relire et renvoyer
@@ -208,5 +239,14 @@ Règles :
   });
 
   console.info('[PCB:ANALYZE] Résultat', { count: saved.length });
-  return NextResponse.json({ projectId, requirements: saved, count: saved.length, quality });
+  return NextResponse.json({
+    projectId,
+    requirements: saved,
+    count: saved.length,
+    quality,
+    doublePass: doublePassStatus,
+    divergences,
+    onlyInPass1,
+    onlyInPass2,
+  });
 }

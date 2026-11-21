@@ -6,7 +6,7 @@ export interface RawRequirement {
   key: string;
   value: string;
   status?: string;
-  source?: string;
+  source?: string | null;
 }
 
 export interface NormalizedRequirement {
