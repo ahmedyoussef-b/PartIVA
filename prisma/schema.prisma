@@ -701,15 +701,16 @@ model PcbProject {
 }
 
 model PcbRequirement {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   projectId String
   project   PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   category  String     // usage | function | processing | mechanical | manufacturing | quality
   key       String
   value     String
-  status    String     @default("proposed") // confirmed | proposed | to_verify | missing
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  status    String   @default("proposed") // confirmed | proposed | to_verify | missing
+  source    String?  // provenance : phrase du CDC client ou id de modèle du corpus
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([projectId])
   @@map("pcb_requirements")

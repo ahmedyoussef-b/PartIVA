@@ -136,6 +136,30 @@ describe('buildAccomplishedSnapshot (pur)', () => {
     expect(s.cdc).toBeNull();
   });
 
+  it('7b. exigence avec source → source présente', () => {
+    const s = buildAccomplishedSnapshot({
+      ...MINIMAL_INPUT,
+      requirements: [
+        {
+          category: 'function',
+          key: 'Tension',
+          value: '3.3 V',
+          status: 'proposed',
+          source: 'CDC: "alimenter en 3,3 V"',
+        },
+      ],
+    });
+    expect(s.requirements[0]?.source).toBe('CDC: "alimenter en 3,3 V"');
+  });
+
+  it('7c. exigence sans source → absente, pas d erreur Zod', () => {
+    const s = buildAccomplishedSnapshot({
+      ...MINIMAL_INPUT,
+      requirements: [{ category: 'function', key: 'Tension', value: '3.3 V', status: 'proposed' }],
+    });
+    expect(s.requirements[0]?.source).toBeUndefined();
+  });
+
   it('8. snapshot invalide (champ manquant) → Zod throw', () => {
     const broken = { ...MINIMAL_INPUT } as Record<string, unknown>;
     delete broken.project;

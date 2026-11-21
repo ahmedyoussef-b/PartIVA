@@ -26,6 +26,7 @@ export const AccomplishedSnapshotSchema = z.object({
       key: z.string(),
       value: z.string(),
       status: z.string(),
+      source: z.string().nullable().optional(),
     }),
   ),
   acceptedProposals: z.array(
@@ -60,7 +61,13 @@ export type AccomplishedSnapshot = z.infer<typeof AccomplishedSnapshotSchema>;
 export interface SnapshotInput {
   project: { id: string; name: string; status: string; kicadFilePath: string | null };
   cdc: { requestId: string; raw: string } | null;
-  requirements: Array<{ category: string; key: string; value: string; status: string }>;
+  requirements: Array<{
+    category: string;
+    key: string;
+    value: string;
+    status: string;
+    source?: string | null;
+  }>;
   acceptedProposals: Array<{
     id: string;
     action: string;
@@ -165,6 +172,7 @@ export async function loadSnapshotInput(projectId: string): Promise<SnapshotInpu
       key: r.key,
       value: r.value,
       status: r.status,
+      source: r.source,
     })),
     acceptedProposals: acceptedProposals.map((p) => ({
       id: p.id,

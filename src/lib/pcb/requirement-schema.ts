@@ -26,6 +26,7 @@ export const PcbRequirementSchema = z.object({
       key: z.string().min(1),
       value: z.string(),
       status: z.enum(['proposed', 'confirmed', 'to_verify', 'missing']).default('proposed'),
+      source: z.string().min(1).optional(),
     }),
   ),
 });
