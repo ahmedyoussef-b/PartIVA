@@ -3,13 +3,12 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request?: Request) {
+export async function GET(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: request?.headers ?? {} });
+    const session = await auth.api.getSession({ headers: request.headers });
     void session;
 
-    const url = request ? new URL(request.url) : null;
-    const latestOnly = url?.searchParams.get('latest') === 'true';
+    const latestOnly = new URL(request.url).searchParams.get('latest') === 'true';
 
     const installers = await prisma.desktopInstaller.findMany({
       where: latestOnly ? { isLatest: true } : undefined,
