@@ -1,7 +1,7 @@
 # État courant du projet
 
 **Date de mise à jour :** 2026-11-21
-**HEAD actuel :** `544211d` (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
+**Dernier commit Phase D :** `1d17b57` (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
 **Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 29**, non poussée ; `master` = `origin/master` = `d50f4c0`)
 **Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
