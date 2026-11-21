@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 import { callGroq } from '@/lib/ai/groq-client';
 import { PcbRequirementSchema } from '@/lib/pcb/requirement-schema';
+import { normalizeRequirements, type NormalizedRequirement } from '@/lib/pcb/analyze-mapping';
 
 export const runtime = 'nodejs';
 
@@ -119,7 +120,7 @@ Quantité : ${clientRequest?.quantity ?? 'non précisée'}
 Réponds UNIQUEMENT en JSON valide avec cette structure :
 {
   "requirements": [
-    { "category": "usage|function|processing|mechanical|manufacturing|quality", "key": "nom du champ", "value": "valeur", "status": "proposed" }
+    { "category": "usage|function|processing|mechanical|manufacturing|quality", "key": "nom du champ", "value": "valeur", "status": "proposed", "source": "..." }
   ]
 }
 
@@ -128,6 +129,10 @@ Règles :
 - key = nom court du champ (ex. "Tension d'alimentation", "Température max").
 - value = valeur extraite ou déduite du cahier des charges.
 - status = "proposed" par défaut.
+- source = extrait EXACT du cahier des charges (5 à 200 caractères) qui justifie la valeur. Copier les mots du client, ne pas paraphraser.
+- Si la valeur est déduite et non écrite dans le cahier des charges, mettre source = "inféré" ET status = "to_verify".
+- Si un composant du catalogue est utilisé, source peut être "catalog:<id du composant>".
+- Ne jamais inventer une citation : en cas de doute, "inféré".
 - Si des composants du catalogue sont fournis, privilégie-les (indique leur nom exact).
 - Propose au moins un champ par catégorie pertinente.
 `;
@@ -138,7 +143,7 @@ Règles :
     return NextResponse.json({ error: 'GROQ_API_KEY non configurée' }, { status: 502 });
   }
 
-  let requirements: Array<{ category: string; key: string; value: string; status: string }> = [];
+  let requirements: NormalizedRequirement[] = [];
 
   try {
     const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
@@ -163,7 +168,7 @@ Règles :
       return NextResponse.json({ error: 'Schéma LLM invalide' }, { status: 502 });
     }
 
-    requirements = validated.data.requirements;
+    requirements = normalizeRequirements(validated.data.requirements);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Erreur LLM';
     console.error('[PCB:ANALYZE] Erreur LLM', message);
@@ -180,9 +185,16 @@ Règles :
         key: r.key,
         value: r.value,
         status: r.status,
+        source: r.source,
       })),
     });
   }
+
+  console.info('[PCB:ANALYZE] Exigences', {
+    total: requirements.length,
+    withSource: requirements.filter((r) => r.source && r.source !== 'inféré').length,
+    toVerify: requirements.filter((r) => r.status === 'to_verify').length,
+  });
 
   // 7. Relire et renvoyer
   const saved = await prisma.pcbRequirement.findMany({
