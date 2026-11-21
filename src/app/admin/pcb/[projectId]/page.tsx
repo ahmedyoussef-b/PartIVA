@@ -11,6 +11,7 @@ import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
 import { PlacementPanel } from '@/components/pcb/PlacementPanel';
 import { PriceCard } from '@/components/pcb/PriceCard';
+import { CapitalizeButton } from '@/components/pcb/CapitalizeButton';
 import { computePriceTotal } from '@/lib/pcb/price-total';
 import { parseKicadPcb } from '@/lib/pcb/kicad-file-reader';
 import fs from 'node:fs';
@@ -212,6 +213,8 @@ export default async function PcbProjectPage({
             </div>
 
             <PriceCard total={priceTotal} />
+
+            <CapitalizeButton projectId={projectId} />
 
             <DesignReviewPanel projectId={projectId} />
 
