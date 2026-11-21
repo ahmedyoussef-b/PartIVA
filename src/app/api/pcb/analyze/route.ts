@@ -6,8 +6,20 @@ import { PcbRequirementSchema } from '@/lib/pcb/requirement-schema';
 import { normalizeRequirements, type NormalizedRequirement } from '@/lib/pcb/analyze-mapping';
 import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
 import { mergePasses, type Divergence } from '@/lib/pcb/consensus';
+import { buildRankPrompt, parseRankResponse, type RankCandidate } from '@/lib/pcb/rank-candidates';
 
 export const runtime = 'nodejs';
+
+async function callLLMRaw(prompt: string, apiKey: string): Promise<string> {
+  const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
+    model: process.env.GROQ_MODEL,
+    temperature: 0.2,
+    maxTokens: 4096,
+    timeout: 30000,
+    responseFormat: 'json_object',
+  });
+  return llmRes.content;
+}
 
 async function callLLM(prompt: string, apiKey: string): Promise<NormalizedRequirement[]> {
   const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
@@ -54,7 +66,11 @@ export async function POST(req: Request) {
   if (b.doublePass !== undefined && typeof b.doublePass !== 'boolean') {
     return NextResponse.json({ error: 'doublePass doit être un booléen' }, { status: 400 });
   }
+  if (b.rankCandidates !== undefined && typeof b.rankCandidates !== 'boolean') {
+    return NextResponse.json({ error: 'rankCandidates doit être un booléen' }, { status: 400 });
+  }
   const doublePassFlag = b.doublePass === undefined ? true : (b.doublePass as boolean);
+  const rankCandidatesFlag = b.rankCandidates === undefined ? true : (b.rankCandidates as boolean);
 
   console.info('[PCB:ANALYZE] Requête reçue', { timestamp: new Date().toISOString(), projectId });
 
@@ -120,9 +136,40 @@ export async function POST(req: Request) {
   const candidates = Array.from(candidateMap.values()).slice(0, 10);
   console.info('[PCB:ANALYZE] Candidats catalogue', { count: candidates.length });
 
+  // 3 bis. Réordonnancement IA (si double passe active ET > 5 candidats)
+  const shouldRank = rankCandidatesFlag && doublePassFlag && candidates.length > 5;
+  let selected: RankCandidate[] = candidates.slice(0, 5);
+  let rankedStatus: 'ok' | 'fallback' | 'skipped' = 'skipped';
+
+  if (shouldRank) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      rankedStatus = 'fallback';
+    } else {
+      try {
+        const raw = await callLLMRaw(buildRankPrompt(cdc, candidates), apiKey);
+        const rank = parseRankResponse(raw, candidates);
+        if (!rank.parsed) {
+          console.warn('[PCB:ANALYZE] Classement non interprete');
+          rankedStatus = 'fallback';
+        } else {
+          selected = rank.ranked.slice(0, 5);
+          rankedStatus = 'ok';
+        }
+      } catch (e) {
+        console.warn('[PCB:ANALYZE] Classement echoue', {
+          error: e instanceof Error ? e.message : String(e),
+        });
+        rankedStatus = 'fallback';
+      }
+    }
+  }
+
+  console.info('[PCB:ANALYZE] Classement', { ranked: rankedStatus, selected: selected.length });
+
   const candidateBlock =
-    candidates.length > 0
-      ? `\nComposants disponibles dans le catalogue (utilise-les si pertinents, sinon propose des composants génériques) :\n${candidates
+    selected.length > 0
+      ? `\nComposants disponibles dans le catalogue (utilise-les si pertinents, sinon propose des composants génériques) :\n${selected
           .map(
             (c) =>
               `- ${c.name} (${c.category}) — empreinte: ${c.footprint ?? 'N/A'}, fournisseur: ${c.supplier ?? 'N/A'}`,
@@ -230,6 +277,8 @@ Règles :
     divergences: divergences.length,
     dropped: onlyInPass1.length + onlyInPass2.length,
     doublePass: doublePassStatus,
+    ranked: rankedStatus,
+    selected: selected.length,
   });
 
   // 7. Relire et renvoyer
@@ -248,5 +297,7 @@ Règles :
     divergences,
     onlyInPass1,
     onlyInPass2,
+    ranked: rankedStatus,
+    selectedCandidateIds: selected.map((c) => c.id),
   });
 }
