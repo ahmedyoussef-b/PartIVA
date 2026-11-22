@@ -385,3 +385,13 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **PR #146** : alignement tests batch (`EXPECTED_BOARD_PATH` platform-aware).
 - **Merge** : merge commit `02f4661` (2026-11-22), sans squash — hash préservé.
 - **Vérifications** : typecheck ✅ · vitest ✅ (**344 tests / 40 fichiers**) · prettier ✅ · lint ✅ · 3 checks CI verts (PR #146).
+
+### 11.16 Bundle du plateau KiCad réel (PR #148, 2026-11-22)
+
+- **Constat** : malgré PR #143/#146 (chemin normalisé), la page admin affichait toujours `Fichier KiCad introuvable : /c/Users/pc/.../carte-test.kicad_pcb` — le fichier n'existe pas sur le serveur Vercel (seul `minimal.kicad_pcb` était versionné).
+- **Décision** : option « Bundler le plateau réel » retenue par le coordinateur.
+- **PR #148** : copie de `carte-test.kicad_pcb` (158 532 octets, identique à la source locale) dans `src/lib/pcb/boards/` ; `outputFileTracingIncludes: { '*': ['./src/lib/pcb/boards/**/*'] }` dans `next.config.mjs` ; documentation commentée de `PARTIVA_KICAD_BOARD` dans `.env.example`.
+- **Configuration Vercel** : `PARTIVA_KICAD_BOARD=src/lib/pcb/boards/carte-test.kicad_pcb` posée en **Production** et **Preview** (`vercel env add`, projet `part-iva`).
+- **Merge** : merge commit `e3085a9` (2026-11-22), sans squash — hash préservé.
+- **Vérifications** : typecheck ✅ · vitest ✅ (**344 tests / 40 fichiers**) · prettier ✅ · lint ✅ · `git diff --check` ✅ · 4 checks CI verts (PR #148) · déploiement Production `part-5mrqer9sc` **Ready**.
+- **Périmètre** : résolution/lecture du plateau uniquement ; le placement effectif via Python KiCad/`pcbnew` reste indisponible sur Vercel. C3 non démarré.
