@@ -378,3 +378,10 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 
 - **PR #143** : fix `kicadFilePath` Windows → POSIX (`normalizeBoardPath`) + override serveur `PARTIVA_KICAD_BOARD` — routes place/batch/verify/source-components.
 - **PR #144** : régénération prompt v8.14 (HEAD `36302a6`).
+
+### 11.15 Fix normalizeBoardPath platform-aware (PR #146, 2026-11-22)
+
+- **PR #146** : rendu de `normalizeBoardPath` **platform-aware** — sur `win32`, chemin drive conservé (`C:/x` → `C:/x` après normalisation backslashes/slash) ; sur POSIX, conversion en racine absolue (`C:/x` → `/c/x`).
+- **PR #146** : alignement tests batch (`EXPECTED_BOARD_PATH` platform-aware).
+- **Merge** : merge commit `02f4661` (2026-11-22), sans squash — hash préservé.
+- **Vérifications** : typecheck ✅ · vitest ✅ (**344 tests / 40 fichiers**) · prettier ✅ · lint ✅ · 3 checks CI verts (PR #146).

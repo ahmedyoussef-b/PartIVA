@@ -278,6 +278,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - **Vérifications** : `npm run lint` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅ · `git diff --check` ✅.
 - **PR #143** : fix chemin plateau KiCad — `normalizeBoardPath` (Windows → POSIX) + override `PARTIVA_KICAD_BOARD` — merge `36302a6` (CI : lint/typecheck/build verts).
 - **PR #144** : régénération prompt v8.14 (HEAD `36302a6`) — merge `93c7044`.
+- **PR #146** : fix `normalizeBoardPath` platform-aware (win32 conserve le chemin drive, POSIX → `/c/x`) + tests batch alignés — merge `02f4661` (CI : lint/typecheck/build verts).
 
 ---
 
@@ -295,4 +296,4 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
 8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
 
-*`master` = `2224ebe` ; branche protégée (3 checks requis, toute fusion par PR). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+*`master` = `02f4661` ; branche protégée (3 checks requis, toute fusion par PR). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
