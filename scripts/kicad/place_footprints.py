@@ -197,6 +197,11 @@ def main():
         except Exception as exc:
             fail(f"items[{index}] : proprietes de l'empreinte: {exc}")
 
+        # Supprimer une empreinte existante avec la même référence (idempotence)
+        for existing in list(board.GetFootprints()):
+            if existing.GetReference() == reference:
+                board.Remove(existing)
+
         try:
             board.Add(fp)
         except Exception as exc:

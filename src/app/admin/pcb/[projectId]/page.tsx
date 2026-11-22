@@ -11,6 +11,7 @@ import { RequirementInput } from './requirement-input';
 import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
 import { PlacementPanel } from '@/components/pcb/PlacementPanel';
+import { ComponentSourcingPanel } from '@/components/pcb/ComponentSourcingPanel';
 import { PriceCard } from '@/components/pcb/PriceCard';
 import { CapitalizeButton } from '@/components/pcb/CapitalizeButton';
 import { computePriceTotal } from '@/lib/pcb/price-total';
@@ -213,6 +214,8 @@ export default async function PcbProjectPage({
               boardWidthMm={boardWidthMm}
               boardHeightMm={boardHeightMm}
             />
+
+            <ComponentSourcingPanel projectId={projectId} />
 
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import type { SourcingResult } from '@/lib/pcb/sourcing-engine';
 
+const EUR_TO_TND = 3.3;
+
 interface SourcingTableProps {
   results: SourcingResult[];
 }
@@ -46,13 +48,14 @@ export default function SourcingTable({ results }: SourcingTableProps) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right font-mono">
-                  {(bestMatch?.price ?? item.alternatives[0]?.price ?? 0).toFixed(2)} €
+                  {((bestMatch?.price ?? item.alternatives[0]?.price ?? 0) * EUR_TO_TND).toFixed(2)}{' '}
+                  DT
                 </td>
                 <td className="px-4 py-3 text-right font-mono">
                   {bestMatch?.stock ?? item.alternatives[0]?.stock ?? 0}
                 </td>
                 <td className="px-4 py-3 text-right font-mono font-bold">
-                  {item.totalCost.toFixed(2)} €
+                  {(item.totalCost * EUR_TO_TND).toFixed(2)} DT
                 </td>
                 <td className="px-4 py-3">
                   {item.isAvailable ? (
@@ -109,7 +112,7 @@ export default function SourcingTable({ results }: SourcingTableProps) {
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono">{alt.price.toFixed(2)} €</span>
+                      <span className="font-mono">{(alt.price * EUR_TO_TND).toFixed(2)} DT</span>
                       <span className={`ml-2 ${alt.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                         Stock: {alt.stock}
                       </span>

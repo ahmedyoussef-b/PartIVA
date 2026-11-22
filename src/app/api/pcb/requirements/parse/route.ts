@@ -15,9 +15,11 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const { projectId, answers } = body as {
+    const { projectId, answers, description, status } = body as {
       projectId?: string;
       answers: RequirementAnswer[];
+      description?: string;
+      status?: string;
     };
 
     if (!answers || !Array.isArray(answers)) {
@@ -29,10 +31,34 @@ export async function POST(req: Request) {
       ? await prisma.pcbProject.findUnique({ where: { id: projectId } })
       : null;
 
+    const desc = typeof description === 'string' ? description.trim() : undefined;
+    const allowedStatuses = new Set([
+      'draft',
+      'requirements_validated',
+      'design_validated',
+      'manufacturing_ready',
+    ]);
+    const nextStatus =
+      typeof status === 'string' && allowedStatuses.has(status) ? status : undefined;
+
     if (!project) {
       project = await prisma.pcbProject.create({
-        data: { name: 'Nouveau projet PCB', status: 'draft' },
+        data: {
+          name: 'Nouveau projet PCB',
+          status: nextStatus ?? 'draft',
+          description: desc,
+        },
       });
+    } else {
+      const data: { description?: string; status?: string } = {};
+      if (desc) data.description = desc;
+      if (nextStatus) data.status = nextStatus;
+      if (Object.keys(data).length > 0) {
+        project = await prisma.pcbProject.update({
+          where: { id: project.id },
+          data,
+        });
+      }
     }
 
     // Sauvegarder le formulaire

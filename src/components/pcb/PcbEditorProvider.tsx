@@ -9,6 +9,7 @@ type PcbEditorContextValue = {
   nodes: CanvasNode[];
   addNode: (symbol: ResolvedComponent, x: number, y: number) => void;
   addNodeAtCenter: (symbol: ResolvedComponent) => void;
+  moveNode: (id: string, x: number, y: number) => void;
   canvasSize: { w: number; h: number };
   setCanvasSize: (w: number, h: number) => void;
 };
@@ -38,6 +39,10 @@ export function PcbEditorProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const moveNode = React.useCallback((id: string, x: number, y: number) => {
+    setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, x, y } : n)));
+  }, []);
+
   const addNodeAtCenter = React.useCallback(
     (symbol: ResolvedComponent) => {
       addNode(symbol, Math.round(canvasSize.w / 2), Math.round(canvasSize.h / 2));
@@ -46,8 +51,8 @@ export function PcbEditorProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = React.useMemo(
-    () => ({ nodes, addNode, addNodeAtCenter, canvasSize, setCanvasSize }),
-    [nodes, addNode, addNodeAtCenter, canvasSize, setCanvasSize],
+    () => ({ nodes, addNode, addNodeAtCenter, moveNode, canvasSize, setCanvasSize }),
+    [nodes, addNode, addNodeAtCenter, moveNode, canvasSize, setCanvasSize],
   );
 
   return <PcbEditorContext.Provider value={value}>{children}</PcbEditorContext.Provider>;

@@ -103,6 +103,11 @@ export default async function CahierDesChargesPage({
             <h1 className="text-lg leading-tight font-bold text-gray-900">Cahier des charges</h1>
             <p className="text-xs text-gray-500">
               {project.name} · ID: {projectId}
+              {project.status === 'requirements_validated' && (
+                <span className="ml-2 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700">
+                  Phase pré-implantation validée
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -110,10 +115,22 @@ export default async function CahierDesChargesPage({
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        {!request && (
+        {!request && !project.description && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
             Aucune demande client n&apos;est rattachée à ce projet. Le cahier des charges est vide.
           </div>
+        )}
+
+        {!request && project.description && (
+          <section className="overflow-hidden rounded-lg border bg-white">
+            <div className="flex items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+              <FileText className="h-4 w-4" />
+              Idée générale (projet interne)
+            </div>
+            <div className="p-4 text-sm whitespace-pre-wrap text-gray-800">
+              {project.description}
+            </div>
+          </section>
         )}
 
         {request && (

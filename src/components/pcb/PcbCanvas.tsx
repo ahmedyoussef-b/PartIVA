@@ -8,10 +8,15 @@ import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 const GRID_SIZE = 20;
 
 export function PcbCanvas() {
-  const { nodes, addNode, setCanvasSize } = usePcbEditor();
+  const { nodes, addNode, moveNode, setCanvasSize } = usePcbEditor();
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const [menuPos, setMenuPos] = React.useState<{ x: number; y: number } | null>(null);
+  const [dragging, setDragging] = React.useState<{
+    id: string;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
 
   const drawGrid = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -92,6 +97,16 @@ export function PcbCanvas() {
       <div
         ref={wrapperRef}
         className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700"
+        onMouseMove={(e) => {
+          if (!dragging) return;
+          const rect = wrapperRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          const x = e.clientX - rect.left - dragging.offsetX;
+          const y = e.clientY - rect.top - dragging.offsetY;
+          moveNode(dragging.id, x, y);
+        }}
+        onMouseUp={() => setDragging(null)}
+        onMouseLeave={() => setDragging(null)}
       >
         <canvas
           ref={canvasRef}
@@ -107,8 +122,19 @@ export function PcbCanvas() {
             return (
               <div
                 key={n.id}
-                className="absolute flex flex-col items-center"
+                className="absolute flex cursor-grab flex-col items-center active:cursor-grabbing"
                 style={{ left: n.x - 20, top: n.y - 20 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                  const wrap = wrapperRef.current?.getBoundingClientRect();
+                  if (!wrap) return;
+                  setDragging({
+                    id: n.id,
+                    offsetX: e.clientX - rect.left - 20,
+                    offsetY: e.clientY - rect.top - 20,
+                  });
+                }}
               >
                 {sym.render({ size: 40, color: '#3b82f6' })}
                 <span className="mt-0.5 font-mono text-[10px] text-gray-200">{n.id}</span>

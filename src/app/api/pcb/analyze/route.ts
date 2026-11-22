@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     ? await prisma.request.findUnique({ where: { id: project.requestId } })
     : null;
 
-  const cdc = clientRequest?.partDescription?.trim();
+  const cdc = clientRequest?.partDescription?.trim() || project.description?.trim();
   if (!cdc) {
     return NextResponse.json(
       { error: 'Aucun cahier des charges client rattaché' },
@@ -198,7 +198,14 @@ Réponds UNIQUEMENT en JSON valide avec cette structure :
 
 Règles :
 - category doit être l'une des 6 valeurs exactes.
-- key = nom court du champ (ex. "Tension d'alimentation", "Température max").
+- key = nom court du champ, choisi de préférence dans cette liste canonique (pour assurer la cohérence entre les deux passes) :
+  Usage : Type d'usage, Température de fonctionnement, Environnement, Durée de vie.
+  Fonction : Fonctions principales, Interfaces d'entrée, Interfaces de sortie, Communications, Alimentation.
+  Traitement : Complexité du traitement, Temps réel, Mémoire, Consommation.
+  Mécanique : Dimensions max, Fixation, Position des connecteurs, Esthétique.
+  Fabrication : Quantité, Budget, Fabricant, Délai.
+  Qualité : Tests fonctionnels, Fiabilité, Normes.
+  Si un champ n'est pas dans la liste, utilise un nom court et stable.
 - value = valeur extraite ou déduite du cahier des charges.
 - status = "proposed" par défaut.
 - source = extrait EXACT du cahier des charges (5 à 200 caractères) qui justifie la valeur. Copier les mots du client, ne pas paraphraser.
@@ -206,7 +213,7 @@ Règles :
 - Si un composant du catalogue est utilisé, source peut être "catalog:<id du composant>".
 - Ne jamais inventer une citation : en cas de doute, "inféré".
 - Si des composants du catalogue sont fournis, privilégie-les (indique leur nom exact).
-- Propose au moins un champ par catégorie pertinente.
+- Propose au moins un champ par catégorie pertinente. Si une catégorie n'est pas couverte par le cahier des charges, déduis une valeur raisonnable et mets source = "inféré" et status = "to_verify".
 `;
 
   // 5. Appel(s) LLM — séquentiels (rate limit)
@@ -248,8 +255,13 @@ Règles :
 
     quality = assessCdcQuality(requirements);
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Erreur LLM';
-    console.error('[PCB:ANALYZE] Erreur LLM', message);
+    console.error('[PCB:ANALYZE] Erreur LLM', e);
+    const message =
+      e instanceof Error
+        ? e.message
+        : typeof e === 'object' && e && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : 'Erreur LLM';
     return NextResponse.json({ error: message }, { status: 502 });
   }
 

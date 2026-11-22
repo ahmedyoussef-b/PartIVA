@@ -1,7 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { PriceTotal } from '@/lib/pcb/price-total';
 
+// Taux de conversion EUR → Dinar tunisien (DT). Ajuster selon le cours du jour.
+const EUR_TO_TND = 3.3;
+
 export function PriceCard({ total }: { total: PriceTotal }) {
+  const isEur = total.currency === 'EUR';
+  const displayTotal = isEur ? total.total * EUR_TO_TND : total.total;
+  const displayCurrency = isEur ? 'DT' : total.currency;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -13,7 +20,7 @@ export function PriceCard({ total }: { total: PriceTotal }) {
         ) : (
           <>
             <p className="text-2xl font-semibold">
-              {total.total.toFixed(2)} {total.currency}
+              {displayTotal.toFixed(2)} {displayCurrency}
             </p>
             <p className="text-xs text-muted-foreground">
               {total.pricedCount}/{total.lineCount} composant(s) valorisé(s)
