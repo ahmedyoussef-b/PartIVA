@@ -1,170 +1,291 @@
 'use client';
 
 import * as React from 'react';
-import { usePcbEditor } from './PcbEditorProvider';
-import { COMPONENT_SYMBOLS, SYMBOLS_BY_ID } from '@/lib/pcb/symbols';
-import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
-const GRID_SIZE = 20;
+type Pad = {
+  number: string;
+  type: string;
+  shape: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  drill?: number;
+  rotation: number;
+  layers: string[];
+};
+type Graphic = {
+  type: 'line' | 'rect' | 'circle' | 'arc';
+  layer: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  x3?: number;
+  y3?: number;
+  width?: number;
+};
+type BoardComponent = {
+  reference: string;
+  value: string;
+  x: number;
+  y: number;
+  rotation: number;
+  layer: string;
+  footprint: string;
+  pads: Pad[];
+  graphics: Graphic[];
+};
+type BoardData = {
+  board: {
+    origin: { x: number; y: number };
+    dimensions: { width: number; height: number };
+    edges: Graphic[];
+  };
+  components: BoardComponent[];
+};
 
-export function PcbCanvas() {
-  const { nodes, addNode, moveNode, setCanvasSize } = usePcbEditor();
+function rotatePoint(x: number, y: number, deg: number): { x: number; y: number } {
+  const r = (deg * Math.PI) / 180;
+  const c = Math.cos(r);
+  const s = Math.sin(r);
+  return { x: x * c - y * s, y: x * s + y * c };
+}
+
+function toWorld(fpX: number, fpY: number, fpRot: number, lx: number, ly: number, lRot = 0) {
+  const p = rotatePoint(lx, ly, fpRot + lRot);
+  return { x: fpX + p.x, y: fpY + p.y };
+}
+
+export function PcbCanvas({ projectId }: { projectId?: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
-  const [menuPos, setMenuPos] = React.useState<{ x: number; y: number } | null>(null);
-  const [menuLeft, setMenuLeft] = React.useState(0);
-  const [dragging, setDragging] = React.useState<{
-    id: string;
-    offsetX: number;
-    offsetY: number;
-  } | null>(null);
+  const [data, setData] = React.useState<BoardData | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const drawGrid = React.useCallback(() => {
+  const fetchBoard = React.useCallback(async () => {
+    if (!projectId) return;
+    try {
+      const res = await fetch(`/api/pcb/board/render?projectId=${encodeURIComponent(projectId)}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || `Erreur ${res.status}`);
+      setData(json as BoardData);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur chargement board');
+    }
+  }, [projectId]);
+
+  React.useEffect(() => {
+    fetchBoard();
+  }, [fetchBoard]);
+
+  React.useEffect(() => {
+    const handler = () => fetchBoard();
+    window.addEventListener('pcb:board-refresh', handler);
+    return () => window.removeEventListener('pcb:board-refresh', handler);
+  }, [fetchBoard]);
+
+  const draw = React.useCallback(() => {
     const canvas = canvasRef.current;
     const wrapper = wrapperRef.current;
     if (!canvas || !wrapper) return;
-
     const dpr = window.devicePixelRatio || 1;
-    const w = wrapper.clientWidth;
-    const h = wrapper.clientHeight;
-    if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
+    const W = wrapper.clientWidth;
+    const H = wrapper.clientHeight;
+    if (canvas.width !== Math.floor(W * dpr) || canvas.height !== Math.floor(H * dpr)) {
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      canvas.style.width = `${W}px`;
+      canvas.style.height = `${H}px`;
     }
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, w, h);
+    const board = data?.board;
+    const comps = data?.components ?? [];
+    const bw = board?.dimensions.width || 100;
+    const bh = board?.dimensions.height || 100;
+    const ox = board?.origin.x || 0;
+    const oy = board?.origin.y || 0;
+    const pad = 24;
+    const scale = Math.min((W - pad * 2) / bw, (H - pad * 2) / bh);
+    const tx = pad - ox * scale + (W - pad * 2 - bw * scale) / 2;
+    const ty = pad - oy * scale + (H - pad * 2 - bh * scale) / 2;
+    const sx = (x: number) => tx + x * scale;
+    const sy = (y: number) => ty + y * scale;
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+    // grid 1mm
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 1;
-    for (let x = 0; x <= w; x += GRID_SIZE) {
+    const startX = Math.floor(ox);
+    const startY = Math.floor(oy);
+    for (let x = startX; x <= ox + bw; x += 1) {
+      const px = sx(x);
       ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, h);
+      ctx.moveTo(px, sy(oy));
+      ctx.lineTo(px, sy(oy + bh));
       ctx.stroke();
     }
-    for (let y = 0; y <= h; y += GRID_SIZE) {
+    for (let y = startY; y <= oy + bh; y += 1) {
+      const py = sy(y);
       ctx.beginPath();
-      ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(w, y + 0.5);
+      ctx.moveTo(sx(ox), py);
+      ctx.lineTo(sx(ox + bw), py);
       ctx.stroke();
     }
 
-    setCanvasSize(w, h);
-  }, [setCanvasSize]);
+    // board area
+    ctx.fillStyle = '#0b3d2e';
+    ctx.fillRect(sx(ox), sy(oy), bw * scale, bh * scale);
+
+    // edge cuts
+    ctx.strokeStyle = '#f0e68c';
+    ctx.lineWidth = Math.max(1, 0.15 * scale);
+    for (const e of board?.edges ?? []) {
+      drawGraphic(ctx, e, sx, sy, scale);
+    }
+    if ((board?.edges ?? []).length === 0) {
+      ctx.strokeRect(sx(ox), sy(oy), bw * scale, bh * scale);
+    }
+
+    // components
+    for (const comp of comps) {
+      // silkscreen/fab graphics
+      for (const g of comp.graphics ?? []) {
+        if (g.layer.includes('SilkS')) ctx.strokeStyle = '#f5f5dc';
+        else if (g.layer.includes('Fab')) ctx.strokeStyle = '#888';
+        else if (g.layer.includes('CrtYd')) ctx.strokeStyle = '#ff69b4';
+        else continue;
+        ctx.lineWidth = Math.max(0.5, (g.width || 0.12) * scale);
+        drawGraphicLocal(ctx, comp, g, sx, sy, scale);
+      }
+      // pads
+      for (const p of comp.pads ?? []) {
+        const w = toWorld(comp.x, comp.y, comp.rotation, p.x, p.y, p.rotation);
+        const pw = Math.max(1, p.w * scale);
+        const ph = Math.max(1, p.h * scale);
+        ctx.save();
+        ctx.translate(sx(w.x), sy(w.y));
+        ctx.rotate(((comp.rotation + p.rotation) * Math.PI) / 180);
+        ctx.fillStyle = p.type === 'thru_hole' ? '#c0a000' : '#d4af37';
+        if (p.shape.includes('circle') || (p.shape === 'oval' && Math.abs(p.w - p.h) < 0.01)) {
+          ctx.beginPath();
+          ctx.ellipse(0, 0, pw / 2, ph / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.shape.includes('oval') || p.shape.includes('roundrect')) {
+          roundRect(ctx, -pw / 2, -ph / 2, pw, ph, Math.min(pw, ph) * 0.25);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
+        }
+        if (p.drill) {
+          ctx.fillStyle = '#111';
+          ctx.beginPath();
+          ctx.arc(0, 0, Math.max(0.5, (p.drill * scale) / 2), 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      // reference
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `${Math.max(8, 1.2 * scale)}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(comp.reference, sx(comp.x), sy(comp.y));
+    }
+  }, [data]);
 
   React.useEffect(() => {
-    drawGrid();
-  }, [drawGrid]);
+    draw();
+  }, [draw]);
 
   React.useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
-    const ro = new ResizeObserver(() => drawGrid());
+    const ro = new ResizeObserver(() => draw());
     ro.observe(wrapper);
     return () => ro.disconnect();
-  }, [drawGrid]);
-
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const wrapperWidth = wrapperRef.current?.clientWidth ?? rect.width;
-    setMenuPos({ x, y: e.clientY - rect.top });
-    setMenuLeft(Math.max(4, Math.min(x, wrapperWidth - 190)));
-  };
-
-  const pick = (symbol: ResolvedComponent) => {
-    if (!menuPos) return;
-    addNode(symbol, menuPos.x, menuPos.y);
-    setMenuPos(null);
-  };
+  }, [draw]);
 
   return (
     <div className="flex h-full w-full flex-col">
       <div className="mb-2 flex items-center justify-between text-xs text-gray-400">
-        <span>Cliquez sur la grille puis choisissez un composant</span>
-        <span className="font-mono">{nodes.length} composant(s)</span>
+        <span>Rendu plateau KiCad {data ? `(${data.components.length} composants)` : ''}</span>
+        {error && <span className="text-red-400">{error}</span>}
       </div>
       <div
         ref={wrapperRef}
         className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700"
-        onMouseMove={(e) => {
-          if (!dragging) return;
-          const rect = wrapperRef.current?.getBoundingClientRect();
-          if (!rect) return;
-          const x = e.clientX - rect.left - dragging.offsetX;
-          const y = e.clientY - rect.top - dragging.offsetY;
-          moveNode(dragging.id, x, y);
-        }}
-        onMouseUp={() => setDragging(null)}
-        onMouseLeave={() => setDragging(null)}
       >
-        <canvas
-          ref={canvasRef}
-          onClick={handleClick}
-          className="absolute inset-0 block h-full w-full cursor-crosshair"
-        />
-
-        {/* Symboles SVG superposés (non cliquables) */}
-        <div className="pointer-events-none absolute inset-0">
-          {nodes.map((n) => {
-            const sym = SYMBOLS_BY_ID[n.symbolId];
-            if (!sym) return null;
-            return (
-              <div
-                key={n.id}
-                className="absolute flex cursor-grab flex-col items-center active:cursor-grabbing"
-                style={{ left: n.x - 20, top: n.y - 20 }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                  const wrap = wrapperRef.current?.getBoundingClientRect();
-                  if (!wrap) return;
-                  setDragging({
-                    id: n.id,
-                    offsetX: e.clientX - rect.left - 20,
-                    offsetY: e.clientY - rect.top - 20,
-                  });
-                }}
-              >
-                {sym.render({ size: 40, color: '#3b82f6' })}
-                <span className="mt-0.5 font-mono text-[10px] text-gray-200">{n.id}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Menu contextuel */}
-        {menuPos && (
-          <div
-            className="absolute z-10 w-48 rounded border border-gray-600 bg-gray-800 p-1 shadow-lg"
-            style={{ left: menuLeft, top: menuPos.y }}
-          >
-            <div className="px-2 py-1 text-[10px] text-gray-400 uppercase">Composant</div>
-            {COMPONENT_SYMBOLS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => pick({ symbolId: s.id, refPrefix: s.refPrefix, label: s.label })}
-                className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs text-gray-100 hover:bg-gray-700"
-              >
-                <span className="inline-flex">{s.render({ size: 20, color: '#93c5fd' })}</span>
-                <span className="flex-1">{s.label}</span>
-                <span className="font-mono text-[10px] text-gray-400">{s.refPrefix}</span>
-              </button>
-            ))}
-          </div>
-        )}
+        <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" />
       </div>
     </div>
   );
+}
+
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawGraphic(
+  ctx: CanvasRenderingContext2D,
+  g: Graphic,
+  sx: (x: number) => number,
+  sy: (y: number) => number,
+  scale: number,
+) {
+  ctx.lineWidth = Math.max(0.5, (g.width || 0.15) * scale);
+  if (g.type === 'line') {
+    ctx.beginPath();
+    ctx.moveTo(sx(g.x1), sy(g.y1));
+    ctx.lineTo(sx(g.x2), sy(g.y2));
+    ctx.stroke();
+  } else if (g.type === 'rect') {
+    const x = Math.min(g.x1, g.x2),
+      y = Math.min(g.y1, g.y2);
+    ctx.strokeRect(sx(x), sy(y), Math.abs(g.x2 - g.x1) * scale, Math.abs(g.y2 - g.y1) * scale);
+  } else if (g.type === 'circle') {
+    const r = Math.hypot(g.x2 - g.x1, g.y2 - g.y1);
+    ctx.beginPath();
+    ctx.arc(sx(g.x1), sy(g.y1), r * scale, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (g.type === 'arc') {
+    // Approximate arc as line for MVP
+    ctx.beginPath();
+    ctx.moveTo(sx(g.x1), sy(g.y1));
+    ctx.lineTo(sx(g.x2), sy(g.y2));
+    ctx.stroke();
+  }
+}
+
+function drawGraphicLocal(
+  ctx: CanvasRenderingContext2D,
+  comp: BoardComponent,
+  g: Graphic,
+  sx: (x: number) => number,
+  sy: (y: number) => number,
+  scale: number,
+) {
+  const p1 = toWorld(comp.x, comp.y, comp.rotation, g.x1, g.y1);
+  const p2 = toWorld(comp.x, comp.y, comp.rotation, g.x2, g.y2);
+  const gg: Graphic = { ...g, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
+  drawGraphic(ctx, gg, sx, sy, scale);
 }

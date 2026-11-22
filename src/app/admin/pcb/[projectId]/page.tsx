@@ -191,7 +191,7 @@ export default async function PcbProjectPage({
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
             <h2 className="mb-4 font-semibold text-gray-800">Layout PCB</h2>
             <div className="flex flex-1 items-stretch">
-              <PcbCanvas />
+              <PcbCanvas projectId={projectId} />
             </div>
           </div>
 

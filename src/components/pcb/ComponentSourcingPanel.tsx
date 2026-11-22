@@ -234,6 +234,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const relX = s.xMm - BOARD_ORIGIN_X;
       const relY = s.yMm - BOARD_ORIGIN_Y;
       addNode(sym, Math.round(relX * PX_PER_MM), Math.round(relY * PX_PER_MM));
+      window.dispatchEvent(new Event('pcb:board-refresh'));
       toast.success('Composant placé dans KiCad et affiché dans PartIVA');
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
