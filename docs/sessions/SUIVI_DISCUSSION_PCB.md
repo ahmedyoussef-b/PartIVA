@@ -373,3 +373,8 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Prompt v8.13** : HEAD `2224ebe`, dernière étape close = SYNC-4, prochaine étape = C3 ; publié dans une PR documentaire séparée.
 - **Vérifications** : `npm run lint` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅ · `git diff --check` ✅.
 - **Reste** : C3 (canvas lisible) non démarré.
+
+### 11.14 Fix chemin plateau KiCad + prompt v8.14 (PR #143 / PR #144, 2026-11-22)
+
+- **PR #143** : fix `kicadFilePath` Windows → POSIX (`normalizeBoardPath`) + override serveur `PARTIVA_KICAD_BOARD` — routes place/batch/verify/source-components.
+- **PR #144** : régénération prompt v8.14 (HEAD `36302a6`).
