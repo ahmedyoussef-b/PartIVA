@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { usePcbEditor } from './PcbEditorProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
@@ -68,7 +68,7 @@ function symbolFor(reference: string): ResolvedComponent {
 
 export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [components, setComponents] = useState<ProposedComponent[]>([]);
   const [selections, setSelections] = useState<Record<number, number>>({});
@@ -76,20 +76,24 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
 
+  const fetchComponents = useCallback(async () => {
+    const res = await fetch('/api/pcb/requirements/source-components', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+    return (data.components ?? []) as ProposedComponent[];
+  }, [projectId]);
+
   const load = async () => {
     setLoading(true);
     setError(null);
     setPlaced({});
     setPlaceErrors({});
     try {
-      const res = await fetch('/api/pcb/requirements/source-components', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
-      setComponents(data.components ?? []);
+      setComponents(await fetchComponents());
       setSelections({});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur');
@@ -99,9 +103,27 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+    let cancelled = false;
+    fetchComponents()
+      .then((next) => {
+        if (cancelled) return;
+        setComponents(next);
+        setSelections({});
+        setPlaced({});
+        setPlaceErrors({});
+        setError(null);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : 'Erreur');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchComponents]);
 
   const optionFor = (comp: ProposedComponent, idx: number): Selection => {
     const sel = selections[idx] ?? -1;

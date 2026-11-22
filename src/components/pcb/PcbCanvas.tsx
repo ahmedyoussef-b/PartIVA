@@ -12,6 +12,7 @@ export function PcbCanvas() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const [menuPos, setMenuPos] = React.useState<{ x: number; y: number } | null>(null);
+  const [menuLeft, setMenuLeft] = React.useState(0);
   const [dragging, setDragging] = React.useState<{
     id: string;
     offsetX: number;
@@ -75,7 +76,10 @@ export function PcbCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    setMenuPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    const x = e.clientX - rect.left;
+    const wrapperWidth = wrapperRef.current?.clientWidth ?? rect.width;
+    setMenuPos({ x, y: e.clientY - rect.top });
+    setMenuLeft(Math.max(4, Math.min(x, wrapperWidth - 190)));
   };
 
   const pick = (symbol: ResolvedComponent) => {
@@ -83,10 +87,6 @@ export function PcbCanvas() {
     addNode(symbol, menuPos.x, menuPos.y);
     setMenuPos(null);
   };
-
-  const menuLeft = menuPos
-    ? Math.max(4, Math.min(menuPos.x, (wrapperRef.current?.clientWidth ?? 9999) - 190))
-    : 0;
 
   return (
     <div className="flex h-full w-full flex-col">

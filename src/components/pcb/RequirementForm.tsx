@@ -136,7 +136,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
                 )}
               </div>
               <p className="text-xs text-gray-500">
-                Généré par IA à partir de l'idée générale. Modifiable avant validation.
+                Généré par IA à partir de l&apos;idée générale. Modifiable avant validation.
               </p>
             </div>
           </div>

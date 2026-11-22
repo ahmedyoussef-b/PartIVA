@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 import { saveAccomplishedSnapshot } from '@/lib/pcb/capitalize';
 
