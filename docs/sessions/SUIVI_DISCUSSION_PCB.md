@@ -394,4 +394,6 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Configuration Vercel** : `PARTIVA_KICAD_BOARD=src/lib/pcb/boards/carte-test.kicad_pcb` posée en **Production** et **Preview** (`vercel env add`, projet `part-iva`).
 - **Merge** : merge commit `e3085a9` (2026-11-22), sans squash — hash préservé.
 - **Vérifications** : typecheck ✅ · vitest ✅ (**344 tests / 40 fichiers**) · prettier ✅ · lint ✅ · `git diff --check` ✅ · 4 checks CI verts (PR #148) · déploiement Production `part-5mrqer9sc` **Ready**.
-- **Périmètre** : résolution/lecture du plateau uniquement ; le placement effectif via Python KiCad/`pcbnew` reste indisponible sur Vercel. C3 non démarré.
+- **Vérification fonctionnelle (coordinateur)** : sur la page admin en production, `Fichier KiCad introuvable : /c/Users/pc/...` a disparu ; message restant `Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)`, émis par `kicad-bridge.ts` après `existsSync()`/`readFileSync()` dans `place/batch` — le plateau est chargé et prêt.
+- **Décision C.4** : PCB/KiCad bout-en-bout prévu en **mode hybride Tauri (desktop/web)** ; à ce stade la production web est suffisante, et l'admin doit être en mode hybride pour « Valider et placer dans KiCad ». Consigné dans `DECISIONS.md` §15.5.
+- **Périmètre** : résolution/lecture du plateau uniquement ; le placement effectif via Python KiCad/`pcbnew` est hors périmètre web (décision C.4). C3 non démarré.
