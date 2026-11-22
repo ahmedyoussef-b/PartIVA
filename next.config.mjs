@@ -32,6 +32,11 @@ const nextConfig = {
       './api.disabled/**',
     ],
   },
+  // Plateau KiCad de démonstration — lu via fs par les routes de placement.
+  // Sans tracing, le fichier n'est pas présent dans le bundle Vercel (existsSync faux).
+  outputFileTracingIncludes: {
+    '*': ['./src/lib/pcb/boards/**/*'],
+  },
 };
 
 export default nextConfig;
