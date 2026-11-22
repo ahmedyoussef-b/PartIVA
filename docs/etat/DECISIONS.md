@@ -553,6 +553,7 @@
 | A2.5 | Saisie kicadFilePath : PATCH /api/pcb/projects/[id] (auth admin, validation .kicad_pcb, exists informatif). Composant KicadFileInput monte dans la barre haute du workspace | - | Dette D-FT-P7-KICAD-PATH-UNRESTRICTED partiellement mitigee |
 | C1 | Sourcing composants : ComponentSourcingPanel + /api/pcb/requirements/source-components. IA propose une BOM (13-17 composants) depuis le CDC valide. Positions offsetees par rapport au plateau reel. Resolution automatique des empreintes KiCad | - | - |
 | C2 | Compilation IA optimisee : /api/pcb/requirements/compile. Prompt couvrant les 6 categories -> completude 100% (6/6) | - | - |
+| C.4 | PCB/KiCad bout-en-bout reserve au mode hybride Tauri (desktop/web). Production web : plateau reel charge et pret (verifie apres PR #148), suffisant a ce stade ; "Valider et placer dans KiCad" exige le mode hybride desktop/web | Python KiCad/pcbnew indisponible sur Vercel ; pas de placement cloud a ce stade | - |
 
 ### 15.6 - Notes de tracabilite
 
