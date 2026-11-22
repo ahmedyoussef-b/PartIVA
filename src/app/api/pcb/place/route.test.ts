@@ -12,6 +12,7 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/pcb/kicad-bridge', () => ({
   detectKicadPython: vi.fn(),
   resolveScriptPath: vi.fn(),
+  kicadUnavailableMessage: vi.fn(() => 'Python KiCad introuvable (mock)'),
   placeFootprint: vi.fn(),
   dryRun: vi.fn(),
 }));
