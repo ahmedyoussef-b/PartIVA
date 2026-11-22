@@ -360,11 +360,15 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
               <button
                 type="button"
-                disabled={placing !== null}
+                disabled={placing !== null || !!placed[idx]}
                 onClick={() => handlePlaceOne(idx)}
                 className="mt-2 w-full rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
               >
-                {placing === idx ? 'Placement en cours…' : 'Valider et placer dans KiCad'}
+                {placing === idx
+                  ? 'Placement en cours…'
+                  : placed[idx]
+                    ? 'Placé dans KiCad'
+                    : 'Valider et placer dans KiCad'}
               </button>
             </div>
           );
