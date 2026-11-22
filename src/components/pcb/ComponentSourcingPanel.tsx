@@ -237,8 +237,15 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       toast.success('Composant placé dans KiCad et affiché dans PartIVA');
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
-      setPlaceErrors((prev) => ({ ...prev, [idx]: msg }));
-      toast.error(msg);
+      const isHybrid =
+        msg.toLowerCase().includes('hybride tauri') || msg.toLowerCase().includes('mode web');
+      setPlaceErrors((prev) => ({
+        ...prev,
+        [idx]: isHybrid ? 'Disponible en mode hybride Tauri (desktop/web).' : msg,
+      }));
+      toast.error(isHybrid ? 'Placement disponible en mode hybride Tauri' : msg, {
+        description: isHybrid ? 'Ouvrez PartIVA en desktop pour placer dans KiCad.' : undefined,
+      });
     } finally {
       setPlacing(null);
     }

@@ -154,8 +154,16 @@ export function PlacementPanel({
 
       if (!resPlace.ok) {
         const message = dataPlace.error ?? 'Placement échoué';
-        toast.error(message);
-        setResult({ ok: false, message });
+        const isHybrid =
+          message.toLowerCase().includes('hybride tauri') ||
+          message.toLowerCase().includes('mode web');
+        toast.error(isHybrid ? 'Placement disponible en mode hybride Tauri' : message, {
+          description: isHybrid ? 'Ouvrez PartIVA en desktop pour placer dans KiCad.' : undefined,
+        });
+        setResult({
+          ok: false,
+          message: isHybrid ? 'Disponible en mode hybride Tauri (desktop/web).' : message,
+        });
         return;
       }
 
