@@ -2,7 +2,7 @@
 
 **Document de travail** — ne remplace pas les procédures officielles.
 **Créé le** : 2026-11-20
-**Statut** : cadrage terminé — 44 étapes validées (V1-V44), 32 questions répondues (Q1-Q32).
+**Statut** : cadrage terminé — 44 étapes validées (V1-V44), 32 questions répondues (Q1-Q32). Fast-Track P7 **CLOS et poussé** (`fast-track/p7-dashboard-pcb`, puis 3 commits locaux non poussés). Post-Fast-Track : A2.5 (saisie `kicadFilePath`), multi-provider LLM avec fallback (Groq → Cerebras → OpenRouter → Google → OpenAI), compilation IA optimisée (6 catégories, complétude 100 %), sourcing composants avec placement par composant dans KiCad. E2E validé techniquement (dry-run + placement réel + vérification 0,01 mm + résolution d'empreintes IA) ; **confirmation visuelle après correctif en attente**.
 
 ## 1. Objectif de la discussion
 
@@ -282,3 +282,69 @@ Table SQLite `components` (une ligne = un composant, un seul fournisseur par lig
 | `created_at`, `updated_at` | TEXT (ISO) | Horodatage |
 
 Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `category` + `electrical`, synchronisée à l'insertion.
+
+---
+
+## 11. Post-Fast-Track P7 — Travail réalisé (2026-11-21)
+
+### 11.1 A2.5 — Saisie `kicadFilePath` (commit `b370c59`)
+- `PATCH /api/pcb/projects/[id]` (auth admin, validation `.kicad_pcb`, `exists` informatif).
+- Composant `KicadFileInput` monté dans la barre haute du workspace.
+- Dette `D-FT-P7-KICAD-PATH-UNRESTRICTED` consignée.
+
+### 11.2 Multi-provider LLM avec fallback dynamique (`src/lib/ai/groq-client.ts`)
+- Fournisseurs essayés en ordre : **Groq → Cerebras → OpenRouter → Google → OpenAI** (selon clés présentes).
+- Bascule automatique sur 429/5xx/erreur réseau. Cerebras : modèle par défaut `gpt-oss-120b`.
+
+### 11.3 Compilation IA optimisée (`/api/pcb/requirements/compile`)
+- Textarea « Idée générale » (obligatoire) dans `RequirementForm` + panneau « Description technique compilée (IA) ».
+- Boutons **Compiler / Relancer / Valider** → un seul textarea « Contexte validé » après validation.
+- Phase pré-implantation : `status: 'requirements_validated'` + badge dans la page cahier des charges.
+- Prompt couvrant les **6 catégories** (déduction marquée « (déduit) ») → complétude **100 % (6/6)**.
+
+### 11.4 Sourcing composants (`ComponentSourcingPanel` + `/api/pcb/requirements/source-components`)
+- L'IA propose une BOM (13-17 composants) depuis le CDC validé.
+- Positions offsetées par rapport au plateau réel (origine bbox).
+- Résolution automatique des empreintes KiCad (recherche dans toutes les bibliothèques).
+- **Bouton « Valider et placer dans KiCad » sur chaque carte de composant** (placement individuel en temps réel).
+- E2E validé : dry-run ✅, placement réel ✅, vérification déterministe ✅ (0,01 mm / 0,5°).
+
+### 11.5 Prompt d'analyse optimisé
+- Liste canonique des clés par catégorie → accord parfait inter-passes (0 dropped).
+- Résultat : 18 exigences, complétude 100 %, 0 sans source.
+
+### 11.6 Diagnostic boucle de chargement dev
+- Cause : HMR Turbopack sur disque `F:` (slow filesystem). Contournement : `next dev --webpack`.
+- Service worker innocenté (aucun SW, aucun cache sur `localhost:3000`).
+- Fix préexistant : `desktop-builds/route.ts` (`GET(request?: Request)` → `GET(request: Request)`) — commit `e32e4c1`.
+
+### 11.7 Vérifications finales
+- `npm run typecheck` : exit 0 · `npx vitest run` : 326 passent · `npx prettier --check .` : exit 0.
+
+### 11.8 Itération A — vrai projet KiCad stable (non commité)
+- Création de `C:\Users\pc\Documents\PartIVA\projets\carte-test\carte-test.kicad_pcb` + `.kicad_pro` (au lieu de `%TEMP%`).
+- `kicadFilePath` du projet `cmwo3y9z50000nsfc1ci309ll` patché ; KiCad GUI ouvert (`carte-test - KiCad 10.0`).
+- Dry-run `POST /api/pcb/place` : `200 OK`, `wouldPlace: true`, `footprintCount: 1`.
+
+### 11.9 Réconciliation KiCad (non commité)
+- `scripts/kicad/place_footprints.py` : suppression de l'empreinte existante de même référence avant ajout.
+- Cause diagnostiquée : doublon `U1` → écart x/y de +100 mm (`attendu 69690000/91280000`, `obtenu 79690000/101280000`) → restauration depuis `.bak`.
+
+### 11.10 Résolution des empreintes IA (non commité)
+- Nouveau module pur `src/lib/pcb/kicad-footprints.ts` + 4 tests (`kicad-footprints.test.ts`).
+- Ordre : exact → autre bibliothèque → fuzzy normalisé → **fallback par préfixe de référence**.
+- Empreinte fautive `Converter_DCDC:DCDC-Module_TO-220` (absente de KiCad 10, fuzzy `why: none`) → `Package_TO_SOT_THT:TO-220-3_Vertical` pour `U1`.
+- Câblé dans `POST /api/pcb/requirements/source-components` ; racine configurable via `PARTIVA_KICAD_FOOTPRINTS_ROOT`.
+- Vérifications : `npm run typecheck` ✅ · `npx vitest run` ✅ (**330 tests / 38 fichiers**) · `npx prettier --check .` ✅ · dry-run placement avec fallback ✅ (`200 OK`).
+- **Rejeu BOM complet (2026-11-22)** : projet cible `cmwqu1s0t0029o0fcugnkd0da` patché vers `C:\Users\pc\Documents\PartIVA\projets\carte-test\carte-test.kicad_pcb` (`200 OK`, `exists: true`). Sourcing IA (15 composants) → **15 clics « Valider et placer dans KiCad »** → `✓ 15 placé(s) · 15 vérifié(s)`, canvas `0 → 15`, 0 erreur. Lecture du `.kicad_pcb` sur disque : 15 références présentes, `U1` → `Package_TO_SOT_THT:TO-220-3_Vertical` à `69.69 / 91.28` mm.
+- **Reste à prouver** : apparition réelle dans KiCad GUI et dans le canvas PartIVA (confirmation visuelle du coordinateur).
+
+### 11.11 Itérations C1 + C2 (2026-11-22)
+- Plan **C1 → C5** acté par le coordinateur : C1 données, C2 GND, C3 canvas, C4 empreintes, C5 UX.
+- **C1.1** : résidu `%TEMP%` supprimé (chemin déjà patché) ; arbitrage = **conserver** `cmwqu1s…` (19 composants / 18 exigences). Projet officiel `cmwo3y9…` confirmé (0 composant, 0 réseau).
+- **C1.2** : `src/lib/pcb/kicad-path.ts` + tests ; `PATCH /api/pcb/projects/[id]` refuse les chemins temporaires.
+- **C2 (Option A)** : `pending = nets.length === 0`, plus de violation `GROUND_PLANE` garantie ; `simulation.test.ts` (3 tests).
+- **C2-bis** : panneau Conformité remonté en tête de colonne ; badge « PAS ENCORE ANALYSÉ » vérifié en navigateur.
+- **Vérifications** : typecheck ✅ · **341 tests / 40 fichiers** ✅ · prettier ✅ · contrôle visuel ✅.
+- **Dettes** : `D-FT-P7-GND-NETS-NOT-SEEDED` ; `D-FT-P7-KICAD-PATH-UNRESTRICTED` partiellement mitigée.
+- **Arrêt au C2-bis** (C3 non démarré, conformément au prompt).

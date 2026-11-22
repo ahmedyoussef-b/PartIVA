@@ -20,7 +20,7 @@ import { PATCH } from './route';
 
 const PROJECT_ID = 'proj-1';
 const PARAMS = { params: Promise.resolve({ id: PROJECT_ID }) };
-const VALID_PATH = 'C:\\tmp\\board.kicad_pcb';
+const VALID_PATH = 'C:\\Users\\pc\\Documents\\PartIVA\\projets\\carte.kicad_pcb';
 
 function makeRequest(body: unknown) {
   return new NextRequest(`http://localhost/api/pcb/projects/${PROJECT_ID}`, {
@@ -85,6 +85,19 @@ describe('PATCH /api/pcb/projects/[id]', () => {
     await expect(res.json()).resolves.toEqual({
       error: 'kicadFilePath doit pointer vers un fichier .kicad_pcb',
     });
+  });
+
+  it('5b. retourne 400 si le chemin est dans un dossier temporaire', async () => {
+    mockAdmin();
+    const res = await PATCH(
+      makeRequest({ kicadFilePath: 'C:\\Users\\pc\\AppData\\Local\\Temp\\carte.kicad_pcb' }),
+      PARAMS,
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      error: 'Le chemin du projet ne peut pas être dans un dossier temporaire.',
+    });
+    expect(prisma.pcbProject.update).not.toHaveBeenCalled();
   });
 
   it('6. retourne 404 si le projet est introuvable (P2025)', async () => {

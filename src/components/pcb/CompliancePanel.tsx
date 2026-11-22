@@ -13,6 +13,7 @@ interface RealStateAnalysis {
   violations: Violation[];
   isCompliant: boolean;
   checkedRules: number;
+  pending?: boolean;
 }
 
 interface CompliancePanelProps {
@@ -66,10 +67,18 @@ export default function CompliancePanel({ projectId, initialResult }: Compliance
           <div className="mb-3 flex items-center gap-2">
             <span
               className={`rounded px-2 py-1 text-xs font-medium ${
-                analysis.isCompliant ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                analysis.pending
+                  ? 'bg-gray-100 text-gray-700'
+                  : analysis.isCompliant
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
               }`}
             >
-              {analysis.isCompliant ? '✓ Conforme' : '✗ Non conforme'}
+              {analysis.pending
+                ? '◌ Pas encore analysé'
+                : analysis.isCompliant
+                  ? '✓ Conforme'
+                  : '✗ Non conforme'}
             </span>
             <span className="text-xs text-gray-500">{analysis.checkedRules} règles vérifiées</span>
           </div>
@@ -95,7 +104,13 @@ export default function CompliancePanel({ projectId, initialResult }: Compliance
             </ul>
           )}
 
-          {analysis.violations.length === 0 && (
+          {analysis.violations.length === 0 && analysis.pending && (
+            <p className="text-sm text-gray-600">
+              Aucun réseau défini : la règle GND sera vérifiée dès l&apos;ajout d&apos;un réseau.
+            </p>
+          )}
+
+          {analysis.violations.length === 0 && !analysis.pending && (
             <p className="text-sm text-green-600">Aucune violation détectée.</p>
           )}
         </div>

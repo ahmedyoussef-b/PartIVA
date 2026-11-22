@@ -29,6 +29,8 @@ export interface RealStateAnalysis {
   violations: Violation[];
   isCompliant: boolean;
   checkedRules: number;
+  /** Aucun réseau défini : la règle GND n'est pas encore évaluable (pas une violation). */
+  pending: boolean;
 }
 
 // Règles physiques réelles
@@ -60,15 +62,20 @@ export function analyzeRealState(components: RealComponent[], nets: RealNet[]): 
   });
 
   // 2. Plan de masse (GND net doit exister et être connecté)
-  checkedRules++;
-  const gndNet = nets.find((n) => n.name.toLowerCase() === 'gnd');
-  if (!gndNet || !gndNet.pins || gndNet.pins.length < 2) {
-    violations.push({
-      type: 'GROUND_PLANE',
-      severity: 'CRITICAL',
-      message: 'Réseau GND manquant ou non connecté (min 2 points requis)',
-      location: 'GND',
-    });
+  // C2 : sans aucun réseau, la conception n'en est qu'à la phase de saisie —
+  // l'absence de GND n'est pas une violation, l'état est « pas encore analysé ».
+  const pending = nets.length === 0;
+  if (!pending) {
+    checkedRules++;
+    const gndNet = nets.find((n) => n.name.toLowerCase() === 'gnd');
+    if (!gndNet || !gndNet.pins || gndNet.pins.length < 2) {
+      violations.push({
+        type: 'GROUND_PLANE',
+        severity: 'CRITICAL',
+        message: 'Réseau GND manquant ou non connecté (min 2 points requis)',
+        location: 'GND',
+      });
+    }
   }
 
   // 3. Densité vias par net
@@ -89,5 +96,6 @@ export function analyzeRealState(components: RealComponent[], nets: RealNet[]): 
     violations,
     isCompliant: violations.filter((v) => v.severity === 'CRITICAL').length === 0,
     checkedRules,
+    pending,
   };
 }

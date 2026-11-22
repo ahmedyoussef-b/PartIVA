@@ -1,6 +1,6 @@
 # DETTES ACTIVES — PartIVA
 
-**Dernière mise à jour :** 2026-11-19
+**Dernière mise à jour :** 2026-11-22
 **Source :** `PROMPT DE PASSATION — Superviseur IA Externe — v12` §3 (2026-11-10)
 **Statut :** Registre actif — dettes non résolues uniquement (charte §10).
 
@@ -159,7 +159,57 @@
 - **Effort estimé :** Faible (ancrer les chemins sur un répertoire de base autorisé, refuser tout chemin hors racine).
 - **Bloquant :** Non (admin-only).
 - **Condition de résolution :** validation du chemin contre un répertoire dédié (allowlist / ancrage répertoire) + test.
-- **Réf. :** A2.5 (2026-11-21).
+- **Mitigation partielle (C1.2, 2026-11-22) :** `src/lib/pcb/kicad-path.ts` refuse désormais `%TEMP%`, `AppData\Local\Temp`, `/tmp/`, `C:\Temp\` ; la dette reste ouverte car tout chemin absolu hors temporaire est encore accepté (pas d'allowlist).
+- **Réf. :** A2.5 (2026-11-21) ; C1.2 (2026-11-22).
+
+---
+
+### `D-FT-P7-GND-NETS-NOT-SEEDED` — Aucun réseau généré : règle GND non évaluable
+
+- **Statut :** Active
+- **Cause :** aucune `PcbNet` n'est créée à partir de l'analyse ou des composants placés. `page.tsx` transmet donc `nets: []` à `analyzeRealState` ; depuis C2 la règle `GROUND_PLANE` n'est plus un faux positif mais reste en état « pas encore analysé » (`pending: true`) — la connectivité GND réelle n'est jamais vérifiée.
+- **Périmètre :** `src/lib/pcb/simulation.ts`, `src/app/admin/pcb/[projectId]/page.tsx`, modèle `PcbNet` (`pins Json?`).
+- **Effort estimé :** Moyen (génération GND/VCC depuis le CDC validé + remplissage de `pins`).
+- **Bloquant :** Non.
+- **Condition de résolution :** des réseaux sont persistés avec leurs pins, le badge passe de « PAS ENCORE ANALYSÉ » à « CONFORME » / « N CRITIQUE(S) » sur la base de données réelles.
+- **Réf. :** C2 (2026-11-22).
+
+---
+
+### `D-FT-P7-TURBOPACK-ON-F` — Boucle HMR Turbopack sur disque F:
+
+- **Statut :** Active (contournement en place)
+- **Cause :** `next dev` avec Turbopack sur `F:` déclenche une boucle de rechargement HMR globale (système de fichiers lent).
+- **Contournement :** `npx next dev --webpack -p 3000`.
+- **Périmètre :** configuration de dev (`package.json` scripts).
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** script de dev documenté et utilisé par défaut, ou correction Turbopack amont.
+- **Réf. :** Session 2026-11-21 (diagnostic boucle de chargement).
+
+---
+
+### `D-FT-P7-KICAD-SYNC-POLLING` — Synchronisation inverse KiCad → app absente
+
+- **Statut :** Active
+- **Cause :** l'app écrit dans KiCad mais ne relit pas le fichier : les déplacements effectués dans KiCad GUI ne sont pas répercutés dans le canvas PartIVA.
+- **Périmètre :** nouvelle route `GET /api/pcb/kicad/state`, `PcbCanvas.tsx`, `PcbEditorProvider.tsx`.
+- **Effort estimé :** Moyen (polling + merge des positions sans écraser les overrides locaux).
+- **Bloquant :** Non.
+- **Condition de résolution :** endpoint de lecture + polling client + merge vérifiés en E2E (déplacement KiCad visible dans le canvas).
+- **Réf. :** Session 2026-11-22 (Itération 3 à implémenter).
+
+---
+
+### `D-FT-P7-ORPHAN-PCB-COMPONENTS` — Composants PCB orphelins
+
+- **Statut :** Active
+- **Cause :** `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx` et `PcbCanvas.addNodeAtCenter` ne sont pas montés.
+- **Périmètre :** `src/components/pcb/`.
+- **Effort estimé :** Faible.
+- **Bloquant :** Non.
+- **Condition de résolution :** composants soit montés, soit supprimés (décision documentée).
+- **Réf. :** Fast-Track P7 Phase E (2026-11-21).
 
 ---
 

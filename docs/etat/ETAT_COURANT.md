@@ -1,9 +1,9 @@
 # État courant du projet
 
-**Date de mise à jour :** 2026-11-21
-**Dernière sous-étape :** V37.2 — classement IA des candidats (branche `fast-track/p7-dashboard-pcb`) — `master` = `d50f4c0`
-**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 9**, non poussée ; `master` = `origin/master` = `d50f4c0`)
-**Tests :** 318 (36 fichiers) · `prettier --check .` ✅ · `npm run typecheck` ✅
+**Date de mise à jour :** 2026-11-22
+**Dernière sous-étape :** Itérations C1+C2 — nettoyage données PCB + garde-fou `%TEMP%` + faux positif GND — `master` = `d50f4c0`
+**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 3**, non poussée ; `master` = `origin/master` = `d50f4c0`)
+**Tests :** 341 (40 fichiers) · `prettier --check .` ✅ · `npm run typecheck` ✅
 **Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
 ---
@@ -228,15 +228,44 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-22 — Post-Fast-Track : chaîne PCB de bout en bout (non commitée)
+
+- **Itération A — vrai projet KiCad stable** : `C:\Users\pc\Documents\PartIVA\projets\carte-test\carte-test.kicad_pcb` + `.kicad_pro` créés ; `kicadFilePath` du projet `cmwo3y9z50000nsfc1ci309ll` patché ; KiCad GUI ouvert (`carte-test - KiCad 10.0`). Remplace le chemin temporaire `%TEMP%`.
+- **Réconciliation KiCad** : `scripts/kicad/place_footprints.py` supprime désormais l'empreinte existante de même référence avant ajout (doublon `U1` : écart x/y de +100 mm détecté puis restauration depuis `.bak`).
+- **Résolution des empreintes IA** : `src/lib/pcb/kicad-footprints.ts` (pur, 4 tests) — exact → autre bibliothèque → fuzzy → **fallback déterministe par préfixe de référence** (`U → Package_TO_SOT_THT:TO-220-3_Vertical`, `R → Resistor_SMD:R_0603_1608Metric`, …). Câblé dans `POST /api/pcb/requirements/source-components`. Corrige l'empreinte inexistante `Converter_DCDC:DCDC-Module_TO-220` (fuzzy `why: none`). Racine des bibliothèques configurable via `PARTIVA_KICAD_FOOTPRINTS_ROOT`.
+- **Vérifications** : `npm run typecheck` ✅ (exit 0) · `npx vitest run` ✅ (**330 tests / 38 fichiers**) · `npx prettier --check .` ✅ (exit 0) · dry-run `POST /api/pcb/place` ✅ (`200 OK`, `wouldPlace: true`, empreinte de fallback).
+- **E2E BOM complète (2026-11-22)** : `kicadFilePath` de `cmwqu1s0t0029o0fcugnkd0da` patché vers `carte-test` (`200 OK`, `exists: true`) ; **15/15 composants placés** via l'UI (« Valider et placer dans KiCad »), `✓ 15 placé(s) · 15 vérifié(s)`, canvas `0 → 15`, **0 erreur** d'empreinte/réconciliation ; fichier `.kicad_pcb` lu sur disque : 15 références attendues présentes (dont `U1` → `Package_TO_SOT_THT:TO-220-3_Vertical` à `69.69 / 91.28`).
+- **En attente** : confirmation visuelle (KiCad GUI + canvas PartIVA) par le coordinateur.
+- **Dettes** : `D-FT-P7-TURBOPACK-ON-F`, `D-FT-P7-KICAD-SYNC-POLLING`, `D-FT-P7-ORPHAN-PCB-COMPONENTS` (cf. `DETTES.md`).
+- **Statut** : non commité.
+
+---
+
+## Session 2026-11-22 — Itérations C1 + C2 (plan C1→C5 acté)
+
+- **C1.1 — données** : le résidu `%TEMP%` n'existe plus (chemin de `cmwqu1s0t0029o0fcugnkd0da` déjà patché vers `carte-test.kicad_pcb`). Arbitrage coordinateur : **conserver le projet** (19 composants / 18 exigences / 15 placements E2E). Projet officiel `cmwo3y9z50000nsfc1ci309ll` confirmé : chemin OK, 0 composant, 0 réseau.
+- **C1.2 — garde-fou** : `src/lib/pcb/kicad-path.ts` (pur, 6 tests) + test de route → `PATCH /api/pcb/projects/[id]` refuse `%TEMP%`, `AppData\Local\Temp`, `/tmp/`, `C:\Temp\`. Dette `D-FT-P7-KICAD-PATH-UNRESTRICTED` **partiellement mitigée**.
+- **C2 — faux positif GND** : **Option A retenue** (Option B inopérante : `PcbNet.pins` est un `Json?`, 0 net en base). `simulation.ts` : `pending = nets.length === 0`, règle `GROUND_PLANE` non évaluée dans ce cas, `checkedRules = 2`. `simulation.test.ts` (3 tests).
+- **C2-bis — visibilité** : panneau « Conformité Physique » remonté **en tête** de la colonne droite ; badge global « **PAS ENCORE ANALYSÉ** » (gris) au lieu de « 1 CRITIQUE(S) » (rouge) ; `CompliancePanel` affiche « ◌ Pas encore analysé · 2 règles vérifiées » + message neutre.
+- **Vérifications** : `npm run typecheck` ✅ (exit 0) · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅ · contrôle visuel navigateur ✅ (badge et panneau confirmés).
+- **Dettes** : `D-FT-P7-GND-NETS-NOT-SEEDED` (nouvelle), `D-FT-P7-KICAD-PATH-UNRESTRICTED` (mitigée), `D-FT-P7-TEMP-PATH-GUARD` **non créée** (le garde-fou est implémenté, pas une dette).
+- **Arrêt au C2-bis** conformément au prompt : C3 (canvas) non démarré.
+
+---
+
 ## Prochaine étape
 
-**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **non poussée**.
+**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **non poussée** (ahead 3).
 
 **Prochaines étapes possibles :**
-1. **Mesure des faux positifs** de `cdc-quality` sur le golden set (avant tout blocage éventuel).
-2. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
-3. **Recherche vectorielle** (Cloudflare `bge-small` 384 / HF) — V37.
-6. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
-7. **Décision de push** de la branche.
+1. **C3 — canvas lisible** : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre.
+2. **C4 — empreintes** : validation IPC sur le projet officiel `cmwo3y9z50000nsfc1ci309ll`.
+3. **C5 — UX** : chemin KiCad lisible, bouton supprimer, finitions.
+4. **Synchronisation inverse KiCad → app** (polling `GET /api/pcb/kicad/state` + merge des positions).
+5. **Confirmation visuelle** du placement (KiCad GUI + canvas PartIVA) par le coordinateur — rejeu BOM technique déjà vert (15/15).
+6. **Mesure des faux positifs** de `cdc-quality` sur le golden set (avant tout blocage éventuel).
+7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
+8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
+9. **Commit/push** de la branche (demandé dans le prompt C1+C2).
 
 *Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*

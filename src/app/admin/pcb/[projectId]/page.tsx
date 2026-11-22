@@ -169,10 +169,18 @@ export default async function PcbProjectPage({
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-bold ${
-            complianceResult.isCompliant ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            complianceResult.pending
+              ? 'bg-gray-100 text-gray-700'
+              : complianceResult.isCompliant
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
           }`}
         >
-          {complianceResult.isCompliant ? 'CONFORME' : `${criticalCount} CRITIQUE(S)`}
+          {complianceResult.pending
+            ? 'PAS ENCORE ANALYSÉ'
+            : complianceResult.isCompliant
+              ? 'CONFORME'
+              : `${criticalCount} CRITIQUE(S)`}
         </span>
       </div>
 
@@ -188,14 +196,7 @@ export default async function PcbProjectPage({
 
           {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
-            <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
-            <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
-            <PlacementPanel
-              projectId={projectId}
-              boardWidthMm={boardWidthMm}
-              boardHeightMm={boardHeightMm}
-            />
-
+            {/* C2-bis : conformité remontée en tête de colonne pour rester visible */}
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
                 Conformité Physique
@@ -204,6 +205,14 @@ export default async function PcbProjectPage({
                 <CompliancePanel projectId={projectId} initialResult={complianceResult} />
               </div>
             </div>
+
+            <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
+            <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
+            <PlacementPanel
+              projectId={projectId}
+              boardWidthMm={boardWidthMm}
+              boardHeightMm={boardHeightMm}
+            />
 
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">

@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
+import { validateKicadFilePath } from '@/lib/pcb/kicad-path';
 
 // Nécessite `node:fs` pour la vérification d'existence du fichier : runtime Node obligatoire.
 export const runtime = 'nodejs';
@@ -27,14 +28,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const b = (body ?? {}) as Record<string, unknown>;
   const kicadFilePath = typeof b.kicadFilePath === 'string' ? b.kicadFilePath.trim() : '';
-  if (!kicadFilePath) {
-    return NextResponse.json({ error: 'kicadFilePath requis' }, { status: 400 });
-  }
-  if (!kicadFilePath.toLowerCase().endsWith('.kicad_pcb')) {
-    return NextResponse.json(
-      { error: 'kicadFilePath doit pointer vers un fichier .kicad_pcb' },
-      { status: 400 },
-    );
+  const validation = validateKicadFilePath(kicadFilePath);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
   console.info('[PCB:PROJECT] Mise à jour kicadFilePath', { id, kicadFilePath });
