@@ -125,6 +125,16 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
   const [showSilk, setShowSilk] = React.useState(true);
   const [showRefs, setShowRefs] = React.useState(true);
   const [showFab, setShowFab] = React.useState(false);
+  const [mode, setMode] = React.useState<'pan' | 'move'>('pan');
+  const [dragComp, setDragComp] = React.useState<{
+    ref: string;
+    offsetX: number;
+    offsetY: number;
+    footprint: string;
+    value: string;
+    rotation: number;
+  } | null>(null);
+  const [busyRef, setBusyRef] = React.useState<string | null>(null);
   const [cursorMm, setCursorMm] = React.useState<{ x: number; y: number } | null>(null);
   const dragRef = React.useRef<{ sx: number; sy: number; px: number; py: number } | null>(null);
 
@@ -192,13 +202,16 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     const sy = (y: number) => ty + y * scale;
     const comps = data?.components ?? [];
 
+    ctx.fillStyle = '#0f3b2e';
+    ctx.fillRect(sx(ox), sy(oy), bw * scale, bh * scale);
+
     if (showGrid) {
       const step = scale > 10 ? 1 : scale > 4 ? 5 : 10;
       const major = step * 5;
       const startX = Math.floor(ox / step) * step;
       const startY = Math.floor(oy / step) * step;
       for (let x = startX; x <= ox + bw; x += step) {
-        ctx.strokeStyle = x % major === 0 ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)';
+        ctx.strokeStyle = x % major === 0 ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.05)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(sx(x), sy(oy));
@@ -206,7 +219,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
         ctx.stroke();
       }
       for (let y = startY; y <= oy + bh; y += step) {
-        ctx.strokeStyle = y % major === 0 ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)';
+        ctx.strokeStyle = y % major === 0 ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.05)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(sx(ox), sy(y));
@@ -214,9 +227,6 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
         ctx.stroke();
       }
     }
-
-    ctx.fillStyle = '#0f3b2e';
-    ctx.fillRect(sx(ox), sy(oy), bw * scale, bh * scale);
     ctx.strokeStyle = '#d8c84b';
     ctx.lineWidth = Math.max(1.5, 0.18 * scale);
     for (const e of data?.board?.edges ?? []) drawGraphic(ctx, e, sx, sy, scale);
@@ -282,8 +292,15 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
         ctx.fillStyle = '#ffffff';
         ctx.fillText(text, px, py);
       }
+      if (dragComp?.ref === comp.reference || busyRef === comp.reference) {
+        ctx.strokeStyle = dragComp?.ref === comp.reference ? '#38bdf8' : '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx(comp.x), sy(comp.y), Math.max(10, 3 * scale), 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
-  }, [data, getTransform, showGrid, showPads, showSilk, showRefs, showFab]);
+  }, [data, getTransform, showGrid, showPads, showSilk, showRefs, showFab, dragComp, busyRef]);
 
   React.useEffect(() => {
     draw();
@@ -296,30 +313,131 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     return () => ro.disconnect();
   }, [draw]);
 
+  const screenToMm = React.useCallback(
+    (clientX: number, clientY: number) => {
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      if (!rect) return null;
+      const { scale, tx, ty } = getTransform();
+      return { x: (clientX - rect.left - tx) / scale, y: (clientY - rect.top - ty) / scale };
+    },
+    [getTransform],
+  );
+
+  const findCompAt = React.useCallback(
+    (mmX: number, mmY: number) => {
+      const comps = data?.components ?? [];
+      let best: BoardComponent | null = null;
+      let bestD = Infinity;
+      for (const c of comps) {
+        const d = Math.hypot(c.x - mmX, c.y - mmY);
+        if (d < bestD) {
+          bestD = d;
+          best = c;
+        }
+      }
+      return bestD <= 8 ? best : null;
+    },
+    [data],
+  );
+
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     setZoom((z) => Math.min(20, Math.max(0.2, z * (e.deltaY < 0 ? 1.1 : 1 / 1.1))));
   };
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
+    const mm = screenToMm(e.clientX, e.clientY);
+    if (mode === 'move' && mm) {
+      const comp = findCompAt(mm.x, mm.y);
+      if (comp) {
+        setDragComp({
+          ref: comp.reference,
+          offsetX: comp.x - mm.x,
+          offsetY: comp.y - mm.y,
+          footprint: comp.footprint,
+          value: comp.value,
+          rotation: comp.rotation,
+        });
+        return;
+      }
+    }
     dragRef.current = { sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y };
   };
   const onMouseMove = (e: React.MouseEvent) => {
-    const rect = wrapperRef.current?.getBoundingClientRect();
-    if (rect) {
-      const { scale, tx, ty } = getTransform();
-      setCursorMm({
-        x: (e.clientX - rect.left - tx) / scale,
-        y: (e.clientY - rect.top - ty) / scale,
-      });
+    const mm = screenToMm(e.clientX, e.clientY);
+    if (mm) setCursorMm(mm);
+    if (dragComp && mm) {
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              components: prev.components.map((c) =>
+                c.reference === dragComp.ref
+                  ? { ...c, x: mm.x + dragComp.offsetX, y: mm.y + dragComp.offsetY }
+                  : c,
+              ),
+            }
+          : prev,
+      );
+      return;
     }
     const d = dragRef.current;
     if (d) setPan({ x: d.px + (e.clientX - d.sx), y: d.py + (e.clientY - d.sy) });
   };
+  const finishDragComp = React.useCallback(
+    async (
+      ref: string,
+      xMm: number,
+      yMm: number,
+      footprint: string,
+      value: string,
+      rotation: number,
+    ) => {
+      if (!projectId) return;
+      const [libName, footprintName] = footprint.includes(':')
+        ? footprint.split(':', 2)
+        : ['', footprint];
+      setBusyRef(ref);
+      try {
+        const res = await fetch('/api/pcb/place/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId,
+            dryRun: false,
+            components: [{ libName, footprintName, reference: ref, value, xMm, yMm, rotation }],
+          }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || 'Erreur ' + res.status);
+        await fetchBoard();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur déplacement');
+        await fetchBoard();
+      } finally {
+        setBusyRef(null);
+      }
+    },
+    [projectId, fetchBoard],
+  );
+
   const onMouseUp = () => {
+    if (dragComp) {
+      const moved = data?.components.find((c) => c.reference === dragComp.ref);
+      const d = dragComp;
+      setDragComp(null);
+      if (moved) void finishDragComp(d.ref, moved.x, moved.y, d.footprint, d.value, d.rotation);
+      return;
+    }
     dragRef.current = null;
   };
   const onMouseLeave = () => {
+    if (dragComp) {
+      const moved = data?.components.find((c) => c.reference === dragComp.ref);
+      const d = dragComp;
+      setDragComp(null);
+      if (moved) void finishDragComp(d.ref, moved.x, moved.y, d.footprint, d.value, d.rotation);
+    }
     dragRef.current = null;
     setCursorMm(null);
   };
@@ -330,7 +448,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
 
   const openInKicad = async () => {
     if (!projectId) return;
-    await fetch(`/api/pcb/projects/${projectId}/board`, {
+    await fetch('/api/pcb/projects/' + projectId + '/board', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'launch' }),
@@ -408,6 +526,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
             ? `X ${cursorMm.x.toFixed(2)} mm · Y ${cursorMm.y.toFixed(2)} mm`
             : 'Curseur hors plateau'}
         </span>
+        {busyRef && <span className="text-blue-500">Déplacement {busyRef}…</span>}
         {error && <span className="text-red-500">{error}</span>}
       </div>
       <div
@@ -421,7 +540,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       >
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing"
+          className={`absolute inset-0 block h-full w-full ${mode === 'move' ? (dragComp ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-grab active:cursor-grabbing'}`}
         />
       </div>
     </div>

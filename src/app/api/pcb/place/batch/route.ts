@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
@@ -10,26 +9,6 @@ import { placeFootprints, type BatchFootprintInput } from '@/lib/pcb/kicad-bridg
 export const runtime = 'nodejs';
 
 const MAX_COMPONENTS = 200;
-
-function openBoardInDesktop(absPath: string): void {
-  if (process.env.PARTIVA_DESKTOP !== '1') return;
-  try {
-    if (process.platform === 'win32') {
-      const child = spawn('cmd', ['/c', 'start', '', absPath], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-      });
-      child.unref();
-      return;
-    }
-    const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-    const child = spawn(cmd, [absPath], { detached: true, stdio: 'ignore' });
-    child.unref();
-  } catch (e) {
-    console.warn('[PCB:PLACE-BATCH] open board failed', e);
-  }
-}
 
 export async function POST(req: Request) {
   try {
@@ -165,9 +144,7 @@ export async function POST(req: Request) {
     footprintCount: result.footprintCount,
   });
 
-  if (!dryRunFlag && (result.footprintCount ?? 0) > 0) {
-    openBoardInDesktop(abs);
-  }
+  // Auto-open removed: user opens KiCad explicitly from workspace controls.
 
   const payload: Record<string, unknown> = {
     ok: true,
