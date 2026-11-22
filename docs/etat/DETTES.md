@@ -537,3 +537,54 @@
 - **Note (FIX-DOC-REPRISE, 2026-11-17) — `V8-D-13-b` / export UI :** aucune dette `D-V8-D-13-b` n'est **ni créée ni clôturée** : vérification `git show d6c6a25` (PR #127) → `src/components/pcb/ExportButtons.tsx` (120 lignes) + `e2e/pcb/export-ui.spec.ts` (81 lignes) + 19 lignes dans `page.tsx` ; aucun `TODO` / `FIXME` / `placeholder` / `not implemented` ; aucun `.fixme` / `.skip` / `test.slow` dans `e2e/pcb/`. Aucune dette à porter. **Non prouvé :** l'exécution effective de la spec `export-ui.spec.ts` (hors périmètre de cette session).
 - **Note (FIX-DOC-REPRISE, 2026-11-17) — dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` :** requalifiée en « résolution partielle » (PR #128 / `621e1a4`), non supprimée (preuve `git show 621e1a4` : zone de visualisation en placeholder, pas de capture, pas de log `[OCCT:compare]`, run E2E non prouvé).
 - **Note de requalification (T1, 2026-11-17) — périmètre des dettes `D-PCB-*` :** les chemins `src-tauri/src/pcb/*.rs` cités par 4 dettes n'existent pas (preuve P8.0 §5, `Test-Path` = `False`). Périmètres réels : `D-PCB-KICAD-IPC-GUI-DEPENDENCY` → `src/lib/pcb/kicad-ipc-adapter.ts` ; `D-PCB-KICAD-VERSION-DEPENDENCY` → `src/lib/pcb/kicad-cli-adapter.ts` ; `D-PCB-AUTOROUTER-ABSENT` → `src/lib/pcb/autorouter.ts` (mode assisté DSN ; la dette reste **fondée** — pas de résolution) ; `D-PCB-CATALOG-SYNC` → côté local **non localisé** : `src/lib/pcb/catalog.ts` ne fait que du CRUD web, aucune commande Rust catalogue n'existe → périmètre **à confirmer**, non corrigé.
+
+---
+
+## Dettes Fast-Track P7 (portées le 2026-11-22)
+
+> **Note de portage** : les dettes ci-dessous ont ete creees pendant le Fast-Track P7 (2026-11-19 -> 2026-11-22) et n'avaient pas ete portees au registre actif. Elles sont portees en bloc ici, sans reecriture, conformement a la Charte section 10. Source : docs/sessions/FAST_TRACK_P7.md et docs/sessions/SUIVI_DISCUSSION_PCB.md.
+
+### Dettes critiques (a regulariser avant merge sur master)
+
+#### `D-FT-P7-PRISMA-DRIFT` - 2 db push sans migration formelle
+- **Cause :** Request.type + PcbProject.requestId appliques par prisma db push sur Neon, sans migration.sql versionnee.
+- **Impact :** derive Prisma ; prisma migrate deploy impossible sans regularisation.
+- **Condition de resolution :** prisma migrate diff + migrate resolve --applied (cf. V45 - A3-alpha), commit de la migration.
+- **Ref. :** FAST_TRACK_P7.md l.97 ; SUIVI_DISCUSSION_PCB.md V45.
+
+#### `D-FT-P7-HEAD-DIVERGENCE` - HEAD divergent
+- **Cause :** HEAD reel cb2e972 != prompt v8.12 (e291ae5) != ETAT_COURANT (d50f4c0 pour master).
+- **Impact :** confusion de reference pour la reprise.
+- **Condition de resolution :** SYNC-4 (merge fast-forward sur master) + regeneration prompt v8.13.
+- **Ref. :** FAST_TRACK_P7.md l.100.
+
+### Dettes de fonctionnalite (non bloquantes)
+
+| Dette | Objet | Impact | Ref. |
+| --- | --- | --- | --- |
+| `D-FT-P7-KICAD-GUI-REQUIRED` | Placement IPC exige KiCad GUI ouvert | Bloque placement headless | FAST_TRACK l.91, 116 |
+| `D-FT-P7-PYTHON-DEPENDENCY` | kicad-python + pynng requis cote poste | Charge ops | FAST_TRACK l.91, 117 |
+| `D-FT-P7-KICAD-IPC-STUB` | kicad-ipc-adapter.ts reste un stub | Pas d'IPC reelle | FAST_TRACK l.98 |
+| `D-FT-P7-CANVAS-NON-PERSISTED` | PcbCanvas.tsx = etat local | Pas de lien Prisma | FAST_TRACK l.99 |
+| `D-FT-P7-SYMBOLS-STATIC` | 8 symboles SVG hardcodes | Pas de bibliotheque externe | FAST_TRACK l.121 |
+| `D-FT-P7-MAPPING-MANUAL` | Mapping nom -> composant hardcode | Pas de NLP/fuzzy | FAST_TRACK l.122 |
+| `D-FT-P7-FOOTPRINT-UNUSED` | Footprints stockes mais non utilises | Pas d'export | FAST_TRACK l.123 |
+| `D-FT-P7-GOLDEN-CATEGORY-RECALL` | recallScore = 6 categories | Pas de types composants | SUIVI l.244 |
+| `D-FT-P7-GOLDEN-LIVE-RUN` | Pas de runner live Groq | Execution manuelle | SUIVI l.245 |
+| `D-FT-P7-CATALOG-PRICE-APPEND` | POST cree au lieu d'upsert | Doublons prix | SUIVI l.246 |
+| `D-FT-P7-DOUBLE-PASS-COST` | 2 appels LLM par analyse | Cout/latence x2 | SUIVI l.252 |
+| `D-FT-P7-DIVERGENCES-NON-PERSISTED` | Divergences en etat client | Perdues au refresh | SUIVI l.253 |
+| `D-FT-P7-LLM-CALLS-X3` | 3 appels LLM si classement actif | Cout/latence x3 | SUIVI l.254 |
+| `D-FT-P7-CDC-QUALITY-FALSE-POSITIVES` | Heuristiques unites -> faux conflits | Non bloquant | SUIVI l.255 |
+| `D-FT-P7-CURRENCY-HARDCODED` | Taux EUR->TND 3.3 code en dur (PriceCard, SourcingTable) | Pas de source de taux | SYNC-3 |
+| `D-FT-P7-CANVAS-ORIGIN-HARDCODED` | Origine plateau 59.69/81.28 + PX_PER_MM 3.78 en dur (ComponentSourcingPanel) | Canvas faux si plateau change | SYNC-3 |
+| `D-FT-P7-SOURCING-AUTOLOAD-COST` | Sourcing IA relance a chaque montage du panneau | Cout/latence a chaque ouverture | SYNC-3 |
+
+### Dettes soldees (a retirer du registre actif - Charte section 10)
+
+| Dette | Resolution | Ref. |
+| --- | --- | --- |
+| `D-FT-P7-PCB-AUTH-GAP` | V48 (A8) : requireAdmin() sur 17 routes | SUIVI l.66 |
+| `D-FT-P7-PLACEMENT-LOCAL` | C.3.1 + C.3.2c : persistance + envoi KiCad | ETAT_COURANT l.203 |
+
+> **Note Charte section 10** : "Une dette ne peut etre retiree du registre actif qu'apres verification effective de sa resolution." Les deux dettes ci-dessus sont verifiees soldees (preuve : commits respectifs). Elles sont listees ici pour tracabilite, puis retirees du registre actif.

@@ -253,9 +253,24 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-22 — Clôture documentaire Fast-Track (SYNC-1 → SYNC-3)
+
+- **SYNC-1-bis** : audit des écarts documentaires. E10 (`DECISIONS.md` sans entrée Fast-Track), E11 (`INDEX.md` sans P7) et E12 (`INDEX.md` sans Post-Fast-Track) confirmés.
+- **SYNC-2-a** : `docs/etat/DETTES.md` — 16 dettes actives (2 critiques + 14 fonctionnalités) + 2 dettes soldées portées ; 48 ajouts ; SHA256 `8C13E21C…`.
+- **SYNC-2-b** : `docs/etat/DECISIONS.md` §15 — V1-V44 + Phases A-E (V45-V49, V30-bis → V37-bis, C1-C3) ; 103 ajouts / 1 suppression ; SHA256 `72B638BE…`. V6 absent (supprimé au cadrage).
+- **SYNC-2-c** : `docs/sessions/INDEX.md` — sections Fast-Track P7 et Post-Fast-Track ; 23 ajouts / 1 suppression ; SHA256 `85DEEC3E…`.
+- **SYNC-2-d** : `docs/sessions/FAST_TRACK_P7.md` — statut `CLOS le 2026-11-22` + §4 de traçabilité ; 12 ajouts / 2 suppressions ; SHA256 `FE781BA6…`.
+- **SYNC-3 — code post-Fast-Track** : multi-provider LLM (Groq → Cerebras → OpenRouter → Google → OpenAI), compilation IA du CDC (6 catégories), sourcing composants avec résolution d'empreintes KiCad, glisser-déposer sur le canvas, affichage TND.
+- **Revue SYNC-3** : condition tautologique corrigée dans `PriceCard.tsx` ; bloc mort retiré de `groq-client.ts` ; `.env.example` restauré (doublon `CEREBRAS_API_KEY`, clés `TOGETHER`/`DEEPINFRA` inutilisées, U+FFFD introduits).
+- **Vérifications** : `npm run typecheck` ✅ (exit 0) · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅.
+- **Dettes** : `D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST` (nouvelles).
+- **Commit** : SYNC-3 (hash consigné au commit suivant).
+
+---
+
 ## Prochaine étape
 
-**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **poussée et à jour** (`398930c`).
+**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **poussée** ; les travaux post-Fast-Track et la clôture documentaire sont commités en SYNC-3.
 
 **Prochaines étapes possibles :**
 1. **C3 — canvas lisible** : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre.
@@ -266,6 +281,6 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 6. **Mesure des faux positifs** de `cdc-quality` sur le golden set (avant tout blocage éventuel).
 7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
 8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
-9. **Commit/push C1+C2** : ✅ `398930c` poussé sur `origin/fast-track/p7-dashboard-pcb`.
+9. **SYNC-4 — fusion** : merge fast-forward sur `master` + régénération du prompt v8.13 (après validation explicite).
 
 *Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*

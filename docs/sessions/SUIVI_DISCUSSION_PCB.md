@@ -349,3 +349,16 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Dettes** : `D-FT-P7-GND-NETS-NOT-SEEDED` ; `D-FT-P7-KICAD-PATH-UNRESTRICTED` partiellement mitigée.
 - **Arrêt au C2-bis** (C3 non démarré, conformément au prompt).
 - **Livraison** : commit `398930c` poussé sur `origin/fast-track/p7-dashboard-pcb` ; le montage de `ComponentSourcingPanel` dans `page.tsx` reste volontairement non commité (travail antérieur).
+
+### 11.12 Clôture documentaire et commit post-Fast-Track (2026-11-22)
+
+- **SYNC-1-bis** : écarts E10 (DECISIONS sans entrée Fast-Track), E11 (INDEX sans P7) et E12 (INDEX sans Post-Fast-Track) confirmés.
+- **SYNC-2-a** : portage de 16 dettes actives (2 critiques + 14 fonctionnalités) + 2 dettes soldées dans `DETTES.md`.
+- **SYNC-2-b** : portage de V1-V44 + Phases A-E dans `DECISIONS.md` §15 (V6 absent, supprimé au cadrage).
+- **SYNC-2-c** : indexation des sessions Fast-Track P7 et Post-Fast-Track dans `INDEX.md`.
+- **SYNC-2-d** : annotation de clôture de `FAST_TRACK_P7.md` (statut `CLOS le 2026-11-22` + §4 de traçabilité, corps historique inchangé).
+- **SYNC-3** : commit du code post-Fast-Track — multi-provider LLM (Groq → Cerebras → OpenRouter → Google → OpenAI), `/requirements/compile` (6 catégories), `ComponentSourcingPanel` + `/requirements/source-components`, `kicad-footprints.ts` (4 tests), glisser-déposer canvas, affichage TND.
+- **Revue SYNC-3** : `PriceCard` (condition tautologique), `groq-client` (bloc mort), `.env.example` restauré (doublon `CEREBRAS_API_KEY`, clés `TOGETHER`/`DEEPINFRA` inutilisées, U+FFFD introduits).
+- **Vérifications** : `npm run typecheck` ✅ (exit 0) · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅.
+- **Dettes** : `D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST`.
+- **Reste** : SYNC-4 (merge fast-forward sur `master` + prompt v8.13) après validation explicite ; C3 non démarré.

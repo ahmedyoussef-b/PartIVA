@@ -1,6 +1,6 @@
 # FAST-TRACK P7 — Implantation Rapide
 **Date :** 2026-11-19
-**Statut :** En cours d'initialisation (État des lieux)
+**Statut :** CLOS le 2026-11-22 (annotation de clôture en §4)
 
 ## 1. Cartographie initiale
 - Dashboard : Structure Poste de Contrôle (P7.1 - UI uniquement)
@@ -121,3 +121,13 @@ admin/desktop-downloads, admin/desktop-downloads/[version]/download, ai/chat, au
 - **D-FT-P7-SYMBOLS-STATIC** : les 8 symboles sont dessinés en SVG inline (hardcodés). Pas de bibliothèque externe (KiCad symbol lib, etc.).
 - **D-FT-P7-MAPPING-MANUAL** : mapping nom → composant hardcodé (français + anglais). Pas de NLP, pas de fuzzy matching.
 - **D-FT-P7-FOOTPRINT-UNUSED** : les footprints KiCad sont stockés dans `symbols.tsx` mais **non utilisés** (aucun appel IPC, aucun export). Réservés pour P7.18-c ou phase ultérieure.
+
+## 4. Annotation de clôture (2026-11-22)
+
+> **Statut :** CLOS le 2026-11-22. Ce rapport est conservé comme trace historique du Fast-Track P7 ; il n'est plus mis à jour. Les registres actifs font foi.
+
+- **Branche :** `fast-track/p7-dashboard-pcb` (HEAD `cb2e972` avant le commit de clôture).
+- **Décisions :** `docs/etat/DECISIONS.md` §15 (portage SYNC-2-b).
+- **Dettes :** `docs/etat/DETTES.md`, section « Dettes Fast-Track P7 » (portage SYNC-2-a).
+- **Index :** `docs/sessions/INDEX.md`, section « Sessions Fast-Track P7 et Post-Fast-Track » (portage SYNC-2-c).
+- **Tests :** les tests reportés en §3 restent reportés ; cette clôture n'ajoute aucune preuve E2E.
