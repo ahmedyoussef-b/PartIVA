@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
+import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import {
   detectKicadPython,
   dryRun,
@@ -71,15 +72,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
   }
 
-  const boardPath = project.kicadFilePath;
+  const boardPath = process.env.PARTIVA_KICAD_BOARD?.trim() || project.kicadFilePath;
   if (!boardPath) {
     return NextResponse.json(
       { error: 'kicadFilePath non renseigné pour ce projet' },
       { status: 400 },
     );
   }
-  if (!existsSync(boardPath)) {
-    return NextResponse.json({ error: `Fichier introuvable : ${boardPath}` }, { status: 400 });
+  const boardAbs = normalizeBoardPath(boardPath);
+  if (!existsSync(boardAbs)) {
+    return NextResponse.json({ error: `Fichier introuvable : ${boardAbs}` }, { status: 400 });
   }
 
   // 4. Détecter l'interpréteur Python et le script
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
 
   // 5. Exécuter
   const args = {
-    boardPath,
+    boardPath: boardAbs,
     libName,
     footprintName,
     reference,

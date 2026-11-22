@@ -157,7 +157,7 @@ describe('POST /api/pcb/place/batch', () => {
     });
 
     expect(placeFootprints).toHaveBeenCalledWith({
-      boardPath: 'C:\\tmp\\board.kicad_pcb',
+      boardPath: '/c/tmp/board.kicad_pcb',
       dryRun: false,
       footprints: [
         {
@@ -200,7 +200,7 @@ describe('POST /api/pcb/place/batch', () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({ ok: true, dryRun: true, placed: 1 });
     expect(placeFootprints).toHaveBeenCalledWith(
-      expect.objectContaining({ dryRun: true, boardPath: 'C:\\tmp\\board.kicad_pcb' }),
+      expect.objectContaining({ dryRun: true, boardPath: '/c/tmp/board.kicad_pcb' }),
     );
   });
 

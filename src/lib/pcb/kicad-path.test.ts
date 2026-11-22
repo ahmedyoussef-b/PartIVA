@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateKicadFilePath } from './kicad-path';
+import { normalizeBoardPath, validateKicadFilePath } from './kicad-path';
 
 describe('validateKicadFilePath', () => {
   it('accepte un chemin de projet stable', () => {
@@ -28,5 +28,28 @@ describe('validateKicadFilePath', () => {
 
   it('refuse un chemin vide', () => {
     expect(validateKicadFilePath('   ').ok).toBe(false);
+  });
+});
+
+describe('normalizeBoardPath', () => {
+  it('convertit un chemin Windows en forme absolue POSIX', () => {
+    expect(normalizeBoardPath('C:\\Users\\pc\\Documents\\PartIVA\\projets\\carte.kicad_pcb')).toBe(
+      '/c/Users/pc/Documents/PartIVA/projets/carte.kicad_pcb',
+    );
+  });
+
+  it('convertit C:/ vers /c/ et normalise les backslashes', () => {
+    expect(normalizeBoardPath('C:/Program Files/KiCad/10.0/share/kicad/demos/x.kicad_pcb')).toBe(
+      '/c/Program Files/KiCad/10.0/share/kicad/demos/x.kicad_pcb',
+    );
+    expect(normalizeBoardPath('C:\\tmp\\board.kicad_pcb')).toBe('/c/tmp/board.kicad_pcb');
+  });
+
+  it('garde un chemin POSIX absolu tel quel', () => {
+    expect(normalizeBoardPath('/tmp/carte.kicad_pcb')).toBe('/tmp/carte.kicad_pcb');
+  });
+
+  it('retire les espaces superflus en debut et fin', () => {
+    expect(normalizeBoardPath('  /tmp/carte.kicad_pcb  ')).toBe('/tmp/carte.kicad_pcb');
   });
 });

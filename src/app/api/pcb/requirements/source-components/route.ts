@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { callGroq } from '@/lib/ai/groq-client';
 import { requireAdmin } from '@/lib/auth-admin';
 import { resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
+import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 
 export const runtime = 'nodejs';
 
@@ -179,18 +180,19 @@ Règles :
   // Offset des coordonnées par rapport au plateau réel (si fichier KiCad disponible)
   let offsetX = 0;
   let offsetY = 0;
-  if (project.kicadFilePath) {
+  const sourceBoardPath = process.env.PARTIVA_KICAD_BOARD?.trim() || project.kicadFilePath;
+  if (sourceBoardPath) {
     try {
       const { parseKicadPcb } = await import('@/lib/pcb/kicad-file-reader');
       const fs = await import('node:fs');
       const path = await import('node:path');
-      const abs = path.isAbsolute(project.kicadFilePath)
-        ? project.kicadFilePath
-        : path.join(process.cwd(), project.kicadFilePath);
+      const abs = path.isAbsolute(normalizeBoardPath(sourceBoardPath))
+        ? normalizeBoardPath(sourceBoardPath)
+        : path.join(process.cwd(), normalizeBoardPath(sourceBoardPath));
       if (fs.existsSync(abs)) {
         const parsed = parseKicadPcb(fs.readFileSync(abs, 'utf8'));
         console.info('[PCB:SOURCE] board origin', {
-          kicadFilePath: project.kicadFilePath,
+          kicadFilePath: sourceBoardPath,
           origin: parsed.origin,
           dimensions: parsed.dimensions,
         });
