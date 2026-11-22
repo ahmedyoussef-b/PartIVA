@@ -276,6 +276,8 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - **Dettes soldées** : `D-FT-P7-PRISMA-DRIFT` (migration `20261120154239_regularize_fast_track_prisma_drift` : `RequestType` + `PcbProject.requestId`) et `D-FT-P7-HEAD-DIVERGENCE` (ce merge). Section critique du registre : **aucune dette active**.
 - **Prompt v8.13** : HEAD passé de `e291ae5` à `2224ebe`, dernière étape close = SYNC-4, prochaine étape = C3 (canvas lisible). Publié dans une PR documentaire séparée.
 - **Vérifications** : `npm run lint` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅ · `git diff --check` ✅.
+- **PR #143** : fix chemin plateau KiCad — `normalizeBoardPath` (Windows → POSIX) + override `PARTIVA_KICAD_BOARD` — merge `36302a6` (CI : lint/typecheck/build verts).
+- **PR #144** : régénération prompt v8.14 (HEAD `36302a6`) — merge `93c7044`.
 
 ---
 
