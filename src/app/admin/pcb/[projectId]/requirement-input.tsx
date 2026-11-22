@@ -1,27 +1,67 @@
+'use client';
+
 import Link from 'next/link';
-import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export function RequirementInput({
   projectId,
-  partFunction,
+  partFunction: _partFunction,
+  kicadFilePath,
 }: {
   projectId: string;
   partFunction?: string | null;
+  kicadFilePath?: string | null;
 }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState<'open' | 'reset' | null>(null);
+  const hasFile = !!kicadFilePath?.trim();
+
+  const run = async (action: 'open' | 'reset') => {
+    try {
+      setLoading(action);
+      const res = await fetch(`/api/pcb/projects/${projectId}/board`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      toast.success(action === 'open' ? 'Nouveau fichier KiCad créé' : 'Plateau réinitialisé');
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="rounded-lg border bg-white p-3">
       <div className="mb-2 text-sm font-semibold text-gray-700">Cahier des charges</div>
-      <div className="flex gap-2">
-        <Input
-          placeholder="Cahier des charges envoyé par le client"
-          value={partFunction ?? ''}
-          readOnly
-          className="text-xs"
-        />
-        <Button size="sm" asChild>
-          <Link href={`/admin/pcb/${projectId}/cahier-des-charges`}>Consulter</Link>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" asChild>
+          <Link href={`/admin/pcb/${projectId}/cahier-des-charges`}>
+            Consulter cahier des charges
+          </Link>
         </Button>
+        {!hasFile ? (
+          <Button size="sm" onClick={() => run('open')} disabled={loading !== null}>
+            {loading === 'open' ? 'Ouverture…' : 'Ouvrir un nouveau fichier'}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => run('reset')}
+            disabled={loading !== null}
+          >
+            {loading === 'reset' ? 'Réinitialisation…' : 'Reset'}
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -207,7 +207,11 @@ export default async function PcbProjectPage({
               </div>
             </div>
 
-            <RequirementInput projectId={projectId} partFunction={clientRequest?.partFunction} />
+            <RequirementInput
+              projectId={projectId}
+              partFunction={clientRequest?.partFunction}
+              kicadFilePath={project.kicadFilePath}
+            />
             <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
             <PlacementPanel
               projectId={projectId}

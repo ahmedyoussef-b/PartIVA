@@ -1,4 +1,4 @@
-# Dependencies
+﻿# Dependencies
 node_modules
 .pnpm-store
 
@@ -17,7 +17,7 @@ pnpm-debug.log*
 # Diagnostic artifacts
 lint-report*.json
 
-# CI / E2E diagnostic logs (non versionnés)
+# CI / E2E diagnostic logs (non versionnÃ©s)
 build-test.log
 ci-run.log
 ci-run-utf8.log
@@ -37,7 +37,7 @@ src-tauri/gen/
 !.env.example
 .neon
 
-# Certificats et clés
+# Certificats et clÃ©s
 *.pem
 *.key
 *.p12
@@ -65,7 +65,7 @@ src/generated/
 # HuggingFace cache
 .hf-cache/
 
-# E8P — Desktop Tauri
+# E8P â€” Desktop Tauri
 desktop/target/
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
@@ -80,7 +80,7 @@ desktop/server/
 desktop/src-tauri/node-*.exe
 desktop/src-tauri/binaries/
 
-# Artefacts de build desktop (générés par build-desktop.ps1)
+# Artefacts de build desktop (gÃ©nÃ©rÃ©s par build-desktop.ps1)
 api.disabled/
 disabled-pages/
 src/lib/actions/lib-actions/
@@ -123,7 +123,7 @@ docs/app/
 # Backups locaux
 .backup/
 
-# Venv Python (Fast-Track P7.18-d — kicad-python, non commité)
+# Venv Python (Fast-Track P7.18-d â€” kicad-python, non commitÃ©)
 .venv-kicad/
 
 # Artefacts de debug auth (ne jamais commiter)
@@ -131,3 +131,6 @@ cookies.txt
 login.json
 body.json
 first.json
+
+# PCB desktop work files
+data/pcb-work/
