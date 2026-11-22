@@ -3,6 +3,7 @@ import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
+import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { placeFootprints, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
 
 export const runtime = 'nodejs';
@@ -93,12 +94,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
   }
 
-  const boardPath = project.kicadFilePath;
+  const boardPath = process.env.PARTIVA_KICAD_BOARD?.trim() || project.kicadFilePath;
   if (!boardPath) {
     return NextResponse.json({ error: 'Projet sans fichier KiCad' }, { status: 400 });
   }
 
-  const abs = path.isAbsolute(boardPath) ? boardPath : path.join(process.cwd(), boardPath);
+  const abs = path.isAbsolute(normalizeBoardPath(boardPath))
+    ? normalizeBoardPath(boardPath)
+    : path.join(process.cwd(), normalizeBoardPath(boardPath));
   if (!existsSync(abs)) {
     return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
   }
