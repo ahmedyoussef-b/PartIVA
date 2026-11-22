@@ -38,6 +38,16 @@ const PYTHON_CANDIDATES: string[] = [
 
 const TIMEOUT_MS = 120_000;
 
+/** Mode web (Vercel) : le placement exige le desktop hybride (décision C.4). */
+const WEB_HYBRID_MESSAGE =
+  'Placement KiCad indisponible en mode web : le plateau est présent mais Python KiCad n est pas disponible sur le serveur. Ouvrez PartIVA en mode hybride Tauri (desktop/web) pour « Valider et placer dans KiCad ».';
+
+export function kicadUnavailableMessage(): string {
+  return process.env.VERCEL || process.env.VERCEL_ENV
+    ? WEB_HYBRID_MESSAGE
+    : 'Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)';
+}
+
 let cachedPython: string | null | undefined;
 
 export async function detectKicadPython(): Promise<string | null> {
@@ -201,7 +211,7 @@ async function execute(args: PlaceFootprintArgs, isDryRun: boolean): Promise<Kic
   if (!pyPath) {
     return {
       ok: false,
-      error: 'Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)',
+      error: kicadUnavailableMessage(),
     };
   }
 
@@ -296,7 +306,7 @@ function executeBatch(
     if (!pyPath) {
       return {
         ok: false,
-        error: 'Python KiCad introuvable (PARTIVA_KICAD_PYTHON ou installation KiCad)',
+        error: kicadUnavailableMessage(),
       };
     }
 

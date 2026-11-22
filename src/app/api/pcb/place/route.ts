@@ -6,6 +6,7 @@ import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import {
   detectKicadPython,
   dryRun,
+  kicadUnavailableMessage,
   placeFootprint,
   resolveScriptPath,
 } from '@/lib/pcb/kicad-bridge';
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
   // 4. Détecter l'interpréteur Python et le script
   const python = await detectKicadPython();
   if (!python) {
-    return NextResponse.json({ error: 'Interpréteur Python KiCad introuvable' }, { status: 500 });
+    return NextResponse.json({ error: kicadUnavailableMessage() }, { status: 500 });
   }
   if (!resolveScriptPath()) {
     return NextResponse.json({ error: 'Script place_footprint.py introuvable' }, { status: 500 });

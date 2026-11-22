@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { spawnMock, existsSyncMock } = vi.hoisted(() => ({
   spawnMock: vi.fn(),
@@ -38,6 +38,16 @@ async function flushMicrotasks(): Promise<void> {
 let bridge: BridgeModule;
 let children: FakeChild[];
 
+const originalVercel = process.env.VERCEL;
+const originalVercelEnv = process.env.VERCEL_ENV;
+
+afterEach(() => {
+  if (originalVercel === undefined) delete process.env.VERCEL;
+  else process.env.VERCEL = originalVercel;
+  if (originalVercelEnv === undefined) delete process.env.VERCEL_ENV;
+  else process.env.VERCEL_ENV = originalVercelEnv;
+});
+
 function mockPathsExist(): void {
   existsSyncMock.mockImplementation(
     (target: string) => target.includes('python.exe') || target.includes('place_footprint'),
@@ -73,7 +83,29 @@ describe('detectKicadPython', () => {
   });
 });
 
+describe('kicadUnavailableMessage', () => {
+  it('indique le mode hybride Tauri sur Vercel', () => {
+    process.env.VERCEL = '1';
+    expect(bridge.kicadUnavailableMessage()).toContain('mode hybride Tauri');
+  });
+
+  it('conserve le diagnostic Python hors Vercel', () => {
+    delete process.env.VERCEL;
+    delete process.env.VERCEL_ENV;
+    expect(bridge.kicadUnavailableMessage()).toContain('PARTIVA_KICAD_PYTHON');
+  });
+});
+
 describe('placeFootprint', () => {
+  it('retourne le message hybride en mode web si Python est absent', async () => {
+    process.env.VERCEL = '1';
+    existsSyncMock.mockReturnValue(false);
+    await expect(bridge.placeFootprint(ARGS)).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringContaining('mode hybride Tauri'),
+    });
+  });
+
   it('parse un JSON stdout valide', async () => {
     const promise = bridge.placeFootprint(ARGS);
     await flushMicrotasks();
