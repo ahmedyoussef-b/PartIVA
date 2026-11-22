@@ -2,7 +2,7 @@
 
 **Date de mise à jour :** 2026-11-22
 **Dernière sous-étape :** Itérations C1+C2 — nettoyage données PCB + garde-fou `%TEMP%` + faux positif GND — `master` = `d50f4c0`
-**Branche courante :** `fast-track/p7-dashboard-pcb` (**ahead 3**, non poussée ; `master` = `origin/master` = `d50f4c0`)
+**Branche courante :** `fast-track/p7-dashboard-pcb` (**à jour avec `origin`**, C1+C2 = `398930c` poussé ; `master` = `origin/master` = `d50f4c0`)
 **Tests :** 341 (40 fichiers) · `prettier --check .` ✅ · `npm run typecheck` ✅
 **Statut :** V7 close (V7-A → V7-H validées). V8 close (V8-B-6 intégralement clôturée). V8-C-2a close. V8-D-4 close — correctif `621e1a4` (PR #128) : dette `D-V8-D-4-COMPARE-VISUAL-VALIDATION` **partiellement résolue**. V8-D-5 / TÂCHE 1/2/3 closes. V8-D-7 close (PRs #103 → #109). V8-D-8 → V8-D-13-b **livrés techniquement** (PRs #112 → #127) mais **non tracés** dans ce registre (cf. §« Écarts détectés »). **V8-D-14 close (Desktop Tauri, 2026-11-18)** — sidecar connecté (auth réelle Postgres/Neon), KiCad IPC détecté (named pipe `\\.\pipe\%TEMP%\kicad\api.sock`), healthcheck `/api/health` 200, installeurs NSIS + MSI (fr-FR, en-US), logs JSON. **P6.3 close (2026-11-19)** — P6.3-b-2 (GlbViewer multi-sources, `28198eb`), P6.3-c1 (overlay SVG 4 couches + spec E2E geometric canvas, PR #131), P6.3-c2 (Next 16.4.6 + anti-FOUC next-themes, PR #130).
 
@@ -255,7 +255,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ## Prochaine étape
 
-**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **non poussée** (ahead 3).
+**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **poussée et à jour** (`398930c`).
 
 **Prochaines étapes possibles :**
 1. **C3 — canvas lisible** : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre.
@@ -266,6 +266,6 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 6. **Mesure des faux positifs** de `cdc-quality` sur le golden set (avant tout blocage éventuel).
 7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
 8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
-9. **Commit/push** de la branche (demandé dans le prompt C1+C2).
+9. **Commit/push C1+C2** : ✅ `398930c` poussé sur `origin/fast-track/p7-dashboard-pcb`.
 
 *Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*

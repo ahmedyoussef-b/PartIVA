@@ -2,7 +2,7 @@
 
 **Document de travail** — ne remplace pas les procédures officielles.
 **Créé le** : 2026-11-20
-**Statut** : cadrage terminé — 44 étapes validées (V1-V44), 32 questions répondues (Q1-Q32). Fast-Track P7 **CLOS et poussé** (`fast-track/p7-dashboard-pcb`, puis 3 commits locaux non poussés). Post-Fast-Track : A2.5 (saisie `kicadFilePath`), multi-provider LLM avec fallback (Groq → Cerebras → OpenRouter → Google → OpenAI), compilation IA optimisée (6 catégories, complétude 100 %), sourcing composants avec placement par composant dans KiCad. E2E validé techniquement (dry-run + placement réel + vérification 0,01 mm + résolution d'empreintes IA) ; **confirmation visuelle après correctif en attente**.
+**Statut** : cadrage terminé — 44 étapes validées (V1-V44), 32 questions répondues (Q1-Q32). Fast-Track P7 **CLOS et poussé** (`fast-track/p7-dashboard-pcb`, puis C1+C2 = `398930c` poussé). Post-Fast-Track : A2.5 (saisie `kicadFilePath`), multi-provider LLM avec fallback (Groq → Cerebras → OpenRouter → Google → OpenAI), compilation IA optimisée (6 catégories, complétude 100 %), sourcing composants avec placement par composant dans KiCad. E2E validé techniquement (dry-run + placement réel + vérification 0,01 mm + résolution d'empreintes IA) ; **confirmation visuelle après correctif en attente**.
 
 ## 1. Objectif de la discussion
 
@@ -348,3 +348,4 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Vérifications** : typecheck ✅ · **341 tests / 40 fichiers** ✅ · prettier ✅ · contrôle visuel ✅.
 - **Dettes** : `D-FT-P7-GND-NETS-NOT-SEEDED` ; `D-FT-P7-KICAD-PATH-UNRESTRICTED` partiellement mitigée.
 - **Arrêt au C2-bis** (C3 non démarré, conformément au prompt).
+- **Livraison** : commit `398930c` poussé sur `origin/fast-track/p7-dashboard-pcb` ; le montage de `ComponentSourcingPanel` dans `page.tsx` reste volontairement non commité (travail antérieur).
