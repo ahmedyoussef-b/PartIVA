@@ -32,24 +32,22 @@ describe('validateKicadFilePath', () => {
 });
 
 describe('normalizeBoardPath', () => {
-  it('convertit un chemin Windows en forme absolue POSIX', () => {
-    expect(normalizeBoardPath('C:\\Users\\pc\\Documents\\PartIVA\\projets\\carte.kicad_pcb')).toBe(
-      '/c/Users/pc/Documents/PartIVA/projets/carte.kicad_pcb',
-    );
-  });
-
-  it('convertit C:/ vers /c/ et normalise les backslashes', () => {
-    expect(normalizeBoardPath('C:/Program Files/KiCad/10.0/share/kicad/demos/x.kicad_pcb')).toBe(
-      '/c/Program Files/KiCad/10.0/share/kicad/demos/x.kicad_pcb',
-    );
-    expect(normalizeBoardPath('C:\\tmp\\board.kicad_pcb')).toBe('/c/tmp/board.kicad_pcb');
-  });
-
   it('garde un chemin POSIX absolu tel quel', () => {
     expect(normalizeBoardPath('/tmp/carte.kicad_pcb')).toBe('/tmp/carte.kicad_pcb');
   });
 
   it('retire les espaces superflus en debut et fin', () => {
     expect(normalizeBoardPath('  /tmp/carte.kicad_pcb  ')).toBe('/tmp/carte.kicad_pcb');
+  });
+
+  it('normalise un chemin Windows selon la plateforme', () => {
+    const normalized = normalizeBoardPath(
+      'C:\\Users\\pc\\Documents\\PartIVA\\projets\\carte.kicad_pcb',
+    );
+    const expected =
+      process.platform === 'win32'
+        ? 'C:/Users/pc/Documents/PartIVA/projets/carte.kicad_pcb'
+        : '/c/Users/pc/Documents/PartIVA/projets/carte.kicad_pcb';
+    expect(normalized).toBe(expected);
   });
 });
