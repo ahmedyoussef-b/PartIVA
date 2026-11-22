@@ -107,6 +107,16 @@ pub fn run() {
             Some(secret) => cmd.env("BETTER_AUTH_SECRET", secret),
             None => cmd.env("BETTER_AUTH_SECRET", "partiva-desktop-local-secret-32-chars-min"),
           };
+          // Clés LLM optionnelles (env ou db.toml) — nécessaires aux fonctions PCB/IA.
+          let cmd = if let Some(cfg) = &db_cfg {
+            let mut c = cmd;
+            for (k, v) in &cfg.extra_env {
+              c = c.env(k, v);
+            }
+            c
+          } else {
+            cmd
+          };
           // T3.8 (V8-D-14) — trace du port injecté avant spawn.
           log::info!(target: "sidecar", "spawn: PORT={} HOSTNAME=127.0.0.1", sidecar_port);
           match cmd.spawn() {
