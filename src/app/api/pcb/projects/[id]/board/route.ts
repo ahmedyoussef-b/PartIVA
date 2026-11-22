@@ -135,12 +135,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     typeof (body as Record<string, unknown>)?.action === 'string'
       ? ((body as Record<string, unknown>).action as string)
       : 'open';
-  if (action !== 'open' && action !== 'reset') {
+  if (action !== 'open' && action !== 'reset' && action !== 'launch') {
     return NextResponse.json({ error: 'action invalide' }, { status: 400 });
   }
 
-  const project = await prisma.pcbProject.findUnique({ where: { id }, select: { id: true } });
+  const project = await prisma.pcbProject.findUnique({
+    where: { id },
+    select: { id: true, kicadFilePath: true },
+  });
   if (!project) return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
+
+  if (action === 'launch') {
+    const boardPath = project.kicadFilePath?.trim();
+    if (!boardPath) return NextResponse.json({ ok: false, reason: 'no-file' }, { status: 200 });
+    const abs = path.isAbsolute(boardPath) ? boardPath : path.join(process.cwd(), boardPath);
+    if (existsSync(abs)) openBoardInDesktop(abs);
+    return NextResponse.json({ ok: true, action, kicadFilePath: abs, exists: existsSync(abs) });
+  }
 
   try {
     const template = resolveTemplate();

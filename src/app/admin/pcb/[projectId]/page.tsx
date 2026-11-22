@@ -8,6 +8,7 @@ import { WorkspaceBackButton } from './back-button';
 import { KicadFileInput } from './kicad-file-input';
 import { PcbCanvas } from '@/components/pcb/PcbCanvas';
 import { RequirementInput } from './requirement-input';
+import { KicadAutoOpen } from './kicad-auto-open';
 import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
 import { PlacementPanel } from '@/components/pcb/PlacementPanel';
@@ -185,6 +186,7 @@ export default async function PcbProjectPage({
         </span>
       </div>
 
+      <KicadAutoOpen projectId={projectId} kicadFilePath={project.kicadFilePath} />
       <PcbEditorProvider>
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
           {/* Colonne gauche : Layout PCB */}

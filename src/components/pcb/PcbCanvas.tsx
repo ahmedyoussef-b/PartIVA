@@ -45,18 +45,16 @@ type BoardData = {
   components: BoardComponent[];
 };
 
-function rotatePoint(x: number, y: number, deg: number): { x: number; y: number } {
+function rotatePoint(x: number, y: number, deg: number) {
   const r = (deg * Math.PI) / 180;
   const c = Math.cos(r);
   const s = Math.sin(r);
   return { x: x * c - y * s, y: x * s + y * c };
 }
-
 function toWorld(fpX: number, fpY: number, fpRot: number, lx: number, ly: number, lRot = 0) {
   const p = rotatePoint(lx, ly, fpRot + lRot);
   return { x: fpX + p.x, y: fpY + p.y };
 }
-
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -73,7 +71,6 @@ function roundRect(
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 }
-
 function drawGraphic(
   ctx: CanvasRenderingContext2D,
   g: Graphic,
@@ -81,15 +78,15 @@ function drawGraphic(
   sy: (y: number) => number,
   scale: number,
 ) {
-  ctx.lineWidth = Math.max(0.5, (g.width || 0.15) * scale);
+  ctx.lineWidth = Math.max(0.75, (g.width || 0.12) * scale);
   if (g.type === 'line') {
     ctx.beginPath();
     ctx.moveTo(sx(g.x1), sy(g.y1));
     ctx.lineTo(sx(g.x2), sy(g.y2));
     ctx.stroke();
   } else if (g.type === 'rect') {
-    const x = Math.min(g.x1, g.x2);
-    const y = Math.min(g.y1, g.y2);
+    const x = Math.min(g.x1, g.x2),
+      y = Math.min(g.y1, g.y2);
     ctx.strokeRect(sx(x), sy(y), Math.abs(g.x2 - g.x1) * scale, Math.abs(g.y2 - g.y1) * scale);
   } else if (g.type === 'circle') {
     const r = Math.hypot(g.x2 - g.x1, g.y2 - g.y1);
@@ -103,7 +100,6 @@ function drawGraphic(
     ctx.stroke();
   }
 }
-
 function drawGraphicLocal(
   ctx: CanvasRenderingContext2D,
   comp: BoardComponent,
@@ -125,6 +121,10 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
   const [zoom, setZoom] = React.useState(1);
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = React.useState(true);
+  const [showPads, setShowPads] = React.useState(true);
+  const [showSilk, setShowSilk] = React.useState(true);
+  const [showRefs, setShowRefs] = React.useState(true);
+  const [showFab, setShowFab] = React.useState(false);
   const [cursorMm, setCursorMm] = React.useState<{ x: number; y: number } | null>(null);
   const dragRef = React.useRef<{ sx: number; sy: number; px: number; py: number } | null>(null);
 
@@ -144,7 +144,6 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
   React.useEffect(() => {
     fetchBoard();
   }, [fetchBoard]);
-
   React.useEffect(() => {
     const handler = () => fetchBoard();
     window.addEventListener('pcb:board-refresh', handler);
@@ -160,7 +159,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     const bh = board?.dimensions.height || 100;
     const ox = board?.origin.x || 0;
     const oy = board?.origin.y || 0;
-    const pad = 24;
+    const pad = 28;
     const baseScale = Math.min((W - pad * 2) / bw, (H - pad * 2) / bh);
     const scale = baseScale * zoom;
     const tx = pad - ox * scale + (W - pad * 2 - bw * baseScale) / 2 + pan.x;
@@ -185,7 +184,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#1a1a1a';
+    ctx.fillStyle = '#111315';
     ctx.fillRect(0, 0, W, H);
 
     const { bw, bh, ox, oy, scale, tx, ty } = getTransform();
@@ -194,83 +193,101 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     const comps = data?.components ?? [];
 
     if (showGrid) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 1;
-      const step = scale > 8 ? 1 : scale > 3 ? 5 : 10;
+      const step = scale > 10 ? 1 : scale > 4 ? 5 : 10;
+      const major = step * 5;
       const startX = Math.floor(ox / step) * step;
       const startY = Math.floor(oy / step) * step;
       for (let x = startX; x <= ox + bw; x += step) {
-        const px = sx(x);
+        ctx.strokeStyle = x % major === 0 ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(px, sy(oy));
-        ctx.lineTo(px, sy(oy + bh));
+        ctx.moveTo(sx(x), sy(oy));
+        ctx.lineTo(sx(x), sy(oy + bh));
         ctx.stroke();
       }
       for (let y = startY; y <= oy + bh; y += step) {
-        const py = sy(y);
+        ctx.strokeStyle = y % major === 0 ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(sx(ox), py);
-        ctx.lineTo(sx(ox + bw), py);
+        ctx.moveTo(sx(ox), sy(y));
+        ctx.lineTo(sx(ox + bw), sy(y));
         ctx.stroke();
       }
     }
 
-    ctx.fillStyle = '#0b3d2e';
+    ctx.fillStyle = '#0f3b2e';
     ctx.fillRect(sx(ox), sy(oy), bw * scale, bh * scale);
-
-    ctx.strokeStyle = '#f0e68c';
+    ctx.strokeStyle = '#d8c84b';
+    ctx.lineWidth = Math.max(1.5, 0.18 * scale);
     for (const e of data?.board?.edges ?? []) drawGraphic(ctx, e, sx, sy, scale);
-    if ((data?.board?.edges ?? []).length === 0) {
-      ctx.lineWidth = Math.max(1, 0.15 * scale);
+    if ((data?.board?.edges ?? []).length === 0)
       ctx.strokeRect(sx(ox), sy(oy), bw * scale, bh * scale);
-    }
 
     for (const comp of comps) {
       for (const g of comp.graphics ?? []) {
-        if (g.layer.includes('SilkS')) ctx.strokeStyle = '#f5f5dc';
-        else if (g.layer.includes('Fab')) ctx.strokeStyle = '#888';
-        else if (g.layer.includes('CrtYd')) ctx.strokeStyle = '#ff69b4';
-        else continue;
+        const isSilk = g.layer.includes('SilkS');
+        const isFab = g.layer.includes('Fab');
+        const isCrt = g.layer.includes('CrtYd');
+        if (isSilk && !showSilk) continue;
+        if (isFab && !showFab) continue;
+        if (!isSilk && !isFab && !isCrt) continue;
+        ctx.strokeStyle = isSilk ? '#e8e3c5' : isFab ? '#8b8b8b' : '#d46ba0';
         drawGraphicLocal(ctx, comp, g, sx, sy, scale);
       }
-      for (const p of comp.pads ?? []) {
-        const w = toWorld(comp.x, comp.y, comp.rotation, p.x, p.y, p.rotation);
-        const pw = Math.max(1, p.w * scale);
-        const ph = Math.max(1, p.h * scale);
-        ctx.save();
-        ctx.translate(sx(w.x), sy(w.y));
-        ctx.rotate(((comp.rotation + p.rotation) * Math.PI) / 180);
-        ctx.fillStyle = p.type === 'thru_hole' ? '#c0a000' : '#d4af37';
-        if (p.shape.includes('circle') || (p.shape === 'oval' && Math.abs(p.w - p.h) < 0.01)) {
-          ctx.beginPath();
-          ctx.ellipse(0, 0, pw / 2, ph / 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (p.shape.includes('oval') || p.shape.includes('roundrect')) {
-          roundRect(ctx, -pw / 2, -ph / 2, pw, ph, Math.min(pw, ph) * 0.25);
-          ctx.fill();
-        } else {
-          ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
+      if (showPads) {
+        for (const p of comp.pads ?? []) {
+          const w = toWorld(comp.x, comp.y, comp.rotation, p.x, p.y, p.rotation);
+          const pw = Math.max(1, p.w * scale);
+          const ph = Math.max(1, p.h * scale);
+          ctx.save();
+          ctx.translate(sx(w.x), sy(w.y));
+          ctx.rotate(((comp.rotation + p.rotation) * Math.PI) / 180);
+          ctx.fillStyle = p.type === 'thru_hole' ? '#bfa53a' : '#d4b23a';
+          ctx.strokeStyle = 'rgba(255,245,180,0.35)';
+          ctx.lineWidth = Math.max(0.5, 0.05 * scale);
+          if (p.shape.includes('circle') || (p.shape === 'oval' && Math.abs(p.w - p.h) < 0.01)) {
+            ctx.beginPath();
+            ctx.ellipse(0, 0, pw / 2, ph / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else if (p.shape.includes('oval') || p.shape.includes('roundrect')) {
+            roundRect(ctx, -pw / 2, -ph / 2, pw, ph, Math.min(pw, ph) * 0.25);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
+            ctx.strokeRect(-pw / 2, -ph / 2, pw, ph);
+          }
+          if (p.drill) {
+            ctx.fillStyle = '#141414';
+            ctx.beginPath();
+            ctx.arc(0, 0, Math.max(0.5, (p.drill * scale) / 2), 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
         }
-        if (p.drill) {
-          ctx.fillStyle = '#111';
-          ctx.beginPath();
-          ctx.arc(0, 0, Math.max(0.5, (p.drill * scale) / 2), 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
       }
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `${Math.max(8, 1.2 * scale)}px monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(comp.reference, sx(comp.x), sy(comp.y));
+      if (showRefs && comp.reference) {
+        ctx.font = `600 ${Math.max(9, 1.25 * scale)}px ui-monospace, monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const text = comp.reference;
+        const m = ctx.measureText(text);
+        const px = sx(comp.x),
+          py = sy(comp.y);
+        const bw2 = m.width + 6,
+          bh2 = Math.max(10, 1.25 * scale + 4);
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(px - bw2 / 2, py - bh2 / 2, bw2, bh2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(text, px, py);
+      }
     }
-  }, [data, getTransform, showGrid]);
+  }, [data, getTransform, showGrid, showPads, showSilk, showRefs, showFab]);
 
   React.useEffect(() => {
     draw();
   }, [draw]);
-
   React.useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
@@ -281,10 +298,8 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
 
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-    setZoom((z) => Math.min(20, Math.max(0.2, z * delta)));
+    setZoom((z) => Math.min(20, Math.max(0.2, z * (e.deltaY < 0 ? 1.1 : 1 / 1.1))));
   };
-
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     dragRef.current = { sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y };
@@ -299,8 +314,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       });
     }
     const d = dragRef.current;
-    if (!d) return;
-    setPan({ x: d.px + (e.clientX - d.sx), y: d.py + (e.clientY - d.sy) });
+    if (d) setPan({ x: d.px + (e.clientX - d.sx), y: d.py + (e.clientY - d.sy) });
   };
   const onMouseUp = () => {
     dragRef.current = null;
@@ -309,64 +323,81 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     dragRef.current = null;
     setCursorMm(null);
   };
-
   const fit = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };
 
+  const openInKicad = async () => {
+    if (!projectId) return;
+    await fetch(`/api/pcb/projects/${projectId}/board`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'launch' }),
+    }).catch(() => {});
+  };
+
+  const Btn = ({
+    active,
+    onClick,
+    children,
+    title,
+  }: {
+    active?: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+    title?: string;
+  }) => (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className={`rounded px-2 py-1 hover:bg-gray-100 ${active ? 'bg-gray-200 font-medium' : ''}`}
+    >
+      {children}
+    </button>
+  );
+
   return (
     <div className="flex h-full w-full flex-col">
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-        <div className="flex items-center gap-1 rounded border bg-white p-1">
-          <button
-            type="button"
-            className="rounded px-2 py-1 hover:bg-gray-100"
-            onClick={() => setZoom((z) => Math.min(20, z * 1.2))}
-            title="Zoom +"
-          >
+        <div className="flex flex-wrap items-center gap-1 rounded border bg-white p-1">
+          <Btn onClick={() => setZoom((z) => Math.min(20, z * 1.2))} title="Zoom +">
             +
-          </button>
-          <button
-            type="button"
-            className="rounded px-2 py-1 hover:bg-gray-100"
-            onClick={() => setZoom((z) => Math.max(0.2, z / 1.2))}
-            title="Zoom -"
-          >
+          </Btn>
+          <Btn onClick={() => setZoom((z) => Math.max(0.2, z / 1.2))} title="Zoom -">
             −
-          </button>
-          <button
-            type="button"
-            className="rounded px-2 py-1 hover:bg-gray-100"
-            onClick={fit}
-            title="Ajuster au plateau"
-          >
+          </Btn>
+          <Btn onClick={() => setZoom(1)} title="Zoom 100%">
+            100%
+          </Btn>
+          <Btn onClick={fit} title="Ajuster">
             Fit
-          </button>
-          <button
-            type="button"
-            className="rounded px-2 py-1 hover:bg-gray-100"
-            onClick={fit}
-            title="Recentrer"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            className={`rounded px-2 py-1 hover:bg-gray-100 ${showGrid ? 'bg-gray-100 font-medium' : ''}`}
-            onClick={() => setShowGrid((v) => !v)}
-            title="Grille"
-          >
+          </Btn>
+          <Btn onClick={fit} title="Recentrer">
+            Reset vue
+          </Btn>
+          <Btn active={showGrid} onClick={() => setShowGrid((v) => !v)} title="Grille">
             Grille
-          </button>
-          <button
-            type="button"
-            className="rounded px-2 py-1 hover:bg-gray-100"
-            onClick={fetchBoard}
-            title="Rafraîchir"
-          >
+          </Btn>
+          <Btn active={showPads} onClick={() => setShowPads((v) => !v)} title="Pads">
+            Pads
+          </Btn>
+          <Btn active={showSilk} onClick={() => setShowSilk((v) => !v)} title="Sérigraphie">
+            Soie
+          </Btn>
+          <Btn active={showRefs} onClick={() => setShowRefs((v) => !v)} title="Références">
+            Refs
+          </Btn>
+          <Btn active={showFab} onClick={() => setShowFab((v) => !v)} title="Fab">
+            Fab
+          </Btn>
+          <Btn onClick={fetchBoard} title="Rafraîchir">
             Rafraîchir
-          </button>
+          </Btn>
+          <Btn onClick={openInKicad} title="Ouvrir dans KiCad">
+            KiCad
+          </Btn>
         </div>
         <span className="text-gray-500">
           {data ? `${data.components.length} composants` : 'Chargement…'} · {Math.round(zoom * 100)}
@@ -381,7 +412,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       </div>
       <div
         ref={wrapperRef}
-        className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700 bg-[#1a1a1a]"
+        className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700 bg-[#111315]"
         onWheel={onWheel}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
