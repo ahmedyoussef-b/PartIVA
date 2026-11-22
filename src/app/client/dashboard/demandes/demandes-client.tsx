@@ -23,23 +23,36 @@ interface DemandesClientProps {
   initialRequests: RequestWithRelations[];
 }
 
+type TypeTab = 'all' | 'PIECE' | 'PCB';
+
 export default function DemandesClient({ initialRequests }: DemandesClientProps) {
   const [search, setSearch] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [activeTab, setActiveTab] = React.useState<TypeTab>('all');
 
   const requests = React.useMemo(() => initialRequests.map(mapRequestToUi), [initialRequests]);
+
+  const selectTab = (tab: TypeTab) => {
+    setActiveTab(tab);
+    console.info('[CLIENT:DEMANDES] Onglet sélectionné', { type: tab });
+  };
 
   const filtered = React.useMemo(() => {
     const q = search.toLowerCase();
     return requests.filter((req) => {
+      const matchType = activeTab === 'all' ? true : req.type === activeTab;
       const matchSearch =
         req.partDescription.toLowerCase().includes(q) ||
+        (req.partFunction && req.partFunction.toLowerCase().includes(q)) ||
         (req.machineRef && req.machineRef.toLowerCase().includes(q)) ||
         req.id.slice(0, 8).includes(q);
       const matchStatus = statusFilter === 'all' ? true : req.status === statusFilter;
-      return matchSearch && matchStatus;
+      return matchType && matchSearch && matchStatus;
     });
-  }, [requests, search, statusFilter]);
+  }, [requests, search, statusFilter, activeTab]);
+
+  const isPcbView = activeTab === 'PCB';
+  const isAllView = activeTab === 'all';
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -47,7 +60,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Mes Demandes</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Historique complet des pièces soumises pour modélisation et usinage CNC.
+            Historique complet des demandes soumises (pièces mécaniques et cartes électroniques).
           </p>
         </div>
         <Link href="/demande">
@@ -56,6 +69,34 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
             Nouvelle demande
           </Button>
         </Link>
+      </div>
+
+      {/* Onglets par type */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant={activeTab === 'all' ? 'default' : 'outline'}
+          className="h-8 text-xs"
+          onClick={() => selectTab('all')}
+        >
+          Toutes
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === 'PIECE' ? 'default' : 'outline'}
+          className="h-8 text-xs"
+          onClick={() => selectTab('PIECE')}
+        >
+          Pièces mécaniques
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === 'PCB' ? 'default' : 'outline'}
+          className="h-8 text-xs"
+          onClick={() => selectTab('PCB')}
+        >
+          Cartes électroniques (PCB)
+        </Button>
       </div>
 
       {/* Filter toolbar */}
@@ -78,7 +119,7 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
             className="h-8 text-xs"
             onClick={() => setStatusFilter('all')}
           >
-            Toutes
+            Tous statuts
           </Button>
           <Button
             size="sm"
@@ -115,9 +156,23 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[120px]">Réf. Dossier</TableHead>
-                  <TableHead>Pièce &amp; Description</TableHead>
-                  <TableHead>Machine d&apos;origine</TableHead>
-                  <TableHead className="text-center">Qté</TableHead>
+                  {isPcbView ? (
+                    <>
+                      <TableHead>Description du projet</TableHead>
+                      <TableHead>Fonction principale</TableHead>
+                    </>
+                  ) : isAllView ? (
+                    <>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Type</TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead>Pièce &amp; Description</TableHead>
+                      <TableHead>Machine d&apos;origine</TableHead>
+                      <TableHead className="text-center">Qté</TableHead>
+                    </>
+                  )}
                   <TableHead>Urgence</TableHead>
                   <TableHead>Statut Actuel</TableHead>
                   <TableHead>Date d&apos;envoi</TableHead>
@@ -125,49 +180,100 @@ export default function DemandesClient({ initialRequests }: DemandesClientProps)
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((req) => (
-                  <TableRow key={req.id} className="hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs font-bold text-primary">
-                      {req.id.slice(0, 8)}
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <div className="line-clamp-1 text-xs font-medium">{req.partDescription}</div>
-                      <span className="font-mono text-[11px] text-muted-foreground">
-                        Matière : {req.suspectedMaterial || 'Non précisée'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {req.machineRef || '—'}
-                    </TableCell>
-                    <TableCell className="text-center font-mono text-xs font-bold">
-                      {req.quantity}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={req.urgency === 'critical' ? 'critical' : 'outline'}
-                        className="text-[10px]"
-                      >
-                        {FR.urgencies[req.urgency]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-[10px] font-medium">
-                        {FR.statuses[req.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                      {formatDate(req.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/client/dashboard/demandes/${req.id}`}>
-                        <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs">
-                          <Eye className="h-3.5 w-3.5" />
-                          Suivre
-                        </Button>
-                      </Link>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
+                      Aucune demande pour ce filtre.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filtered.map((req) => (
+                    <TableRow key={req.id} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs font-bold text-primary">
+                        {req.id.slice(0, 8)}
+                      </TableCell>
+
+                      {isPcbView ? (
+                        <>
+                          <TableCell className="max-w-xs">
+                            <div className="line-clamp-1 text-xs font-medium">
+                              {req.partDescription}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-xs text-xs text-muted-foreground">
+                            {req.partFunction || '—'}
+                          </TableCell>
+                        </>
+                      ) : isAllView ? (
+                        <>
+                          <TableCell className="max-w-xs">
+                            <div className="line-clamp-1 text-xs font-medium">
+                              {req.partDescription}
+                            </div>
+                            <span className="font-mono text-[11px] text-muted-foreground">
+                              {req.type === 'PCB'
+                                ? req.partFunction || '—'
+                                : `Matière : ${req.suspectedMaterial || 'Non précisée'}`}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={req.type === 'PCB' ? 'default' : 'outline'}
+                              className="text-[10px]"
+                            >
+                              {req.type === 'PCB' ? 'PCB' : 'Pièce'}
+                            </Badge>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="max-w-xs">
+                            <div className="line-clamp-1 text-xs font-medium">
+                              {req.partDescription}
+                            </div>
+                            <span className="font-mono text-[11px] text-muted-foreground">
+                              Matière : {req.suspectedMaterial || 'Non précisée'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {req.machineRef || '—'}
+                          </TableCell>
+                          <TableCell className="text-center font-mono text-xs font-bold">
+                            {req.quantity}
+                          </TableCell>
+                        </>
+                      )}
+
+                      <TableCell>
+                        <Badge
+                          variant={req.urgency === 'critical' ? 'critical' : 'outline'}
+                          className="text-[10px]"
+                        >
+                          {FR.urgencies[req.urgency]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-[10px] font-medium">
+                          {FR.statuses[req.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                        {formatDate(req.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link href={`/client/dashboard/demandes/${req.id}`}>
+                          <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs">
+                            <Eye className="h-3.5 w-3.5" />
+                            Suivre
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

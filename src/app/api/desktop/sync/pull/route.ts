@@ -235,6 +235,30 @@ async function fetchTable(
           updatedAt: true,
         },
       });
+    case 'components':
+      return prisma.componentCatalog.findMany({
+        where: updatedFilter,
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          symbol: true,
+          footprint: true,
+          model3d: true,
+          supplier: true,
+          supplierRef: true,
+          createdAt: true,
+          updatedAt: true,
+          prices: {
+            orderBy: { updatedAt: 'desc' },
+            take: 1,
+            select: { price: true, currency: true },
+          },
+        },
+      });
     default:
       return [];
   }

@@ -171,3 +171,25 @@ Noms canoniques des fonctionnalités traitées, avec les sessions correspondante
 - **Sessions antérieures :** Les sessions E0 à E16 ne sont pas listées ici. Leur trace est conservée dans `docs/archive/JOURNAL.md` et `docs/archive/ROADMAP.md` (archivage effectué en E6). Si le coordinateur souhaite un historique indexé E0 → E16, un ordre de rattrapage sera nécessaire.
 - **Noms canoniques :** toute fonctionnalité ajoutée à une session doit être reportée au §6 sous le même nom (charte §6).
 - **Synchronisation 2026-11-10 :** les sessions V3–V8, V7-OUVERTURE, V7B et V7B-CLOSED sont ajoutées. Les sessions E17–E29 sont conservées intégralement (charte §7).
+
+---
+
+## Sessions Fast-Track P7 et Post-Fast-Track (portées le 2026-11-22)
+
+> **Note de portage** : les sessions ci-dessous n'avaient pas ete indexees dans ce registre (ecarts E11 et E12, SYNC-1-bis). Elles sont portees ici conformement a la Charte section 7. **Source :** docs/sessions/FAST_TRACK_P7.md et docs/sessions/SUIVI_DISCUSSION_PCB.md.
+
+### Fast-Track P7 (2026-11-19 -> 2026-11-20, close 2026-11-22)
+
+- **Rapport :** `docs/sessions/FAST_TRACK_P7.md` (14 209 octets, 2026-11-19 09:13).
+- **Statut :** CLOS le 2026-11-22 (cf. `SUIVI_DISCUSSION_PCB.md` l.5 : "Fast-Track P7 CLOS et pousse").
+- **Perimetre :** 44 etapes validees (V1-V44), 32 questions repondues (Q1-Q32) sur la fonctionnalite PCB.
+- **Branche :** `fast-track/p7-dashboard-pcb` (42 commits d'avance sur master, merge-base `d50f4c0`).
+- **Traces :** `docs/etat/DECISIONS.md` section 15 (portage SYNC-2-b) ; `docs/etat/DETTES.md` section "Dettes Fast-Track P7" (portage SYNC-2-a).
+
+### Post-Fast-Track PCB (2026-11-20 -> 2026-11-22)
+
+- **Rapport :** `docs/sessions/SUIVI_DISCUSSION_PCB.md` (39 781 octets, 2026-11-22 01:30).
+- **Statut :** En cours (confirmation visuelle du placement KiCad en attente).
+- **Perimetre :** A2.5 (saisie kicadFilePath), multi-provider LLM (Groq -> Cerebras -> OpenRouter -> Google -> OpenAI), compilation IA optimisee (6 categories, completude 100%), sourcing composants avec placement par composant dans KiCad. E2E valide techniquement (dry-run + placement reel + verification 0,01 mm + resolution d'empreintes IA).
+- **Branche :** `fast-track/p7-dashboard-pcb` (memes commits que Fast-Track P7).
+- **Traces :** `docs/etat/DECISIONS.md` sections 15.4 (V45-V49) et 15.5 (Phase C/D/E) ; `docs/etat/DETTES.md` section "Dettes Fast-Track P7" (dettes Phase D/E).

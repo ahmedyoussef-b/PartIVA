@@ -460,3 +460,105 @@
 > **Note de traçabilité (P5, 2026-11-17)** : les 11 sous-étapes ci-dessus ont été livrées entre `097d7e1` et `216ed3e` sans entrée documentaire. Cette §14 résorbe l'écart. Aucune de ces sous-étapes n'a de spec V8-D-14 associée ; aucune n'a de preuve E2E de succès (cf. dette `D-E2E-PREEXISTANT-FAILURES`).
 
 ---
+
+---
+
+## 15. Décisions Fast-Track P7 (2026-11-20 -> 2026-11-22)
+
+**Origine :** Fast-Track P7 a livre 44 etapes validees (V1-V44) + 32 questions repondues (Q1-Q32) sur la fonctionnalite PCB, entre le 2026-11-20 et le 2026-11-22, sur la branche `fast-track/p7-dashboard-pcb`. Aucune de ces decisions n'avait ete portee au registre `DECISIONS.md` (ecart E10, SYNC-1-bis). Cette section resorbe l'ecart (session SYNC-2-b, 2026-11-22). **Source :** `docs/sessions/SUIVI_DISCUSSION_PCB.md`.
+
+### 15.1 - Decisions de cadrage (V1-V29)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| V1 | Admin concoit/implanete depuis l'app, KiCad en arriere-plan, rendu dans notre zone | Objectif fonctionnel | - |
+| V2 | Gauche = carte, droite = cahier des charges | Repartition de l'ecran | Layout 2 colonnes |
+| V3 | Double affichage (KiCad embarque + vue PartIVA), bascule par bouton, source unique | - | - |
+| V4 | Mode par defaut = vue PartIVA, KiCad sur demande | - | - |
+| V5 | Perimetre V1 = placement seul (pas de pistes, pas d'autoroutage) | - | - |
+| V7 | 8 regles de placement (1 champ = 1 composant, terme inconnu = message, auto-ref R1/R2, position algo puis corrigeable, grille 2,54 mm, rotation 0 deg, KiCad ferme = en attente, annuler dernier) | - | - |
+| V8 | Referentiel : origine + dimensions de la carte obligatoires | - | - |
+| V9 | Placement au clic reporte ; position vient de l'algorithme (V23) | - | - |
+| V10 | Projet neuf : notre app ecrit le fichier de carte minimal au format KiCad 10 (10.0.8), squelette minimal valide | - | - |
+| V11 | Demarrage d'un cahier des charges : formulaire dimensions editable + creation fichier automatique | - | - |
+| V12 | Emplacement du fichier = poste admin (stable), chemin enregistre | - | - |
+| V13 | Panneau droit = cahier des charges client (fenetre defilante) en haut + liste technique des champs/formulaires en dessous | - | - |
+| V14 | L'IA lit le CDC et propose dimensions, liste composants, structure d'implantation (zones). Admin valide ou corrige ; rien n'est applique automatiquement | - | - |
+| V15 | CDC = texte obligatoire (client remplit des champs, ou admin colle du texte). Pas d'OCR | - | - |
+| V16 | Formulaire client restructure en 6 blocs (usage/function/processing/mechanical/manufacturing/quality) | - | - |
+| V17 | Bibliotheque de modeles de reference en BDD locale, consultee par l'IA | - | - |
+| V18 | Corpus de reference = cartes open source uniquement, format lisible (KiCad), source + licence obligatoires. Cible 20-50 modeles | - | - |
+| V19 | Chaine : formulaire client -> CDC -> analyse IA + corpus -> proposition -> validation admin -> formulaire dimensions -> creation fichier -> placement | - | - |
+| V20 | Declenchement IA automatique une fois a la creation, puis relance manuelle apres modification | - | - |
+| V21 | Apres validation/correction, admin relance IA : champs retractables par composant, admin selectionne modele par modele | - | - |
+| V22 | Placement reel : algorithme calcule coordonnees et envoie a KiCad | - | - |
+| V23 | Position proposee (repartition zones, grille 2,54 mm) puis corrigeable par saisie X/Y et glisser-deposer. Remplace V7.4 | - | - |
+| V24 | Corpus + bibliotheque en SQLite sur le poste admin (coherent avec V12) | - | - |
+| V25 | Architecture hybride : Tauri 2 + sidecar Next.js (127.0.0.1) + SQLite local + PostgreSQL serveur | - | - |
+| V26 | PCB exige le reseau (IA indispensable). SQLite local = stockage, pas mode hors ligne | - | - |
+| V27 | Modele LLM = Groq openai/gpt-oss-120b (via GROQ_MODEL), sortie JSON stricte (maj B.1) | - | - |
+| V28 | Seuil de compatibilite : tout ce qui depasse un score (ex. 80%), min 3 max 8 modeles par champ + lien "voir tout" | - | - |
+| V29 | Pont KiCad = Node/sidecar (reutilise /api/pcb/ipc et kicad-ipc-adapter.ts) | - | - |
+
+### 15.2 - Decisions de fiabilite (V30-V35)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| V30 | Completude + contradictions avant envoi formulaire (score + blocage si contradiction) | - | Non bloquant, avertir seulement (V30.3) |
+| V31 | Provenance obligatoire : chaque valeur proposee cite sa source (phrase client ou ID modele corpus). Sans source = rejetee | - | - |
+| V32 | Double passe + detection divergence : IA interrogee 2 fois, seules les valeurs stables sont retenues | - | - |
+| V33 | Verification deterministe des composants : regles (pas IA) sur tension/courant/broches/decouplage + empreinte validee | - | - |
+| V34 | Envoi sur a KiCad : controle geometrique + transaction idempotente + dry-run + reconciliation | - | - |
+| V35 | Jeu d'evaluation de reference : 10 CDC types -> proposition attendue, rejoues a chaque changement de prompt/modele, avec score | - | - |
+
+### 15.3 - Decisions de capitalisation et catalogue (V36-V44)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| V36 | Capitalisation : chaque projet accompli sauvegarde en BDD locale (CDC, proposition validee, composants, positions, fichier). 2 regimes legaux : modeles de reference (open source, licence) et projets accomplis (internes) | - | - |
+| V37 | Recherche dans la bibliotheque = hybride (filtres structures + similarite sur champs textuels). IA reordonne top-5 seulement | - | - |
+| V38 | Catalogue/stock composants : structure BDD locale avec empreinte, params electriques, prix, stock, fournisseur, datasheet. Stock reel avec avertissement seulement. 1 seul fournisseur par composant (Q27) | - | - |
+| V39 | Compteur de prix : a chaque composant place/valide, prix unitaire s'incremente, affichage cout total | - | - |
+| V40 | BDD vectorielle locale (SQLite + sqlite-vec), synchronisee avec corpus et catalogue | - | Differé Fast-Track (A7.3) |
+| V41 | Schema par defaut du catalogue : table components (1 ligne = 1 composant, 1 fournisseur par ligne) | - | - |
+| V42 | Format de fichier de carte : KiCad 10 (10.0.8), squelette minimal valide, verifie par ouverture dans KiCad | - | - |
+| V43 | Le client remplit les 6 blocs dans son profil, puis envoie a l'admin (cree/met a jour la Request) | - | - |
+| V44 | Correction de position = saisie numerique (X/Y) + glisser-deposer sur la vue (les deux) | - | - |
+
+### 15.4 - Decisions d'architecture d'execution (Phases A-E)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| V45 | Schema Prisma regularise : RequestType, PcbProject.requestId (derive Fast-Track regularisee via migrate diff + resolve --applied). Nouveau champ PcbProject.kicadFilePath String? | - | Mitigations R8/R9 |
+| V46 | Corpus + recherche FTS5 : composants reels (ComponentCatalog web -> SQLite local), sync incluse, recherche BM25 + stemming | - | Vectoriel differe (V37) |
+| V47 | Recherche FTS5 cote Rust : search_components (FTS5 + repli LIKE), escape_fts5_query. Index vide -> repli LIKE | - | - |
+| V48 | Securisation des routes PCB : requireAdmin() sur les 17 routes /api/pcb/* non protegees | - | Dette D-FT-P7-PCB-AUTH-GAP soldee |
+| V49 | Analyse CDC client (Phase B) : LLM unifie callGroq, responseFormat json_object, validation Zod. POST /api/pcb/analyze : texte CDC -> exigences structurees + bouton Analyser | - | - |
+
+### 15.5 - Decisions Phase C, D, E (Post-Fast-Track)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| C.1 | Placement pur : pxToMm (calibration), snapToGrid 2,54 mm, generateReference, clampToBoard, computePlacement | - | 16 tests |
+| C.2 | PlacementPanel (<details>, usePcbEditor(), dimensions via parseKicadPcb, repli 100x80 mm, edition inline) | - | - |
+| C.3 | Envoi KiCad : POST /api/pcb/components (persistance), scripts/kicad/place_footprints.py (batch transactionnel), POST /api/pcb/place/batch (borne 200), bouton "Placer dans KiCad" (dry-run par defaut -> persistance -> batch -> recap) | - | - |
+| V30.3 | Qualite CDC : avertir seulement, ne pas bloquer (faux positifs possibles sur rails multiples) | - | Blocage a reconsiderer apres mesure golden set |
+| V33-bis | Verification deterministe : verify-placement.ts (pur, tolerances 0,01 mm / 0,5 deg) + POST /api/pcb/place/verify (relecture parseKicadPcb) + verdict "N/N conformes" | - | 29 tests |
+| V34-bis | Envoi sur durci : scripts Python (verrou .lck, controle bbox Edge.Cuts, backup .bak, reconciliation avec restauration), flags --force / --allow-outside, parseResult du bridge corrige | - | 47 tests |
+| V35-bis | Golden set : 10 CDC realistes, scorer 0.3/0.4/0.3, orchestrateur sequentiel avec isolation des echecs | - | 20 tests, 0 reseau |
+| V31-bis | Provenance : colonne source String? sur PcbRequirement (migration 20261121093328), analyze-mapping.ts (pur, 10 tests), prompt exigeant une citation exacte | - | UI Source + badge a verifier |
+| V30-bis | Completude + contradictions : cdc-quality.ts (pur, 14 tests), conflits d'unites, unsourced, toVerify. Panneau Qualite du CDC | - | - |
+| V32-bis | Double passe : consensus.ts (pur, 12 tests) - mergePasses, valeurs stables, divergences, onlyInPass1/2. Double passe active par defaut (2 appels LLM sequentiels) | - | Cout/latence x2 |
+| V37-bis | Reordonnancement : rank-candidates.ts (pur, 11 tests) + classement IA du top-10 -> top-5, conditionne a rankCandidates && doublePass && candidates.length > 5 | - | Fallback (jamais de 502) |
+| A2.5 | Saisie kicadFilePath : PATCH /api/pcb/projects/[id] (auth admin, validation .kicad_pcb, exists informatif). Composant KicadFileInput monte dans la barre haute du workspace | - | Dette D-FT-P7-KICAD-PATH-UNRESTRICTED partiellement mitigee |
+| C1 | Sourcing composants : ComponentSourcingPanel + /api/pcb/requirements/source-components. IA propose une BOM (13-17 composants) depuis le CDC valide. Positions offsetees par rapport au plateau reel. Resolution automatique des empreintes KiCad | - | - |
+| C2 | Compilation IA optimisee : /api/pcb/requirements/compile. Prompt couvrant les 6 categories -> completude 100% (6/6) | - | - |
+
+### 15.6 - Notes de tracabilite
+
+- **Source primaire :** `docs/sessions/SUIVI_DISCUSSION_PCB.md` (39 781 octets, 2026-11-22).
+- **Source secondaire :** `docs/sessions/FAST_TRACK_P7.md` (14 209 octets, 2026-11-19).
+- **Dettes associees :** voir `docs/etat/DETTES.md` section "Dettes Fast-Track P7" (portage SYNC-2-a, 2026-11-22).
+- **Branche :** `fast-track/p7-dashboard-pcb` (42 commits d'avance sur master, merge-base `d50f4c0`).
+- **Ecart E10 (DECISIONS.md sans entree Fast-Track) :** resorbe par cette section.
+- **Non couvert par cette section :** les decisions de la Phase D et E sont des sous-etapes d'implementation (V30-bis a V37-bis, C1, C2) ; elles sont tracees ici pour memoire mais leur specification detaillee reste dans `SUIVI_DISCUSSION_PCB.md`.

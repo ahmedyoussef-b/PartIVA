@@ -7,7 +7,24 @@ export function RegisterSW() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-    if (process.env.NODE_ENV !== 'production') return;
+
+    if (process.env.NODE_ENV !== 'production') {
+      // Dev : un SW résiduel (installé lors d'un build/prod antérieur) sert des
+      // chunks périmés → erreurs HMR Turbopack et 503 Offline. On le retire.
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => {
+          regs.forEach((reg) =>
+            reg.unregister().then(() => console.info('[SW] service worker désenregistré (dev)')),
+          );
+        })
+        .catch((e) => console.warn('[SW] cleanup dev échoué', e));
+      if ('caches' in window) {
+        caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+      }
+      return;
+    }
+
     navigator.serviceWorker
       .register('/sw.js')
       .catch((e) => console.warn('[SW] registration failed', e));

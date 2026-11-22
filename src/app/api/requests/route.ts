@@ -15,6 +15,7 @@ export async function POST(req: Request) {
         clientId: body.clientId,
         machineRef: body.machineRef || '',
         partDescription: body.partDescription || 'Pièce industrielle sans description',
+        type: body.type || 'PIECE', // Valeur par défaut : pièce
         partFunction: body.partFunction || '',
         suspectedMaterial: body.suspectedMaterial,
         quantity: Number(body.quantity) || 1,

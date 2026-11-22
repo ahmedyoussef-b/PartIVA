@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 
 export async function GET() {
+  console.info('[DASHBOARD:KPI] Requête reçue', { timestamp: new Date().toISOString() });
+
   try {
     await requireAdmin();
   } catch (error) {
@@ -22,6 +24,10 @@ export async function GET() {
       completedLast30,
       totalClosedLast30,
       allParts,
+      totalReProjects,
+      totalPcbProjects,
+      pendingRequests,
+      pendingPcbRequirements,
     ] = await Promise.all([
       prisma.request.count({ where: { status: 'PENDING' } }),
       prisma.request.count({ where: { status: 'REVIEW' } }),
@@ -33,7 +39,19 @@ export async function GET() {
         where: { status: { in: ['COMPLETED', 'REJECTED'] }, updatedAt: { gte: thirtyDaysAgo } },
       }),
       prisma.part.findMany({ select: { partNumber: true, analysisData: true } }),
+      prisma.reverseEngineeringProject.count(),
+      prisma.pcbProject.count(),
+      prisma.request.count({ where: { status: 'PENDING' } }),
+      prisma.request.count({ where: { type: 'PCB', status: 'PENDING' } }),
     ]);
+
+    console.info('[DASHBOARD:KPI] Comptes calculés', {
+      totalParts,
+      totalReProjects,
+      totalPcbProjects,
+      pendingRequests,
+      pendingPcbRequirements,
+    });
 
     const demandesEnAttente = pendingCount + qualifyingCount;
 
@@ -57,22 +75,28 @@ export async function GET() {
       engineSuccessRate = 100;
     }
 
-    return NextResponse.json(
-      {
-        demandesEnAttente,
-        piecesEnBdd: totalParts,
-        tauxSucces,
-        engineAnalysesCount,
-        engineGeneratedPartsCount,
-        engineSuccessRate,
-        lastUpdated: new Date().toISOString(),
+    const result = {
+      demandesEnAttente,
+      piecesEnBdd: totalParts,
+      tauxSucces,
+      engineAnalysesCount,
+      engineGeneratedPartsCount,
+      engineSuccessRate,
+      totalParts,
+      totalReProjects,
+      totalPcbProjects,
+      pendingRequests,
+      pendingPcbRequirements,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    console.info('[DASHBOARD:KPI] Données renvoyées', { kpis: result });
+
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
       },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        },
-      },
-    );
+    });
   } catch (error) {
     console.error('[api/dashboard/kpi] Failed to fetch:', error);
     return NextResponse.json({ error: 'Failed to fetch KPI data' }, { status: 500 });

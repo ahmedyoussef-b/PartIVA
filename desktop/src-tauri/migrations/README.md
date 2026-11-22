@@ -19,6 +19,8 @@ Migrations exécutées au démarrage de l'application par `sqlx::migrate!("./mig
 | `part_version` | `PartVersion` | **Full-refresh** | ❌ absente côté web | 0002 |
 | `part_specification` | `PartSpecification` | Incrémentale (`updated_at`) | ✅ | 0004 |
 | `part_category` | `PartCategory` | Incrémentale (`updated_at`) | ✅ | 0004 |
+| `material` | `Material` | Incrémentale (`updated_at`) | ✅ | 0005 |
+| `request` | `Request` | Incrémentale (`updated_at`) | ✅ | 0006 |
 
 **Option B (D-E8P-S03-1)** : les 3 tables sans `updated_at` sont synchronisées en
 full-refresh — pas de migration Prisma côté web (baseline web = 15 migrations). À réévaluer
@@ -29,6 +31,7 @@ si la volumétrie croît fortement.
 | Table | Usage | Migration |
 |---|---|---|
 | `sync_metadata` | Suivi de sync : `last_sync_at`, `last_sync_since` (curseur `since`), `row_count`, `full_refresh_required` | 0003 |
+| `components` | Catalogue de composants PCB (§10, V41) — **non synchronisé** (local) | 0007 |
 
 ## Choix de modélisation
 
@@ -56,7 +59,7 @@ si la volumétrie croît fortement.
 
 `Supplier`/`PartSupplier`, `Attachment`, `User`,
 `Session`/`Account`/`Verification`, `AuditLog`, `SearchCandidate`, `ScoringWeights`,
-`Request`, `ReverseEngineering*`, `CadFile`, `Machine`, `Material`.
+`ReverseEngineering*`, `CadFile`, `Machine`.
 
 (Note historique : `PartSpecification`/`PartCategory` étaient absentes en E8P-S03 —
 ajoutées en migration `0004` en E8P-S04, décision `D-E8P-S03-2 = B`.)
@@ -69,6 +72,10 @@ ajoutées en migration `0004` en E8P-S04, décision `D-E8P-S03-2 = B`.)
 | `0002_add_partimage_partversion.sql` | `part_image`, `part_version` + index |
 | `0003_sync_metadata.sql` | `sync_metadata` + amorçage des lignes de suivi |
 | `0004_add_partspec_partcategory.sql` | `part_specification`, `part_category` + index (E8P-S04 — Must §6.2) |
+| `0005_add_material.sql` | `material` + index (E9-R4a) |
+| `0006_add_request.sql` | `request` + index (E9-R4b-1) |
+| `0007_add_component.sql` | `components` + index (V41 — §10, pas de `components_vec` : sqlite-vec = A7) |
+| `0008_components_fts.sql` | `components_fts` (FTS5 standalone, tokenizer `porter unicode61`) — index reconstruit après sync (A7.1-b) |
 
 Vérification : `cargo test` (test `db::tests::migrations_apply_on_empty_db` — crée les
-8 tables + `_sqlx_migrations` sur une base vide).
+11 tables + `_sqlx_migrations` sur une base vide).

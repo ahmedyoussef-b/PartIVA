@@ -119,6 +119,11 @@ pub async fn sync_all(
             skip += table.page_size;
         }
 
+        // A7.1-b — l'index FTS5 est reconstruit une fois la table `components` synchronisée.
+        if table.name == "components" {
+            rebuild_components_fts(pool).await?;
+        }
+
         update_metadata(
             pool,
             &table.name,
@@ -242,6 +247,7 @@ async fn upsert_table(
         "part_category" => upsert_part_categories(pool, rows).await,
         "material" => upsert_materials(pool, rows).await,
         "request" => upsert_requests(pool, rows).await,
+        "components" => upsert_components(pool, rows).await,
         other => Err(SyncError::Payload(format!("table inconnue : {other}"))),
     }
 }
@@ -505,6 +511,72 @@ async fn upsert_requests(
         count += 1;
     }
     Ok(count)
+}
+
+/// A7.1-b — upsert du catalogue de composants (web `ComponentCatalog` → local `components`).
+/// Mapping : `name` → `description`, `supplierRef` → `mpn`/`supplier_ref`,
+/// `supplier` → `manufacturer`/`supplier`. Champs absents côté web → NULL (Règle #1).
+async fn upsert_components(
+    pool: &SqlitePool,
+    rows: &[serde_json::Value],
+) -> Result<usize, SyncError> {
+    let mut count = 0;
+    for r in rows {
+        let price = r
+            .get("prices")
+            .and_then(|p| p.get(0))
+            .and_then(|p| p.get("price"))
+            .and_then(|v| v.as_f64());
+        let currency = r
+            .get("prices")
+            .and_then(|p| p.get(0))
+            .and_then(|p| p.get("currency"))
+            .and_then(|v| v.as_str());
+
+        sqlx::query(
+            "INSERT OR REPLACE INTO components (
+                id, mpn, manufacturer, description, category, package, footprint, symbol,
+                electrical, price, currency, supplier, supplier_ref, stock, datasheet_url,
+                lifecycle, source, licence, created_at, updated_at
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(s(r, "id"))
+        .bind(s(r, "supplierRef")) // mpn
+        .bind(s(r, "supplier")) // manufacturer
+        .bind(s(r, "name")) // description
+        .bind(s(r, "category"))
+        .bind(None::<String>) // package (absent du web)
+        .bind(s(r, "footprint"))
+        .bind(s(r, "symbol"))
+        .bind(None::<String>) // electrical
+        .bind(price) // price (depuis prices[0])
+        .bind(currency) // currency
+        .bind(s(r, "supplier"))
+        .bind(s(r, "supplierRef"))
+        .bind(None::<i64>) // stock
+        .bind(None::<String>) // datasheet_url
+        .bind(Some("active")) // lifecycle
+        .bind(Some("component_catalog")) // source
+        .bind(None::<String>) // licence
+        .bind(s(r, "createdAt"))
+        .bind(s(r, "updatedAt"))
+        .execute(pool)
+        .await?;
+        count += 1;
+    }
+    Ok(count)
+}
+
+/// A7.1-b — reconstruction de l'index FTS5 (miroir read-only : DELETE + INSERT … SELECT).
+pub async fn rebuild_components_fts(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM components_fts").execute(pool).await?;
+    sqlx::query(
+        "INSERT INTO components_fts (component_id, mpn, manufacturer, description, category, package, footprint, symbol)
+         SELECT id, mpn, manufacturer, description, category, package, footprint, symbol FROM components",
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 fn max_updated_at_in(rows: &[serde_json::Value]) -> Option<String> {

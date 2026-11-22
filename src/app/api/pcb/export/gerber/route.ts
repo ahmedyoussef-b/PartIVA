@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { generateGerberZip } from '@/lib/pcb/gerber-exporter';
+import { requireAdmin } from '@/lib/auth-admin';
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
+  }
   try {
     const { projectId, layers } = (await req.json()) as {
       projectId?: string;

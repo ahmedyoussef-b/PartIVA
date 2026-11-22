@@ -7,8 +7,16 @@ import {
   exportBom,
   exportGlb,
 } from '@/lib/pcb/kicad-cli-adapter';
+import { requireAdmin } from '@/lib/auth-admin';
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    const status = message === 'Forbidden' ? 403 : 401;
+    return NextResponse.json({ message }, { status });
+  }
   try {
     const body = await req.json();
     const { action, inputPath, outputPath } = body as {

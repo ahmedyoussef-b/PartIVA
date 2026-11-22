@@ -13,6 +13,11 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
   const [incoherences, setIncoherences] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generalIdea, setGeneralIdea] = useState('');
+  const [compiledText, setCompiledText] = useState('');
+  const [compiling, setCompiling] = useState(false);
+  const [validated, setValidated] = useState(false);
+  const [dirty, setDirty] = useState(false);
 
   const block = requirementBlocks[currentBlock];
   if (!block) return null;
@@ -39,6 +44,157 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
+      <div className="mb-6">
+        {!validated ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                Idée générale de la carte <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                data-testid="textarea-general-idea"
+                rows={6}
+                className="mt-1 w-full rounded border p-2"
+                placeholder="Ex : Carte de commande moteur pour convoyeur industriel, alimentée en 24 V, avec communication CAN..."
+                value={generalIdea}
+                onChange={(e) => setGeneralIdea(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">
+                Description libre du projet : fonction, contexte, contraintes majeures.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                Description technique compilée (IA)
+              </label>
+              <textarea
+                data-testid="textarea-compiled"
+                rows={6}
+                className="mt-1 w-full rounded border p-2"
+                placeholder="Cliquez sur « Compiler » pour générer la description technique structurée..."
+                value={compiledText}
+                onChange={(e) => setCompiledText(e.target.value)}
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  data-testid="btn-compile"
+                  disabled={compiling || !generalIdea.trim()}
+                  className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                  onClick={async () => {
+                    setCompiling(true);
+                    setError(null);
+                    try {
+                      const res = await fetch('/api/pcb/requirements/compile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ description: generalIdea.trim() }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok || data.error) {
+                        throw new Error(data.error || `Erreur ${res.status}`);
+                      }
+                      setCompiledText(data.compiled || '');
+                      if (Array.isArray(data.answers)) {
+                        setAnswers((prev) => {
+                          const next = prev.filter(
+                            (a) =>
+                              !data.answers.some(
+                                (na: { questionId: string }) => na.questionId === a.questionId,
+                              ),
+                          );
+                          next.push(...data.answers);
+                          setIncoherences(detectIncoherences(next));
+                          return next;
+                        });
+                      }
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : 'Erreur de compilation');
+                    } finally {
+                      setCompiling(false);
+                    }
+                  }}
+                >
+                  {compiling ? 'Compilation...' : compiledText ? 'Relancer' : 'Compiler'}
+                </button>
+                {compiledText && (
+                  <button
+                    type="button"
+                    data-testid="btn-validate"
+                    disabled={compiling}
+                    className="rounded bg-green-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                    onClick={() => {
+                      if (!compiledText.trim()) return;
+                      setValidated(true);
+                      setDirty(false);
+                      setError(null);
+                    }}
+                  >
+                    Valider
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">
+                Généré par IA à partir de l&apos;idée générale. Modifiable avant validation.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              Contexte validé <span className="text-green-600">✓</span>
+            </label>
+            <textarea
+              data-testid="textarea-validated"
+              rows={6}
+              className="mt-1 w-full rounded border border-green-300 bg-green-50 p-2"
+              value={compiledText}
+              onChange={(e) => {
+                setCompiledText(e.target.value);
+                setDirty(true);
+              }}
+            />
+            <div className="flex flex-wrap gap-2">
+              {dirty && (
+                <button
+                  type="button"
+                  data-testid="btn-revalidate"
+                  className="rounded bg-green-600 px-3 py-1.5 text-sm text-white"
+                  onClick={() => setDirty(false)}
+                >
+                  Valider les modifications
+                </button>
+              )}
+              <button
+                type="button"
+                data-testid="btn-edit"
+                className="rounded border px-3 py-1.5 text-sm"
+                onClick={() => {
+                  setValidated(false);
+                  setDirty(false);
+                }}
+              >
+                Modifier
+              </button>
+              {!dirty && (
+                <span className="self-center text-xs text-green-700">
+                  ✓ Phase pré-implantation validée
+                </span>
+              )}
+              {dirty && (
+                <span className="self-center text-xs text-amber-700">
+                  Modifications non validées
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">
+              Contexte technique validé. Les réponses du formulaire ont été pré-remplies.
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="mb-6">
         <div className="flex gap-2">
           {requirementBlocks.map((b, i) => (
@@ -136,13 +292,23 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
             className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
             disabled={submitting}
             onClick={async () => {
+              const contextText = validated ? compiledText.trim() : generalIdea.trim();
+              if (!contextText) {
+                setError("L'idée générale de la carte est obligatoire.");
+                return;
+              }
               setSubmitting(true);
               setError(null);
               try {
                 const res = await fetch('/api/pcb/requirements/parse', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ projectId, answers }),
+                  body: JSON.stringify({
+                    projectId,
+                    answers,
+                    description: contextText,
+                    status: validated && !dirty ? 'requirements_validated' : 'draft',
+                  }),
                 });
                 const data = await res.json();
                 if (!res.ok || data.error) {

@@ -5,6 +5,7 @@ use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
 pub mod auth;
+pub mod components;
 pub mod config;
 pub mod db;
 pub mod logging;
@@ -209,7 +210,8 @@ pub fn run() {
       get_material_by_slug,
       get_demandes_file,
       get_reverse_cao,
-      get_plastiques
+      get_plastiques,
+      search_components
     ])
     .build(tauri::generate_context!())
     .expect("error while building tauri application");
@@ -351,4 +353,17 @@ async fn get_plastiques(
   materials::get_plastiques(&state.pool)
     .await
     .map_err(|e| format!("DB error: {}", e))
+}
+
+/// A7.1-c — recherche de composants (FTS5 BM25, repli LIKE).
+#[tauri::command]
+async fn search_components(
+  state: tauri::State<'_, AppState>,
+  query: String,
+  limit: Option<i64>,
+) -> Result<Vec<components::ComponentRow>, String> {
+  let limit = limit.unwrap_or(20).clamp(1, 100);
+  components::search_components(&state.pool, &query, limit)
+    .await
+    .map_err(|e| e.to_string())
 }
