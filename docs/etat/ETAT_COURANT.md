@@ -264,7 +264,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - **Revue SYNC-3** : condition tautologique corrigée dans `PriceCard.tsx` ; bloc mort retiré de `groq-client.ts` ; `.env.example` restauré (doublon `CEREBRAS_API_KEY`, clés `TOGETHER`/`DEEPINFRA` inutilisées, U+FFFD introduits).
 - **Vérifications** : `npm run typecheck` ✅ (exit 0) · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅.
 - **Dettes** : `D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST` (nouvelles).
-- **Commit** : SYNC-3 (hash consigné au commit suivant).
+- **Commit** : `20e5993` (code post-Fast-Track) + `57b0b00` (gouvernance documentaire).
 
 ---
 

@@ -361,4 +361,5 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Revue SYNC-3** : `PriceCard` (condition tautologique), `groq-client` (bloc mort), `.env.example` restauré (doublon `CEREBRAS_API_KEY`, clés `TOGETHER`/`DEEPINFRA` inutilisées, U+FFFD introduits).
 - **Vérifications** : `npm run typecheck` ✅ (exit 0) · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅.
 - **Dettes** : `D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST`.
+- **Livraison** : `20e5993` (code post-Fast-Track) + `57b0b00` (gouvernance documentaire).
 - **Reste** : SYNC-4 (merge fast-forward sur `master` + prompt v8.13) après validation explicite ; C3 non démarré.
