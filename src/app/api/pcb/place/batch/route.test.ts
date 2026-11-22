@@ -23,6 +23,11 @@ import { placeFootprints } from '@/lib/pcb/kicad-bridge';
 import { existsSync } from 'node:fs';
 import { POST } from './route';
 
+// Chemin de plateau normalise attendu : /c/... en forme absolue POSIX,
+// ou chemin drive conservé tel quel en environnement win32.
+const EXPECTED_BOARD_PATH =
+  process.platform === 'win32' ? 'C:/tmp/board.kicad_pcb' : '/c/tmp/board.kicad_pcb';
+
 const C1 = {
   reference: 'R1',
   libName: 'Resistor_SMD',
@@ -157,7 +162,7 @@ describe('POST /api/pcb/place/batch', () => {
     });
 
     expect(placeFootprints).toHaveBeenCalledWith({
-      boardPath: '/c/tmp/board.kicad_pcb',
+      boardPath: EXPECTED_BOARD_PATH,
       dryRun: false,
       footprints: [
         {
@@ -200,7 +205,7 @@ describe('POST /api/pcb/place/batch', () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({ ok: true, dryRun: true, placed: 1 });
     expect(placeFootprints).toHaveBeenCalledWith(
-      expect.objectContaining({ dryRun: true, boardPath: '/c/tmp/board.kicad_pcb' }),
+      expect.objectContaining({ dryRun: true, boardPath: EXPECTED_BOARD_PATH }),
     );
   });
 

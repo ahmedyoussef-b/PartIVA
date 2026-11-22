@@ -34,7 +34,7 @@ export function validateKicadFilePath(raw: string): KicadPathValidation {
 /**
  * Normalise un chemin de plateau KiCad (Windows <-> POSIX) :
  * - trim + backslash -> slash
- * - "C:/reste" -> "/c/reste" (forme absolue POSIX)
+ * - "C:/reste" -> "/c/reste" sur POSIX (forme absolue), conservé tel quel sur win32
  * Pur et testable (aucune dépendance Next / fs).
  */
 export function normalizeBoardPath(raw: string): string {
@@ -44,7 +44,10 @@ export function normalizeBoardPath(raw: string): string {
     const driveLetter = driveMatch[1] ?? '';
     const restRaw = driveMatch[2] ?? '';
     const rest = restRaw ? `/${restRaw}` : '';
-    return `/${driveLetter.toLowerCase()}${rest}`;
+    const candidate = `${driveLetter}:${rest}`;
+    // Sur Windows, un chemin avec lettre de drive reste exploitable tel quel.
+    // Sur POSIX, il est converti en racine absolue (ex. /c/...).
+    return process.platform === 'win32' ? candidate : `/${driveLetter.toLowerCase()}${rest}`;
   }
   return value;
 }
