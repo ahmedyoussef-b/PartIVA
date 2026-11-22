@@ -1,12 +1,12 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.15
+**Version :** 8.16
 **Date :** 2026-11-22
-**Commit HEAD :** `02f4661` (merge PR #146, 2026-11-22)
+**Commit HEAD :** `e3085a9` (merge PR #148, 2026-11-22)
 **Branche :** master
-**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 → P10 closes, **Fast-Track P7 close** (Phases A-E, V1-V44), **post-Fast-Track commité** (SYNC-3), **fix chemin plateau KiCad (PR #143)**, **fix normalizeBoardPath platform-aware (PR #146)**, **clôture documentaire SYNC-1 → SYNC-4**.
-**Dernière étape close :** PR #146 (fix `normalizeBoardPath` platform-aware — win32 conserve le chemin drive, POSIX convertit `C:/x` → `/c/x`) — préc. PR #143 (fix `kicadFilePath` + override `PARTIVA_KICAD_BOARD`).
+**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 → P10 closes, **Fast-Track P7 close** (Phases A-E, V1-V44), **post-Fast-Track commité** (SYNC-3), **fix chemin plateau KiCad (PR #143)**, **fix normalizeBoardPath platform-aware (PR #146)**, **bundle du plateau KiCad réel dans le build (PR #148)**, **clôture documentaire SYNC-1 → SYNC-4**.
+**Dernière étape close :** PR #148 (bundle `carte-test.kicad_pcb` dans `src/lib/pcb/boards/` + `outputFileTracingIncludes` pour le bundle Vercel + documentation `PARTIVA_KICAD_BOARD`) — préc. PR #146 (fix `normalizeBoardPath` platform-aware).
 **Prochaine étape :** C3 — canvas lisible (plan C1→C5 acté) — à spécifier (charte §9)
 
 ---
@@ -35,7 +35,7 @@
 3. Vérifier `git log --oneline -3` (HEAD).
 4. Émettre le prompt de la prochaine étape (§4).
 
-> **CLAUSE DE CLÔTURE** — cette régénération v8.15 est déclenchée par la validation coordinateur de PR #146 (fix `normalizeBoardPath` platform-aware, commit `030c2d5`). Elle ne déclenche AUCUNE autre étape.
+> **CLAUSE DE CLÔTURE** — cette régénération v8.16 est déclenchée par la validation coordinateur de PR #148 (bundle du plateau KiCad réel + tracing du build, commit `9b84159`). Elle ne déclenche AUCUNE autre étape.
 
 ---
 
@@ -50,9 +50,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close** — **P6.3 → P10 closes (2026-11-19)** — **Fast-Track P7 close (Phases A-E, V1-V44)** — **post-Fast-Track commité (SYNC-3)** — **fix chemin plateau KiCad (PR #143)** — **fix normalizeBoardPath platform-aware (PR #146)** — **clôture documentaire SYNC-1 → SYNC-4** |
-| **HEAD** | `02f4661` (merge PR #146, 2026-11-22) |
-| **Dernière étape close** | **PR #146** (fix `normalizeBoardPath` platform-aware — win32 conserve le chemin drive, POSIX convertit `C:/x` → `/c/x`) — préc. PR #143 (fix `kicadFilePath` + override `PARTIVA_KICAD_BOARD`) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close** — **P6.3 → P10 closes (2026-11-19)** — **Fast-Track P7 close (Phases A-E, V1-V44)** — **post-Fast-Track commité (SYNC-3)** — **fix chemin plateau KiCad (PR #143)** — **fix normalizeBoardPath platform-aware (PR #146)** — **bundle du plateau KiCad réel dans le build (PR #148)** — **clôture documentaire SYNC-1 → SYNC-4** |
+| **HEAD** | `e3085a9` (merge PR #148, 2026-11-22) |
+| **Dernière étape close** | **PR #148** (bundle `carte-test.kicad_pcb` + `outputFileTracingIncludes` pour Vercel + doc `PARTIVA_KICAD_BOARD`) — préc. PR #146 (fix `normalizeBoardPath` platform-aware) |
 | **Prochaine étape** | **C3 — canvas lisible** (plan C1→C5 acté) — à spécifier (charte §9) |
 
 ### Dettes haute / moyenne / basse actives
@@ -93,6 +93,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 *Note v8.13 (2026-11-22) : le tableau ci-dessus n'est pas re-généré. Les dettes Fast-Track P7 (17 actives + 4 soldées) sont dans `DETTES.md` §« Dettes Fast-Track P7 ». Les deux dettes critiques (`D-FT-P7-PRISMA-DRIFT`, `D-FT-P7-HEAD-DIVERGENCE`) sont **soldées**. Les 3 dettes constatées en SYNC-3 (`D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST`) sont actives.*
 
 *Note v8.15 (2026-11-22) : PR #146 (fix `normalizeBoardPath` platform-aware — win32 conserve le chemin drive, POSIX convertit `C:/x` → `/c/x`) mergée sur `master` (commit `02f4661`). Vérifications : typecheck OK, 344 tests / 40 fichiers OK, prettier OK, lint OK, 3 checks CI verts (PR #146).*
+
+*Note v8.16 (2026-11-22) : PR #148 (bundle du plateau KiCad réel `carte-test.kicad_pcb` dans `src/lib/pcb/boards/`, `outputFileTracingIncludes` pour le bundle Vercel, documentation de `PARTIVA_KICAD_BOARD`) mergée sur `master` (commit `e3085a9`). Variable `PARTIVA_KICAD_BOARD=src/lib/pcb/boards/carte-test.kicad_pcb` posée sur Vercel Production et Preview. Vérifications : typecheck OK, 344 tests / 40 fichiers OK, prettier OK, lint OK, `git diff --check` OK, 4 checks CI verts (PR #148). La vérification fonctionnelle post-déploiement de la page admin reste à consigner séparément.*
 
 ### Décisions clés
 
@@ -171,6 +173,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | SYNC-1 → SYNC-4 | 2026-11-22 | Clôture documentaire (E10/E11/E12), commit post-Fast-Track, merge `master` (PR #141) | ✅ |
 | PR #143 | 2026-11-22 | Fix chemin plateau KiCad (`normalizeBoardPath` Windows → POSIX + override `PARTIVA_KICAD_BOARD`) — `d75c75a` | ✅ |
 | PR #146 | 2026-11-22 | Fix `normalizeBoardPath` platform-aware (win32 conserve le chemin drive, POSIX → `/c/x`) — `030c2d5` | ✅ |
+| PR #148 | 2026-11-22 | Bundle plateau KiCad réel + tracing du build Vercel + doc `PARTIVA_KICAD_BOARD` — `9b84159` | ✅ |
 
 ---
 
@@ -183,6 +186,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 **C3 — canvas lisible** (plan C1→C5 acté) : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre. À spécifier avant exécution (charte §9).
 
 *Note v8.15 (2026-11-22) : Fast-Track P7 clos (44 étapes V1-V44), post-Fast-Track commité (`20e5993`), clôture documentaire (`57b0b00`), correctifs ESLint CI (`11220be`), fix chemin plateau KiCad (`36302a6`), fix `normalizeBoardPath` platform-aware (`030c2d5`), merge `master` via PR #146. `D-FT-P7-PRISMA-DRIFT` soldée (migration `20261120154239`) ; `D-FT-P7-HEAD-DIVERGENCE` soldée par ce merge. Vérifications : typecheck ✅, 344 tests / 40 fichiers ✅, prettier ✅, lint ✅, 3 checks CI verts.*
+
+*Note v8.16 (2026-11-22) : plateau KiCad réel `carte-test.kicad_pcb` (158 532 octets) versionné dans `src/lib/pcb/boards/` et tracé dans le bundle via `outputFileTracingIncludes` (PR #148, merge `e3085a9`). Variable `PARTIVA_KICAD_BOARD` posée sur Vercel Production et Preview. Objectif : faire disparaître `Fichier KiCad introuvable : /c/Users/pc/.../carte-test.kicad_pcb` sur la page admin. C3 non démarré.*
 
 *Options restant ouvertes : (a) C3 — canvas lisible ; (b) C4 — validation IPC sur le projet officiel `cmwo3y9z50000nsfc1ci309ll` ; (c) C5 — UX (chemin KiCad lisible, suppression, finitions) ; (d) synchronisation inverse KiCad → app ; (e) confirmation visuelle du placement par le coordinateur ; (f) mesure des faux positifs `cdc-quality` sur le golden set ; (g) runner live du golden set ; (h) nettoyage des orphelins ; (i) P11 — preuve E2E WebGL (solder `D-V8-D-4`) ; (j) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` ; (k) dettes `D-PCB-*` basses. (Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
 

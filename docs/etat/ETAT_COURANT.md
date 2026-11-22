@@ -279,6 +279,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - **PR #143** : fix chemin plateau KiCad — `normalizeBoardPath` (Windows → POSIX) + override `PARTIVA_KICAD_BOARD` — merge `36302a6` (CI : lint/typecheck/build verts).
 - **PR #144** : régénération prompt v8.14 (HEAD `36302a6`) — merge `93c7044`.
 - **PR #146** : fix `normalizeBoardPath` platform-aware (win32 conserve le chemin drive, POSIX → `/c/x`) + tests batch alignés — merge `02f4661` (CI : lint/typecheck/build verts).
+- **PR #148** : bundle du plateau KiCad réel `carte-test.kicad_pcb` (158 532 octets) dans `src/lib/pcb/boards/` + `outputFileTracingIncludes` pour le bundle Vercel + documentation de `PARTIVA_KICAD_BOARD` — merge `e3085a9` (CI : ESLint+Prettier/TypeScript/Build/Vercel verts). Variable posée sur Vercel Production et Preview ; vérification fonctionnelle post-déploiement à consigner.
 
 ---
 
@@ -296,4 +297,4 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
 8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
 
-*`master` = `02f4661` ; branche protégée (3 checks requis, toute fusion par PR). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+*`master` = `e3085a9` ; branche protégée (3 checks requis, toute fusion par PR). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
