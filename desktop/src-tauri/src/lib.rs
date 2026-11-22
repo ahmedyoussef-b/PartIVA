@@ -95,6 +95,7 @@ pub fn run() {
             .env("PORT", sidecar_port.to_string())
             .env("HOSTNAME", "127.0.0.1")
             .env("BETTER_AUTH_URL", format!("http://127.0.0.1:{}", sidecar_port))
+            .env("PARTIVA_DESKTOP", "1")
             .kill_on_drop(true);
           // DATABASE_URL injectée UNIQUEMENT si une URL Postgres est configurée
           // (sinon le sidecar démarre sans DB → écran de configuration).
