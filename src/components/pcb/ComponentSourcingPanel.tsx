@@ -163,7 +163,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     };
   };
 
-  const handlePlaceOne = async (idx: number) => {
+  const handlePlaceOne = async (idx: number, force = false) => {
     setPlacing(idx);
     setPlaceErrors((prev) => {
       const next = { ...prev };
@@ -210,6 +210,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         body: JSON.stringify({
           projectId,
           dryRun: false,
+          force,
           components: [
             {
               libName: s.libName,
@@ -343,7 +344,17 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               )}
               {placeErrors[idx] && (
                 <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
-                  {placeErrors[idx]}
+                  <div>{placeErrors[idx]}</div>
+                  {/verrou|\.lck|--force/i.test(placeErrors[idx] ?? '') && (
+                    <button
+                      type="button"
+                      disabled={placing !== null}
+                      onClick={() => handlePlaceOne(idx, true)}
+                      className="mt-2 rounded bg-red-600 px-2 py-1 text-[11px] font-medium text-white disabled:opacity-50"
+                    >
+                      Forcer le placement
+                    </button>
+                  )}
                 </div>
               )}
 
