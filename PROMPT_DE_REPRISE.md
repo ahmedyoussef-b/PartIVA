@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.12
-**Date :** 2026-11-19
-**Commit HEAD :** `e291ae5` (Merge PR #139, 2026-11-19)
+**Version :** 8.13
+**Date :** 2026-11-22
+**Commit HEAD :** `2224ebe` (merge PR #141, 2026-11-22)
 **Branche :** master
-**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 close (Next 16.4.6 + overlay Comparer SVG), P7 close (fix Cloudinary + Next images + roadmap), P8 close (câblage OCCT), P9 close (branchement défensif données CAO), P10 close (migration Prisma + activation CAO).
-**Dernière étape close :** P10 (migration Prisma `cadFileUrl`/`cadFileName` + activation du rendu CAO — `docs/roadmap/P10_STATUS.md`) — PR #139 (merge `e291ae5`).
-**Prochaine étape :** P11 — Arbitrage (preuve E2E WebGL ou support multi-couches) — à spécifier (charte §9)
+**Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 → P10 closes, **Fast-Track P7 close** (Phases A-E, V1-V44), **post-Fast-Track commité** (SYNC-3), **clôture documentaire SYNC-1 → SYNC-4**.
+**Dernière étape close :** SYNC-4 (merge `fast-track/p7-dashboard-pcb` → `master`, PR #141) — préc. SYNC-3 (code post-Fast-Track, `20e5993` + `57b0b00`).
+**Prochaine étape :** C3 — canvas lisible (plan C1→C5 acté) — à spécifier (charte §9)
 
 ---
 
@@ -35,7 +35,7 @@
 3. Vérifier `git log --oneline -3` (HEAD).
 4. Émettre le prompt de la prochaine étape (§4).
 
-> **CLAUSE DE CLÔTURE** — cette régénération v8.12 est déclenchée par la validation coordinateur de P10 (merge PR #139, `e291ae5`). Elle ne déclenche AUCUNE autre étape.
+> **CLAUSE DE CLÔTURE** — cette régénération v8.13 est déclenchée par la validation coordinateur de SYNC-4 (merge PR #141, commit `2224ebe`). Elle ne déclenche AUCUNE autre étape.
 
 ---
 
@@ -50,10 +50,10 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | Élément | Valeur |
 | --- | --- |
 | **Projet** | PartIVA |
-| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close (Desktop Tauri, 2026-11-18)** — **P6.3 close (2026-11-19)** — **P7 close (2026-11-19)** — **P8 close (2026-11-19)** — **P9 close (2026-11-19)** — **P10 close (2026-11-19)** |
-| **HEAD** | `e291ae5` |
-| **Dernière étape close** | **P10** (migration Prisma `cadFileUrl` + activation CAO, PR #139) — préc. P9 (branchement défensif, PR #137) |
-| **Prochaine étape** | **P11** — Arbitrage (preuve E2E WebGL ou support multi-couches) — à spécifier (charte §9) |
+| **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close** — **P6.3 → P10 closes (2026-11-19)** — **Fast-Track P7 close (Phases A-E, V1-V44)** — **post-Fast-Track commité (SYNC-3)** — **clôture documentaire SYNC-1 → SYNC-4** |
+| **HEAD** | `2224ebe` (merge PR #141, 2026-11-22) |
+| **Dernière étape close** | **SYNC-4** (merge `master`, PR #141) — préc. SYNC-3 (code post-Fast-Track, `20e5993` + `57b0b00`) |
+| **Prochaine étape** | **C3 — canvas lisible** (plan C1→C5 acté) — à spécifier (charte §9) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -89,6 +89,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | `D-PCB-AUTOROUTER-ABSENT` | Basse | Pas d'autorouteur IPC natif ; Freerouting externe |
 
 *Note v8.9 (2026-11-19) : `D-CLOUDINARY-KEY-LOGGED` **retirée** (résolue — PR #133, suppression du `console.log` dans `src/lib/cloudinary.ts`). `D-NEXT-IMAGES-DOMAINS-DEPRECATED` **retirée** (résolue — PR #133, retrait de `images.domains`, `remotePatterns` conservé). `D-V8-D-4-COMPARE-VISUAL-VALIDATION` maintenue — plan de résolution référencé vers `docs/roadmap/P7_ROADMAP.md` §4.*
+
+*Note v8.13 (2026-11-22) : le tableau ci-dessus n'est pas re-généré. Les dettes Fast-Track P7 (17 actives + 4 soldées) sont dans `DETTES.md` §« Dettes Fast-Track P7 ». Les deux dettes critiques (`D-FT-P7-PRISMA-DRIFT`, `D-FT-P7-HEAD-DIVERGENCE`) sont **soldées**. Les 3 dettes constatées en SYNC-3 (`D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST`) sont actives.*
 
 ### Décisions clés
 
@@ -162,6 +164,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | P8 | 2026-11-19 | Câblage OCCT dans `VisualComparisonOverlay` (Canvas Three.js + fallback SVG) + `P8_STATUS.md` — PR #135 (`61c7471`) | ✅ |
 | P9 | 2026-11-19 | Branchement défensif des données CAO (`layers`) dans la page projet + `P9_STATUS.md` — PR #137 (`20332f6`) | ✅ |
 | P10 | 2026-11-19 | Migration Prisma `cadFileUrl`/`cadFileName` + activation du rendu CAO + `P10_STATUS.md` — PR #139 (`e291ae5`) | ✅ |
+| Fast-Track P7 | 2026-11-19 → 2026-11-22 | Dashboard PCB, CDC client, analyse IA, placement KiCad, fiabilité et capitalisation (V1-V44) | ✅ |
+| Post-Fast-Track | 2026-11-21 → 2026-11-22 | A2.5, LLM multi-provider, compilation CDC, sourcing composants, empreintes KiCad, canvas | ✅ |
+| SYNC-1 → SYNC-4 | 2026-11-22 | Clôture documentaire (E10/E11/E12), commit post-Fast-Track, merge `master` (PR #141) | ✅ |
 
 ---
 
@@ -171,11 +176,11 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**P11 — Arbitrage** : deux options à spécifier (charte §9) — (a) preuve E2E WebGL du rendu CAO réel (capture + log `[OCCT:compare]`) pour solder `D-V8-D-4` ; (b) support multi-couches (comparaison réelle entre variantes). Aucune étape ne doit être engagée sans spec validée. Réf. `docs/roadmap/P10_STATUS.md` §5.
+**C3 — canvas lisible** (plan C1→C5 acté) : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre. À spécifier avant exécution (charte §9).
 
-*Note v8.12 (2026-11-19) : P10 close (PR #139, `e291ae5`) — migration `add_cad_fields_to_pcb_project` appliquée, client Prisma régénéré, cast défensif retiré. `D-V8-D-4-COMPARE-VISUAL-VALIDATION` : activation disponible, **preuve à fournir** (charte §10).*
+*Note v8.13 (2026-11-22) : Fast-Track P7 clos (44 étapes V1-V44), post-Fast-Track commité (`20e5993`), clôture documentaire (`57b0b00`), correctifs ESLint CI (`11220be`), merge `master` via PR #141 (`2224ebe`). `D-FT-P7-PRISMA-DRIFT` soldée (migration `20261120154239`) ; `D-FT-P7-HEAD-DIVERGENCE` soldée par ce merge. Vérifications : typecheck ✅, 341 tests / 40 fichiers ✅, prettier ✅, 3 checks CI verts.*
 
-*Options restant ouvertes : (a) P11 — preuve E2E WebGL (solder D-V8-D-4) ; (b) P11 bis — support multi-couches ; (c) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` (Moyen) ; (d) `D-PCB-CATALOG-PRICE-EDIT-UNVERIFIED` (Faible) ; (e) `D-PCB-E2E-DURATION-WATCH` (surveillance) ; (f) `D-PCB-*` — dettes Basse. (Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
+*Options restant ouvertes : (a) C3 — canvas lisible ; (b) C4 — validation IPC sur le projet officiel `cmwo3y9z50000nsfc1ci309ll` ; (c) C5 — UX (chemin KiCad lisible, suppression, finitions) ; (d) synchronisation inverse KiCad → app ; (e) confirmation visuelle du placement par le coordinateur ; (f) mesure des faux positifs `cdc-quality` sur le golden set ; (g) runner live du golden set ; (h) nettoyage des orphelins ; (i) P11 — preuve E2E WebGL (solder `D-V8-D-4`) ; (j) `D-E2E-PREEXISTANT-FAILURES` — rejouer les 60 specs `admin/user/viewer/workspace/public` ; (k) dettes `D-PCB-*` basses. (Aucune nouvelle étape code ne doit être inventée sans spec — charte §9.)*
 
 ---
 

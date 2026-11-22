@@ -363,3 +363,13 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Dettes** : `D-FT-P7-CURRENCY-HARDCODED`, `D-FT-P7-CANVAS-ORIGIN-HARDCODED`, `D-FT-P7-SOURCING-AUTOLOAD-COST`.
 - **Livraison** : `20e5993` (code post-Fast-Track) + `57b0b00` (gouvernance documentaire).
 - **Reste** : SYNC-4 (merge fast-forward sur `master` + prompt v8.13) après validation explicite ; C3 non démarré.
+
+### 11.13 Fusion master et prompt v8.13 (SYNC-4, 2026-11-22)
+
+- **PR #141** : `fast-track/p7-dashboard-pcb` → `master`. Première CI rouge sur ESLint (6 erreurs dans du code Fast-Track jamais linté) ; correctifs en `11220be` (import `prisma` inutilisé, clamp du menu canvas dans le handler, `setState` synchrone dans l'effet du sourcing, apostrophe JSX).
+- **Checks** : ESLint + Prettier ✅, TypeScript ✅, Build ✅ (3 checks requis).
+- **Merge** : merge commit `2224ebe` (2026-11-22T09:59:35Z), sans squash — hashes documentés préservés.
+- **Dettes soldées** : `D-FT-P7-PRISMA-DRIFT` (migration `20261120154239_regularize_fast_track_prisma_drift`, `RequestType` + `PcbProject.requestId`) et `D-FT-P7-HEAD-DIVERGENCE` (ce merge). Aucune dette critique active.
+- **Prompt v8.13** : HEAD `2224ebe`, dernière étape close = SYNC-4, prochaine étape = C3 ; publié dans une PR documentaire séparée.
+- **Vérifications** : `npm run lint` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅ · `git diff --check` ✅.
+- **Reste** : C3 (canvas lisible) non démarré.

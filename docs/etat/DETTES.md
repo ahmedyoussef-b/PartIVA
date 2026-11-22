@@ -546,17 +546,7 @@
 
 ### Dettes critiques (a regulariser avant merge sur master)
 
-#### `D-FT-P7-PRISMA-DRIFT` - 2 db push sans migration formelle
-- **Cause :** Request.type + PcbProject.requestId appliques par prisma db push sur Neon, sans migration.sql versionnee.
-- **Impact :** derive Prisma ; prisma migrate deploy impossible sans regularisation.
-- **Condition de resolution :** prisma migrate diff + migrate resolve --applied (cf. V45 - A3-alpha), commit de la migration.
-- **Ref. :** FAST_TRACK_P7.md l.97 ; SUIVI_DISCUSSION_PCB.md V45.
-
-#### `D-FT-P7-HEAD-DIVERGENCE` - HEAD divergent
-- **Cause :** HEAD reel cb2e972 != prompt v8.12 (e291ae5) != ETAT_COURANT (d50f4c0 pour master).
-- **Impact :** confusion de reference pour la reprise.
-- **Condition de resolution :** SYNC-4 (merge fast-forward sur master) + regeneration prompt v8.13.
-- **Ref. :** FAST_TRACK_P7.md l.100.
+Aucune dette critique active au 2026-11-22 : les deux dettes critiques du Fast-Track ont ete soldees et sont tracees dans la section "Dettes soldees" ci-dessous.
 
 ### Dettes de fonctionnalite (non bloquantes)
 
@@ -586,5 +576,7 @@
 | --- | --- | --- |
 | `D-FT-P7-PCB-AUTH-GAP` | V48 (A8) : requireAdmin() sur 17 routes | SUIVI l.66 |
 | `D-FT-P7-PLACEMENT-LOCAL` | C.3.1 + C.3.2c : persistance + envoi KiCad | ETAT_COURANT l.203 |
+| `D-FT-P7-PRISMA-DRIFT` | Migration `20261120154239_regularize_fast_track_prisma_drift` (RequestType + PcbProject.requestId) appliquee et commitee (V45) | `prisma/migrations/20261120154239_regularize_fast_track_prisma_drift/` |
+| `D-FT-P7-HEAD-DIVERGENCE` | SYNC-4 : merge fast-forward de `fast-track/p7-dashboard-pcb` sur `master` (PR #141) + prompt v8.13 | SYNC-4, PR #141 |
 
-> **Note Charte section 10** : "Une dette ne peut etre retiree du registre actif qu'apres verification effective de sa resolution." Les deux dettes ci-dessus sont verifiees soldees (preuve : commits respectifs). Elles sont listees ici pour tracabilite, puis retirees du registre actif.
+> **Note Charte section 10** : "Une dette ne peut etre retiree du registre actif qu'apres verification effective de sa resolution." Les quatre dettes ci-dessus sont verifiees soldees (preuve : commits et migration respectifs). Elles sont listees ici pour tracabilite, puis retirees du registre actif.

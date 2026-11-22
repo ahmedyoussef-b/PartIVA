@@ -268,9 +268,20 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-22 — Fusion master et prompt v8.13 (SYNC-4)
+
+- **PR #141** : `fast-track/p7-dashboard-pcb` → `master`. CI initialement rouge sur ESLint (6 erreurs dans du code Fast-Track jamais linté) ; correctifs commités en `11220be` : import `prisma` inutilisé, clamp du menu canvas calculé dans le handler, `setState` synchrone dans l'effet du sourcing, apostrophe JSX échappée.
+- **3 checks requis verts** : ESLint + Prettier, TypeScript, Build.
+- **Merge** : merge commit `2224ebe` (2026-11-22T09:59:35Z), sans squash — les hashes documentés (`20e5993`, `57b0b00`, `520738a`) sont préservés.
+- **Dettes soldées** : `D-FT-P7-PRISMA-DRIFT` (migration `20261120154239_regularize_fast_track_prisma_drift` : `RequestType` + `PcbProject.requestId`) et `D-FT-P7-HEAD-DIVERGENCE` (ce merge). Section critique du registre : **aucune dette active**.
+- **Prompt v8.13** : HEAD passé de `e291ae5` à `2224ebe`, dernière étape close = SYNC-4, prochaine étape = C3 (canvas lisible). Publié dans une PR documentaire séparée.
+- **Vérifications** : `npm run lint` ✅ · `npm run typecheck` ✅ · `npx vitest run` ✅ (**341 tests / 40 fichiers**) · `npx prettier --check .` ✅ · `git diff --check` ✅.
+
+---
+
 ## Prochaine étape
 
-**Fast-Track P7 — PLAN CLOS** (Phases A à E). La branche `fast-track/p7-dashboard-pcb` est **poussée** ; les travaux post-Fast-Track et la clôture documentaire sont commités en SYNC-3.
+**Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
 
 **Prochaines étapes possibles :**
 1. **C3 — canvas lisible** : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre.
@@ -281,6 +292,5 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 6. **Mesure des faux positifs** de `cdc-quality` sur le golden set (avant tout blocage éventuel).
 7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
 8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
-9. **SYNC-4 — fusion** : merge fast-forward sur `master` + régénération du prompt v8.13 (après validation explicite).
 
-*Fast-Track P7 isolé sur branche dédiée ; `master` préservé à `d50f4c0`. Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+*`master` = `2224ebe` ; branche protégée (3 checks requis, toute fusion par PR). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
