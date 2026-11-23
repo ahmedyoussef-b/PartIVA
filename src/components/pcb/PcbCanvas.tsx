@@ -137,6 +137,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
   const [busyRef, setBusyRef] = React.useState<string | null>(null);
   const [cursorMm, setCursorMm] = React.useState<{ x: number; y: number } | null>(null);
   const dragRef = React.useRef<{ sx: number; sy: number; px: number; py: number } | null>(null);
+  const dragPosRef = React.useRef<{ x: number; y: number } | null>(null);
 
   const fetchBoard = React.useCallback(async () => {
     if (!projectId) return;
@@ -358,6 +359,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           value: comp.value,
           rotation: comp.rotation,
         });
+        dragPosRef.current = { x: comp.x, y: comp.y };
         return;
       }
     }
@@ -367,6 +369,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     const mm = screenToMm(e.clientX, e.clientY);
     if (mm) setCursorMm(mm);
     if (dragComp && mm) {
+      dragPosRef.current = { x: mm.x + dragComp.offsetX, y: mm.y + dragComp.offsetY };
       setData((prev) =>
         prev
           ? {
@@ -423,20 +426,22 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
 
   const onMouseUp = () => {
     if (dragComp) {
-      const moved = data?.components.find((c) => c.reference === dragComp.ref);
+      const pos = dragPosRef.current;
       const d = dragComp;
       setDragComp(null);
-      if (moved) void finishDragComp(d.ref, moved.x, moved.y, d.footprint, d.value, d.rotation);
+      dragPosRef.current = null;
+      if (pos) void finishDragComp(d.ref, pos.x, pos.y, d.footprint, d.value, d.rotation);
       return;
     }
     dragRef.current = null;
   };
   const onMouseLeave = () => {
     if (dragComp) {
-      const moved = data?.components.find((c) => c.reference === dragComp.ref);
+      const pos = dragPosRef.current;
       const d = dragComp;
       setDragComp(null);
-      if (moved) void finishDragComp(d.ref, moved.x, moved.y, d.footprint, d.value, d.rotation);
+      dragPosRef.current = null;
+      if (pos) void finishDragComp(d.ref, pos.x, pos.y, d.footprint, d.value, d.rotation);
     }
     dragRef.current = null;
     setCursorMm(null);
@@ -494,6 +499,16 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           </Btn>
           <Btn onClick={fit} title="Recentrer">
             Reset vue
+          </Btn>
+          <Btn active={mode === 'pan'} onClick={() => setMode('pan')} title="Panoramique">
+            Pan
+          </Btn>
+          <Btn
+            active={mode === 'move'}
+            onClick={() => setMode('move')}
+            title="Déplacer un composant"
+          >
+            Déplacer
           </Btn>
           <Btn active={showGrid} onClick={() => setShowGrid((v) => !v)} title="Grille">
             Grille

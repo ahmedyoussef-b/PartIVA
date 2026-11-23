@@ -52,6 +52,14 @@ function resolveTemplate(): string | null {
   return null;
 }
 
+function workRoot(): string {
+  const override = process.env.PARTIVA_DATA_DIR?.trim();
+  if (override) return override;
+  const appdata = process.env.APPDATA;
+  if (appdata) return path.join(appdata, 'PartIVA');
+  return path.join(process.cwd(), 'data');
+}
+
 function openBoardInDesktop(absPath: string): void {
   if (process.env.PARTIVA_DESKTOP !== '1') return;
   try {
@@ -155,7 +163,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   try {
     const template = resolveTemplate();
-    const dir = path.join(process.cwd(), 'data', 'pcb-work', id);
+    const dir = path.join(workRoot(), 'pcb-work', id);
     mkdirSync(dir, { recursive: true });
     const dest = path.join(dir, 'carte-test.kicad_pcb');
     const raw = template ? readFileSync(template, 'utf8') : EMPTY_BOARD_FALLBACK;
