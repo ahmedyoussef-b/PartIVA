@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 export function RequirementInput({
   projectId,
-  partFunction: _partFunction,
   kicadFilePath,
 }: {
   projectId: string;

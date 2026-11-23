@@ -18,6 +18,7 @@ export interface SourcingResult {
     price: number;
     stock: number;
     supplierRef: string;
+    catalogId: string;
   }>;
   alternatives: Array<{
     mpn: string;
@@ -75,7 +76,8 @@ export async function sourceBom(bomItems: BomItem[]): Promise<SourcingResult[]> 
           mpn: comp.supplierRef ?? comp.id,
           name: comp.name,
           price: comp.prices[0]?.price ?? 0,
-          stock: stockToNumber(comp.prices[0]?.stockStatus),
+          stock: comp.prices[0]?.stock ?? stockToNumber(comp.prices[0]?.stockStatus),
+          catalogId: comp.id,
           similarityScore: calculateSimilarity(item.description!, comp.name),
         }))
         .filter((a) => a.similarityScore > 0.4)
@@ -87,8 +89,9 @@ export async function sourceBom(bomItems: BomItem[]): Promise<SourcingResult[]> 
       mpn: m.supplierRef ?? m.id,
       name: m.name,
       price: m.prices[0]?.price ?? 0,
-      stock: stockToNumber(m.prices[0]?.stockStatus),
+      stock: m.prices[0]?.stock ?? stockToNumber(m.prices[0]?.stockStatus),
       supplierRef: m.supplierRef ?? m.id,
+      catalogId: m.id,
     }));
 
     const bestPrice =

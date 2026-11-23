@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
-import { placeFootprints, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
+import { placeFootprints, syncBoardLive, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
 
 export const runtime = 'nodejs';
 
@@ -29,7 +29,6 @@ export async function POST(req: Request) {
   const projectId = typeof b.projectId === 'string' ? b.projectId.trim() : '';
   const components = Array.isArray(b.components) ? b.components : [];
   const dryRunFlag = b.dryRun === true;
-  const force = b.force === true;
   const allowOutside = b.allowOutside === true;
 
   if (b.force !== undefined && typeof b.force !== 'boolean') {
@@ -123,11 +122,16 @@ export async function POST(req: Request) {
     };
   });
 
+  // Persistance TOUJOURS par le fichier : c'est la seule source de vérité qui
+  // contient tous les composants (KiCad garde un état mémoire potentiellement
+  // obsolète et ne doit jamais réécrire le plateau depuis cette mémoire).
   const result = await placeFootprints({
     boardPath: abs,
     footprints,
     dryRun: dryRunFlag,
-    force,
+    // KiCad reste ouvert pendant les manipulations : l'écriture fichier doit
+    // ignorer le verrou `.lck`.
+    force: true,
     allowOutside,
   });
 
@@ -137,6 +141,30 @@ export async function POST(req: Request) {
       { error: result.error ?? 'Échec du placement batch' },
       { status: 500 },
     );
+  }
+
+  // Rafraîchissement de la fenêtre KiCad ouverte (sans sauvegarde) : les
+  // déplacements de composants déjà connus de l'éditeur apparaissent en direct.
+  // Les composants ajoutés depuis l'ouverture de KiCad ne sont pas dans sa
+  // mémoire : ils nécessitent un rechargement manuel du plateau dans l'éditeur.
+  let liveSynced = false;
+  let liveMissing: string[] = [];
+  if (!dryRunFlag && process.env.PARTIVA_DESKTOP === '1') {
+    const live = await syncBoardLive({ boardPath: abs, footprints });
+    if (live.ok) {
+      liveSynced = (live.moved?.length ?? 0) > 0;
+      liveMissing = live.missing ?? [];
+      console.info('[PCB:PLACE-BATCH] Sync live KiCad', {
+        board: live.board,
+        moved: live.moved,
+        missing: liveMissing,
+      });
+    } else {
+      console.warn('[PCB:PLACE-BATCH] Sync live indisponible', {
+        code: live.code,
+        error: live.error,
+      });
+    }
   }
 
   console.info('[PCB:PLACE-BATCH] Résultat', {
@@ -151,6 +179,10 @@ export async function POST(req: Request) {
     placed: result.footprintCount ?? 0,
     dryRun: dryRunFlag,
     message: result.message,
+    liveSynced,
+    ...(liveMissing.length > 0
+      ? { liveMissing, hint: 'Rechargez le plateau dans KiCad pour voir les nouveaux composants.' }
+      : {}),
   };
   if (result.verified !== undefined) payload.verified = result.verified;
   if (result.backup !== undefined) payload.backup = result.backup;

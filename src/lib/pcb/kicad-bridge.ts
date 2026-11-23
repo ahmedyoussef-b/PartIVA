@@ -356,3 +356,94 @@ export function placeFootprints(args: {
   }
   return executeBatch(args.boardPath, args.footprints, args.dryRun === true, args);
 }
+
+export interface KicadLiveSyncResult {
+  ok: boolean;
+  live?: boolean;
+  moved?: string[];
+  missing?: string[];
+  board?: string;
+  error?: string;
+  code?: string;
+}
+
+/**
+ * Synchronisation live via l'API IPC de l'instance KiCad ouverte.
+ * Déplace les empreintes directement dans l'éditeur puis sauvegarde le plateau :
+ * la fenêtre KiCad reflète le changement immédiatement, sans `.lck` à contourner.
+ *
+ * Nécessite `kicad-python` (IPC API) dans l'environnement Python KiCad et le
+ * serveur d'API activé dans Préférences > Plugins. En cas d'indisponibilité,
+ * l'appelant doit retomber sur `placeFootprints` (écriture fichier + `--force`).
+ */
+export function syncBoardLive(args: {
+  boardPath: string;
+  footprints: BatchFootprintInput[];
+  dryRun?: boolean;
+}): Promise<KicadLiveSyncResult> {
+  if (args.footprints.length === 0) {
+    return Promise.resolve({ ok: false, error: 'footprints requis (tableau non vide)' });
+  }
+
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, code: 'PYTHON_UNAVAILABLE', error: kicadUnavailableMessage() };
+
+    const scriptPath = resolveScriptPath('sync_board_live.py');
+    if (!scriptPath) {
+      return {
+        ok: false,
+        code: 'SCRIPT_UNAVAILABLE',
+        error: 'script sync_board_live.py introuvable',
+      };
+    }
+
+    const tmpInput = join(
+      tmpdir(),
+      `partiva-kicad-live-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`,
+    );
+
+    try {
+      const payload = args.footprints.map((f) => ({
+        reference: f.reference,
+        xMm: f.xMm,
+        yMm: f.yMm,
+        rotation: f.rotation ?? 0,
+      }));
+      writeFileSync(tmpInput, JSON.stringify(payload), 'utf8');
+
+      const cli = ['--board', args.boardPath, '--input', tmpInput];
+      if (args.dryRun === true) cli.push('--dry-run');
+
+      const output = await runPython(pyPath, scriptPath, cli);
+      const line =
+        output.stdout
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .find((l) => l.startsWith('{')) ?? '';
+      if (!line) {
+        return {
+          ok: false,
+          code: 'BAD_OUTPUT',
+          error: output.stderr.trim() || 'sortie illisible du script IPC',
+        };
+      }
+      const parsed = JSON.parse(line) as KicadLiveSyncResult & { trace?: string };
+      if (parsed.ok) return parsed;
+      console.warn('[PCB:LIVE-SYNC] Échec IPC', { code: parsed.code, error: parsed.error });
+      return parsed;
+    } catch (error) {
+      return {
+        ok: false,
+        code: 'SYNC_ERROR',
+        error: error instanceof Error ? error.message : String(error),
+      };
+    } finally {
+      try {
+        unlinkSync(tmpInput);
+      } catch {
+        // fichier déjà absent : sans objet
+      }
+    }
+  });
+}

@@ -42,6 +42,21 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
   }
 
+  // Le fichier KiCad stocke souvent l'empreinte sans bibliothèque (`DIP-8_W7.62mm`).
+  // La BDD conserve le couple `Lib:Empreinte` : on le réexpose pour que le drag-drop
+  // puisse construire un payload `/api/pcb/place/batch` valide (libName requis).
+  const dbComponents = await prisma.pcbComponent.findMany({
+    where: { projectId },
+    select: { reference: true, footprint: true },
+  });
+  const libByReference = new Map<string, string>();
+  for (const c of dbComponents) {
+    const fp = c.footprint?.trim();
+    if (!fp || !fp.includes(':')) continue;
+    const [lib] = fp.split(':', 2);
+    if (lib) libByReference.set(c.reference, lib.replace(/\.pretty$/i, ''));
+  }
+
   try {
     const parsed = parseKicadPcb(readFileSync(abs, 'utf8'));
     return NextResponse.json({
@@ -59,6 +74,7 @@ export async function GET(req: Request) {
         rotation: c.rotation,
         layer: c.layer,
         footprint: c.library ? `${c.library}:${c.name}` : c.name,
+        libName: libByReference.get(c.reference) ?? c.library ?? '',
         pads: c.pads ?? [],
         graphics: c.graphics ?? [],
       })),

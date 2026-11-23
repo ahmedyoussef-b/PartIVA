@@ -236,7 +236,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const relY = s.yMm - BOARD_ORIGIN_Y;
       addNode(sym, Math.round(relX * PX_PER_MM), Math.round(relY * PX_PER_MM));
       window.dispatchEvent(new Event('pcb:board-refresh'));
-      toast.success('Composant placé dans KiCad et affiché dans PartIVA');
+      if (typeof data.hint === 'string' && data.hint.trim()) {
+        toast.success('Composant placé dans le plateau', {
+          description: 'KiCad : Fichier > Recharger pour afficher le composant.',
+        });
+      } else {
+        toast.success('Composant placé dans KiCad et affiché dans PartIVA');
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
       const isHybrid =

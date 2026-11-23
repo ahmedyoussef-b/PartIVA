@@ -14,7 +14,7 @@ const LOG_FILE: &str = "partiva-desktop";
 const DEFAULT_MAX_FILE_SIZE: u128 = 10_000_000;
 
 /// Targets conservés dans le fichier (H5 — anti-bruit).
-const KEPT_TARGET_PREFIXES: [&str; 4] = ["sidecar", "app_lib", "kicad", "config"];
+const KEPT_TARGET_PREFIXES: [&str; 5] = ["sidecar", "app_lib", "kicad", "config", "dev"];
 
 fn max_file_size() -> u128 {
   std::env::var("PARTIVA_LOG_MAX_BYTES")

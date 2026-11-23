@@ -17,7 +17,7 @@ export function KicadAutoOpen({
     fetch(`/api/pcb/projects/${projectId}/board`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'launch' }),
+      body: JSON.stringify({ action: 'launch', source: 'auto' }),
     }).catch(() => {});
   }, [projectId, kicadFilePath]);
   return null;

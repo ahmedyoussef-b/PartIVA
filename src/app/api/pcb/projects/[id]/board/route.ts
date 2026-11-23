@@ -60,6 +60,12 @@ function workRoot(): string {
   return path.join(process.cwd(), 'data');
 }
 
+/// KiCad pose `~<fichier>.lck` tant que le plateau est ouvert. On s'en sert pour
+/// éviter qu'un rechargement de page n'ouvre une seconde fenêtre sur le même projet.
+function isBoardOpenInKicad(absPath: string): boolean {
+  return existsSync(path.join(path.dirname(absPath), `~${path.basename(absPath)}.lck`));
+}
+
 function openBoardInDesktop(absPath: string): void {
   if (process.env.PARTIVA_DESKTOP !== '1') return;
   try {
@@ -89,7 +95,6 @@ function stripFootprints(content: string): string {
       let depth = 0;
       let inString = false;
       let escape = false;
-      const start = i;
       for (; i < content.length; i++) {
         const ch = content[i];
         if (inString) {
@@ -139,10 +144,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } catch {
     body = {};
   }
-  const action =
-    typeof (body as Record<string, unknown>)?.action === 'string'
-      ? ((body as Record<string, unknown>).action as string)
-      : 'open';
+  const b = (body ?? {}) as Record<string, unknown>;
+  const action = typeof b.action === 'string' ? b.action : 'open';
+  const source = b.source === 'manual' ? 'manual' : 'auto';
   if (action !== 'open' && action !== 'reset' && action !== 'launch') {
     return NextResponse.json({ error: 'action invalide' }, { status: 400 });
   }
@@ -157,8 +161,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const boardPath = project.kicadFilePath?.trim();
     if (!boardPath) return NextResponse.json({ ok: false, reason: 'no-file' }, { status: 200 });
     const abs = path.isAbsolute(boardPath) ? boardPath : path.join(process.cwd(), boardPath);
-    if (existsSync(abs)) openBoardInDesktop(abs);
-    return NextResponse.json({ ok: true, action, kicadFilePath: abs, exists: existsSync(abs) });
+    const exists = existsSync(abs);
+    // Ouverture automatique (chargement projet) : on ne duplique pas une fenêtre
+    // KiCad déjà ouverte sur ce plateau. Le bouton `KiCad` (source=manual) force
+    // l'ouverture, utile si un verrou stale subsiste après un crash.
+    const alreadyOpen = exists && source !== 'manual' && isBoardOpenInKicad(abs);
+    if (exists && !alreadyOpen) openBoardInDesktop(abs);
+    return NextResponse.json({
+      ok: true,
+      action,
+      kicadFilePath: abs,
+      exists,
+      alreadyOpen,
+    });
   }
 
   try {

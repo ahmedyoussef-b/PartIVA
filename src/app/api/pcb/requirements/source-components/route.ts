@@ -39,6 +39,7 @@ export async function POST(req: Request) {
 
   const b = (body ?? {}) as Record<string, unknown>;
   const projectId = typeof b.projectId === 'string' ? b.projectId.trim() : '';
+  const forceRefresh = b.force === true;
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
   }
@@ -54,6 +55,70 @@ export async function POST(req: Request) {
       { error: 'Aucun contexte validé (phase pré-implantation manquante)' },
       { status: 400 },
     );
+  }
+
+  // Cache : si des propositions existent déjà et qu'on ne force pas, on les renvoie
+  // sans rappeler le LLM (économie de quota).
+  const cached = project.sourcingCache as { components?: unknown; count?: number } | null;
+  if (!forceRefresh && cached && Array.isArray(cached.components) && cached.components.length > 0) {
+    console.info('[PCB:SOURCE] Cache hit', { projectId, count: cached.components.length });
+    // Recompute candidates from catalog (cheap, no LLM) to keep prices fresh.
+    const cachedComponents = cached.components as Array<Record<string, unknown>>;
+    // Re-run the cheap footprint-resolution + catalog search for each cached component.
+    const footprintsRoot =
+      process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT ??
+      'C:/Program Files/KiCad/10.0/share/kicad/footprints';
+    const refreshed = [];
+    for (const p of cachedComponents) {
+      const resolved = resolveKicadFootprint(
+        String(p.libName ?? ''),
+        String(p.footprintName ?? ''),
+        String(p.reference ?? ''),
+        footprintsRoot,
+      );
+      const comp = {
+        ...p,
+        libName: resolved.libName,
+        footprintName: resolved.footprintName,
+        xMm: p.xMm,
+        yMm: p.yMm,
+      };
+      const kw = String(p.searchKeyword || p.type || '');
+      const candidates = await prisma.componentCatalog.findMany({
+        where: {
+          OR: [
+            { name: { contains: kw, mode: 'insensitive' } },
+            { category: { contains: kw, mode: 'insensitive' } },
+            { footprint: { contains: String(p.footprintName ?? ''), mode: 'insensitive' } },
+            { supplierRef: { contains: kw, mode: 'insensitive' } },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          footprint: true,
+          symbol: true,
+          supplier: true,
+          supplierRef: true,
+        },
+        take: 10,
+        orderBy: { updatedAt: 'desc' },
+      });
+      refreshed.push({
+        ...comp,
+        candidates: candidates.map((c) => ({
+          id: c.id,
+          name: c.name,
+          category: c.category,
+          footprint: c.footprint,
+          symbol: c.symbol,
+          supplier: c.supplier,
+          supplierRef: c.supplierRef,
+        })),
+      });
+    }
+    return NextResponse.json({ components: refreshed, count: refreshed.length, cached: true });
   }
 
   const apiKey = process.env.GROQ_API_KEY;
@@ -264,6 +329,16 @@ Règles :
         supplierRef: c.supplierRef,
       })),
     });
+  }
+
+  // Persistance du cache pour éviter de re-solliciter le LLM.
+  try {
+    await prisma.pcbProject.update({
+      where: { id: projectId },
+      data: { sourcingCache: { components, count: components.length } as object },
+    });
+  } catch (e) {
+    console.warn('[PCB:SOURCE] Cache save failed', e);
   }
 
   console.info('[PCB:SOURCE] Proposition', { projectId, count: components.length });

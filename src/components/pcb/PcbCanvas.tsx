@@ -33,6 +33,7 @@ type BoardComponent = {
   rotation: number;
   layer: string;
   footprint: string;
+  libName?: string;
   pads: Pad[];
   graphics: Graphic[];
 };
@@ -113,6 +114,29 @@ function drawGraphicLocal(
   drawGraphic(ctx, { ...g, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }, sx, sy, scale);
 }
 
+function Btn({
+  active,
+  onClick,
+  children,
+  title,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className={`rounded px-2 py-1 hover:bg-gray-100 ${active ? 'bg-gray-200 font-medium' : ''}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function PcbCanvas({ projectId }: { projectId?: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
@@ -131,6 +155,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     offsetX: number;
     offsetY: number;
     footprint: string;
+    libName: string;
     value: string;
     rotation: number;
   } | null>(null);
@@ -153,7 +178,10 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
   }, [projectId]);
 
   React.useEffect(() => {
-    fetchBoard();
+    const id = setTimeout(() => {
+      void fetchBoard();
+    }, 0);
+    return () => clearTimeout(id);
   }, [fetchBoard]);
   React.useEffect(() => {
     const handler = () => fetchBoard();
@@ -203,7 +231,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     const sy = (y: number) => ty + y * scale;
     const comps = data?.components ?? [];
 
-    ctx.fillStyle = '#0f3b2e';
+    ctx.fillStyle = '#0b1a14';
     ctx.fillRect(sx(ox), sy(oy), bw * scale, bh * scale);
 
     if (showGrid) {
@@ -212,20 +240,13 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       const startX = Math.floor(ox / step) * step;
       const startY = Math.floor(oy / step) * step;
       for (let x = startX; x <= ox + bw; x += step) {
-        ctx.strokeStyle = x % major === 0 ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.05)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(sx(x), sy(oy));
-        ctx.lineTo(sx(x), sy(oy + bh));
-        ctx.stroke();
-      }
-      for (let y = startY; y <= oy + bh; y += step) {
-        ctx.strokeStyle = y % major === 0 ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.05)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(sx(ox), sy(y));
-        ctx.lineTo(sx(ox + bw), sy(y));
-        ctx.stroke();
+        for (let y = startY; y <= oy + bh; y += step) {
+          const isMajor = x % major === 0 && y % major === 0;
+          ctx.fillStyle = isMajor ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.07)';
+          ctx.beginPath();
+          ctx.arc(sx(x), sy(y), isMajor ? 1.1 : 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
     ctx.strokeStyle = '#d8c84b';
@@ -242,7 +263,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
         if (isSilk && !showSilk) continue;
         if (isFab && !showFab) continue;
         if (!isSilk && !isFab && !isCrt) continue;
-        ctx.strokeStyle = isSilk ? '#e8e3c5' : isFab ? '#8b8b8b' : '#d46ba0';
+        ctx.strokeStyle = isSilk ? '#ffffff' : isFab ? '#8b8b8b' : '#d46ba0';
         drawGraphicLocal(ctx, comp, g, sx, sy, scale);
       }
       if (showPads) {
@@ -253,9 +274,10 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           ctx.save();
           ctx.translate(sx(w.x), sy(w.y));
           ctx.rotate(((comp.rotation + p.rotation) * Math.PI) / 180);
-          ctx.fillStyle = p.type === 'thru_hole' ? '#bfa53a' : '#d4b23a';
-          ctx.strokeStyle = 'rgba(255,245,180,0.35)';
-          ctx.lineWidth = Math.max(0.5, 0.05 * scale);
+          ctx.fillStyle = p.type === 'thru_hole' ? '#d4a520' : '#c97a30';
+          ctx.strokeStyle =
+            p.type === 'thru_hole' ? 'rgba(255,235,150,0.55)' : 'rgba(255,180,100,0.45)';
+          ctx.lineWidth = Math.max(0.6, 0.06 * scale);
           if (p.shape.includes('circle') || (p.shape === 'oval' && Math.abs(p.w - p.h) < 0.01)) {
             ctx.beginPath();
             ctx.ellipse(0, 0, pw / 2, ph / 2, 0, 0, Math.PI * 2);
@@ -270,9 +292,9 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
             ctx.strokeRect(-pw / 2, -ph / 2, pw, ph);
           }
           if (p.drill) {
-            ctx.fillStyle = '#141414';
+            ctx.fillStyle = '#0a0a0a';
             ctx.beginPath();
-            ctx.arc(0, 0, Math.max(0.5, (p.drill * scale) / 2), 0, Math.PI * 2);
+            ctx.arc(0, 0, Math.max(0.6, (p.drill * scale) / 2), 0, Math.PI * 2);
             ctx.fill();
           }
           ctx.restore();
@@ -356,6 +378,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           offsetX: comp.x - mm.x,
           offsetY: comp.y - mm.y,
           footprint: comp.footprint,
+          libName: comp.libName ?? '',
           value: comp.value,
           rotation: comp.rotation,
         });
@@ -395,11 +418,13 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       footprint: string,
       value: string,
       rotation: number,
+      fallbackLibName: string,
     ) => {
       if (!projectId) return;
-      const [libName, footprintName] = footprint.includes(':')
+      const [libFromFootprint, footprintName] = footprint.includes(':')
         ? footprint.split(':', 2)
         : ['', footprint];
+      const libName = libFromFootprint || fallbackLibName;
       setBusyRef(ref);
       try {
         const res = await fetch('/api/pcb/place/batch', {
@@ -408,6 +433,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           body: JSON.stringify({
             projectId,
             dryRun: false,
+            force: true,
             components: [{ libName, footprintName, reference: ref, value, xMm, yMm, rotation }],
           }),
         });
@@ -415,8 +441,10 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
         if (!res.ok) throw new Error(json.error || 'Erreur ' + res.status);
         await fetchBoard();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erreur déplacement');
+        const message = err instanceof Error ? err.message : 'Erreur déplacement';
+        // fetchBoard() remet `error` à null : on réaffiche le message après.
         await fetchBoard();
+        setError(message);
       } finally {
         setBusyRef(null);
       }
@@ -430,7 +458,8 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       const d = dragComp;
       setDragComp(null);
       dragPosRef.current = null;
-      if (pos) void finishDragComp(d.ref, pos.x, pos.y, d.footprint, d.value, d.rotation);
+      if (pos)
+        void finishDragComp(d.ref, pos.x, pos.y, d.footprint, d.value, d.rotation, d.libName);
       return;
     }
     dragRef.current = null;
@@ -441,7 +470,8 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
       const d = dragComp;
       setDragComp(null);
       dragPosRef.current = null;
-      if (pos) void finishDragComp(d.ref, pos.x, pos.y, d.footprint, d.value, d.rotation);
+      if (pos)
+        void finishDragComp(d.ref, pos.x, pos.y, d.footprint, d.value, d.rotation, d.libName);
     }
     dragRef.current = null;
     setCursorMm(null);
@@ -456,30 +486,9 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     await fetch('/api/pcb/projects/' + projectId + '/board', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'launch' }),
+      body: JSON.stringify({ action: 'launch', source: 'manual' }),
     }).catch(() => {});
   };
-
-  const Btn = ({
-    active,
-    onClick,
-    children,
-    title,
-  }: {
-    active?: boolean;
-    onClick: () => void;
-    children: React.ReactNode;
-    title?: string;
-  }) => (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className={`rounded px-2 py-1 hover:bg-gray-100 ${active ? 'bg-gray-200 font-medium' : ''}`}
-    >
-      {children}
-    </button>
-  );
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -541,9 +550,13 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
             ? `X ${cursorMm.x.toFixed(2)} mm · Y ${cursorMm.y.toFixed(2)} mm`
             : 'Curseur hors plateau'}
         </span>
-        {busyRef && <span className="text-blue-500">Déplacement {busyRef}…</span>}
-        {error && <span className="text-red-500">{error}</span>}
       </div>
+      {(busyRef || error) && (
+        <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+          {busyRef && <span className="text-blue-500">Déplacement {busyRef}…</span>}
+          {error && <span className="text-red-500">{error}</span>}
+        </div>
+      )}
       <div
         ref={wrapperRef}
         className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700 bg-[#111315]"

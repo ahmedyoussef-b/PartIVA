@@ -684,6 +684,7 @@ model PcbProject {
   cadFileUrl    String?
   cadFileName   String?
   kicadFilePath String?
+  sourcingCache Json?
   requestId     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -824,6 +825,7 @@ model PcbVersion {
 model ComponentCatalog {
   id          String   @id @default(cuid())
   name        String
+  componentType String?  // ex. condensateur, resistance, connecteur...
   category    String   // resistor | capacitor | ic | connector | sensor | power
   symbol      String
   footprint   String
@@ -846,6 +848,7 @@ model ComponentPrice {
   currency    String            @default("EUR")
   supplier    String?
   stockStatus String?           // in_stock | low_stock | out_of_stock
+  stock       Int      @default(0)
   updatedAt   DateTime          @updatedAt
 
   @@index([catalogId])

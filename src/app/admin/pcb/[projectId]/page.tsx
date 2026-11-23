@@ -1,6 +1,7 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/prisma';
 import CompliancePanel from '@/components/pcb/CompliancePanel';
-import SourcingTable from '@/components/pcb/SourcingTable';
 import DesignReviewPanel from '@/components/pcb/DesignReviewPanel';
 import ExportButtons from '@/components/pcb/ExportButtons';
 import VisualComparisonOverlay from '@/components/pcb/VisualComparisonOverlay';
@@ -13,13 +14,11 @@ import { PcbEditorProvider } from '@/components/pcb/PcbEditorProvider';
 import { ProposalsPanel } from '@/components/pcb/ProposalsPanel';
 import { PlacementPanel } from '@/components/pcb/PlacementPanel';
 import { ComponentSourcingPanel } from '@/components/pcb/ComponentSourcingPanel';
-import { PriceCard } from '@/components/pcb/PriceCard';
 import { CapitalizeButton } from '@/components/pcb/CapitalizeButton';
 import { computePriceTotal } from '@/lib/pcb/price-total';
 import { parseKicadPcb } from '@/lib/pcb/kicad-file-reader';
 import fs from 'node:fs';
 import path from 'node:path';
-import { sourceBom } from '@/lib/pcb/sourcing-engine';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 
 export const dynamic = 'force-dynamic';
@@ -116,29 +115,17 @@ export default async function PcbProjectPage({
     status: p.status,
   }));
 
-  const [sourcingResults, complianceResult] = await Promise.all([
-    sourceBom(
-      project.components.map((c) => ({
-        reference: c.reference,
-        mpn: c.catalogId ?? undefined,
-        description: c.name,
-        quantity: 1,
-      })),
-    ),
-    Promise.resolve(
-      analyzeRealState(
-        project.components.map((c) => ({
-          id: c.reference,
-          footprint: c.footprint ?? undefined,
-        })),
-        project.nets.map((n) => ({
-          name: n.name,
-          pins: [],
-          vias: [],
-        })),
-      ),
-    ),
-  ]);
+  const complianceResult = await analyzeRealState(
+    project.components.map((c) => ({
+      id: c.reference,
+      footprint: c.footprint ?? undefined,
+    })),
+    project.nets.map((n) => ({
+      name: n.name,
+      pins: [],
+      vias: [],
+    })),
+  );
 
   const criticalCount = complianceResult.violations.filter((v) => v.severity === 'CRITICAL').length;
 
@@ -191,7 +178,17 @@ export default async function PcbProjectPage({
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
           {/* Colonne gauche : Layout PCB */}
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
-            <h2 className="mb-4 font-semibold text-gray-800">Layout PCB</h2>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800">Layout PCB</h2>
+              <span className="text-sm font-semibold text-gray-700">
+                {priceTotal.lineCount === 0
+                  ? 'Coût : —'
+                  : `Coût estimé : ${(priceTotal.currency === 'EUR'
+                      ? priceTotal.total * 3.3
+                      : priceTotal.total
+                    ).toFixed(2)} ${priceTotal.currency === 'EUR' ? 'DT' : priceTotal.currency}`}
+              </span>
+            </div>
             <div className="flex flex-1 items-stretch">
               <PcbCanvas projectId={projectId} />
             </div>
@@ -199,6 +196,20 @@ export default async function PcbProjectPage({
 
           {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
+            {/* Audit complet du magasin de composants */}
+            <div className="overflow-hidden rounded-lg border bg-white">
+              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                Approvisionnement
+              </div>
+              <div className="p-4">
+                <Link href={`/admin/pcb/${projectId}/magasin`}>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ouvrir l&apos;audit complet du magasin
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
             {/* C2-bis : conformité remontée en tête de colonne pour rester visible */}
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
@@ -222,17 +233,6 @@ export default async function PcbProjectPage({
             />
 
             <ComponentSourcingPanel projectId={projectId} />
-
-            <div className="overflow-hidden rounded-lg border bg-white">
-              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                Approvisionnement
-              </div>
-              <div className="p-4">
-                <SourcingTable results={sourcingResults} />
-              </div>
-            </div>
-
-            <PriceCard total={priceTotal} />
 
             <CapitalizeButton projectId={projectId} />
 

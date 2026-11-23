@@ -56,6 +56,32 @@ pub fn run() {
       });
       app.manage(pool);
 
+      // Mode développement (`tauri dev`) : le serveur Next.js est lancé par
+      // `beforeDevCommand` (desktop/scripts/dev-server.cjs) sur le port 3100.
+      // Aucun sidecar n'est démarré : la webview navigue directement vers le
+      // serveur de développement (rechargement à chaud, pas de build standalone).
+      if tauri::is_dev() {
+        let app_handle = app.handle().clone();
+        tauri::async_runtime::spawn(async move {
+          if let Some(splash) = app_handle.get_webview_window("splash") {
+            let _ = splash.close();
+          }
+          if let Some(main) = app_handle.get_webview_window("main") {
+            if let Ok(url) = tauri::Url::parse("http://localhost:3100/") {
+              let _ = main.navigate(url);
+            }
+            let _ = main.show();
+            let _ = main.maximize();
+            let _ = main.set_focus();
+          }
+        });
+        log::info!(
+          target: "dev",
+          "mode développement : sidecar désactivé, webview → http://localhost:3100/"
+        );
+        return Ok(());
+      }
+
       // B3 (V8-D-14) — spawn du sidecar Node (API plugin shell, Tauri 2).
       // T3.6 (V8-D-14) — résolution du dossier serveur via `current_exe()`
       // (fonctionne en mode installé MSI/NSIS, pas seulement depuis target/release/).

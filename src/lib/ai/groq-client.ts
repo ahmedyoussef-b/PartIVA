@@ -15,6 +15,21 @@ export function getGroqApiKey(): string | undefined {
   return process.env.GROQ_API_KEY?.trim() || undefined;
 }
 
+// Cooldown par fournisseur (en mémoire, par processus).
+const providerCooldown = new Map<string, number>();
+
+function cooldownMsFor(status: number, errorText: string): number {
+  const lower = errorText.toLowerCase();
+  if (lower.includes('per day') || lower.includes('quota') || lower.includes('daily')) {
+    // Quota journalier épuisé : on attend jusqu'au lendemain (max 24h).
+    return 24 * 60 * 60 * 1000;
+  }
+  if (status === 429) {
+    return 5 * 60 * 1000; // rate-limit court
+  }
+  return 0;
+}
+
 function buildProviders(primaryApiKey?: string): LLMProvider[] {
   const list: LLMProvider[] = [];
 
@@ -108,7 +123,20 @@ export async function callGroq(
 
   let lastError: unknown = null;
 
-  for (const provider of providers) {
+  // Cooldown : un fournisseur qui a renvoyé un 429 / quota épuisé est ignoré
+  // pendant un certain temps pour éviter de perdre du temps à le retenter.
+  const now = Date.now();
+  const filteredProviders = providers.filter((p) => {
+    const until = providerCooldown.get(p.name) ?? 0;
+    if (until > now) {
+      console.warn(`[LLM] ${p.name} en cooldown jusqu'à ${new Date(until).toISOString()}, ignoré`);
+      return false;
+    }
+    return true;
+  });
+  const candidates = filteredProviders.length > 0 ? filteredProviders : providers;
+
+  for (const provider of candidates) {
     const requestedModel = options?.model;
     // Use the caller's model hint only for the primary (groq) provider;
     // fallback providers use their own default model.
@@ -140,6 +168,11 @@ export async function callGroq(
           `LLM ${provider.name}: ${response.status} ${response.statusText} - ${errorText}`,
         );
         (err as { status?: number }).status = response.status;
+        const cd = cooldownMsFor(response.status, errorText);
+        if (cd > 0) {
+          providerCooldown.set(provider.name, Date.now() + cd);
+          console.warn(`[LLM] ${provider.name} en cooldown ${Math.round(cd / 60000)} min`);
+        }
         console.warn(`[LLM] ${provider.name} failed (${response.status}), trying next provider`);
         lastError = err;
         continue;

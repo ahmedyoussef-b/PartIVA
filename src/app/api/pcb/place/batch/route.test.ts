@@ -11,6 +11,7 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/pcb/kicad-bridge', () => ({
   placeFootprints: vi.fn(),
+  syncBoardLive: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
@@ -19,7 +20,7 @@ vi.mock('node:fs', () => ({
 
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
-import { placeFootprints } from '@/lib/pcb/kicad-bridge';
+import { placeFootprints, syncBoardLive } from '@/lib/pcb/kicad-bridge';
 import { existsSync } from 'node:fs';
 import { POST } from './route';
 
@@ -159,6 +160,7 @@ describe('POST /api/pcb/place/batch', () => {
       placed: 2,
       dryRun: false,
       message: 'placed 2',
+      liveSynced: false,
     });
 
     expect(placeFootprints).toHaveBeenCalledWith({
@@ -186,9 +188,54 @@ describe('POST /api/pcb/place/batch', () => {
           value: undefined,
         },
       ],
-      force: false,
+      force: true,
       allowOutside: false,
     });
+  });
+
+  it("11-bis. fichier persistant puis sync live pour l'affichage KiCad", async () => {
+    mockAdmin();
+    vi.mocked(prisma.pcbProject.findUnique).mockResolvedValue({
+      id: 'p1',
+      kicadFilePath: 'C:\\tmp\\board.kicad_pcb',
+    } as never);
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(placeFootprints).mockResolvedValue({
+      ok: true,
+      message: 'placed 1',
+      footprintCount: 1,
+    });
+    vi.mocked(syncBoardLive).mockResolvedValue({
+      ok: true,
+      live: true,
+      moved: ['R1'],
+      missing: [],
+      board: 'board.kicad_pcb',
+    });
+
+    const previous = process.env.PARTIVA_DESKTOP;
+    process.env.PARTIVA_DESKTOP = '1';
+    try {
+      const res = await POST(makeRequest({ projectId: 'p1', components: [C1] }));
+      expect(res.status).toBe(200);
+      await expect(res.json()).resolves.toMatchObject({
+        ok: true,
+        placed: 1,
+        liveSynced: true,
+        message: 'placed 1',
+      });
+      expect(syncBoardLive).toHaveBeenCalledWith(
+        expect.objectContaining({ boardPath: EXPECTED_BOARD_PATH }),
+      );
+      // Le fichier reste la source de vérité : il est écrit AVANT le refresh IPC.
+      expect(placeFootprints).toHaveBeenCalledWith(
+        expect.objectContaining({ boardPath: EXPECTED_BOARD_PATH, force: true }),
+      );
+    } finally {
+      if (previous === undefined) delete process.env.PARTIVA_DESKTOP;
+      else process.env.PARTIVA_DESKTOP = previous;
+      vi.mocked(syncBoardLive).mockReset();
+    }
   });
 
   it('12. dryRun:true transmis', async () => {
