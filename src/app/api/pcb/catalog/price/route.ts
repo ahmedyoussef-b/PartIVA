@@ -103,10 +103,19 @@ export async function POST(req: Request) {
         ? b.stockStatus.trim()
         : DEFAULT_STOCK_STATUS;
     const stock =
-      typeof b.stock === 'number' && Number.isFinite(b.stock) ? Math.max(0, Math.round(b.stock)) : undefined;
+      typeof b.stock === 'number' && Number.isFinite(b.stock)
+        ? Math.max(0, Math.round(b.stock))
+        : undefined;
 
     const created = await prisma.componentPrice.create({
-      data: { catalogId, price, currency, supplier, stockStatus, ...(stock !== undefined ? { stock } : {}) },
+      data: {
+        catalogId,
+        price,
+        currency,
+        supplier,
+        stockStatus,
+        ...(stock !== undefined ? { stock } : {}),
+      },
     });
 
     console.info('[PCB:CATALOG-PRICE] Prix enregistre', { catalogId, price, currency });

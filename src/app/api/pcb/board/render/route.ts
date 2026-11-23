@@ -45,10 +45,16 @@ export async function GET(req: Request) {
   // Le fichier KiCad stocke souvent l'empreinte sans bibliothèque (`DIP-8_W7.62mm`).
   // La BDD conserve le couple `Lib:Empreinte` : on le réexpose pour que le drag-drop
   // puisse construire un payload `/api/pcb/place/batch` valide (libName requis).
-  const dbComponents = await prisma.pcbComponent.findMany({
-    where: { projectId },
-    select: { reference: true, footprint: true },
-  });
+  const [dbComponents, dbNets] = await Promise.all([
+    prisma.pcbComponent.findMany({
+      where: { projectId },
+      select: { reference: true, footprint: true },
+    }),
+    prisma.pcbNet.findMany({
+      where: { projectId },
+      select: { name: true, pins: true },
+    }),
+  ]);
   const libByReference = new Map<string, string>();
   for (const c of dbComponents) {
     const fp = c.footprint?.trim();
@@ -77,6 +83,10 @@ export async function GET(req: Request) {
         libName: libByReference.get(c.reference) ?? c.library ?? '',
         pads: c.pads ?? [],
         graphics: c.graphics ?? [],
+      })),
+      nets: dbNets.map((n) => ({
+        name: n.name,
+        pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
       })),
     });
   } catch (e) {

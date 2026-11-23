@@ -118,7 +118,12 @@ export async function POST(req: Request) {
         })),
       });
     }
-    return NextResponse.json({ components: refreshed, count: refreshed.length, cached: true });
+    return NextResponse.json({
+      components: refreshed,
+      count: refreshed.length,
+      nets: (cached as { nets?: unknown }).nets ?? [],
+      cached: true,
+    });
   }
 
   const apiKey = process.env.GROQ_API_KEY;
@@ -147,6 +152,10 @@ Réponds UNIQUEMENT en JSON valide, sans markdown, avec la structure :
       "rationale": "justification courte",
       "searchKeyword": "mot-clé pour chercher dans le catalogue (ex. LM7805, resistor 10k)"
     }
+  ],
+  "nets": [
+    { "name": "VCC_5V", "pins": ["U1.1", "C1.1", "R1.1"] },
+    { "name": "GND", "pins": ["U1.2", "C1.2", "J1.2"] }
   ]
 }
 
@@ -160,6 +169,7 @@ Règles :
 - Ne jamais inventer de composant inutile. Sois exhaustif mais raisonnable (max 15 composants).`;
 
   let proposed: ProposedComponent[] = [];
+  let proposedNets: { name: string; pins: string[] }[] = [];
   let lastError: unknown = null;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -223,6 +233,53 @@ Règles :
 
       if (next.length > 0) {
         proposed = next;
+        // Parse nets if provided
+        const rawNets = Array.isArray(obj.nets) ? obj.nets : [];
+        const parsedNets: { name: string; pins: string[] }[] = [];
+        for (const n of rawNets) {
+          if (!n || typeof n !== 'object') continue;
+          const net = n as Record<string, unknown>;
+          const name = typeof net.name === 'string' ? net.name.trim() : '';
+          const pins = Array.isArray(net.pins)
+            ? net.pins.filter((p): p is string => typeof p === 'string')
+            : [];
+          if (name && pins.length >= 2) parsedNets.push({ name, pins });
+        }
+        // Optimize placement using nets
+        if (parsedNets.length > 0) {
+          try {
+            const { optimizePlacement } = await import('@/lib/pcb/placement');
+            const boardW = 80;
+            const boardH = 60;
+            const placed = optimizePlacement(
+              proposed.map((c) => ({
+                reference: c.reference,
+                xMm: c.xMm,
+                yMm: c.yMm,
+                rotation: c.rotation,
+              })),
+              parsedNets,
+              { widthMm: boardW, heightMm: boardH, originX: 5, originY: 5 },
+            );
+            // Write back optimized positions
+            for (const c of proposed) {
+              const opt = placed.find((p) => p.reference === c.reference);
+              if (opt) {
+                c.xMm = opt.xMm;
+                c.yMm = opt.yMm;
+                c.rotation = opt.rotation;
+              }
+            }
+            // Store nets on the result (will be returned)
+            // Save nets for return
+            proposedNets = parsedNets;
+          } catch (e) {
+            console.warn('[PCB:SOURCE] Placement optimization failed', e);
+            proposedNets = parsedNets;
+          }
+        } else {
+          proposedNets = parsedNets;
+        }
         break;
       }
       lastError = new Error('Aucun composant valide dans la réponse');
@@ -331,16 +388,39 @@ Règles :
     });
   }
 
+  // Persistance des nets (netlist LLM) — upsert par nom.
+  try {
+    await prisma.pcbNet.deleteMany({ where: { projectId, status: 'proposed' } });
+    if (proposedNets.length > 0) {
+      await prisma.pcbNet.createMany({
+        data: proposedNets.map((n) => ({
+          projectId,
+          name: n.name,
+          pins: n.pins as object,
+          status: 'proposed',
+        })),
+      });
+    }
+  } catch (e) {
+    console.warn('[PCB:SOURCE] Nets save failed', e);
+  }
+
   // Persistance du cache pour éviter de re-solliciter le LLM.
   try {
     await prisma.pcbProject.update({
       where: { id: projectId },
-      data: { sourcingCache: { components, count: components.length } as object },
+      data: {
+        sourcingCache: { components, count: components.length, nets: proposedNets } as object,
+      },
     });
   } catch (e) {
     console.warn('[PCB:SOURCE] Cache save failed', e);
   }
 
-  console.info('[PCB:SOURCE] Proposition', { projectId, count: components.length });
-  return NextResponse.json({ components, count: components.length });
+  console.info('[PCB:SOURCE] Proposition', {
+    projectId,
+    count: components.length,
+    nets: proposedNets.length,
+  });
+  return NextResponse.json({ components, count: components.length, nets: proposedNets });
 }

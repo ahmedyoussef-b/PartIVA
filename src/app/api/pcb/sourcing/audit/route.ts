@@ -60,7 +60,12 @@ export async function GET(req: Request) {
     currency: c.prices[0]?.currency ?? null,
     stockStatus: c.prices[0]?.stockStatus ?? null,
     stock:
-      c.prices[0]?.stock ?? (c.prices[0]?.stockStatus === 'in_stock' ? 100 : c.prices[0]?.stockStatus === 'low_stock' ? 10 : 0),
+      c.prices[0]?.stock ??
+      (c.prices[0]?.stockStatus === 'in_stock'
+        ? 100
+        : c.prices[0]?.stockStatus === 'low_stock'
+          ? 10
+          : 0),
     updatedAt: c.prices[0]?.updatedAt ? new Date(c.prices[0].updatedAt).toISOString() : null,
   }));
 

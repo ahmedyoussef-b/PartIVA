@@ -37,6 +37,11 @@ type BoardComponent = {
   pads: Pad[];
   graphics: Graphic[];
 };
+type BoardNet = {
+  name: string;
+  pins: string[];
+};
+
 type BoardData = {
   board: {
     origin: { x: number; y: number };
@@ -44,6 +49,7 @@ type BoardData = {
     edges: Graphic[];
   };
   components: BoardComponent[];
+  nets?: BoardNet[];
 };
 
 function rotatePoint(x: number, y: number, deg: number) {
@@ -149,6 +155,7 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
   const [showSilk, setShowSilk] = React.useState(true);
   const [showRefs, setShowRefs] = React.useState(true);
   const [showFab, setShowFab] = React.useState(false);
+  const [showNets, setShowNets] = React.useState(true);
   const [mode, setMode] = React.useState<'pan' | 'move'>('pan');
   const [dragComp, setDragComp] = React.useState<{
     ref: string;
@@ -255,6 +262,47 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
     if ((data?.board?.edges ?? []).length === 0)
       ctx.strokeRect(sx(ox), sy(oy), bw * scale, bh * scale);
 
+    // Ratsnest : lignes pointillées entre composants connectés par un net.
+    if (showNets) {
+      const byRef = new Map(comps.map((c) => [c.reference, c]));
+      const palette = [
+        '#ff5555',
+        '#55ff55',
+        '#5555ff',
+        '#ffff55',
+        '#ff55ff',
+        '#55ffff',
+        '#ffaa55',
+        '#aa55ff',
+      ];
+      let colorIdx = 0;
+      for (const net of data?.nets ?? []) {
+        const refs = [...new Set(net.pins.map((pin) => pin.split('.')[0] ?? pin))];
+        const pts = refs.map((r) => byRef.get(r)).filter(Boolean) as BoardComponent[];
+        if (pts.length < 2) continue;
+        ctx.strokeStyle = palette[colorIdx % palette.length] ?? '#ffffff';
+        ctx.lineWidth = Math.max(0.8, 0.08 * scale);
+        ctx.setLineDash([Math.max(3, 3 * scale), Math.max(2, 2 * scale)]);
+        ctx.beginPath();
+        ctx.moveTo(sx(pts[0]!.x), sy(pts[0]!.y));
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(sx(pts[i]!.x), sy(pts[i]!.y));
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // Nom du net au centre du premier segment
+        if (scale > 3) {
+          const mx = (pts[0]!.x + pts[1]!.x) / 2;
+          const my = (pts[0]!.y + pts[1]!.y) / 2;
+          ctx.font = `${Math.max(8, 0.9 * scale)}px ui-monospace, monospace`;
+          ctx.fillStyle = palette[colorIdx % palette.length] ?? '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(net.name, sx(mx), sy(my));
+        }
+        colorIdx++;
+      }
+      ctx.setLineDash([]);
+    }
+
     for (const comp of comps) {
       for (const g of comp.graphics ?? []) {
         const isSilk = g.layer.includes('SilkS');
@@ -323,7 +371,18 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
         ctx.stroke();
       }
     }
-  }, [data, getTransform, showGrid, showPads, showSilk, showRefs, showFab, dragComp, busyRef]);
+  }, [
+    data,
+    getTransform,
+    showGrid,
+    showPads,
+    showSilk,
+    showRefs,
+    showFab,
+    showNets,
+    dragComp,
+    busyRef,
+  ]);
 
   React.useEffect(() => {
     draw();
@@ -533,6 +592,9 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           </Btn>
           <Btn active={showFab} onClick={() => setShowFab((v) => !v)} title="Fab">
             Fab
+          </Btn>
+          <Btn active={showNets} onClick={() => setShowNets((v) => !v)} title="Ratsnest (nets)">
+            Nets
           </Btn>
           <Btn onClick={fetchBoard} title="Rafraîchir">
             Rafraîchir
