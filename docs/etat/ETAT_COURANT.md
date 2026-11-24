@@ -357,6 +357,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — vérification chiffrée des règles métier
+
+- **Test hors-ligne** sur le projet réel (15 composants, nets `GND:3` + `VCC_5V:3`, plateau origine 59,69 / 81,28 mm) : la première version des règles **régressait** (coût 200 786 → 6 571 383) et classait mal les rôles (U2 en `serial`, C1/L1/R1 en `regulator`).
+- **Corrections** : `inferPlacementRole` ordonné (MCU avant RS‑485, régulateur sur `dc-dc/buck/to-220` uniquement) ; `optimizePlacement` démarre le recuit du meilleur état (initial ou force dirigée) avec garantie de non-régression ; déplacements guidés par rôle (bord supérieur réparti en x, oscillateur hors du boîtier MCU, régulateur/RS‑485 à distance des pads) ; 800 itérations ; poids bord 600 / oscillateur 80 / entrée 24 V 60.
+- **Résultat mesuré** : coût 824 071 → 212 982 ; `Y1↔U2` = 2,6 mm, `U1↔J1` = 4,7 mm, `U3↔J4` = 2,7 mm. **Limite** : seuls 1 connecteur sur 4 est à ≤ 3 mm du bord supérieur (J1/J2/J4 restent à 10–18 mm) — le recuit n'arrive pas à coordonner les 4 déplacements simultanés. Validation visuelle par le coordinateur toujours nécessaire.
+- **Vérifications** : typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.

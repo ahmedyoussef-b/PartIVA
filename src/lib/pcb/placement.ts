@@ -69,12 +69,13 @@ export function inferPlacementRole(input: PlacementHints): PlacementRole | undef
   if (/^J|^P|^CN/.test(ref) || /connecteur|connector|db9|terminalblock|pinheader/i.test(text)) {
     return 'connector';
   }
-  if (/rs.?485|modbus|transceiver|sn75176|uart/i.test(text)) return 'serial';
   if (/oscill|cristal|crystal|quartz|horloge|clock/i.test(text) || /^Y|^X/.test(ref)) {
     return 'clock';
   }
-  if (/r[eé]gulateur|regulator|dc.?dc|buck|24\s*v|to-220/i.test(text)) return 'regulator';
+  // MCU AVANT serial : la rationale d'un MCU mentionne souvent « UART ».
   if (/microcontr|mcu|stm32|esp32|atmega|lqfp|qfn/i.test(text)) return 'mcu';
+  if (/rs.?485|modbus|transceiver|sn75176/i.test(text)) return 'serial';
+  if (/r[eé]gulateur|regulator|dc.?dc|buck|to-220/i.test(text)) return 'regulator';
   if (/capteur|sensor|analog|0.?10\s*v|temp[eé]rature|pt100|thermocouple|adc/i.test(text)) {
     return 'sensitive';
   }
@@ -168,15 +169,15 @@ export function calculateCost(
 
   // --- Règles métier issues du CDC (24V->5V, Modbus RTU, sortie 0-10V) ---
   const CLOCK_TARGET_MM = 5;
-  const CLOCK_WEIGHT = 40;
+  const CLOCK_WEIGHT = 80;
   const THERMAL_MIN_MM = 20;
   const THERMAL_WEIGHT = 50;
   const REG_INPUT_TARGET_MM = 8;
-  const REG_INPUT_WEIGHT = 30;
+  const REG_INPUT_WEIGHT = 60;
   const SERIAL_TARGET_MM = 8;
   const SERIAL_WEIGHT = 50;
   const EDGE_TOP_TARGET_MM = 3;
-  const EDGE_TOP_WEIGHT = 100;
+  const EDGE_TOP_WEIGHT = 600;
 
   const withRole = (role: PlacementRole) => components.filter((x) => x.role === role);
   const penalize = (
@@ -320,6 +321,64 @@ function forceDirected(
   }
 }
 
+// Proposition de déplacement dirigé par les rôles métier. Le recuit garde le
+// critère d'acceptation : un déplacement guidé qui augmente le coût peut être
+// rejeté, ce qui évite de forcer une contrainte au détriment des autres.
+function guidedPosition(
+  comp: PlacementComponent,
+  current: PlacementComponent[],
+  board: PlacementBoard,
+  oy: number,
+  r: number,
+): { x: number; y: number } | null {
+  const jitter = (r - 0.5) * 3;
+  // Décalage hors du composant cible : un déplacement guidé « dans le cœur »
+  // d'un MCU/connecteur est rejeté par la pénalité de chevauchement.
+  const offset = (anchor: PlacementComponent): [number, number] => [
+    (anchor.widthMm ?? 8) / 2 + (comp.widthMm ?? 8) / 2 + 1.5,
+    (anchor.heightMm ?? 6) / 2 + (comp.heightMm ?? 6) / 2 + 1.5,
+  ];
+  if (comp.role === 'connector') {
+    // Répartir les connecteurs le long du bord supérieur : sans cela ils se
+    // empilent au même x et le recuit rejette tout déplacement (chevauchement).
+    const connectors = current
+      .filter((c) => c.role === 'connector')
+      .sort((a, b) => a.reference.localeCompare(b.reference));
+    const index = connectors.findIndex((c) => c.reference === comp.reference);
+    const ox = board.originX ?? 0;
+    const spreadX = ox + ((index + 1) / (connectors.length + 1)) * board.widthMm;
+    return { x: spreadX + jitter, y: oy + 3 + jitter / 2 };
+  }
+  if (comp.role === 'clock') {
+    const mcu = current.find((c) => c.role === 'mcu');
+    if (mcu) {
+      const [dx, dy] = offset(mcu);
+      const sx = r < 0.5 ? -1 : 1;
+      const sy = r < 0.25 || r > 0.75 ? -1 : 1;
+      return { x: mcu.xMm + sx * dx + jitter, y: mcu.yMm + sy * dy + jitter };
+    }
+  }
+  if (comp.role === 'regulator') {
+    const input = current.find(
+      (c) => c.role === 'connector' && /alim|power|24\s*v|vin|entr[eé]e/.test(c.hints ?? ''),
+    );
+    if (input) {
+      const [dx] = offset(input);
+      return { x: input.xMm + dx + jitter, y: input.yMm + jitter };
+    }
+  }
+  if (comp.role === 'serial') {
+    const conn = current.find(
+      (c) => c.role === 'connector' && /rs.?485|modbus|db9/.test(c.hints ?? ''),
+    );
+    if (conn) {
+      const [dx] = offset(conn);
+      return { x: conn.xMm - dx + jitter, y: conn.yMm + jitter };
+    }
+  }
+  return null;
+}
+
 // Recuit simulé : déplacements/rotations aléatoires pour échapper aux minima locaux.
 function simulatedAnnealing(
   components: PlacementComponent[],
@@ -362,8 +421,11 @@ function simulatedAnnealing(
     if (moveType < 0.6) {
       const dx = (rng(i * 17 + 3) - 0.5) * 20 * t + (rng(i * 31 + 5) - 0.5) * 5;
       const dy = (rng(i * 43 + 11) - 0.5) * 20 * t + (rng(i * 59 + 13) - 0.5) * 5;
-      comp.xMm = Math.max(ox + 2, Math.min(maxX - 2, comp.xMm + dx));
-      comp.yMm = Math.max(oy + 2, Math.min(maxY - 2, comp.yMm + dy));
+      const guided = guidedPosition(comp, current, board, oy, r);
+      const targetX = guided ? guided.x : comp.xMm + dx;
+      const targetY = guided ? guided.y : comp.yMm + dy;
+      comp.xMm = Math.max(ox + 2, Math.min(maxX - 2, targetX));
+      comp.yMm = Math.max(oy + 2, Math.min(maxY - 2, targetY));
     } else if (moveType < 0.85) {
       comp.rotation = [0, 90, 180, 270][Math.floor(rng(i * 71 + 17) * 4)] ?? 0;
     } else {
@@ -416,10 +478,30 @@ export function optimizePlacement(
 ): PlacementComponent[] {
   if (components.length === 0) return components;
   const adj = buildAdjacency(components, nets);
-  // Force dirigée pour rapprocher les connectés
+  // Garantie de non-régression : la force dirigée peut dégrader un placement
+  // déjà cohérent (notamment les règles métier du CDC). Le recuit démarre donc
+  // du meilleur des deux états : placement initial ou résultat de la force.
+  const initial = cloneComponents(components);
+  const initialCost = calculateCost(initial, adj, board);
+
   forceDirected(components, adj, board, 30);
-  // Recuit simulé pour optimiser globalement
-  simulatedAnnealing(components, adj, board, 400);
+  const forceCost = calculateCost(components, adj, board);
+  const seed = forceCost <= initialCost ? cloneComponents(components) : initial;
+  for (let i = 0; i < components.length; i += 1) {
+    components[i]!.xMm = seed[i]!.xMm;
+    components[i]!.yMm = seed[i]!.yMm;
+    components[i]!.rotation = seed[i]!.rotation;
+  }
+
+  simulatedAnnealing(components, adj, board, 800);
+
+  if (calculateCost(components, adj, board) > initialCost) {
+    for (let i = 0; i < components.length; i += 1) {
+      components[i]!.xMm = initial[i]!.xMm;
+      components[i]!.yMm = initial[i]!.yMm;
+      components[i]!.rotation = initial[i]!.rotation;
+    }
+  }
   // Arrondir à la grille 1 mm (KiCad utilise 0.1mm min, 1mm pour l'approx)
   for (const c of components) {
     c.xMm = Math.round(c.xMm * 10) / 10;
