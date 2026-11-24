@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { usePcbEditor } from './PcbEditorProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
@@ -75,19 +75,25 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [placing, setPlacing] = useState<number | null>(null);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
+  const loadingRef = useRef(false);
 
-  const fetchComponents = useCallback(async () => {
-    const res = await fetch('/api/pcb/requirements/source-components', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId }),
-    });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
-    return (data.components ?? []) as ProposedComponent[];
-  }, [projectId]);
+  const fetchComponents = useCallback(
+    async (peek = false) => {
+      const res = await fetch('/api/pcb/requirements/source-components', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, peek }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+      return (data.components ?? []) as ProposedComponent[];
+    },
+    [projectId],
+  );
 
   const load = async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     setPlaced({});
@@ -98,13 +104,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur');
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
     let cancelled = false;
-    fetchComponents()
+    fetchComponents(true)
       .then((next) => {
         if (cancelled) return;
         setComponents(next);
@@ -163,7 +170,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     };
   };
 
-  const handlePlaceOne = async (idx: number) => {
+  const handlePlaceOne = async (idx: number, force = false) => {
     setPlacing(idx);
     setPlaceErrors((prev) => {
       const next = { ...prev };
@@ -210,6 +217,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         body: JSON.stringify({
           projectId,
           dryRun: false,
+          force,
+          optimize: true,
           components: [
             {
               libName: s.libName,
@@ -234,7 +243,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const relX = s.xMm - BOARD_ORIGIN_X;
       const relY = s.yMm - BOARD_ORIGIN_Y;
       addNode(sym, Math.round(relX * PX_PER_MM), Math.round(relY * PX_PER_MM));
-      toast.success('Composant placé dans KiCad et affiché dans PartIVA');
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      if (typeof data.hint === 'string' && data.hint.trim()) {
+        toast.success('Composant placé dans le plateau', {
+          description: 'KiCad : Fichier > Recharger pour afficher le composant.',
+        });
+      } else {
+        toast.success('Composant placé dans KiCad et affiché dans PartIVA');
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
       const isHybrid =
@@ -342,17 +358,31 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               )}
               {placeErrors[idx] && (
                 <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
-                  {placeErrors[idx]}
+                  <div>{placeErrors[idx]}</div>
+                  {/verrou|\.lck|--force/i.test(placeErrors[idx] ?? '') && (
+                    <button
+                      type="button"
+                      disabled={placing !== null}
+                      onClick={() => handlePlaceOne(idx, true)}
+                      className="mt-2 rounded bg-red-600 px-2 py-1 text-[11px] font-medium text-white disabled:opacity-50"
+                    >
+                      Forcer le placement
+                    </button>
+                  )}
                 </div>
               )}
 
               <button
                 type="button"
-                disabled={placing !== null}
+                disabled={placing !== null || !!placed[idx]}
                 onClick={() => handlePlaceOne(idx)}
                 className="mt-2 w-full rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
               >
-                {placing === idx ? 'Placement en cours…' : 'Valider et placer dans KiCad'}
+                {placing === idx
+                  ? 'Placement en cours…'
+                  : placed[idx]
+                    ? 'Placé dans KiCad'
+                    : 'Valider et placer dans KiCad'}
               </button>
             </div>
           );

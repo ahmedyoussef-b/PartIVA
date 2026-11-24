@@ -56,6 +56,32 @@ pub fn run() {
       });
       app.manage(pool);
 
+      // Mode développement (`tauri dev`) : le serveur Next.js est lancé par
+      // `beforeDevCommand` (desktop/scripts/dev-server.cjs) sur le port 3100.
+      // Aucun sidecar n'est démarré : la webview navigue directement vers le
+      // serveur de développement (rechargement à chaud, pas de build standalone).
+      if tauri::is_dev() {
+        let app_handle = app.handle().clone();
+        tauri::async_runtime::spawn(async move {
+          if let Some(splash) = app_handle.get_webview_window("splash") {
+            let _ = splash.close();
+          }
+          if let Some(main) = app_handle.get_webview_window("main") {
+            if let Ok(url) = tauri::Url::parse("http://localhost:3100/") {
+              let _ = main.navigate(url);
+            }
+            let _ = main.show();
+            let _ = main.maximize();
+            let _ = main.set_focus();
+          }
+        });
+        log::info!(
+          target: "dev",
+          "mode développement : sidecar désactivé, webview → http://localhost:3100/"
+        );
+        return Ok(());
+      }
+
       // B3 (V8-D-14) — spawn du sidecar Node (API plugin shell, Tauri 2).
       // T3.6 (V8-D-14) — résolution du dossier serveur via `current_exe()`
       // (fonctionne en mode installé MSI/NSIS, pas seulement depuis target/release/).
@@ -95,6 +121,7 @@ pub fn run() {
             .env("PORT", sidecar_port.to_string())
             .env("HOSTNAME", "127.0.0.1")
             .env("BETTER_AUTH_URL", format!("http://127.0.0.1:{}", sidecar_port))
+            .env("PARTIVA_DESKTOP", "1")
             .kill_on_drop(true);
           // DATABASE_URL injectée UNIQUEMENT si une URL Postgres est configurée
           // (sinon le sidecar démarre sans DB → écran de configuration).
@@ -106,6 +133,16 @@ pub fn run() {
           let cmd = match db_cfg.as_ref().and_then(|c| c.better_auth_secret.clone()) {
             Some(secret) => cmd.env("BETTER_AUTH_SECRET", secret),
             None => cmd.env("BETTER_AUTH_SECRET", "partiva-desktop-local-secret-32-chars-min"),
+          };
+          // Clés LLM optionnelles (env ou db.toml) — nécessaires aux fonctions PCB/IA.
+          let cmd = if let Some(cfg) = &db_cfg {
+            let mut c = cmd;
+            for (k, v) in &cfg.extra_env {
+              c = c.env(k, v);
+            }
+            c
+          } else {
+            cmd
           };
           // T3.8 (V8-D-14) — trace du port injecté avant spawn.
           log::info!(target: "sidecar", "spawn: PORT={} HOSTNAME=127.0.0.1", sidecar_port);

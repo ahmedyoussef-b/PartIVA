@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { callGroq } from '@/lib/ai/groq-client';
+import { callGroq, hasLlmProvider } from '@/lib/ai/groq-client';
 import { VisionInput, VisionResult } from './types';
+import { getLlmCache, setLlmCache } from '@/lib/utils/llm-cache';
+import { hashKey } from '@/lib/utils/llm-guard';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGES = 3;
@@ -30,15 +32,15 @@ async function loadImageAsBase64(url: string): Promise<{ url: string; warning?: 
 }
 
 export async function detectPartType(input: VisionInput): Promise<VisionResult> {
-  const apiKey = process.env.GROQ_API_KEY;
+  const hasProvider = hasLlmProvider();
   const warnings: string[] = [];
   const structuredWarnings: { code: string; message: string; stage?: string }[] = [];
-  if (!apiKey || input.photoUrls.length === 0) {
+  if (!hasProvider || input.photoUrls.length === 0) {
     return {
       detectedType: null,
       confidence: 0,
       rawResponse: '',
-      warnings: [!apiKey ? 'Cle API Groq manquante' : 'Aucune photo transmise'],
+      warnings: [!hasProvider ? 'Aucun fournisseur LLM configuré' : 'Aucune photo transmise'],
     };
   }
   const validUrls = input.photoUrls.filter((u) => u.startsWith('https://'));
@@ -99,10 +101,27 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       structuredWarnings: structuredWarnings as never,
     };
   }
+  const cacheKey = `vision:${hashKey(
+    content.map((c) => (c as { image_url?: { url?: string } }).image_url?.url ?? '').join('|'),
+  )}`;
+  const cached = getLlmCache<{
+    detectedType: string | null;
+    confidence: number;
+    rawResponse: string;
+  }>(cacheKey);
+  if (cached) {
+    return {
+      detectedType: cached.detectedType,
+      confidence: cached.confidence,
+      rawResponse: cached.rawResponse,
+      warnings,
+      structuredWarnings: structuredWarnings as never,
+    };
+  }
   try {
     const messages = [{ role: 'user', content }] as never;
-    const { content: raw } = await callGroq(messages, apiKey, {
-      model: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b',
+    const { content: raw } = await callGroq(messages, undefined, {
+      model: process.env.GROQ_VISION_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct',
       temperature: 0.2,
       maxTokens: 256,
     });
@@ -126,6 +145,7 @@ export async function detectPartType(input: VisionInput): Promise<VisionResult> 
       });
       warnings.push('VISION_PARSE_FAILED');
     }
+    setLlmCache(cacheKey, { detectedType, confidence, rawResponse: raw });
     return {
       detectedType,
       confidence,

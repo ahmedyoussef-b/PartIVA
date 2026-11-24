@@ -283,9 +283,48 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-23 — procédure `tauri dev` (branche `fix/desktop-pcb-llm-env`)
+
+- **Objectif** : remplacer le cycle build standalone / NSIS / MSI par `tauri dev` pour les itérations.
+- **Code** : `desktop/scripts/dev-server.cjs` (nouveau) lit `%APPDATA%\PartIVA\db.toml` (ou `PARTIVA_*`), injecte `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL=http://localhost:3100`, `PARTIVA_DESKTOP=1` et les clés LLM, puis lance `next dev -p 3100` (Turbopack ; `--webpack` via `PARTIVA_DEV_WEBPACK=1`). `tauri.conf.json` : `beforeDevCommand` → `node ./scripts/dev-server.cjs`. `lib.rs` : si `tauri::is_dev()`, aucun sidecar et webview naviguée vers `http://localhost:3100/`. `logging.rs` : target `dev` conservée dans les logs.
+- **Doc** : `docs/desktop-dev-workflow.md` (commande, config, différences vs installé, dépannage).
+- **Vérifications** : `node --check` OK · `cargo check` OK · `GET /api/health` → 200 · `tauri dev` lancé : log `{"target":"dev","msg":"mode développement : sidecar désactivé, webview → http://localhost:3100/"}`, compilation de `/` par Next (requête du webview), processus app et port 3100 actifs.
+- **À faire** : rejouer reset / drag-drop dans la fenêtre dev, puis committer et pousser la branche.
+
+---
+
+## Session 2026-11-23 (suite) — drag PCB live et synchronisation KiCad (branche `fix/desktop-pcb-llm-env`)
+
+- **Drag-drop** : `libName` réexposé par `/api/pcb/board/render` depuis la BDD (le `.kicad_pcb` stocke l'empreinte sans bibliothèque) ; `force: true` envoyé par `PcbCanvas` ; message d'erreur réaffiché après `fetchBoard()` ; message `Déplacement {ref}` déplacé hors du périmètre du canvas. Lint `PcbCanvas.tsx` : 15 erreurs corrigées (`Btn` extrait au scope module, chargement initial différé).
+- **KiCad** : `launch` auto ignore un plateau déjà ouvert (présence de `~<fichier>.lck`) ; le bouton `KiCad` passe `source=manual` pour forcer.
+- **Synchronisation live (nouveau)** : `scripts/kicad/sync_board_live.py` pilote l'instance KiCad ouverte via l'API IPC (`kicad-python` 0.8.0, socket `%LOCALAPPDATA%\Temp\kicad\api.sock`). Déplace les empreintes dans l'éditeur (`update_items`) puis sauvegarde (`save`) : la fenêtre KiCad reflète le mouvement immédiatement, sans verrou `.lck`. `kicad-bridge.ts` expose `syncBoardLive()` ; `/api/pcb/place/batch` l'appelle en priorité en mode desktop et retombe sur l'écriture fichier (`--force`) si l'IPC est indisponible. Réponse enrichie `liveSynced`.
+- **Prérequis IPC** : `kicad-python` installé dans le site-packages utilisateur de KiCad (`%USERPROFILE%\Documents\KiCad\10.0\3rdparty\Python311\site-packages`) et serveur d'API activé dans Préférences > Plugins. Sans ce prérequis, l'écriture fichier reste fonctionnelle.
+- **Correctif perte de composants** : le live sync appelait `board.save()` depuis l'état mémoire de KiCad, écrasant les composants ajoutés entre-temps par l'écriture fichier (`.bak` 3 empreintes → fichier 1). Désormais le fichier est **toujours** persisté en premier par `placeFootprints`, puis le sync IPC ne fait que `update_items` sans sauvegarde. Vérifié : 3 → 4 → 5 empreintes après placements successifs, `GET /api/pcb/board/render` remonte `U1,R2,C1,R1,U3`. Composants perdus restaurés depuis le `.bak`.
+- **Limite connue** : l'API IPC n'a pas de commande de rechargement de plateau ; un composant ajouté au fichier alors que KiCad est ouvert n'apparaît dans l'éditeur qu'après rechargement manuel (`Fichier > Recharger` dans KiCad). Tentative `run_action("common.Control.revert")` : casse l'IPC (timeout) et n'est pas réutilisable. L'app affiche une indication dans le toast du panneau Sourcing.
+- **Vérifications** : `npm run typecheck` OK ; `eslint` sur les fichiers modifiés OK. Test end-to-end via CDP : `POST /api/pcb/place/batch` → `{"ok":true,"liveSynced":true,"message":"1 composant(s) déplacé(s) dans KiCad (live)"}`, log `[PCB:PLACE-BATCH] Sync live KiCad { board: 'carte-test.kicad_pcb', moved: [ 'J4' ] }`, position restaurée à l'identique après test. **Non commité / non poussé / pas de PR.**
+
+---
+
+## Session 2026-11-24 — élimination structurelle des fuites de quota LLM (branche `fix/desktop-pcb-llm-env`)
+
+- **Objectif** : arrêter l'épuisement des quotas gratuits LLM à la racine (analyse CDC, sourcing, placement, cache, fallback).
+- **Analyse** : trois causes structurelles — (1) appels LLM inutiles ou dupliqués (`analyze` ×3 par défaut, enrichissement mort de `parse`, normalisation LLM des MPN), (2) état (cache + cooldown) uniquement en mémoire, donc perdu à chaque instance serverless froide, (3) fallback inexistant et `maxTokens` surdimensionnés.
+- **Correctifs (P11, Lots A→I)** : détail dans `docs/roadmap/P11_LLM_QUOTA_FIX.md`. Points clés : 1 appel par défaut pour `analyze` + idempotence par `cdcHash` ; `parse` sans LLM ; `query-normalizer` avec court-circuit MPN ; cache L2 Prisma (`llm_cache_entries`) + cooldown L2 (`llm_provider_cooldowns`) avec timeout DB 800 ms ; fallback Together/DeepInfra/Mistral/SambaNova + `hasLlmProvider()` ; `maxTokens` 1024–2560 ; cache sourcing invalidé par hash CDC.
+- **Garde-fou build** : `src/lib/ai/providers-meta.ts` sépare les métadonnées fournisseurs du code serveur — `AssistantZone` (client) n'importe plus `providers.ts` → `groq-client` → Prisma/`pg`, ce qui cassait le build Turbopack (`Can't resolve 'dns'/'fs'/'net'/'tls'`).
+- **Vérifications locales** : typecheck, lint, vitest 351/351, prettier, prisma validate/format.
+- **Migration** : `20261124120000_add_llm_state` (cooldown, cache L2, `PcbProject.cdcHash`) **non appliquée** — Neon injoignable depuis le poste (`P1001` ; TCP 5432 ouvert mais session Postgres impossible). Le code retombe automatiquement sur le cache L1 mémoire.
+- **Re-analyse (lot J)** : audit des 9 call sites IA — reste 7 fuites (F1–F7). Corrigées : **B1** coupe-circuit journalier dur (`llm-budget.ts`, 100 k tokens/j par défaut, migration `20261124130000_add_llm_daily_usage`), **B2** cache L2 chat/fiche, **B3** idempotence moteur + cache L2 description, **B4** rate limit photo + vision multi-providers, **B5** migration créée. Restent F6 (verrous mémoire) et F7 (migration non appliquée, repli mémoire).
+- **PR #153** mise à jour ; CI à revalider après le correctif de build.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
+
+**Bloquants immédiats :**
+- Appliquer la migration `20261124120000_add_llm_state` dès que Neon est joignable (`npx prisma migrate deploy`) — active le cache/cooldown partagé.
+- Fusionner la PR #153 après CI verte.
 
 **Prochaines étapes possibles :**
 1. **C3 — canvas lisible** : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre.

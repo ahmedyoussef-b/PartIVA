@@ -1,3 +1,6 @@
+import { getLlmCache, setLlmCache } from '@/lib/utils/llm-cache';
+import { hashKey } from '@/lib/utils/llm-guard';
+
 function getCloudflareConfig() {
   return {
     accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
@@ -19,6 +22,10 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) {
     throw new Error('Aucun texte à vectoriser');
   }
+
+  const cacheKey = `embed:cf:${hashKey(texts.join('|'))}`;
+  const cached = getLlmCache<number[][]>(cacheKey);
+  if (cached) return cached;
 
   const config = getCloudflareConfig();
 
@@ -48,5 +55,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
     throw new Error('Réponse Cloudflare invalide');
   }
 
-  return result.result.data;
+  const data = result.result.data as number[][];
+  setLlmCache(cacheKey, data);
+  return data;
 }

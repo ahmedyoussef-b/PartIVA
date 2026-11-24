@@ -21,8 +21,16 @@ import Link from 'next/link';
 import type { PartWithSerializedSuppliers } from '@/lib/data/parts';
 import type { UserRole } from '@/generated/prisma/browser';
 
+interface PcbProjectItem {
+  id: string;
+  kicadFilePath: string | null;
+  status: string;
+  updatedAt: Date;
+}
+
 interface PiecesClientProps {
   initialParts: PartWithSerializedSuppliers[];
+  pcbProjects?: PcbProjectItem[];
   actorRole: UserRole;
 }
 
@@ -42,7 +50,11 @@ function mapPartToUi(part: PartWithSerializedSuppliers) {
   };
 }
 
-export default function PiecesClient({ initialParts, actorRole }: PiecesClientProps) {
+export default function PiecesClient({
+  initialParts,
+  pcbProjects = [],
+  actorRole,
+}: PiecesClientProps) {
   const [search, setSearch] = React.useState('');
   const [matFilter, setMatFilter] = React.useState('all');
 
@@ -74,131 +86,172 @@ export default function PiecesClient({ initialParts, actorRole }: PiecesClientPr
   }, [parts]);
 
   return (
-    <div className="max-w-7xl space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Catalogue pièces</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Pièces usinées, indexées et disponibles pour réutilisation.
-          </p>
-        </div>
-        <Button asChild size="sm" className="gap-2 text-xs font-semibold">
-          <Link href="/admin/pieces/nouveau">
-            <Package className="h-3.5 w-3.5" />
-            Nouvelle pièce
-          </Link>
-        </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard title="Total références" value={stats.total} />
-        <KpiCard title="Validées" value={stats.validated} variant="success" />
-        <KpiCard title="Brouillons" value={stats.draft} variant="warning" />
-        <KpiCard title="Avec CAO" value={stats.withCad} variant="info" />
-      </div>
-
-      {/* Filters */}
-      <FilterBar
-        searchPlaceholder="Référence, nom, description…"
-        searchValue={search}
-        onSearchChange={setSearch}
-        filters={allMaterials.map((m) => ({ label: m, value: m }))}
-        activeFilters={matFilter !== 'all' ? [matFilter] : []}
-        onFilterChange={(val) => setMatFilter(val === matFilter ? 'all' : val)}
-        onClearFilters={() => {
-          setSearch('');
-          setMatFilter('all');
-        }}
-      />
-
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">Réf.</TableHead>
-                  <TableHead>Pièce</TableHead>
-                  <TableHead>Matière</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Fichiers</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((part) => {
-                  const hasCad = (part.files?.cad?.length ?? 0) > 0;
-                  const hasPlan = (part.files?.plans?.length ?? 0) > 0;
-                  return (
-                    <TableRow key={part.id} className="hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs font-bold text-primary">
-                        {part.reference}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-xs font-medium">{part.name}</div>
-                        <div className="line-clamp-1 text-[11px] text-muted-foreground">
-                          {part.description}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono text-[10px]">
-                          {part.material}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <PartStatusBadge status={part.status} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {hasCad && (
-                            <Badge
-                              variant="outline"
-                              className="border-blue-500/40 font-mono text-[9px] text-blue-600"
-                            >
-                              CAO
-                            </Badge>
-                          )}
-                          {hasPlan && (
-                            <Badge
-                              variant="outline"
-                              className="border-violet-500/40 font-mono text-[9px] text-violet-600"
-                            >
-                              PLAN
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-xs">
-                            <Link href={`/admin/pieces/${part.id}`}>
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              Fiche
-                            </Link>
-                          </Button>
-                          {hasCad && (
-                            <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
-                              <FileDown className="h-3.5 w-3.5" />
-                              STEP
-                            </Button>
-                          )}
-                          <PartTransitionDialog
-                            partId={part.id}
-                            currentStatus={part.status}
-                            actorRole={actorRole}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+    <div className="flex max-w-7xl gap-6">
+      <div className="min-w-0 flex-1 space-y-6">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Catalogue pièces</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Pièces usinées, indexées et disponibles pour réutilisation.
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <Button asChild size="sm" className="gap-2 text-xs font-semibold">
+            <Link href="/admin/pieces/nouveau">
+              <Package className="h-3.5 w-3.5" />
+              Nouvelle pièce
+            </Link>
+          </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <KpiCard title="Total références" value={stats.total} />
+          <KpiCard title="Validées" value={stats.validated} variant="success" />
+          <KpiCard title="Brouillons" value={stats.draft} variant="warning" />
+          <KpiCard title="Avec CAO" value={stats.withCad} variant="info" />
+        </div>
+
+        {/* Filters */}
+        <FilterBar
+          searchPlaceholder="Référence, nom, description…"
+          searchValue={search}
+          onSearchChange={setSearch}
+          filters={allMaterials.map((m) => ({ label: m, value: m }))}
+          activeFilters={matFilter !== 'all' ? [matFilter] : []}
+          onFilterChange={(val) => setMatFilter(val === matFilter ? 'all' : val)}
+          onClearFilters={() => {
+            setSearch('');
+            setMatFilter('all');
+          }}
+        />
+
+        {/* Table */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Réf.</TableHead>
+                    <TableHead>Pièce</TableHead>
+                    <TableHead>Matière</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Fichiers</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((part) => {
+                    const hasCad = (part.files?.cad?.length ?? 0) > 0;
+                    const hasPlan = (part.files?.plans?.length ?? 0) > 0;
+                    return (
+                      <TableRow key={part.id} className="hover:bg-muted/30">
+                        <TableCell className="font-mono text-xs font-bold text-primary">
+                          {part.reference}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-xs font-medium">{part.name}</div>
+                          <div className="line-clamp-1 text-[11px] text-muted-foreground">
+                            {part.description}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono text-[10px]">
+                            {part.material}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <PartStatusBadge status={part.status} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {hasCad && (
+                              <Badge
+                                variant="outline"
+                                className="border-blue-500/40 font-mono text-[9px] text-blue-600"
+                              >
+                                CAO
+                              </Badge>
+                            )}
+                            {hasPlan && (
+                              <Badge
+                                variant="outline"
+                                className="border-violet-500/40 font-mono text-[9px] text-violet-600"
+                              >
+                                PLAN
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              asChild
+                              size="sm"
+                              variant="outline"
+                              className="h-8 gap-1 text-xs"
+                            >
+                              <Link href={`/admin/pieces/${part.id}`}>
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                Fiche
+                              </Link>
+                            </Button>
+                            {hasCad && (
+                              <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
+                                <FileDown className="h-3.5 w-3.5" />
+                                STEP
+                              </Button>
+                            )}
+                            <PartTransitionDialog
+                              partId={part.id}
+                              currentStatus={part.status}
+                              actorRole={actorRole}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <aside className="w-80 shrink-0 space-y-4">
+        <Card>
+          <CardContent className="p-4">
+            <h2 className="mb-3 text-sm font-semibold text-gray-800">Projets PCB</h2>
+            {pcbProjects.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Aucun projet PCB.</p>
+            ) : (
+              <ul className="space-y-2">
+                {pcbProjects.map((p) => (
+                  <li key={p.id} className="rounded border p-2 text-xs">
+                    <Link
+                      href={`/admin/pcb/${p.id}`}
+                      className="font-mono font-medium text-blue-600 hover:underline"
+                    >
+                      {p.id}
+                    </Link>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {p.status} · {new Date(p.updatedAt).toLocaleDateString('fr-FR')}
+                    </div>
+                    {p.kicadFilePath && (
+                      <div
+                        className="mt-1 truncate text-[10px] text-gray-400"
+                        title={p.kicadFilePath}
+                      >
+                        {p.kicadFilePath.split(/[\\/]/).pop()}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </aside>
     </div>
   );
 }

@@ -83,6 +83,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
                   disabled={compiling || !generalIdea.trim()}
                   className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
                   onClick={async () => {
+                    if (compiling) return;
                     setCompiling(true);
                     setError(null);
                     try {
@@ -292,6 +293,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
             className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
             disabled={submitting}
             onClick={async () => {
+              if (submitting) return;
               const contextText = validated ? compiledText.trim() : generalIdea.trim();
               if (!contextText) {
                 setError("L'idée générale de la carte est obligatoire.");

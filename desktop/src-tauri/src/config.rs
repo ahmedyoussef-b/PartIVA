@@ -16,6 +16,8 @@ pub struct DbConfig {
   pub needs_setup: bool,
   /// Secret Better Auth (optionnel) — `PARTIVA_BETTER_AUTH_SECRET` ou `db.toml`.
   pub better_auth_secret: Option<String>,
+  /// Variables optionnelles injectées au sidecar (LLM, etc.), lues depuis env ou db.toml.
+  pub extra_env: Vec<(String, String)>,
 }
 
 fn read_key(content: &str, wanted: &str) -> Option<String> {
@@ -34,6 +36,39 @@ fn read_key(content: &str, wanted: &str) -> Option<String> {
     }
   }
   None
+}
+
+const SIDE_ENV_KEYS: &[&str] = &[
+  "GROQ_API_KEY",
+  "GROQ_MODEL",
+  "GROQ_BASE_URL",
+  "CEREBRAS_API_KEY",
+  "CEREBRAS_MODEL",
+  "OPENROUTER_API_KEY",
+  "OPENROUTER_MODEL",
+  "OPENAI_API_KEY",
+  "OPENAI_MODEL",
+  "GOOGLE_AI_API_KEY",
+  "LLM_PROVIDER",
+];
+
+fn read_extra_env(content: Option<&str>) -> Vec<(String, String)> {
+  let mut out = Vec::new();
+  for key in SIDE_ENV_KEYS {
+    if let Ok(val) = std::env::var(key) {
+      let val = val.trim().to_string();
+      if !val.is_empty() {
+        out.push(((*key).to_string(), val));
+        continue;
+      }
+    }
+    if let Some(c) = content {
+      if let Some(val) = read_key(c, key) {
+        out.push(((*key).to_string(), val));
+      }
+    }
+  }
+  out
 }
 
 fn app_config_dir() -> Option<std::path::PathBuf> {
@@ -60,6 +95,7 @@ pub fn resolve_db_config_full() -> Option<DbConfig> {
         source: "env",
         needs_setup: false,
         better_auth_secret: secret,
+        extra_env: read_extra_env(None),
       });
     }
   }
@@ -97,11 +133,14 @@ pub fn resolve_db_config_full() -> Option<DbConfig> {
   let database_url = database_url?;
   let file_secret = read_key(&content, "BETTER_AUTH_SECRET");
   log::info!(target: "config", "db.toml parsed BETTER_AUTH_SECRET present={}", file_secret.is_some());
+  let extra_env = read_extra_env(Some(&content));
+  log::info!(target: "config", "sidecar extra_env keys={}", extra_env.len());
   Some(DbConfig {
     database_url,
     source: "file",
     needs_setup: false,
     better_auth_secret: secret.or(file_secret),
+    extra_env,
   })
 }
 
@@ -126,6 +165,7 @@ pub fn fallback_db_config() -> DbConfig {
     source: "fallback",
     needs_setup: false,
     better_auth_secret: None,
+    extra_env: read_extra_env(None),
   }
 }
 

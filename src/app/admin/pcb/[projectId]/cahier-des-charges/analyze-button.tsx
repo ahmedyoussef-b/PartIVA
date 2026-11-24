@@ -23,6 +23,7 @@ export function AnalyzeButton({ projectId }: { projectId: string }) {
   } | null>(null);
 
   const handleAnalyze = async () => {
+    if (loading) return;
     setLoading(true);
     setReport(null);
     try {

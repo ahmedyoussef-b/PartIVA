@@ -9,14 +9,59 @@ interface SourcingTableProps {
   results: SourcingResult[];
 }
 
-export default function SourcingTable({ results }: SourcingTableProps) {
+interface EditState {
+  catalogId: string;
+  price: string;
+  stock: string;
+}
+
+export default function SourcingTable({ results: initial }: SourcingTableProps) {
+  const [results, setResults] = useState(initial);
   const [expandedAlt, setExpandedAlt] = useState<string | null>(null);
+  const [editing, setEditing] = useState<EditState | null>(null);
+  const [saving, setSaving] = useState(false);
 
   if (!results || results.length === 0) {
     return (
       <p className="text-gray-500 italic">Aucune donnée d&apos;approvisionnement disponible.</p>
     );
   }
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const price = parseFloat(editing.price);
+    if (isNaN(price) || price <= 0) {
+      alert('Prix invalide');
+      return;
+    }
+    const stockNum = parseInt(editing.stock, 10);
+    const stockStatus = isNaN(stockNum) || stockNum >= 50 ? 'in_stock' : 'low_stock';
+    setSaving(true);
+    try {
+      await fetch('/api/pcb/catalog/price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          catalogId: editing.catalogId,
+          price,
+          stockStatus,
+        }),
+      });
+      setResults((prev) =>
+        prev.map((r) => ({
+          ...r,
+          matchedMpns: r.matchedMpns.map((m) =>
+            m.catalogId === editing.catalogId
+              ? { ...m, price, stock: stockNum >= 50 ? 100 : 10 }
+              : m,
+          ),
+        })),
+      );
+      setEditing(null);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="overflow-x-auto rounded-lg border">
@@ -36,6 +81,7 @@ export default function SourcingTable({ results }: SourcingTableProps) {
           {results.map((item) => {
             const hasMatch = item.matchedMpns.length > 0;
             const bestMatch = hasMatch ? item.matchedMpns[0] : null;
+            const isEditing = editing?.catalogId === bestMatch?.catalogId;
 
             return (
               <tr key={item.reference} className={hasMatch ? 'bg-white' : 'bg-yellow-50'}>
@@ -48,11 +94,34 @@ export default function SourcingTable({ results }: SourcingTableProps) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right font-mono">
-                  {((bestMatch?.price ?? item.alternatives[0]?.price ?? 0) * EUR_TO_TND).toFixed(2)}{' '}
-                  DT
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editing?.price ?? ''}
+                      onChange={(e) =>
+                        setEditing((prev) => (prev ? { ...prev, price: e.target.value } : prev))
+                      }
+                      className="w-20 rounded border p-1 text-right"
+                    />
+                  ) : (
+                    `${((bestMatch?.price ?? item.alternatives[0]?.price ?? 0) * EUR_TO_TND).toFixed(2)} DT`
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right font-mono">
-                  {bestMatch?.stock ?? item.alternatives[0]?.stock ?? 0}
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="1"
+                      value={editing?.stock ?? ''}
+                      onChange={(e) =>
+                        setEditing((prev) => (prev ? { ...prev, stock: e.target.value } : prev))
+                      }
+                      className="w-16 rounded border p-1 text-right"
+                    />
+                  ) : (
+                    (bestMatch?.stock ?? item.alternatives[0]?.stock ?? 0)
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right font-mono font-bold">
                   {(item.totalCost * EUR_TO_TND).toFixed(2)} DT
@@ -69,13 +138,38 @@ export default function SourcingTable({ results }: SourcingTableProps) {
                   )}
                 </td>
                 <td className="px-4 py-3">
+                  {bestMatch?.catalogId &&
+                    (isEditing ? (
+                      <button
+                        type="button"
+                        onClick={saveEdit}
+                        disabled={saving}
+                        className="rounded bg-blue-600 px-2 py-1 text-xs text-white disabled:opacity-50"
+                      >
+                        {saving ? '…' : 'Enregistrer'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditing({
+                            catalogId: bestMatch.catalogId,
+                            price: String(bestMatch.price ?? 0),
+                            stock: String(bestMatch.stock ?? 0),
+                          });
+                        }}
+                        className="rounded border px-2 py-1 text-xs"
+                      >
+                        Éditer
+                      </button>
+                    ))}
                   {item.alternatives.length > 0 && (
                     <button
                       type="button"
                       onClick={() =>
                         setExpandedAlt(expandedAlt === item.reference ? null : item.reference)
                       }
-                      className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                      className="ml-2 text-xs font-medium text-indigo-600 hover:text-indigo-800"
                     >
                       {expandedAlt === item.reference
                         ? 'Masquer'

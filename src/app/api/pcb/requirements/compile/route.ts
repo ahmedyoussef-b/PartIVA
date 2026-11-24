@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import { callGroq } from '@/lib/ai/groq-client';
+import { callGroq, hasLlmProvider } from '@/lib/ai/groq-client';
 import { requireAdmin } from '@/lib/auth-admin';
 import { requirementBlocks } from '@/lib/pcb/requirement-blocks';
 import type { RequirementAnswer } from '@/lib/pcb/types';
+import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
+import { getLlmCacheAsync, setLlmCacheAsync } from '@/lib/utils/llm-cache';
 
 export const runtime = 'nodejs';
 
@@ -41,9 +43,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'description requise' }, { status: 400 });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'GROQ_API_KEY non configurée' }, { status: 503 });
+  const apiKey = process.env.GROQ_API_KEY?.trim() || undefined;
+  if (!hasLlmProvider()) {
+    return NextResponse.json({ error: 'Aucun fournisseur LLM configuré' }, { status: 503 });
   }
 
   const questionList = buildQuestionList();
@@ -86,11 +88,27 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
   ]
 }`;
 
+  const cacheKey = `pcb:compile:${hashKey(description)}`;
+  const cached = await getLlmCacheAsync<{
+    compiled: string;
+    answers: RequirementAnswer[];
+    count: number;
+  }>(cacheKey);
+  if (cached) {
+    console.info('[PCB:COMPILE] Cache hit');
+    return NextResponse.json({ ...cached, cached: true });
+  }
+
+  const guard = acquireLlmGuard(cacheKey);
+  if (!guard.ok) {
+    return NextResponse.json({ error: 'Compilation déjà en cours' }, { status: 429 });
+  }
+
   try {
     const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
       model: process.env.GROQ_MODEL,
       temperature: 0.15,
-      maxTokens: 4096,
+      maxTokens: 2048,
       timeout: 30000,
       responseFormat: 'json_object',
     });
@@ -123,7 +141,9 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
       answers.push({ blockId, questionId, answer, status: 'proposed' });
     }
 
-    return NextResponse.json({ compiled, answers, count: answers.length });
+    const result = { compiled, answers, count: answers.length };
+    await setLlmCacheAsync(cacheKey, result);
+    return NextResponse.json(result);
   } catch (e) {
     console.error('[PCB:COMPILE] Erreur LLM', e);
     const message =
@@ -133,5 +153,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
           ? String((e as { message: unknown }).message)
           : 'Erreur LLM';
     return NextResponse.json({ error: message }, { status: 502 });
+  } finally {
+    guard.release();
   }
 }

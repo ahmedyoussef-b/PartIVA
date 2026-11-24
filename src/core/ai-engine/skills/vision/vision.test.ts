@@ -3,13 +3,16 @@ import { vi, describe, it, expect } from 'vitest';
 vi.mock('@/lib/ai/groq-client', () => ({
   callGroq: vi.fn(),
   getGroqApiKey: () => 'test-key',
+  hasLlmProvider: () => true,
 }));
 
 import { callGroq } from '@/lib/ai/groq-client';
+import { clearLlmCache } from '@/lib/utils/llm-cache';
 import { detectPartType } from './vision';
 
 describe('vision', () => {
   beforeEach(() => {
+    clearLlmCache();
     vi.mocked(callGroq).mockReset();
     process.env.GROQ_API_KEY = 'test-key';
     global.fetch = vi.fn().mockResolvedValue({

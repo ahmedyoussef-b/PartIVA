@@ -684,6 +684,8 @@ model PcbProject {
   cadFileUrl    String?
   cadFileName   String?
   kicadFilePath String?
+  sourcingCache Json?
+  cdcHash       String?
   requestId     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -701,38 +703,38 @@ model PcbProject {
 }
 
 model PcbRequirement {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   projectId String
   project   PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  category  String     // usage | function | processing | mechanical | manufacturing | quality
+  category  String // usage | function | processing | mechanical | manufacturing | quality
   key       String
   value     String
-  status    String   @default("proposed") // confirmed | proposed | to_verify | missing
-  source    String?  // provenance : phrase du CDC client ou id de modèle du corpus
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    String     @default("proposed") // confirmed | proposed | to_verify | missing
+  source    String? // provenance : phrase du CDC client ou id de modèle du corpus
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@index([projectId])
   @@map("pcb_requirements")
 }
 
 model PcbComponent {
-  id          String   @id @default(cuid())
-  projectId   String
-  project     PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  reference   String   // R1, C1, U1...
-  name        String
-  catalogId   String?  // référence vers ComponentCatalog
-  symbol      String?
-  footprint   String?
-  model3d     String?
-  properties  Json?
-  positionX   Float?
-  positionY   Float?
-  rotation    Float?
-  status      String   @default("proposed") // proposed | validated | rejected
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String     @id @default(cuid())
+  projectId  String
+  project    PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reference  String // R1, C1, U1...
+  name       String
+  catalogId  String? // référence vers ComponentCatalog
+  symbol     String?
+  footprint  String?
+  model3d    String?
+  properties Json?
+  positionX  Float?
+  positionY  Float?
+  rotation   Float?
+  status     String     @default("proposed") // proposed | validated | rejected
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   pins PcbPin[]
 
@@ -744,9 +746,9 @@ model PcbPin {
   id          String       @id @default(cuid())
   componentId String
   component   PcbComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
-  number      String       // "1", "2", "A3"...
+  number      String // "1", "2", "A3"...
   name        String
-  type        String?      // input | output | power | ground | bidirectional
+  type        String? // input | output | power | ground | bidirectional
   createdAt   DateTime     @default(now())
 
   @@index([componentId])
@@ -757,8 +759,8 @@ model PcbNet {
   id        String     @id @default(cuid())
   projectId String
   project   PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  name      String     // VCC, GND, SDA, SCL...
-  pins      Json?      // [{componentId, pinNumber}]
+  name      String // VCC, GND, SDA, SCL...
+  pins      Json? // [{componentId, pinNumber}]
   status    String     @default("proposed")
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -768,16 +770,16 @@ model PcbNet {
 }
 
 model PcbProposal {
-  id                 String    @id @default(cuid())
+  id                 String     @id @default(cuid())
   projectId          String
   project            PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  action             String    // add_component | add_net | modify_component | remove_component
-  target             String    // pcb_project | component:id | net:id
+  action             String // add_component | add_net | modify_component | remove_component
+  target             String // pcb_project | component:id | net:id
   payload            Json
   reason             String?
-  status             String    @default("pending") // pending | accepted | rejected
-  requiresValidation Boolean   @default(true)
-  createdAt          DateTime  @default(now())
+  status             String     @default("pending") // pending | accepted | rejected
+  requiresValidation Boolean    @default(true)
+  createdAt          DateTime   @default(now())
   resolvedAt         DateTime?
 
   @@index([projectId])
@@ -788,8 +790,8 @@ model PcbValidation {
   id        String     @id @default(cuid())
   projectId String
   project   PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  type      String     // erc | drc | design_review | simulation
-  status    String     // pass | fail | warning
+  type      String // erc | drc | design_review | simulation
+  status    String // pass | fail | warning
   report    Json?
   createdAt DateTime   @default(now())
 
@@ -802,7 +804,7 @@ model PcbCheckpoint {
   projectId String
   project   PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   label     String
-  snapshot  Json       // état complet du PCB Core
+  snapshot  Json // état complet du PCB Core
   createdAt DateTime   @default(now())
 
   @@index([projectId])
@@ -822,16 +824,17 @@ model PcbVersion {
 }
 
 model ComponentCatalog {
-  id          String   @id @default(cuid())
-  name        String
-  category    String   // resistor | capacitor | ic | connector | sensor | power
-  symbol      String
-  footprint   String
-  model3d     String?
-  supplier    String?
-  supplierRef String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  componentType String? // ex. condensateur, resistance, connecteur...
+  category      String // resistor | capacitor | ic | connector | sensor | power
+  symbol        String
+  footprint     String
+  model3d       String?
+  supplier      String?
+  supplierRef   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   prices ComponentPrice[]
 
@@ -839,25 +842,26 @@ model ComponentCatalog {
 }
 
 model ComponentPrice {
-  id          String            @id @default(cuid())
+  id          String           @id @default(cuid())
   catalogId   String
   catalog     ComponentCatalog @relation(fields: [catalogId], references: [id], onDelete: Cascade)
   price       Float
-  currency    String            @default("EUR")
+  currency    String           @default("EUR")
   supplier    String?
-  stockStatus String?           // in_stock | low_stock | out_of_stock
-  updatedAt   DateTime          @updatedAt
+  stockStatus String? // in_stock | low_stock | out_of_stock
+  stock       Int              @default(0)
+  updatedAt   DateTime         @updatedAt
 
   @@index([catalogId])
   @@map("pcb_component_prices")
 }
 
 model RequirementForm {
-  id          String   @id @default(cuid())
-  projectId   String
-  blocks      Json     // structure des 7 blocs
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  projectId String
+  blocks    Json // structure des 7 blocs
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([projectId])
   @@map("pcb_requirement_forms")
@@ -875,4 +879,36 @@ model RequirementAnswer {
 
   @@index([formId])
   @@map("pcb_requirement_answers")
+}
+
+// État persistant des fournisseurs LLM (cooldown partagé entre instances).
+model LlmProviderCooldown {
+  provider  String   @id
+  until     DateTime
+  reason    String?
+  updatedAt DateTime @updatedAt
+
+  @@index([until])
+  @@map("llm_provider_cooldowns")
+}
+
+// Cache LLM persistant (L2) partagé entre instances serverless.
+model LlmCacheEntry {
+  key       String   @id
+  value     Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("llm_cache_entries")
+}
+
+// Compteur de tokens LLM par jour UTC (coupe-circuit budgétaire partagé).
+model LlmDailyUsage {
+  day       String   @id // YYYY-MM-DD (UTC)
+  tokens    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@map("llm_daily_usage")
 }

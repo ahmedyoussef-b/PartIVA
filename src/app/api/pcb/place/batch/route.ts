@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
-import { placeFootprints, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
+import { placeFootprints, syncBoardLive, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
 
 export const runtime = 'nodejs';
 
@@ -29,14 +29,17 @@ export async function POST(req: Request) {
   const projectId = typeof b.projectId === 'string' ? b.projectId.trim() : '';
   const components = Array.isArray(b.components) ? b.components : [];
   const dryRunFlag = b.dryRun === true;
-  const force = b.force === true;
   const allowOutside = b.allowOutside === true;
+  const optimizeFlag = b.optimize === true;
 
   if (b.force !== undefined && typeof b.force !== 'boolean') {
     return NextResponse.json({ error: 'force doit être un booléen' }, { status: 400 });
   }
   if (b.allowOutside !== undefined && typeof b.allowOutside !== 'boolean') {
     return NextResponse.json({ error: 'allowOutside doit être un booléen' }, { status: 400 });
+  }
+  if (b.optimize !== undefined && typeof b.optimize !== 'boolean') {
+    return NextResponse.json({ error: 'optimize doit être un booléen' }, { status: 400 });
   }
 
   if (!projectId) {
@@ -106,11 +109,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
   }
 
-  console.info('[PCB:PLACE-BATCH]', { projectId, count: components.length, dryRun: dryRunFlag });
+  console.info('[PCB:PLACE-BATCH]', {
+    projectId,
+    count: components.length,
+    dryRun: dryRunFlag,
+    optimize: optimizeFlag,
+  });
 
-  const footprints: BatchFootprintInput[] = components.map((raw) => {
+  let working = components.map((raw) => {
     const c = raw as Record<string, unknown>;
-    const layer = typeof c.layer === 'string' && c.layer.trim() ? c.layer.trim() : undefined;
     return {
       libName: String(c.libName).trim(),
       footprintName: String(c.footprintName).trim(),
@@ -118,16 +125,82 @@ export async function POST(req: Request) {
       value: typeof c.value === 'string' ? c.value.trim() : undefined,
       xMm: c.xMm as number,
       yMm: c.yMm as number,
-      layer,
+      layer: typeof c.layer === 'string' && c.layer.trim() ? c.layer.trim() : undefined,
       rotation: typeof c.rotation === 'number' ? c.rotation : undefined,
     };
   });
 
+  if (optimizeFlag) {
+    try {
+      const nets = await prisma.pcbNet.findMany({
+        where: { projectId },
+        select: { name: true, pins: true },
+      });
+      const placementNets = nets.map((n) => ({
+        name: n.name,
+        pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
+      }));
+
+      let boardW = 80;
+      let boardH = 60;
+      let originX = 5;
+      let originY = 5;
+      try {
+        const { parseKicadPcb } = await import('@/lib/pcb/kicad-file-reader');
+        const { readFileSync } = await import('node:fs');
+        const parsed = parseKicadPcb(readFileSync(abs, 'utf8'));
+        if (parsed.dimensions.width > 0 && parsed.dimensions.height > 0) {
+          boardW = parsed.dimensions.width;
+          boardH = parsed.dimensions.height;
+          originX = parsed.origin.x;
+          originY = parsed.origin.y;
+        }
+      } catch {
+        // fallback to defaults
+      }
+
+      const { optimizePlacement } = await import('@/lib/pcb/placement');
+      const optimized = optimizePlacement(
+        working.map((c) => ({
+          reference: c.reference,
+          xMm: c.xMm,
+          yMm: c.yMm,
+          rotation: c.rotation ?? 0,
+        })),
+        placementNets,
+        { widthMm: boardW, heightMm: boardH, originX, originY },
+      );
+      working = working.map((c) => {
+        const opt = optimized.find((o) => o.reference === c.reference);
+        return opt ? { ...c, xMm: opt.xMm, yMm: opt.yMm, rotation: opt.rotation } : c;
+      });
+      console.info('[PCB:PLACE-BATCH] Optimized', { projectId, nets: placementNets.length });
+    } catch (e) {
+      console.warn('[PCB:PLACE-BATCH] Optimize failed, using provided coords', e);
+    }
+  }
+
+  const footprints: BatchFootprintInput[] = working.map((c) => ({
+    libName: c.libName,
+    footprintName: c.footprintName,
+    reference: c.reference,
+    value: c.value,
+    xMm: c.xMm,
+    yMm: c.yMm,
+    layer: c.layer,
+    rotation: c.rotation,
+  }));
+
+  // Persistance TOUJOURS par le fichier : c'est la seule source de vérité qui
+  // contient tous les composants (KiCad garde un état mémoire potentiellement
+  // obsolète et ne doit jamais réécrire le plateau depuis cette mémoire).
   const result = await placeFootprints({
     boardPath: abs,
     footprints,
     dryRun: dryRunFlag,
-    force,
+    // KiCad reste ouvert pendant les manipulations : l'écriture fichier doit
+    // ignorer le verrou `.lck`.
+    force: true,
     allowOutside,
   });
 
@@ -139,16 +212,56 @@ export async function POST(req: Request) {
     );
   }
 
+  // Rafraîchissement de la fenêtre KiCad ouverte (sans sauvegarde) : les
+  // déplacements de composants déjà connus de l'éditeur apparaissent en direct.
+  // Les composants ajoutés depuis l'ouverture de KiCad ne sont pas dans sa
+  // mémoire : ils nécessitent un rechargement manuel du plateau dans l'éditeur.
+  let liveSynced = false;
+  let liveMissing: string[] = [];
+  if (!dryRunFlag && process.env.PARTIVA_DESKTOP === '1') {
+    const live = await syncBoardLive({ boardPath: abs, footprints });
+    if (live.ok) {
+      liveSynced = (live.moved?.length ?? 0) > 0;
+      liveMissing = live.missing ?? [];
+      console.info('[PCB:PLACE-BATCH] Sync live KiCad', {
+        board: live.board,
+        moved: live.moved,
+        missing: liveMissing,
+      });
+    } else {
+      console.warn('[PCB:PLACE-BATCH] Sync live indisponible', {
+        code: live.code,
+        error: live.error,
+      });
+    }
+  }
+
   console.info('[PCB:PLACE-BATCH] Résultat', {
     message: result.message,
     footprintCount: result.footprintCount,
   });
+
+  // Auto-open removed: user opens KiCad explicitly from workspace controls.
 
   const payload: Record<string, unknown> = {
     ok: true,
     placed: result.footprintCount ?? 0,
     dryRun: dryRunFlag,
     message: result.message,
+    liveSynced,
+    ...(optimizeFlag
+      ? {
+          optimized: working.map((c) => ({
+            reference: c.reference,
+            xMm: c.xMm,
+            yMm: c.yMm,
+            rotation: c.rotation,
+          })),
+        }
+      : {}),
+    ...(liveMissing.length > 0
+      ? { liveMissing, hint: 'Rechargez le plateau dans KiCad pour voir les nouveaux composants.' }
+      : {}),
   };
   if (result.verified !== undefined) payload.verified = result.verified;
   if (result.backup !== undefined) payload.backup = result.backup;

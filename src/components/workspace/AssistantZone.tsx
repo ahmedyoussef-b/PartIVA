@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { availableProviders } from '@/lib/ai/providers';
+import { providerOptions } from '@/lib/ai/providers-meta';
 import { useSession } from '@/lib/auth-client';
 import type { EngineResult } from '@/core/ai-engine/engine';
 import { ChatInput } from './ChatInput';
@@ -54,6 +54,7 @@ export function AssistantZone({
   const isAdmin = role === 'ADMIN';
 
   async function handleSend(message: string) {
+    if (isStreaming) return;
     setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
     setIsStreaming(true);
     try {
@@ -253,7 +254,7 @@ export function AssistantZone({
           onChange={(e) => setProviderId(e.target.value)}
           className="rounded border px-2 py-1 text-xs"
         >
-          {availableProviders.map((p) => (
+          {providerOptions.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name} ({p.tier === 'free' ? 'Gratuit' : 'Payant'})
             </option>

@@ -4,6 +4,31 @@
 // NB : l'axe Y de KiCad pointe vers le bas. Les coordonnées sont renvoyées telles quelles,
 // la conversion éventuelle sera faite en A6.
 
+export interface ParsedPad {
+  number: string;
+  type: string;
+  shape: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  drill?: number;
+  rotation: number;
+  layers: string[];
+}
+
+export interface ParsedGraphic {
+  type: 'line' | 'rect' | 'circle' | 'arc';
+  layer: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  x3?: number;
+  y3?: number;
+  width?: number;
+}
+
 export interface ParsedFootprint {
   library: string;
   name: string;
@@ -13,6 +38,8 @@ export interface ParsedFootprint {
   y: number;
   rotation: number;
   layer: string;
+  pads?: ParsedPad[];
+  graphics?: ParsedGraphic[];
 }
 
 export interface ParsedKicadPcb {
@@ -21,6 +48,7 @@ export interface ParsedKicadPcb {
   origin: { x: number; y: number };
   dimensions: { width: number; height: number };
   components: ParsedFootprint[];
+  edges?: ParsedGraphic[];
 }
 
 type Sexpr = string | Sexpr[];
@@ -195,6 +223,84 @@ function collectEdgePoints(node: Sexpr | undefined, points: Array<{ x: number; y
   }
 }
 
+function parsePad(node: Sexpr[]): ParsedPad | null {
+  const number = atom(node[1]) ?? '';
+  const type = atom(node[2]) ?? '';
+  const shape = atom(node[3]) ?? '';
+  const at = parseAt(node) ?? { x: 0, y: 0, rotation: 0 };
+  const sizeNode = firstChild(node, 'size');
+  const w = num(sizeNode?.[1]) ?? 0;
+  const h = num(sizeNode?.[2]) ?? w;
+  const drillNode = firstChild(node, 'drill');
+  let drill: number | undefined;
+  if (drillNode) {
+    const d1 = num(drillNode[1]);
+    const d2 = num(drillNode[2]);
+    drill = d1 ?? d2 ?? undefined;
+  }
+  const layersNode = firstChild(node, 'layers');
+  const layers = layersNode
+    ? layersNode
+        .slice(1)
+        .map((l) => atom(l))
+        .filter((l): l is string => !!l)
+    : [];
+  return { number, type, shape, x: at.x, y: at.y, w, h, drill, rotation: at.rotation, layers };
+}
+
+function parseGraphic(node: Sexpr[], prefix: 'fp' | 'gr'): ParsedGraphic | null {
+  const kind = head(node);
+  if (!kind) return null;
+  const layerNode = firstChild(node, 'layer');
+  const layer = (layerNode ? atom(layerNode[1]) : null) ?? '';
+  const widthNode = firstChild(node, 'width');
+  const width = num(widthNode?.[1]) ?? undefined;
+  if (kind === `${prefix}_line`) {
+    const s = firstChild(node, 'start');
+    const e = firstChild(node, 'end');
+    const x1 = num(s?.[1]);
+    const y1 = num(s?.[2]);
+    const x2 = num(e?.[1]);
+    const y2 = num(e?.[2]);
+    if (x1 === null || y1 === null || x2 === null || y2 === null) return null;
+    return { type: 'line', layer, x1, y1, x2, y2, width };
+  }
+  if (kind === `${prefix}_rect`) {
+    const s = firstChild(node, 'start');
+    const e = firstChild(node, 'end');
+    const x1 = num(s?.[1]);
+    const y1 = num(s?.[2]);
+    const x2 = num(e?.[1]);
+    const y2 = num(e?.[2]);
+    if (x1 === null || y1 === null || x2 === null || y2 === null) return null;
+    return { type: 'rect', layer, x1, y1, x2, y2, width };
+  }
+  if (kind === `${prefix}_circle`) {
+    const c = firstChild(node, 'center');
+    const e = firstChild(node, 'end');
+    const x1 = num(c?.[1]);
+    const y1 = num(c?.[2]);
+    const x2 = num(e?.[1]);
+    const y2 = num(e?.[2]);
+    if (x1 === null || y1 === null || x2 === null || y2 === null) return null;
+    return { type: 'circle', layer, x1, y1, x2, y2, width };
+  }
+  if (kind === `${prefix}_arc`) {
+    const s = firstChild(node, 'start');
+    const m = firstChild(node, 'mid');
+    const e = firstChild(node, 'end');
+    const x1 = num(s?.[1]);
+    const y1 = num(s?.[2]);
+    const mx = num(m?.[1]);
+    const my = num(m?.[2]);
+    const x2 = num(e?.[1]);
+    const y2 = num(e?.[2]);
+    if (x1 === null || y1 === null || x2 === null || y2 === null) return null;
+    return { type: 'arc', layer, x1, y1, x2, y2, x3: mx ?? undefined, y3: my ?? undefined, width };
+  }
+  return null;
+}
+
 function parseFootprint(node: Sexpr): ParsedFootprint | null {
   const libRef = atom(node[1]) ?? '';
   const separator = libRef.indexOf(':');
@@ -208,6 +314,19 @@ function parseFootprint(node: Sexpr): ParsedFootprint | null {
   const reference = propertyText(node, 'Reference') ?? '';
   const value = propertyText(node, 'Value') ?? undefined;
 
+  const pads: ParsedPad[] = [];
+  for (const p of children(node, 'pad')) {
+    const parsed = parsePad(p);
+    if (parsed) pads.push(parsed);
+  }
+  const graphics: ParsedGraphic[] = [];
+  for (const kind of ['fp_line', 'fp_rect', 'fp_circle', 'fp_arc'] as const) {
+    for (const g of children(node, kind)) {
+      const parsed = parseGraphic(g, 'fp');
+      if (parsed) graphics.push(parsed);
+    }
+  }
+
   return {
     library,
     name,
@@ -217,7 +336,24 @@ function parseFootprint(node: Sexpr): ParsedFootprint | null {
     y: position.y,
     rotation: position.rotation,
     layer,
+    pads,
+    graphics,
   };
+}
+
+function collectBoardEdges(node: Sexpr | undefined): ParsedGraphic[] {
+  if (!isList(node)) return [];
+  const edges: ParsedGraphic[] = [];
+  for (const kind of ['gr_line', 'gr_rect', 'gr_circle', 'gr_arc'] as const) {
+    for (const child of children(node, kind)) {
+      const layerNode = firstChild(child, 'layer');
+      const layer = layerNode ? atom(layerNode[1]) : null;
+      if (layer !== EDGE_LAYER) continue;
+      const parsed = parseGraphic(child, 'gr');
+      if (parsed) edges.push(parsed);
+    }
+  }
+  return edges;
 }
 
 export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
@@ -232,6 +368,7 @@ export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
       origin: { x: 0, y: 0 },
       dimensions: { width: 0, height: 0 },
       components: [],
+      edges: [],
     };
   }
 
@@ -243,6 +380,7 @@ export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
 
   const points: Array<{ x: number; y: number }> = [];
   collectEdgePoints(root, points);
+  const edges = collectBoardEdges(root);
 
   let origin = { x: 0, y: 0 };
   let dimensions = { width: 0, height: 0 };
@@ -264,5 +402,5 @@ export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
     if (parsed) components.push(parsed);
   }
 
-  return { version, generator, origin, dimensions, components };
+  return { version, generator, origin, dimensions, components, edges };
 }

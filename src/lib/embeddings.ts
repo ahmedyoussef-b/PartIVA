@@ -1,3 +1,6 @@
+import { getLlmCache, setLlmCache } from '@/lib/utils/llm-cache';
+import { hashKey } from '@/lib/utils/llm-guard';
+
 const HF_API_URL = process.env.HF_API_URL ?? 'https://api-inference.huggingface.co/models';
 
 const HF_MODEL = process.env.HF_EMBEDDING_MODEL ?? 'sentence-transformers/clip-ViT-B-32';
@@ -47,6 +50,12 @@ function isLightweight(): boolean {
 }
 
 export async function computeImageEmbedding(image: string | Buffer): Promise<number[]> {
+  const cacheKey = `embed:img:${hashKey(
+    typeof image === 'string' ? image : image.toString('base64'),
+  )}`;
+  const cached = getLlmCache<number[]>(cacheKey);
+  if (cached) return cached;
+
   const token = process.env.HF_API_TOKEN;
   const provider = detectProvider();
 
@@ -125,6 +134,7 @@ export async function computeImageEmbedding(image: string | Buffer): Promise<num
         'INVALID_RESPONSE',
       );
     }
+    setLlmCache(cacheKey, vector);
     return vector;
   }
 
@@ -142,6 +152,7 @@ export async function computeImageEmbedding(image: string | Buffer): Promise<num
         'INVALID_RESPONSE',
       );
     }
+    setLlmCache(cacheKey, vector);
     return vector;
   }
 
@@ -153,6 +164,7 @@ export async function computeImageEmbedding(image: string | Buffer): Promise<num
   if (!vector.every((v) => typeof v === 'number')) {
     throw new EmbeddingError('Réponse HF invalide (valeurs non numériques)', 'INVALID_RESPONSE');
   }
+  setLlmCache(cacheKey, vector);
   return vector;
 }
 
