@@ -26,6 +26,11 @@ export interface KicadBridgeResult {
   wouldPlace?: boolean;
   backup?: string;
   verified?: number;
+  /** Route assisté : pistes, zones et vias écrits dans le plateau. */
+  routed?: number;
+  zones?: number;
+  vias?: number;
+  createdNets?: string[];
   error?: string;
 }
 
@@ -194,6 +199,11 @@ function parseResult(output: RunOutput): KicadBridgeResult {
         footprintCount?: number;
         verified?: number;
         wouldPlace?: boolean;
+        wouldRoute?: number;
+        routed?: number;
+        zones?: number;
+        vias?: number;
+        createdNets?: string[];
         backup?: string;
         error?: string;
       };
@@ -208,6 +218,17 @@ function parseResult(output: RunOutput): KicadBridgeResult {
             wouldPlace: typeof parsed.wouldPlace === 'boolean' ? parsed.wouldPlace : undefined,
             backup: typeof parsed.backup === 'string' ? parsed.backup : undefined,
             verified: typeof parsed.verified === 'number' ? parsed.verified : undefined,
+            routed:
+              typeof parsed.routed === 'number'
+                ? parsed.routed
+                : typeof parsed.wouldRoute === 'number'
+                  ? parsed.wouldRoute
+                  : undefined,
+            zones: typeof parsed.zones === 'number' ? parsed.zones : undefined,
+            vias: typeof parsed.vias === 'number' ? parsed.vias : undefined,
+            createdNets: Array.isArray(parsed.createdNets)
+              ? parsed.createdNets.filter((n): n is string => typeof n === 'string')
+              : undefined,
           };
         }
         return { ok: false, error: parsed.error ?? 'Échec du placement' };
@@ -436,6 +457,64 @@ export function placeFootprints(args: {
     return Promise.resolve({ ok: false, error: 'footprints requis (tableau non vide)' });
   }
   return executeBatch(args.boardPath, args.footprints, args.dryRun === true, args);
+}
+
+export interface RouteNetInput {
+  name: string;
+  pins: string[];
+}
+
+/** Routage assisté partiel : arbre F.Cu + zone GND B.Cu avec vias. */
+export function routeBoard(args: {
+  boardPath: string;
+  nets: RouteNetInput[];
+  dryRun?: boolean;
+}): Promise<KicadBridgeResult> {
+  if (args.nets.length === 0) {
+    return Promise.resolve({ ok: false, error: 'nets requis (tableau non vide)' });
+  }
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('route_board.py');
+    if (!scriptPath) return { ok: false, error: 'script route_board.py introuvable' };
+
+    const tmpInput = join(
+      tmpdir(),
+      `partiva-route-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`,
+    );
+    try {
+      writeFileSync(tmpInput, JSON.stringify(args.nets), 'utf8');
+      const cli = [
+        '--board',
+        args.boardPath,
+        '--nets',
+        tmpInput,
+        '--force',
+        ...(args.dryRun === true ? ['--dry-run'] : []),
+      ];
+      const output = await runPython(pyPath, scriptPath, cli);
+      if (output.code !== 0 || output.timedOut) {
+        console.error('[KICAD:ROUTE] Échec du script', {
+          python: pyPath,
+          script: scriptPath,
+          board: args.boardPath,
+          code: output.code,
+          stdout: output.stdout.slice(-1000),
+          stderr: output.stderr.slice(-1000),
+        });
+      }
+      return parseResult(output);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    } finally {
+      try {
+        unlinkSync(tmpInput);
+      } catch {
+        // fichier déjà absent
+      }
+    }
+  });
 }
 
 export interface KicadLiveSyncResult {

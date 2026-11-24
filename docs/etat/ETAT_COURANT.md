@@ -375,6 +375,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — routage assisté partiel
+
+- **Rapport de contradictions validé** : nets à 3 pins (pas de L à 2 pins), nets absents du `.kicad_pcb` (`FindNet('GND')` = None), zone B.Cu sans vias inopérante, 13 composants sans net. Plan corrigé appliqué.
+- **Script `route_board.py` finalisé** : création des `NETINFO_ITEM`, routage en arbre F.Cu (0,25 mm, `SetNet`), zone GND B.Cu + 1 via par pad GND, sauvegarde avec `.bak`.
+- **Vérifié sur copie du plateau** (dry-run puis réel) : `{"ok":true,"routed":4,"zones":1,"vias":3,"createdNets":["GND","VCC_5V"]}` ; fichier relu = 4 `(segment`, 1 `(zone`, 3 `(via`, nets assignés.
+- **Backend/UI** : `POST /api/pcb/route` lit `PcbNet`, bouton « Router la carte » avec toast « DRC non vérifié ».
+- **Périmètre assumé** : routage partiel, pas de DRC ni de garantie d'absence de croisement ; seuls GND et VCC_5V sont câblés.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
