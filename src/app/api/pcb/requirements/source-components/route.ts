@@ -40,7 +40,9 @@ export async function POST(req: Request) {
 
   const b = (body ?? {}) as Record<string, unknown>;
   const projectId = typeof b.projectId === 'string' ? b.projectId.trim() : '';
-  const forceRefresh = b.force === true;
+  // Le panneau Sourcing envoie `forceRefresh`, les anciens appels `force` :
+  // accepter les deux, sinon le bouton « Régénérer » resservait le cache.
+  const forceRefresh = b.forceRefresh === true || b.force === true;
   const peek = b.peek === true;
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
@@ -304,14 +306,30 @@ Règles :
         if (next.length > 0) {
           proposed = next;
           // Parse nets if provided
-          const rawNets = Array.isArray(obj.nets) ? obj.nets : [];
+          const rawNets = Array.isArray(obj.nets)
+            ? obj.nets
+            : Array.isArray(obj.netlist)
+              ? obj.netlist
+              : [];
           const parsedNets: { name: string; pins: string[] }[] = [];
           for (const n of rawNets) {
             if (!n || typeof n !== 'object') continue;
             const net = n as Record<string, unknown>;
             const name = typeof net.name === 'string' ? net.name.trim() : '';
+            // Tolérer `"U1.1"` mais aussi `{ref:"U1", pin:"1"}`.
             const pins = Array.isArray(net.pins)
-              ? net.pins.filter((p): p is string => typeof p === 'string')
+              ? net.pins
+                  .map((p) => {
+                    if (typeof p === 'string') return p.trim();
+                    if (p && typeof p === 'object') {
+                      const o = p as Record<string, unknown>;
+                      const ref = String(o.ref ?? o.reference ?? o.component ?? '').trim();
+                      const num = String(o.pin ?? o.number ?? o.name ?? '').trim();
+                      return ref && num ? `${ref}.${num}` : '';
+                    }
+                    return '';
+                  })
+                  .filter((p) => /^[A-Za-z0-9_]+\.[^\s]+$/.test(p))
               : [];
             if (name && pins.length >= 2) parsedNets.push({ name, pins });
           }
