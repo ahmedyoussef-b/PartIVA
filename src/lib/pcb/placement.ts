@@ -425,13 +425,18 @@ function simulatedAnnealing(
       const targetX = guided ? guided.x : comp.xMm + dx;
       const targetY = guided ? guided.y : comp.yMm + dy;
       comp.xMm = Math.max(ox + 2, Math.min(maxX - 2, targetX));
-      comp.yMm = Math.max(oy + 2, Math.min(maxY - 2, targetY));
+      // Contrainte physique : un connecteur reste sur le bord supérieur.
+      // Seul X est libre, pour lui permettre de s'écarter des voisins.
+      comp.yMm = comp.role === 'connector' ? oy + 3 : Math.max(oy + 2, Math.min(maxY - 2, targetY));
     } else if (moveType < 0.85) {
-      comp.rotation = [0, 90, 180, 270][Math.floor(rng(i * 71 + 17) * 4)] ?? 0;
+      if (comp.role !== 'connector') {
+        comp.rotation = [0, 90, 180, 270][Math.floor(rng(i * 71 + 17) * 4)] ?? 0;
+      }
     } else {
       // swap avec un autre composant
       const jdx = Math.floor(rng(i * 89 + 19) * current.length);
-      if (jdx !== idx) {
+      // Un swap déplacerait un connecteur en Y : on l'interdit.
+      if (jdx !== idx && comp.role !== 'connector' && current[jdx]!.role !== 'connector') {
         const other = current[jdx]!;
         const tx = comp.xMm,
           ty = comp.yMm,
@@ -493,15 +498,42 @@ export function optimizePlacement(
     components[i]!.rotation = seed[i]!.rotation;
   }
 
+  // Initialisation guidée des connecteurs : les aligner sur le bord supérieur
+  // AVANT le recuit évite la coordination difficile de 4 déplacements
+  // simultanés vers la même contrainte.
+  const connectors = components
+    .filter((c) => c.role === 'connector')
+    .sort((a, b) => a.reference.localeCompare(b.reference));
+  const ox = board.originX ?? 0;
+  const oy = board.originY ?? 0;
+  if (connectors.length > 0) {
+    const spacing = board.widthMm / (connectors.length + 1);
+    connectors.forEach((conn, index) => {
+      conn.xMm = ox + spacing * (index + 1);
+      conn.yMm = oy + 3;
+      conn.rotation = 0;
+    });
+  }
+  const constrained = cloneComponents(components);
+  const constrainedCost = calculateCost(constrained, adj, board);
+
   simulatedAnnealing(components, adj, board, 800);
 
-  if (calculateCost(components, adj, board) > initialCost) {
+  // La contrainte bord supérieur est imposée : on ne restaure le placement
+  // initial que s'il n'y avait aucun connecteur (sinon on la contournerait).
+  const needsFallback =
+    connectors.length === 0
+      ? calculateCost(components, adj, board) > initialCost
+      : calculateCost(components, adj, board) > constrainedCost;
+  if (needsFallback) {
+    const fallback = connectors.length === 0 ? initial : constrained;
     for (let i = 0; i < components.length; i += 1) {
-      components[i]!.xMm = initial[i]!.xMm;
-      components[i]!.yMm = initial[i]!.yMm;
-      components[i]!.rotation = initial[i]!.rotation;
+      components[i]!.xMm = fallback[i]!.xMm;
+      components[i]!.yMm = fallback[i]!.yMm;
+      components[i]!.rotation = fallback[i]!.rotation;
     }
   }
+
   // Arrondir à la grille 1 mm (KiCad utilise 0.1mm min, 1mm pour l'approx)
   for (const c of components) {
     c.xMm = Math.round(c.xMm * 10) / 10;

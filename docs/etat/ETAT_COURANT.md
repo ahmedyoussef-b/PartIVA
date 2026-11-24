@@ -366,6 +366,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — alignement forcé des connecteurs
+
+- **Contrainte imposée** (et non plus seulement pénalisée) : initialisation des connecteurs à `y = originY + 3` avec répartition régulière sur X avant le recuit, verrouillage de Y et de la rotation pendant le recuit, exclusion des swaps impliquant un connecteur.
+- **Garantie** : repli vers l'état contraint (et non vers l'état initial) si le recuit dégrade le coût, afin de ne pas contourner la contrainte du CDC.
+- **Vérifié sur le projet réel** : 4/4 connecteurs à **3,0 mm** du bord supérieur ; `U1↔J1` = 4,5 mm, `U3↔J4` = 6,7 mm, `Y1↔U2` = 8,1 mm ; coût 824 071 → 379 968.
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
