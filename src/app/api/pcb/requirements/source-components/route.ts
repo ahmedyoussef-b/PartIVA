@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { callGroq, hasLlmProvider } from '@/lib/ai/groq-client';
 import { requireAdmin } from '@/lib/auth-admin';
-import { resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
+import { getFootprintSize, resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 
@@ -340,12 +340,16 @@ Règles :
               const boardW = 80;
               const boardH = 60;
               const placed = optimizePlacement(
-                proposed.map((c) => ({
-                  reference: c.reference,
-                  xMm: c.xMm,
-                  yMm: c.yMm,
-                  rotation: c.rotation,
-                })),
+                proposed.map((c) => {
+                  const size = getFootprintSize(c.libName, c.footprintName);
+                  return {
+                    reference: c.reference,
+                    xMm: c.xMm,
+                    yMm: c.yMm,
+                    rotation: c.rotation,
+                    ...(size ? { widthMm: size.widthMm, heightMm: size.heightMm } : {}),
+                  };
+                }),
                 parsedNets,
                 { widthMm: boardW, heightMm: boardH, originX: 5, originY: 5 },
               );

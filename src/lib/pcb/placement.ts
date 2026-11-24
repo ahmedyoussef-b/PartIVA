@@ -24,6 +24,33 @@ export interface PlacementBoard {
   originY?: number;
 }
 
+// Classification des nets à partir de leur nom. Ces helpers sont volontairement
+// indépendants de toute heuristique géométrique : ils serviront de base aux
+// pénalités de découplage (à ajouter dans une étape ultérieure).
+const POWER_NET_RE = /(^|[_+\s-])(vcc|vdd|vbat|3v3|5v|12v|\+?(?:3|5|12)v\d*)(?:$|[_+\s-])/i;
+const GND_NET_RE = /(^|[_+\s-])([a-z]?gnd|vss|ground|0v)(?:$|[_+\s-])/i;
+
+export function isPowerNet(name: string): boolean {
+  return POWER_NET_RE.test(name.trim());
+}
+
+export function isGndNet(name: string): boolean {
+  return GND_NET_RE.test(name.trim());
+}
+
+// Map "U1.1" -> nom du net. Une broche peut apparaître dans plusieurs nets
+// (erreur de schéma) : la première occurrence gagne, ce qui reste déterministe.
+export function buildPinNetMap(nets: PlacementNet[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const net of nets) {
+    for (const pin of net.pins) {
+      const key = pin.trim();
+      if (key && !map.has(key)) map.set(key, net.name);
+    }
+  }
+  return map;
+}
+
 function compOfPin(pin: string): string {
   return pin.split('.')[0] ?? pin;
 }
@@ -78,7 +105,7 @@ function wireLength(components: PlacementComponent[], adj: Map<string, Set<strin
   return total / 2; // chaque arête comptée deux fois
 }
 
-function cost(
+export function calculateCost(
   components: PlacementComponent[],
   adj: Map<string, Set<string>>,
   board: PlacementBoard,
@@ -188,9 +215,9 @@ function simulatedAnnealing(
   const maxY = oy + board.heightMm;
 
   let best = cloneComponents(components);
-  let bestCost = cost(best, adj, board);
+  let bestCost = calculateCost(best, adj, board);
   const current = cloneComponents(components);
-  let currentCost = cost(current, adj, board);
+  let currentCost = calculateCost(current, adj, board);
 
   for (let i = 0; i < iterations; i++) {
     const t = 1 - i / iterations;
@@ -230,7 +257,7 @@ function simulatedAnnealing(
       }
     }
 
-    const newCost = cost(current, adj, board);
+    const newCost = calculateCost(current, adj, board);
     const delta = newCost - currentCost;
     const accept = delta < 0 || rng(i * 103 + 23) < Math.exp(-delta / temp);
 

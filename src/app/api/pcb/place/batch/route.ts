@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { placeFootprints, syncBoardLive, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
-import { resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
+import { getFootprintSize, resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
 
 export const runtime = 'nodejs';
 
@@ -185,12 +185,16 @@ export async function POST(req: Request) {
 
       const { optimizePlacement } = await import('@/lib/pcb/placement');
       const optimized = optimizePlacement(
-        working.map((c) => ({
-          reference: c.reference,
-          xMm: c.xMm,
-          yMm: c.yMm,
-          rotation: c.rotation ?? 0,
-        })),
+        working.map((c) => {
+          const size = getFootprintSize(c.libName, c.footprintName);
+          return {
+            reference: c.reference,
+            xMm: c.xMm,
+            yMm: c.yMm,
+            rotation: c.rotation ?? 0,
+            ...(size ? { widthMm: size.widthMm, heightMm: size.heightMm } : {}),
+          };
+        }),
         placementNets,
         { widthMm: boardW, heightMm: boardH, originX, originY },
       );
