@@ -75,6 +75,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [placing, setPlacing] = useState<number | null>(null);
   const [placingAll, setPlacingAll] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [generatingNets, setGeneratingNets] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
@@ -306,6 +307,35 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  // Génération des seules connexions : prompt compact, composants inchangés.
+  const handleGenerateNetsOnly = async () => {
+    setGeneratingNets(true);
+    try {
+      const res = await fetch('/api/pcb/requirements/nets-only', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      setNetsMissing(false);
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      toast.success(
+        `${data.count} réseaux générés (${(data.nets ?? []).map((n: { name: string }) => n.name).join(', ')})`,
+        {
+          duration: 12_000,
+        },
+      );
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Génération des nets impossible', {
+        duration: 12_000,
+      });
+    } finally {
+      setGeneratingNets(false);
+    }
+  };
+
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   const handlePlaceAll = async () => {
@@ -426,6 +456,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         </button>
         <button
           type="button"
+          className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
+          onClick={handleGenerateNetsOnly}
+          disabled={generatingNets}
+        >
+          {generatingNets ? 'Génération…' : 'Générer les nets (GND/VCC)'}
+        </button>
+        <button
+          type="button"
           className="rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700"
           onClick={handlePlaceAll}
           disabled={placingAll}
@@ -436,7 +474,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       {netsMissing && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
           Aucune netlist disponible : les connexions (ratsnest) ne peuvent pas être tracées. Cliquez
-          sur « Régénérer la netlist » pour que l’IA produise les connexions entre pins.
+          sur « Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur «
+          Régénérer la netlist » pour refaire aussi les composants.
         </div>
       )}
       <div className="space-y-3 p-4">
