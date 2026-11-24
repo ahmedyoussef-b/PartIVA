@@ -334,6 +334,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 - **Cause** : bug SWIG de **KiCad 10.0.8** — après la première mutation d'un board (`Add`/`Remove`), les proxies retournés par l'API perdent leurs méthodes (module `pcbnew`, objets `FOOTPRINT`, board relu). Le verrou `.lck` n'était pas en cause (`--force` était déjà passé).
 - **Correctif** : charger **toutes** les empreintes avant toute mutation via une instance persistante `PCB_IO_KICAD_SEXPR`, capturer les empreintes existantes par référence une seule fois, et faire la réconciliation post-écriture dans un **processus Python neuf** (`--verify`).
 - **Vérifié** : rejeu du payload défaillant (9 composants) → `{"ok":true,"placed":9,"verified":9}` sur une copie du plateau ; dry-run OK ; `py_compile` OK.
+- **Suite (test réel, 15 composants)** : `sortie illisible du script Python (batch)` — KiCad 10 imprime ses avertissements SWIG (`memory leak...`) sur **stdout après** la ligne JSON ; le parseur prenait la dernière ligne. Corrigé : recherche de la dernière **ligne JSON valide** (`lastJsonLine`).
 
 ---
 
