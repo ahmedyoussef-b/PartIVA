@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 
 TOLERANCE_NM = 10_000
@@ -93,6 +94,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Valide sans écrire")
     parser.add_argument("--force", action="store_true", help="Ignore le verrou KiCad")
     parser.add_argument("--allow-outside", action="store_true", help="Ignore le contrôle géométrique")
+    parser.add_argument(
+        "--verify",
+        help="Relit le plateau dans un processus Python neuf et vérifie les positions attendues (JSON)",
+    )
     args = parser.parse_args()
 
     try:
@@ -103,6 +108,44 @@ def main():
     board_path = os.path.abspath(args.board)
     if not os.path.isfile(board_path):
         fail(f"plateau introuvable: {board_path}")
+
+    # Mode vérification : relire le plateau dans un processus Python neuf.
+    # KiCad 10.0.x dégrade les proxies SWIG après mutation d'un board : la
+    # relecture doit donc se faire hors du processus qui a écrit le fichier.
+    if args.verify:
+        try:
+            with open(os.path.abspath(args.verify), "r", encoding="utf-8") as fh:
+                expected = json.load(fh)
+            board = pcbnew.LoadBoard(board_path)
+            actual = {}
+            for fp in board.GetFootprints():
+                position = fp.GetPosition()
+                actual[fp.GetReference()] = (
+                    position.x,
+                    position.y,
+                    normalize_rotation(fp.GetOrientationDegrees()),
+                )
+            problems = []
+            for exp in expected:
+                got = actual.get(exp["reference"])
+                if not got:
+                    problems.append(f"{exp['reference']} absent après relecture")
+                    continue
+                if (
+                    abs(got[0] - exp["x_nm"]) > TOLERANCE_NM
+                    or abs(got[1] - exp["y_nm"]) > TOLERANCE_NM
+                ):
+                    problems.append(f"{exp['reference']} position incorrecte")
+                if rotation_delta(got[2], exp["rotation"]) > ROTATION_TOLERANCE_DEG:
+                    problems.append(f"{exp['reference']} rotation incorrecte")
+            if problems:
+                fail("relecture : " + "; ".join(problems))
+            emit({"ok": True, "verified": len(expected)})
+        except SystemExit:
+            raise
+        except Exception as exc:
+            fail(f"relecture impossible: {exc}")
+        return
 
     # 1. Verrou KiCad
     if not args.force:
@@ -124,6 +167,17 @@ def main():
         fail("JSON d'entrée : tableau vide")
 
     share = find_kicad_share()
+
+    # KiCad 10.0.x : `pcbnew.FootprintLoad()` utilise en interne un plugin SWIG
+    # qui se dégrade en `SwigPyObject` après la première modification du plateau
+    # (2e appel -> AttributeError: 'SwigPyObject' object has no attribute
+    # 'FootprintLoad'). Garder notre propre instance PCB_IO_KICAD_SEXPR évite
+    # ce bug et fonctionne aussi sur les versions antérieures.
+    io = None
+    try:
+        io = pcbnew.PCB_IO_KICAD_SEXPR()
+    except Exception:
+        io = None
 
     try:
         board = pcbnew.LoadBoard(board_path)
@@ -159,7 +213,10 @@ def main():
             print("warning: bbox vide, contrôle géométrique ignoré", file=sys.stderr)
 
     # 4. Construction en mémoire. Une erreur = échec global, AUCUNE sauvegarde.
-    expected = []
+    # KiCad 10.0.x : les proxies SWIG retournés par le plateau perdent leurs
+    # méthodes dès qu'on modifie ce plateau. On charge donc TOUTES les
+    # empreintes et on capture les empreintes existantes AVANT toute mutation.
+    prepared = []
     for index, item in enumerate(items):
         if not isinstance(item, dict):
             fail(f"items[{index}] : objet attendu")
@@ -175,12 +232,26 @@ def main():
             fail(f"items[{index}] : librairie introuvable: {lib_path}")
 
         try:
-            fp = pcbnew.FootprintLoad(lib_path, fp_name)
+            fp = (
+                io.FootprintLoad(lib_path, fp_name)
+                if io is not None
+                else pcbnew.FootprintLoad(lib_path, fp_name)
+            )
         except Exception as exc:
             fail(f"items[{index}] : FootprintLoad echoue: {exc}")
         if fp is None:
             fail(f"items[{index}] : empreinte introuvable: {lib_name}:{fp_name}")
+        prepared.append((item, reference, fp))
 
+    existing_by_ref = {}
+    try:
+        for existing in list(board.GetFootprints()):
+            existing_by_ref[existing.GetReference()] = existing
+    except Exception as exc:
+        fail(f"lecture des empreintes du plateau impossible: {exc}")
+
+    expected = []
+    for index, (item, reference, fp) in enumerate(prepared):
         try:
             x_mm = float(item.get("xMm", 0) or 0)
             y_mm = float(item.get("yMm", 0) or 0)
@@ -197,10 +268,14 @@ def main():
         except Exception as exc:
             fail(f"items[{index}] : proprietes de l'empreinte: {exc}")
 
-        # Supprimer une empreinte existante avec la même référence (idempotence)
-        for existing in list(board.GetFootprints()):
-            if existing.GetReference() == reference:
-                board.Remove(existing)
+        # Idempotence : retirer l'ancienne empreinte de même référence
+        # (déjà capturée avant toute mutation du plateau).
+        old = existing_by_ref.pop(reference, None)
+        if old is not None:
+            try:
+                board.Remove(old)
+            except Exception as exc:
+                fail(f"items[{index}] : retrait de l'ancienne empreinte: {exc}")
 
         try:
             board.Add(fp)
@@ -238,55 +313,44 @@ def main():
             pass
         fail(f"sauvegarde impossible: {exc}")
 
-    # 6. Réconciliation post-écriture
+    # 6. Réconciliation post-écriture dans un PROCESSUS PYTHON NEUF.
+    # Relire le plateau dans le processus qui vient de le muter échoue sur
+    # KiCad 10.0.x (proxies SWIG dégradés) : on délègue donc à --verify.
+    expected_path = board_path + ".expected.json"
     try:
-        board2 = pcbnew.LoadBoard(board_path)
-        actual = {}
-        for fp in board2.GetFootprints():
-            position = fp.GetPosition()
-            actual[fp.GetReference()] = (position.x, position.y, normalize_rotation(fp.GetOrientationDegrees()))
+        with open(expected_path, "w", encoding="utf-8") as fh:
+            json.dump(expected, fh)
+        proc = subprocess.run(
+            [
+                sys.executable,
+                os.path.abspath(__file__),
+                "--board",
+                board_path,
+                "--input",
+                expected_path,
+                "--verify",
+                expected_path,
+                "--force",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        lines = [line for line in proc.stdout.splitlines() if line.strip()]
+        payload = json.loads(lines[-1]) if lines else {}
+        if not payload.get("ok"):
+            raise RuntimeError(payload.get("error") or proc.stderr.strip() or "relecture impossible")
     except Exception as exc:
         try:
             shutil.copy2(backup_path, board_path)
         except Exception:
             pass
         fail(f"relecture impossible: {exc} — plateau restaure depuis .bak")
-
-    for exp in expected:
-        got = actual.get(exp["reference"])
-        if not got:
-            try:
-                shutil.copy2(backup_path, board_path)
-            except Exception:
-                pass
-            fail(
-                f"Reconciliation echouee pour {exp['reference']} (absent apres relecture) "
-                f"— plateau restaure depuis .bak"
-            )
-
-        dx = abs(got[0] - exp["x_nm"])
-        dy = abs(got[1] - exp["y_nm"])
-        if dx > TOLERANCE_NM or dy > TOLERANCE_NM:
-            try:
-                shutil.copy2(backup_path, board_path)
-            except Exception:
-                pass
-            fail(
-                f"Reconciliation echouee pour {exp['reference']} "
-                f"(attendu x={exp['x_nm']} y={exp['y_nm']}, obtenu x={got[0]} y={got[1]}) "
-                f"— plateau restaure depuis .bak"
-            )
-
-        if rotation_delta(got[2], exp["rotation"]) > ROTATION_TOLERANCE_DEG:
-            try:
-                shutil.copy2(backup_path, board_path)
-            except Exception:
-                pass
-            fail(
-                f"Reconciliation echouee pour {exp['reference']} "
-                f"(rotation attendue {exp['rotation']}, obtenue {got[2]}) "
-                f"— plateau restaure depuis .bak"
-            )
+    finally:
+        try:
+            os.remove(expected_path)
+        except Exception:
+            pass
 
     emit(
         {

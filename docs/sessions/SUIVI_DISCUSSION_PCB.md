@@ -416,3 +416,11 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Diagnostic chiffré** : `pcbNet` = 0 ligne, `sourcingCache.nets` = 0, `sourcingCache.components` = 6, `cdcHash` inchangé → cache sans netlist réutilisé à l'infini, sans bouton de régénération.
 - **Corrections** : cache v2 (nets obligatoires), restauration BDD des nets depuis le cache, prompt renforcé, boutons « Régénérer la netlist » et « Tout placer (optimisé) », utilisation des coordonnées `optimized[]` du backend au lieu des guesses LLM.
 - **Rappel fonctionnel** : le ratsnest n'apparaît que si `PcbNet` contient des nets ET que les composants sont dans le fichier `.kicad_pcb` (source du canvas). Après Reset, replacer les composants (idéalement via « Tout placer »). KiCad : `Fichier > Recharger` pour les nouvelles empreintes.
+
+### 11.19 Crash du script de placement — diagnostic résolu (2026-11-24)
+
+- **Log décisif** (après ajout du diagnostic complet) : `items[2] : FootprintLoad echoue: 'SwigPyObject' object has no attribute 'FootprintLoad'`, stack dans `pcbnew.py:24225`, avec `python: C:\Program Files\KiCad\10.0\bin\python.exe` (KiCad **10.0.8**).
+- **Cause écartée** : le verrou `.lck` (le script reçoit déjà `--force`). **Cause retenue** : bug SWIG KiCad 10.0.x — les proxies d'API perdent leurs méthodes après mutation du board.
+- **Correctif** : `io = pcbnew.PCB_IO_KICAD_SEXPR()` persistante, tous les `FootprintLoad` avant mutation, existing capturés par référence, vérification finale via un sous-processus `--verify`.
+- **Preuve** : rejeu du payload des 9 composants → `{"ok":true,"placed":9,"verified":9}` ; dry-run OK ; `py_compile` OK.
+- **Étape suivante convenue** : point 4 — régénération compacte des nets (GND inclus) une fois ce crash confirmé.
