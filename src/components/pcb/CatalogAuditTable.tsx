@@ -146,11 +146,12 @@ export default function CatalogAuditTable() {
   const save = async (id: string) => {
     const row = rows.find((r) => r.catalogId === id);
     if (!row) return;
-    const price = parseFloat(editPrice);
-    if (isNaN(price) || price <= 0) {
+    const entered = parseFloat(editPrice);
+    if (isNaN(entered) || entered <= 0) {
       alert('Prix invalide');
       return;
     }
+    const price = entered;
     const stockNum = parseInt(editStock, 10);
     const stockStatus = isNaN(stockNum) || stockNum >= 50 ? 'in_stock' : 'low_stock';
     setSaving(true);
@@ -172,6 +173,7 @@ export default function CatalogAuditTable() {
             ? {
                 ...r,
                 price,
+                currency: 'TND',
                 stock: stockNum,
                 stockStatus,
                 updatedAt: new Date().toISOString(),
@@ -400,7 +402,7 @@ export default function CatalogAuditTable() {
                                                 className="w-16 rounded border p-1 text-right"
                                               />
                                             ) : (
-                                              `${r.price != null ? r.price.toFixed(2) : '—'} ${r.currency ?? 'EUR'}`
+                                              `${r.price != null ? (r.currency === 'EUR' ? (r.price * 3.3).toFixed(2) : r.price.toFixed(2)) : '—'} ${r.currency === 'EUR' ? 'DT' : (r.currency ?? 'DT')}`
                                             )}
                                           </td>
                                           <td className="px-2 py-1 text-right font-mono">
@@ -434,7 +436,15 @@ export default function CatalogAuditTable() {
                                                 size="sm"
                                                 onClick={() => {
                                                   setEditingId(r.catalogId);
-                                                  setEditPrice(String(r.price ?? ''));
+                                                  setEditPrice(
+                                                    String(
+                                                      r.price != null
+                                                        ? r.currency === 'EUR'
+                                                          ? r.price * 3.3
+                                                          : r.price
+                                                        : '',
+                                                    ),
+                                                  );
                                                   setEditStock(String(r.stock));
                                                 }}
                                               >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { usePcbEditor } from './PcbEditorProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
@@ -75,19 +75,25 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [placing, setPlacing] = useState<number | null>(null);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
+  const loadingRef = useRef(false);
 
-  const fetchComponents = useCallback(async () => {
-    const res = await fetch('/api/pcb/requirements/source-components', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId }),
-    });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
-    return (data.components ?? []) as ProposedComponent[];
-  }, [projectId]);
+  const fetchComponents = useCallback(
+    async (peek = false) => {
+      const res = await fetch('/api/pcb/requirements/source-components', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, peek }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+      return (data.components ?? []) as ProposedComponent[];
+    },
+    [projectId],
+  );
 
   const load = async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     setPlaced({});
@@ -98,13 +104,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur');
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
     let cancelled = false;
-    fetchComponents()
+    fetchComponents(true)
       .then((next) => {
         if (cancelled) return;
         setComponents(next);
@@ -211,6 +218,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           projectId,
           dryRun: false,
           force,
+          optimize: true,
           components: [
             {
               libName: s.libName,

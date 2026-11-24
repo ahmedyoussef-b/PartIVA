@@ -1,6 +1,8 @@
 import { cadParamsSchema, type CadParams } from './types';
 import { callGroq, getGroqApiKey } from '../../../../lib/ai/groq-client';
 import type { IngestResult } from '../ingest/types';
+import { getLlmCache, setLlmCache } from '@/lib/utils/llm-cache';
+import { hashKey } from '@/lib/utils/llm-guard';
 
 const DEFAULT_DIAMETER = 10;
 const DEFAULT_HEIGHT = 20;
@@ -64,21 +66,30 @@ function buildPrompt(ingestResult: IngestResult): string {
 }
 
 export async function extractCadParams(ingestResult: IngestResult): Promise<CadParams> {
+  const prompt = buildPrompt(ingestResult);
+  const cacheKey = `extract-params:${hashKey(prompt)}`;
+  const cached = getLlmCache<string>(cacheKey);
+
   let content: string;
-  try {
-    const res = await callGroq(
-      [{ role: 'user', content: buildPrompt(ingestResult) }],
-      getGroqApiKey() ?? '',
-      { maxTokens: 512, temperature: 0 },
-    );
-    content = res.content;
-  } catch (e) {
-    console.error('[RECONSTRUCT][EXTRACT_PARAMS_FAILED]', e);
-    throw {
-      code: 'EXTRACT_PARAMS_FAILED',
-      message: 'Extraction params failed',
-      stage: 'reconstruct',
-    };
+  if (cached !== undefined) {
+    content = cached;
+  } else {
+    try {
+      const res = await callGroq([{ role: 'user', content: prompt }], getGroqApiKey(), {
+        maxTokens: 512,
+        temperature: 0,
+        responseFormat: 'json_object',
+      });
+      content = res.content;
+      setLlmCache(cacheKey, content);
+    } catch (e) {
+      console.error('[RECONSTRUCT][EXTRACT_PARAMS_FAILED]', e);
+      throw {
+        code: 'EXTRACT_PARAMS_FAILED',
+        message: 'Extraction params failed',
+        stage: 'reconstruct',
+      };
+    }
   }
   let parsed: { success: boolean; data?: CadParams } = { success: false };
   try {

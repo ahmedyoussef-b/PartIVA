@@ -54,6 +54,7 @@ export function AssistantZone({
   const isAdmin = role === 'ADMIN';
 
   async function handleSend(message: string) {
+    if (isStreaming) return;
     setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
     setIsStreaming(true);
     try {

@@ -30,12 +30,16 @@ export async function POST(req: Request) {
   const components = Array.isArray(b.components) ? b.components : [];
   const dryRunFlag = b.dryRun === true;
   const allowOutside = b.allowOutside === true;
+  const optimizeFlag = b.optimize === true;
 
   if (b.force !== undefined && typeof b.force !== 'boolean') {
     return NextResponse.json({ error: 'force doit être un booléen' }, { status: 400 });
   }
   if (b.allowOutside !== undefined && typeof b.allowOutside !== 'boolean') {
     return NextResponse.json({ error: 'allowOutside doit être un booléen' }, { status: 400 });
+  }
+  if (b.optimize !== undefined && typeof b.optimize !== 'boolean') {
+    return NextResponse.json({ error: 'optimize doit être un booléen' }, { status: 400 });
   }
 
   if (!projectId) {
@@ -105,11 +109,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
   }
 
-  console.info('[PCB:PLACE-BATCH]', { projectId, count: components.length, dryRun: dryRunFlag });
+  console.info('[PCB:PLACE-BATCH]', {
+    projectId,
+    count: components.length,
+    dryRun: dryRunFlag,
+    optimize: optimizeFlag,
+  });
 
-  const footprints: BatchFootprintInput[] = components.map((raw) => {
+  let working = components.map((raw) => {
     const c = raw as Record<string, unknown>;
-    const layer = typeof c.layer === 'string' && c.layer.trim() ? c.layer.trim() : undefined;
     return {
       libName: String(c.libName).trim(),
       footprintName: String(c.footprintName).trim(),
@@ -117,10 +125,71 @@ export async function POST(req: Request) {
       value: typeof c.value === 'string' ? c.value.trim() : undefined,
       xMm: c.xMm as number,
       yMm: c.yMm as number,
-      layer,
+      layer: typeof c.layer === 'string' && c.layer.trim() ? c.layer.trim() : undefined,
       rotation: typeof c.rotation === 'number' ? c.rotation : undefined,
     };
   });
+
+  if (optimizeFlag) {
+    try {
+      const nets = await prisma.pcbNet.findMany({
+        where: { projectId },
+        select: { name: true, pins: true },
+      });
+      const placementNets = nets.map((n) => ({
+        name: n.name,
+        pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
+      }));
+
+      let boardW = 80;
+      let boardH = 60;
+      let originX = 5;
+      let originY = 5;
+      try {
+        const { parseKicadPcb } = await import('@/lib/pcb/kicad-file-reader');
+        const { readFileSync } = await import('node:fs');
+        const parsed = parseKicadPcb(readFileSync(abs, 'utf8'));
+        if (parsed.dimensions.width > 0 && parsed.dimensions.height > 0) {
+          boardW = parsed.dimensions.width;
+          boardH = parsed.dimensions.height;
+          originX = parsed.origin.x;
+          originY = parsed.origin.y;
+        }
+      } catch {
+        // fallback to defaults
+      }
+
+      const { optimizePlacement } = await import('@/lib/pcb/placement');
+      const optimized = optimizePlacement(
+        working.map((c) => ({
+          reference: c.reference,
+          xMm: c.xMm,
+          yMm: c.yMm,
+          rotation: c.rotation ?? 0,
+        })),
+        placementNets,
+        { widthMm: boardW, heightMm: boardH, originX, originY },
+      );
+      working = working.map((c) => {
+        const opt = optimized.find((o) => o.reference === c.reference);
+        return opt ? { ...c, xMm: opt.xMm, yMm: opt.yMm, rotation: opt.rotation } : c;
+      });
+      console.info('[PCB:PLACE-BATCH] Optimized', { projectId, nets: placementNets.length });
+    } catch (e) {
+      console.warn('[PCB:PLACE-BATCH] Optimize failed, using provided coords', e);
+    }
+  }
+
+  const footprints: BatchFootprintInput[] = working.map((c) => ({
+    libName: c.libName,
+    footprintName: c.footprintName,
+    reference: c.reference,
+    value: c.value,
+    xMm: c.xMm,
+    yMm: c.yMm,
+    layer: c.layer,
+    rotation: c.rotation,
+  }));
 
   // Persistance TOUJOURS par le fichier : c'est la seule source de vérité qui
   // contient tous les composants (KiCad garde un état mémoire potentiellement
@@ -180,6 +249,16 @@ export async function POST(req: Request) {
     dryRun: dryRunFlag,
     message: result.message,
     liveSynced,
+    ...(optimizeFlag
+      ? {
+          optimized: working.map((c) => ({
+            reference: c.reference,
+            xMm: c.xMm,
+            yMm: c.yMm,
+            rotation: c.rotation,
+          })),
+        }
+      : {}),
     ...(liveMissing.length > 0
       ? { liveMissing, hint: 'Rechargez le plateau dans KiCad pour voir les nouveaux composants.' }
       : {}),

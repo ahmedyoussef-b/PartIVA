@@ -8,6 +8,7 @@ vi.mock('../../../../lib/ai/groq-client', () => ({
 }));
 
 import { callGroq } from '../../../../lib/ai/groq-client';
+import { clearLlmCache } from '@/lib/utils/llm-cache';
 
 const mockCallGroq = vi.mocked(callGroq);
 
@@ -31,6 +32,7 @@ const baseIngest: IngestResult = {
 
 describe('extractCadParams', () => {
   beforeEach(() => {
+    clearLlmCache();
     vi.resetAllMocks();
   });
 

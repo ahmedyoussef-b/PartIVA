@@ -607,11 +607,6 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           {data ? `${data.components.length} composants` : 'Chargement…'} · {Math.round(zoom * 100)}
           %
         </span>
-        <span className="text-gray-400">
-          {cursorMm
-            ? `X ${cursorMm.x.toFixed(2)} mm · Y ${cursorMm.y.toFixed(2)} mm`
-            : 'Curseur hors plateau'}
-        </span>
       </div>
       {(busyRef || error) && (
         <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
@@ -632,6 +627,13 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           ref={canvasRef}
           className={`absolute inset-0 block h-full w-full ${mode === 'move' ? (dragComp ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-grab active:cursor-grabbing'}`}
         />
+      </div>
+      <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+        <span>
+          {cursorMm
+            ? `Curseur : X ${cursorMm.x.toFixed(2)} mm · Y ${cursorMm.y.toFixed(2)} mm`
+            : 'Curseur hors plateau'}
+        </span>
       </div>
     </div>
   );
