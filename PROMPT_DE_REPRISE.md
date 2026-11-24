@@ -1,13 +1,13 @@
 # PROMPT DE REPRISE — PartIVA
 
 **Type :** Point d'entrée de reprise (auto-suffisant)
-**Version :** 8.16
-**Date :** 2026-11-22
-**Commit HEAD :** `e3085a9` (merge PR #148, 2026-11-22)
+**Version :** 8.17
+**Date :** 2026-11-24
+**Commit HEAD :** `fbf4daa` (merge PR #153, 2026-11-24)
 **Branche :** master
 **Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 → P10 closes, **Fast-Track P7 close** (Phases A-E, V1-V44), **post-Fast-Track commité** (SYNC-3), **fix chemin plateau KiCad (PR #143)**, **fix normalizeBoardPath platform-aware (PR #146)**, **bundle du plateau KiCad réel dans le build (PR #148)**, **clôture documentaire SYNC-1 → SYNC-4**.
-**Dernière étape close :** PR #148 (bundle `carte-test.kicad_pcb` dans `src/lib/pcb/boards/` + `outputFileTracingIncludes` pour le bundle Vercel + documentation `PARTIVA_KICAD_BOARD`) — préc. PR #146 (fix `normalizeBoardPath` platform-aware).
-**Prochaine étape :** C3 — canvas lisible (plan C1→C5 acté) — à spécifier (charte §9)
+**Dernière étape close :** PR #153 (live KiCad sync, audit magasin en DT, netlist LLM + placement déterministe, workflow `tauri dev`, correctifs quota LLM P11 A→J) — préc. PR #148 (bundle plateau KiCad).
+**Prochaine étape :** revalider en environnement réel le coupe-circuit journalier et le cache/cooldown partagés (migrations appliquées le 2026-11-24), puis instrumenter les logs `[LLM:usage]` / `[LLM:budget]`.
 
 ---
 
@@ -51,9 +51,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | --- | --- |
 | **Projet** | PartIVA |
 | **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close** — **P6.3 → P10 closes (2026-11-19)** — **Fast-Track P7 close (Phases A-E, V1-V44)** — **post-Fast-Track commité (SYNC-3)** — **fix chemin plateau KiCad (PR #143)** — **fix normalizeBoardPath platform-aware (PR #146)** — **bundle du plateau KiCad réel dans le build (PR #148)** — **clôture documentaire SYNC-1 → SYNC-4** |
-| **HEAD** | `e3085a9` (merge PR #148, 2026-11-22) |
-| **Dernière étape close** | **PR #148** (bundle `carte-test.kicad_pcb` + `outputFileTracingIncludes` pour Vercel + doc `PARTIVA_KICAD_BOARD`) — préc. PR #146 (fix `normalizeBoardPath` platform-aware) |
-| **Prochaine étape** | **C3 — canvas lisible** (plan C1→C5 acté) — à spécifier (charte §9) |
+| **HEAD** | `fbf4daa` (merge PR #153, 2026-11-24) |
+| **Dernière étape close** | **PR #153** (live KiCad sync, audit magasin DT, netlist LLM + placement, `tauri dev`, P11 A→J : 0 appel sur CDC inchangé, coupe-circuit 100 k tokens/j, cache L2 chat/moteur) |
+| **Prochaine étape** | Revalider en réel le coupe-circuit 100 k tokens/j et le cache/cooldown L2 (migrations appliquées le 2026-11-24) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -174,6 +174,8 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | PR #143 | 2026-11-22 | Fix chemin plateau KiCad (`normalizeBoardPath` Windows → POSIX + override `PARTIVA_KICAD_BOARD`) — `d75c75a` | ✅ |
 | PR #146 | 2026-11-22 | Fix `normalizeBoardPath` platform-aware (win32 conserve le chemin drive, POSIX → `/c/x`) — `030c2d5` | ✅ |
 | PR #148 | 2026-11-22 | Bundle plateau KiCad réel + tracing du build Vercel + doc `PARTIVA_KICAD_BOARD` — `9b84159` | ✅ |
+| PCB desktop (PR #153) | 2026-11-23 → 2026-11-24 | `tauri dev`, drag-drop live, sync KiCad IPC, audit magasin DT, netlist LLM + placement déterministe | ✅ |
+| P11 A→J (PR #153) | 2026-11-24 | Anti-fuite quota LLM : 0 appel sur CDC inchangé, cooldown/cache L2 persistants, coupe-circuit 100 k tokens/j, fallback 9 providers, build Turbopack corrigé — merge `fbf4daa` | ✅ |
 
 ---
 
@@ -183,7 +185,9 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**C3 — canvas lisible** (plan C1→C5 acté) : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre. À spécifier avant exécution (charte §9).
+**Migrations LLM appliquées (2026-11-24)** : `20261124120000_add_llm_state` (cooldown + cache L2 + `cdcHash`) et `20261124130000_add_llm_daily_usage` (compteur journalier) déployées avec succès ; `prisma migrate status` = *Database schema is up to date*. Drift historique résolu : `migrate resolve --applied` sur `20261123130000_add_component_type`, `20261123140000_add_component_stock`, `20261123150000_add_sourcing_cache` (colonnes déjà présentes en base). Prochaine action : revalider le coupe-circuit et le cache partagé en environnement réel (logs `[LLM:usage]`, `[LLM:budget]`).
+
+*Note v8.17 (2026-11-24) : PR #153 mergée (`fbf4daa`). Vérifications : typecheck ✅, lint ✅, vitest 351/351 ✅, prettier ✅, prisma validate ✅, 4 checks CI verts (Build/TypeScript/ESLint+Prettier/Vercel).*
 
 *Note v8.15 (2026-11-22) : Fast-Track P7 clos (44 étapes V1-V44), post-Fast-Track commité (`20e5993`), clôture documentaire (`57b0b00`), correctifs ESLint CI (`11220be`), fix chemin plateau KiCad (`36302a6`), fix `normalizeBoardPath` platform-aware (`030c2d5`), merge `master` via PR #146. `D-FT-P7-PRISMA-DRIFT` soldée (migration `20261120154239`) ; `D-FT-P7-HEAD-DIVERGENCE` soldée par ce merge. Vérifications : typecheck ✅, 344 tests / 40 fichiers ✅, prettier ✅, lint ✅, 3 checks CI verts.*
 
