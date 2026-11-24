@@ -76,6 +76,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [placingAll, setPlacingAll] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [generatingNets, setGeneratingNets] = useState(false);
+  const [routing, setRouting] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
@@ -336,6 +337,31 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  const handleRouteBoard = async () => {
+    setRouting(true);
+    try {
+      const res = await fetch('/api/pcb/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      toast.success(
+        `Routage partiel : ${data.routed} pistes, ${data.zones} zone(s) GND, ${data.vias} via(s)`,
+        {
+          description: 'DRC non vérifié — rechargez le plateau dans KiCad (Fichier > Recharger).',
+          duration: 12_000,
+        },
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Routage impossible', { duration: 12_000 });
+    } finally {
+      setRouting(false);
+    }
+  };
+
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   const handlePlaceAll = async () => {
@@ -469,6 +495,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           disabled={placingAll}
         >
           {placingAll ? 'Placement…' : 'Tout placer (optimisé)'}
+        </button>
+        <button
+          type="button"
+          className="rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700"
+          onClick={handleRouteBoard}
+          disabled={routing}
+        >
+          {routing ? 'Routage…' : 'Router la carte'}
         </button>
       </div>
       {netsMissing && (
