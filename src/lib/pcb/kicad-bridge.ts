@@ -136,6 +136,45 @@ function lastJsonLine(stdout: string): string | undefined {
       // bruit SWIG ou avertissement : on continue vers le haut
     }
   }
+
+  // Repli : le JSON peut être collé à un avertissement écrit sans newline.
+  // On localise le dernier objet `{"ok"...}` équilibré dans tout le flux.
+  const marker = '{"ok"';
+  let idx = stdout.lastIndexOf(marker);
+  while (idx >= 0) {
+    const candidate = extractBalancedObject(stdout, idx);
+    if (candidate) {
+      try {
+        JSON.parse(candidate);
+        return candidate;
+      } catch {
+        // candidat incomplet : on remonte d'un cran
+      }
+    }
+    idx = stdout.lastIndexOf(marker, idx - 1);
+  }
+  return undefined;
+}
+
+function extractBalancedObject(text: string, start: number): string | undefined {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
   return undefined;
 }
 
