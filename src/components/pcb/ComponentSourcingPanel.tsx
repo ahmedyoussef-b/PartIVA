@@ -85,7 +85,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const res = await fetch('/api/pcb/requirements/source-components', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, peek, forceRefresh }),
+        body: JSON.stringify({ projectId, peek, forceRefresh, force: forceRefresh }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
@@ -293,11 +293,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setPlaceErrors({});
       toast.success(
         result.netsMissing
-          ? 'Composants régénérés, mais le LLM n’a toujours pas fourni de netlist'
+          ? 'Composants régénérés, mais le LLM n’a toujours pas fourni de netlist. Vérifiez les clés/quotas des fournisseurs dans les logs serveur.'
           : 'Composants et netlist régénérés',
+        { duration: 12_000 },
       );
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Régénération impossible');
+      toast.error(e instanceof Error ? e.message : 'Régénération impossible', {
+        duration: 12_000,
+      });
     } finally {
       setRegenerating(false);
     }
