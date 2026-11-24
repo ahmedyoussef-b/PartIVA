@@ -71,6 +71,7 @@ Règles pour la description compilée ("compiled") :
 - Pour chaque information non fournie explicitement par la description libre, déduis une valeur raisonnable et typique pour une carte de ce type, et indique-la clairement (ex. "Température de fonctionnement estimée : -20 à +70 °C (déduit)").
 - Ne laisse aucune catégorie vide : si une donnée manque, propose une valeur typique et marque-la comme déduite.
 - Sois exhaustif : mentionne tension, courant, dimensions, quantité, environnement, tests, normes.
+- Exprime TOUS les prix, budgets et coûts en dinars tunisiens (DT / TND). N'utilise JAMAIS d'euros (€) ni de dollars ($).
 
 Règles pour les answers :
 - Remplis un MAXIMUM de champs, y compris par déduction raisonnable. Omettre un champ n'est acceptable que si aucune déduction n'est possible.
@@ -88,7 +89,8 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
   ]
 }`;
 
-  const cacheKey = `pcb:compile:${hashKey(description)}`;
+  // v2 : prix en DT (les anciens résultats en EUR restaient en cache L2).
+  const cacheKey = `pcb:compile:v2:${hashKey(description)}`;
   const cached = await getLlmCacheAsync<{
     compiled: string;
     answers: RequirementAnswer[];
@@ -121,7 +123,13 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
     }
 
     const obj = (parsed ?? {}) as Record<string, unknown>;
-    const compiled = typeof obj.compiled === 'string' ? obj.compiled.trim() : '';
+    // Filet de sécurité : le LLM peut ignorer la règle DT -> convertir € en DT.
+    const toDt = (text: string): string =>
+      text
+        .replace(/€/g, ' DT')
+        .replace(/\bEUR\b/gi, 'DT')
+        .replace(/\bUSD\b/gi, 'DT');
+    const compiled = typeof obj.compiled === 'string' ? toDt(obj.compiled).trim() : '';
     const rawAnswers = Array.isArray(obj.answers) ? obj.answers : [];
 
     const validQuestionIds = new Set<string>();
@@ -135,7 +143,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
       const item = a as Record<string, unknown>;
       const blockId = typeof item.blockId === 'string' ? item.blockId : '';
       const questionId = typeof item.questionId === 'string' ? item.questionId : '';
-      const answer = typeof item.answer === 'string' ? item.answer.trim() : '';
+      const answer = typeof item.answer === 'string' ? toDt(item.answer).trim() : '';
       if (!blockId || !questionId || !answer) continue;
       if (!validQuestionIds.has(questionId)) continue;
       answers.push({ blockId, questionId, answer, status: 'proposed' });

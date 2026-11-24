@@ -32,6 +32,67 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
     });
   }
 
+  function answerFor(questionId: string): string {
+    return answers.find((a) => a.questionId === questionId)?.answer ?? '';
+  }
+
+  function toggleMulti(questionId: string, option: string, current: string) {
+    const values = current
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean);
+    const next = values.includes(option) ? values.filter((v) => v !== option) : [...values, option];
+    handleAnswer(questionId, next.join(', '));
+  }
+
+  // Validation du contexte compilé : focus sur le premier champ requis manquant,
+  // sinon création du projet et redirection vers l'analyse automatique du CDC.
+  async function submitValidated() {
+    const contextText = compiledText.trim();
+    if (!contextText) {
+      setError('La description technique compilée est obligatoire.');
+      return;
+    }
+    const missing = requirementBlocks.flatMap((b, bi) =>
+      b.questions.filter((q) => q.required && !answerFor(q.id).trim()).map((q) => ({ q, bi })),
+    );
+    if (missing.length > 0) {
+      const first = missing[0]!;
+      setCurrentBlock(first.bi);
+      setError(`Champ requis manquant : ${first.q.label}`);
+      requestAnimationFrame(() => {
+        const el = document.querySelector<HTMLElement>(
+          `[data-field-id="field-${first.q.id}"], [data-testid="field-${first.q.id}"]`,
+        );
+        el?.focus();
+        el?.scrollIntoView({ block: 'center' });
+      });
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/pcb/requirements/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          answers,
+          description: contextText,
+          status: 'requirements_validated',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+      if (!data.projectId) throw new Error('Projet créé mais projectId manquant');
+      router.push(`/admin/pcb/${data.projectId}/cahier-des-charges`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function nextBlock() {
     if (isLastBlock) return;
     setCurrentBlock((b) => b + 1);
@@ -126,10 +187,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
                     disabled={compiling}
                     className="rounded bg-green-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
                     onClick={() => {
-                      if (!compiledText.trim()) return;
-                      setValidated(true);
-                      setDirty(false);
-                      setError(null);
+                      void submitValidated();
                     }}
                   >
                     Valider
@@ -162,7 +220,9 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
                   type="button"
                   data-testid="btn-revalidate"
                   className="rounded bg-green-600 px-3 py-1.5 text-sm text-white"
-                  onClick={() => setDirty(false)}
+                  onClick={() => {
+                    void submitValidated();
+                  }}
                 >
                   Valider les modifications
                 </button>
@@ -224,7 +284,9 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
             {q.type === 'select' && (
               <select
                 data-testid={`select-${q.id}`}
+                data-field-id={`field-${q.id}`}
                 className="mt-1 w-full rounded border p-2"
+                value={answerFor(q.id)}
                 onChange={(e) => handleAnswer(q.id, e.target.value)}
               >
                 <option value="">Sélectionner...</option>
@@ -235,25 +297,52 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
                 ))}
               </select>
             )}
+            {q.type === 'multiselect' && (
+              <div data-testid={`field-${q.id}`} className="mt-1 flex flex-wrap gap-3">
+                {(q.options ?? []).map((o) => {
+                  const selected = answerFor(q.id)
+                    .split(',')
+                    .map((v) => v.trim())
+                    .filter(Boolean)
+                    .includes(o);
+                  return (
+                    <label key={o} className="flex items-center gap-1 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleMulti(q.id, o, answerFor(q.id))}
+                      />
+                      {o}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
             {q.type === 'text' && (
               <input
                 data-testid={`input-${q.id}`}
+                data-field-id={`field-${q.id}`}
                 type="text"
                 className="mt-1 w-full rounded border p-2"
+                value={answerFor(q.id)}
                 onChange={(e) => handleAnswer(q.id, e.target.value)}
               />
             )}
             {q.type === 'number' && (
               <input
+                data-testid={`field-${q.id}`}
                 type="number"
                 className="mt-1 w-full rounded border p-2"
+                value={answerFor(q.id)}
                 onChange={(e) => handleAnswer(q.id, e.target.value)}
               />
             )}
             {q.type === 'checkbox' && (
               <input
+                data-testid={`field-${q.id}`}
                 type="checkbox"
                 className="mt-1"
+                checked={answerFor(q.id) === 'oui'}
                 onChange={(e) => handleAnswer(q.id, e.target.checked ? 'oui' : 'non')}
               />
             )}
