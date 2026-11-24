@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildPinNetMap,
+  calculateCost,
   clampToBoard,
   computePlacement,
   generateReference,
+  isGndNet,
+  isPowerNet,
+  optimizePlacement,
   pxToMm,
   snapToGrid,
   type PlacementContext,
@@ -119,5 +124,92 @@ describe('clampToBoard', () => {
 
   it('laisse untouched dans les limites', () => {
     expect(clampToBoard(50, 40, 100, 80)).toEqual({ xMm: 50, yMm: 40 });
+  });
+});
+
+describe('classification des nets', () => {
+  it('reconnaît les nets d’alimentation', () => {
+    expect(isPowerNet('VCC')).toBe(true);
+    expect(isPowerNet('VCC_5V')).toBe(true);
+    expect(isPowerNet('+3V3')).toBe(true);
+    expect(isPowerNet('TRIG_IN')).toBe(false);
+  });
+
+  it('reconnaît les nets de masse', () => {
+    expect(isGndNet('GND')).toBe(true);
+    expect(isGndNet('AGND')).toBe(true);
+    expect(isGndNet('DGND')).toBe(true);
+    expect(isGndNet('VCC_5V')).toBe(false);
+  });
+
+  it('construit la map pin -> net', () => {
+    const map = buildPinNetMap([
+      { name: 'GND', pins: ['U1.2', 'C1.2'] },
+      { name: 'VCC_5V', pins: ['U1.1', 'C1.1'] },
+    ]);
+    expect(map.get('U1.2')).toBe('GND');
+    expect(map.get('C1.1')).toBe('VCC_5V');
+    expect(map.get('INconnu.1')).toBeUndefined();
+  });
+});
+
+describe('calculateCost', () => {
+  const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 0 };
+
+  it('est nul sans nets et sans chevauchement', () => {
+    const comps = [
+      { reference: 'U1', xMm: 20, yMm: 20, rotation: 0 },
+      { reference: 'C1', xMm: 60, yMm: 60, rotation: 0 },
+    ];
+    expect(calculateCost(comps, new Map(), board)).toBe(0);
+  });
+
+  it('pénalise le chevauchement', () => {
+    const comps = [
+      { reference: 'U1', xMm: 30, yMm: 30, rotation: 0 },
+      { reference: 'C1', xMm: 30, yMm: 30, rotation: 0 },
+    ];
+    expect(calculateCost(comps, new Map(), board)).toBeGreaterThan(0);
+  });
+
+  it('pénalise un composant hors plateau', () => {
+    const comps = [{ reference: 'J1', xMm: 500, yMm: 20, rotation: 0 }];
+    expect(calculateCost(comps, new Map(), board)).toBeGreaterThanOrEqual(1000);
+  });
+});
+
+describe('optimizePlacement', () => {
+  it('réduit le coût d’un placement initial chaotique', () => {
+    const components = [
+      { reference: 'U1', xMm: 8, yMm: 70, rotation: 0, widthMm: 10, heightMm: 10 },
+      { reference: 'C1', xMm: 90, yMm: 8, rotation: 0, widthMm: 3, heightMm: 2 },
+      { reference: 'J1', xMm: 50, yMm: 40, rotation: 0, widthMm: 6, heightMm: 4 },
+    ];
+    const nets = [
+      { name: 'VCC_5V', pins: ['U1.1', 'C1.1'] },
+      { name: 'GND', pins: ['U1.2', 'C1.2', 'J1.1'] },
+    ];
+    const adj = new Map<string, Set<string>>();
+    // même adjacency que buildAdjacency (interne) : on ancre le test sur le coût final
+    for (const c of components) adj.set(c.reference, new Set());
+    for (const net of nets) {
+      const refs = [...new Set(net.pins.map((p) => p.split('.')[0]!))];
+      for (let i = 0; i < refs.length; i += 1) {
+        for (let j = i + 1; j < refs.length; j += 1) {
+          adj.get(refs[i]!)!.add(refs[j]!);
+          adj.get(refs[j]!)!.add(refs[i]!);
+        }
+      }
+    }
+    const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 0 };
+    const before = calculateCost(components, adj, board);
+    const after = optimizePlacement(components, nets, board);
+    expect(calculateCost(after, adj, board)).toBeLessThanOrEqual(before);
+    for (const c of after) {
+      expect(c.xMm).toBeGreaterThanOrEqual(0);
+      expect(c.xMm).toBeLessThanOrEqual(100);
+      expect(c.yMm).toBeGreaterThanOrEqual(0);
+      expect(c.yMm).toBeLessThanOrEqual(80);
+    }
   });
 });

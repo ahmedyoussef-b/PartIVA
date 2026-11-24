@@ -1,7 +1,7 @@
 // Résolution d'empreintes KiCad à partir d'une proposition LLM.
 // Pur et testable : aucune dépendance Next, injection du système de fichiers.
 
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 export interface FootprintRef {
   libName: string;
@@ -121,4 +121,64 @@ export function resolveKicadFootprint(
 
   const fb = FALLBACKS[refPrefix(reference)] ?? DEFAULT_FALLBACK;
   return { ...fb, corrected: true, proposed };
+}
+
+export interface FootprintSize {
+  widthMm: number;
+  heightMm: number;
+}
+
+const sizeCache = new Map<string, FootprintSize | null>();
+
+/**
+ * Bbox approximative du composant, déduite des pads du fichier .kicad_mod.
+ * Volontairement « best-effort » : null si le fichier est absent ou illisible.
+ * Le résultat est mis en cache par chemin (les composants répètent souvent
+ * la même empreinte sur une carte).
+ */
+export function getFootprintSize(
+  libName: string,
+  footprintName: string,
+  footprintsRoot = process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT?.trim() ||
+    'C:/Program Files/KiCad/10.0/share/kicad/footprints',
+): FootprintSize | null {
+  const lib = libName.trim().replace(/\.pretty$/i, '');
+  const fp = footprintName.trim().replace(/\.kicad_mod$/i, '');
+  if (!lib || !fp) return null;
+  const filePath = `${footprintsRoot.replace(/\/$/, '')}/${lib}.pretty/${fp}.kicad_mod`;
+  if (sizeCache.has(filePath)) return sizeCache.get(filePath) ?? null;
+
+  let size: FootprintSize | null = null;
+  try {
+    const text = readFileSync(filePath, 'utf8');
+    let minX = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+    for (const block of text.split(/(?=\(pad\s)/).slice(1)) {
+      const at = block.match(/\(at\s+(-?[\d.]+)\s+(-?[\d.]+)(?:\s+(-?[\d.]+))?\)/);
+      const dims = block.match(/\(size\s+([\d.]+)\s+([\d.]+)\)/);
+      if (!at || !dims) continue;
+      const x = Number(at[1]);
+      const y = Number(at[2]);
+      let w = Number(dims[1]);
+      let h = Number(dims[2]);
+      const angle = Number(at[3] ?? 0);
+      if (Math.abs(angle % 180) === 90) [w, h] = [h, w];
+      minX = Math.min(minX, x - w / 2);
+      maxX = Math.max(maxX, x + w / 2);
+      minY = Math.min(minY, y - h / 2);
+      maxY = Math.max(maxY, y + h / 2);
+    }
+    if (Number.isFinite(minX) && Number.isFinite(minY)) {
+      size = {
+        widthMm: Math.round((maxX - minX) * 100) / 100,
+        heightMm: Math.round((maxY - minY) * 100) / 100,
+      };
+    }
+  } catch {
+    size = null;
+  }
+  sizeCache.set(filePath, size);
+  return size;
 }

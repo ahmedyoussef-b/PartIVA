@@ -424,3 +424,11 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Correctif** : `io = pcbnew.PCB_IO_KICAD_SEXPR()` persistante, tous les `FootprintLoad` avant mutation, existing capturés par référence, vérification finale via un sous-processus `--verify`.
 - **Preuve** : rejeu du payload des 9 composants → `{"ok":true,"placed":9,"verified":9}` ; dry-run OK ; `py_compile` OK.
 - **Étape suivante convenue** : point 4 — régénération compacte des nets (GND inclus) une fois ce crash confirmé.
+
+### 11.20 Intelligence du placement : plumbing (2026-11-24)
+
+- **Validation coordinateur** : rapport d'état des lieux accepté ; préparer les données AVANT les formules de pénalité.
+- **Fait** : `calculateCost` exporté + tests ; `getFootprintSize()` (bbox pads, cache) et transmission des dimensions depuis les deux callers ; `isPowerNet` / `isGndNet` / `buildPinNetMap`.
+- **Routage** : choix de la voie A (pistes assistées partielles) ; squelette `scripts/kicad/route_board.py` créé (`PCB_TRACK` en L + zone GND), non câblé.
+- **Interdit pour l'instant** : modification des formules de pénalité et de la grille (étapes 3 et 4) — le coordinateur fournira le code exact.
+- **Vérifications** : typecheck 0, lint 0, vitest **358/358**, prettier 0, py_compile OK.

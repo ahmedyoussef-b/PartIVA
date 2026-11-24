@@ -338,6 +338,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — plumbing du placement électronique
+
+- **Étape 1 (filet de sécurité)** : export de `calculateCost` et 7 nouveaux tests dans `placement.test.ts` (coût nul, chevauchement, hors plateau, classification nets, map `pinNet`, réduction de coût par `optimizePlacement`). Total : **358 tests**.
+- **Étape 2 (données)** : `getFootprintSize()` dans `kicad-footprints.ts` (bbox approximative depuis les pads du `.kicad_mod`, cache par chemin) ; les dimensions réelles sont passées à `optimizePlacement` depuis `source-components` et `place/batch`. `isPowerNet`, `isGndNet` et `buildPinNetMap` ajoutés dans `placement.ts` (non encore utilisés dans le coût, conformément à la consigne).
+- **Routage (voie A)** : squelette `scripts/kicad/route_board.py` (pistes en L pour nets à 2 pins via `PCB_TRACK`, zone GND en `ZONE` B.Cu) — **non câblé**, `py_compile` OK.
+- **Non fait** : pénalités de découplage/bords/regroupement et harmonisation grille 2,54 mm (étapes 3 et 4, en attente du code validé par le coordinateur).
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
