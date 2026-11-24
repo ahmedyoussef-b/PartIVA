@@ -328,6 +328,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — cause racine du crash `place_footprints.py`
+
+- **Preuve** : reproduction exacte sur une copie du plateau avec les 9 composants du cache → `items[2] : FootprintLoad echoue: 'SwigPyObject' object has no attribute 'FootprintLoad'`, stack `pcbnew.py:24225` (`plug.FootprintLoad(...)`).
+- **Cause** : bug SWIG de **KiCad 10.0.8** — après la première mutation d'un board (`Add`/`Remove`), les proxies retournés par l'API perdent leurs méthodes (module `pcbnew`, objets `FOOTPRINT`, board relu). Le verrou `.lck` n'était pas en cause (`--force` était déjà passé).
+- **Correctif** : charger **toutes** les empreintes avant toute mutation via une instance persistante `PCB_IO_KICAD_SEXPR`, capturer les empreintes existantes par référence une seule fois, et faire la réconciliation post-écriture dans un **processus Python neuf** (`--verify`).
+- **Vérifié** : rejeu du payload défaillant (9 composants) → `{"ok":true,"placed":9,"verified":9}` sur une copie du plateau ; dry-run OK ; `py_compile` OK.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
