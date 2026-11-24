@@ -357,8 +357,25 @@ export async function callGroq(
       }
 
       const choice = data.choices[0];
-      const content = choice.message?.content;
-      if (typeof content !== 'string') {
+      const rawContent: unknown = choice.message?.content;
+      // Certains providers compatibles OpenAI renvoient le contenu sous forme
+      // de segments [{type:"text", text:"..."}] au lieu d'une string.
+      const content =
+        typeof rawContent === 'string'
+          ? rawContent
+          : Array.isArray(rawContent)
+            ? rawContent
+                .map((part: unknown) => {
+                  if (typeof part === 'string') return part;
+                  if (part && typeof part === 'object') {
+                    const text = (part as { text?: unknown }).text;
+                    return typeof text === 'string' ? text : '';
+                  }
+                  return '';
+                })
+                .join('')
+            : '';
+      if (!content) {
         const err = new Error(`LLM ${provider.name}: contenu invalide`);
         console.warn(`[LLM] ${provider.name} invalid content, trying next provider`);
         lastError = err;

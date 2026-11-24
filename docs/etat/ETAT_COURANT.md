@@ -394,6 +394,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — test de génération hiérarchique
+
+- **Incident** : le premier essai a échoué — `openrouter` renvoyait un contenu sous forme de segments (`[{type:"text",...}]`) refusé par `callGroq`, puis `google` a timeout. `maxTokens: 1536` insuffisant pour une réponse structurée plus longue.
+- **Correctifs** : normalisation des contenus segmentés dans `groq-client.ts`, `maxTokens` 3072 pour `nets-only`.
+- **Résultat** : **7 nets générés** par Groq (`GND` 14 pins, `VCC_5V` 13, `OSC_IN`, `OSC_OUT`, `RS485_A`, `RS485_B`, `RS485_DE`) — la topologie est désormais complète.
+- **Limite constatée** : le LLM invente des pins inexistants sur certaines empreintes (ex. `J4.3`/`J4.4` alors que J4 est un connecteur 2 pins) — à corriger via l'édition manuelle (1.3) ou une validation ultérieure.
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

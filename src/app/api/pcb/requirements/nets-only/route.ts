@@ -118,7 +118,7 @@ Format attendu :
 
     const response = await callGroq([{ role: 'user', content: prompt }], undefined, {
       temperature: 0,
-      maxTokens: 1536,
+      maxTokens: 3072,
       timeout: 30000,
       responseFormat: 'json_object',
     });
