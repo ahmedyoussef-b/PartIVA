@@ -576,3 +576,11 @@
 | P11.6 | Invalidation du cache sourcing par `sourcingCache.cdcHash` | Un CDC modifie devait generer une nouvelle BOM ; un CDC identique ne devait rien recalculer | **0** appel si CDC inchange, 1 sinon |
 | P11.7 | Coupe-circuit journalier **dur** a 100 000 tokens (UTC), persistant (`LlmDailyUsage`), avec repli memoire | `LLM_DAILY_TOKEN_BUDGET` n'etait qu'un log : aucun arret d'appel | Tout appel LLM est refuse au-dela du plafond ; migration `20261124130000_add_llm_daily_usage` requise pour le partage entre instances |
 | P11.8 | Cache L2 pour chat/fiche et idempotence `/api/engine` ; rate limit photo | 2 routes n'avaient aucun cache, le moteur pouvait rejouer le pipeline complet | 0 appel sur requete identique ; -1 a -3 appels par Analyse |
+
+### 15.8 - Roadmap PCB Studio (P12, 2026-11-24)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| P12.0 | Chaine LLM → BDD → placement → KiCad → pistes considered **fonctionnelle mais partielle** | Routage assisté livre en PR #167 : 4 pistes, 1 zone GND, 3 vias ; DRC non vérifié et 13 composants sans net | Ne pas annoncer une « boucle complète terminée » |
+| P12.1 | Roadmap 5 phases archivee dans `docs/roadmap/PCB_STUDIO_ROADMAP.md` | Passage prototype → outil d'ingenierie, par étapes incrémentales testables | Voir phases 1 à 5 du document |
+| P12.2 | Demarrer par **1.3 edition manuelle de la netlist** + **1.1 prompt hierarchique** | Sans netlist complete et corrigeable, placement et routage restent inoperants | P0 ; phases 2-5 reportees |

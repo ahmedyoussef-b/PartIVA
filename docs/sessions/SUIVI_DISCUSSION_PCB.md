@@ -433,7 +433,13 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Interdit pour l'instant** : modification des formules de pénalité et de la grille (étapes 3 et 4) — le coordinateur fournira le code exact.
 - **Vérifications** : typecheck 0, lint 0, vitest **358/358**, prettier 0, py_compile OK.
 
-### 11.21 Règles métier du CDC dans calculateCost (2026-11-24)
+### 11.21 Roadmap PCB Studio (P12, 2026-11-24)
+
+- **Archive** : `docs/roadmap/PCB_STUDIO_ROADMAP.md` (5 phases : topologie, placement, routage complet/Freerouting, studio UX, industrialisation JLCPCB).
+- **Décision de départ** : Phase 1.3 (édition manuelle de la netlist) couplée à 1.1 (prompt hiérarchique) — la netlist est le prérequis à tout le reste.
+- **Références croisées** : `ETAT_COURANT.md` §Prochaine étape et `DECISIONS.md` §15.8.
+
+### 11.22 Règles métier du CDC dans calculateCost (2026-11-24)
 
 - **Demande** : intégrer la physique de la carte (24V→5V chaud, RS‑485 près du connecteur, Y1 collée au MCU, connecteurs sur le bord supérieur) sans coder en dur U1/U2/J4.
 - **Implémentation** : `inferPlacementRole()` déduit les rôles depuis `type`/`rationale` du LLM (communications sur les 15 composants réels) ; `buildHints()` conserve le texte pour apparier régulateur↔entrée 24 V et RS‑485↔DB9.
