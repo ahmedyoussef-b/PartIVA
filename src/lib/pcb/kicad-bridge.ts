@@ -121,13 +121,30 @@ function runPython(pyPath: string, scriptPath: string, args: string[]): Promise<
   });
 }
 
+// KiCad 10 imprime ses avertissements SWIG ("memory leak...") sur stdout
+// APRÈS la ligne JSON. On cherche donc la dernière ligne JSON valide, pas la
+// dernière ligne non vide.
+function lastJsonLine(stdout: string): string | undefined {
+  const lines = stdout.split(/\r?\n/);
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    const line = lines[i]?.trim();
+    if (!line || !line.startsWith('{')) continue;
+    try {
+      JSON.parse(line);
+      return line;
+    } catch {
+      // bruit SWIG ou avertissement : on continue vers le haut
+    }
+  }
+  return undefined;
+}
+
 function parseResult(output: RunOutput): KicadBridgeResult {
   if (output.timedOut) {
     return { ok: false, error: `timeout apres ${TIMEOUT_MS / 1000}s` };
   }
 
-  const lines = output.stdout.split(/\r?\n/);
-  const lastLine = [...lines].reverse().find((line) => line.trim().length > 0);
+  const lastLine = lastJsonLine(output.stdout);
 
   if (lastLine) {
     try {
@@ -258,8 +275,7 @@ function parseBatchResult(output: RunOutput): KicadBridgeResult {
     return { ok: false, error: `timeout apres ${TIMEOUT_MS / 1000}s` };
   }
 
-  const lines = output.stdout.split(/\r?\n/);
-  const lastLine = [...lines].reverse().find((line) => line.trim().length > 0);
+  const lastLine = lastJsonLine(output.stdout);
 
   if (lastLine) {
     try {
