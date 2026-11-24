@@ -409,3 +409,10 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Merge** : PR #153 mergée sur `master` le 2026-11-24 (merge commit `fbf4daa`), 4 checks CI verts (Build/TypeScript/ESLint+Prettier/Vercel).
 - **Migrations appliquées (2026-11-24)** : drift historique résolu — `migrate resolve --applied` sur `20261123130000_add_component_type`, `20261123140000_add_component_stock` et `20261123150000_add_sourcing_cache` (colonnes déjà présentes en base). `npx prisma migrate deploy` a ensuite appliqué `20261124120000_add_llm_state` et `20261124130000_add_llm_daily_usage` ; `prisma migrate status` = *Database schema is up to date*. Le cache L2, le cooldown partagé et le compteur journalier sont donc actifs en base.
 - **Reste (P2, non bloquant)** : F6 — verrous `acquireLlmGuard` et `rateLimit` restent en mémoire par instance ; à durcir seulement si déploiement multi-instance simultané.
+
+### 11.18 Netlist/placement : diagnostic et correctifs (2026-11-24)
+
+- **Retour coordinateur** : Reset → Analyse CDC → Layout PCB vide ; Sourcing = 6 composants (au lieu de 16) ; aucun ratsnest ; validation one-by-one avec positions chaotiques ; KiCad non synchronisé.
+- **Diagnostic chiffré** : `pcbNet` = 0 ligne, `sourcingCache.nets` = 0, `sourcingCache.components` = 6, `cdcHash` inchangé → cache sans netlist réutilisé à l'infini, sans bouton de régénération.
+- **Corrections** : cache v2 (nets obligatoires), restauration BDD des nets depuis le cache, prompt renforcé, boutons « Régénérer la netlist » et « Tout placer (optimisé) », utilisation des coordonnées `optimized[]` du backend au lieu des guesses LLM.
+- **Rappel fonctionnel** : le ratsnest n'apparaît que si `PcbNet` contient des nets ET que les composants sont dans le fichier `.kicad_pcb` (source du canvas). Après Reset, replacer les composants (idéalement via « Tout placer »). KiCad : `Fichier > Recharger` pour les nouvelles empreintes.

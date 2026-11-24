@@ -1,4 +1,4 @@
-import { callGroq, getGroqApiKey } from './groq-client';
+import { callGroq, hasLlmProvider } from './groq-client';
 import Anthropic from '@anthropic-ai/sdk';
 
 // ... existing GroqProvider
@@ -52,15 +52,17 @@ export interface AIProvider {
 
 class GroqProvider implements AIProvider {
   id = 'groq';
-  name = 'Groq';
-  isAvailable = !!getGroqApiKey();
+  name = 'Auto (fallback)';
+  isAvailable = hasLlmProvider();
   tier: 'free' | 'paid' = 'free';
   isPaid = false;
   async chat(messages: AIMessage[], context?: unknown): Promise<string> {
-    const apiKey = getGroqApiKey();
-    if (!apiKey) throw new Error('GROQ_API_KEY manquant');
     const system = context ? `Contexte: ${JSON.stringify(context)}` : 'Assistant technique';
-    const { content } = await callGroq([{ role: 'system', content: system }, ...messages], apiKey);
+    // `undefined` => `callGroq` utilise le fallback multi-providers (9 providers).
+    const { content } = await callGroq(
+      [{ role: 'system', content: system }, ...messages],
+      undefined,
+    );
     return content;
   }
 }

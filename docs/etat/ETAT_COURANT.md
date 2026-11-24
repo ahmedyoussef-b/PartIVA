@@ -318,6 +318,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 — diagnostic netlist/placement (retour coordinateur)
+
+- **Symptômes** : après Reset du plateau + Analyse CDC, le canvas est vide ; le Sourcing propose 6 composants au lieu de 16 ; la validation affectionne des positions chaotiques ; aucun ratnest et KiCad ne reflète pas le plateau.
+- **Preuves (BDD + fichier)** : projet `cmwqu1s0t0029o0fcugnkd0da` → `dbComponents=21`, **`dbNets=0`**, `sourcingCache.components=6`, **`sourcingCache.nets=0`**, `cdcHash` identique ; fichier `.kicad_pcb` = 37 Ko / 6 empreintes, `.lck` présent (KiCad ouvert).
+- **Causes** : (1) le cache sourcing sans nets est réutilisé indéfiniment (même `cdcHash`) et il n'existe aucun bouton pour le régénérer ; (2) le cache hit ne restaurait pas les nets en BDD ; (3) `handlePlaceOne` persistait et affichait les coordonnées du LLM en ignorant le tableau `optimized[]` renvoyé par `/api/pcb/place/batch` ; (4) le canvas ne lit les composants que depuis le fichier KiCad, donc il est vide tant que rien n'est replacé après un Reset.
+- **Correctifs** : cache versionné v2 (entrée sans nets ignorée une fois), restauration des nets depuis le cache sans appel LLM, consigne prompt renforcée (nets obligatoires), bouton « Régénérer la netlist (LLM) », bouton « Tout placer (optimisé) » (un seul appel avec la netlist complète), coords optimisées utilisées pour la persistance et le canvas.
+- **Limite connue** : KiCad ne peut pas charger une empreinte ajoutée dans son instance mémoire sans `Fichier > Recharger` ; le live sync IPC ne déplace que des empreintes déjà présentes.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.

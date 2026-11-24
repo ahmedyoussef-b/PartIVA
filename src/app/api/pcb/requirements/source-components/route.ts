@@ -66,10 +66,21 @@ export async function POST(req: Request) {
     components?: unknown;
     count?: number;
     cdcHash?: string;
+    nets?: unknown;
+    cacheVersion?: number;
   } | null;
+  // v2 : la netlist fait partie intégrante du cache. Les anciennes entrées
+  // (sans nets) sont ignorées une fois pour forcer une génération complète.
+  const cachedNets = (Array.isArray(cached?.nets) ? cached.nets : []).filter(
+    (n): n is { name: string; pins: string[] } =>
+      !!n &&
+      typeof n === 'object' &&
+      typeof (n as { name?: unknown }).name === 'string' &&
+      Array.isArray((n as { pins?: unknown }).pins),
+  );
   if (
     !forceRefresh &&
-    cached &&
+    cached?.cacheVersion === 2 &&
     cached.cdcHash === cdcHash &&
     Array.isArray(cached.components) &&
     cached.components.length > 0
@@ -131,10 +142,37 @@ export async function POST(req: Request) {
         })),
       });
     }
+    // La netlist est la source des ratsnest : si elle existe dans le cache mais
+    // a disparu de la BDD (reset, nettoyage), la restaurer sans appel LLM.
+    if (cachedNets.length > 0) {
+      try {
+        const existing = await prisma.pcbNet.count({ where: { projectId } });
+        if (existing === 0) {
+          await prisma.pcbNet.createMany({
+            data: cachedNets
+              .filter((n) => n.pins.length >= 2)
+              .map((n) => ({
+                projectId,
+                name: n.name,
+                pins: n.pins as object,
+                status: 'proposed',
+              })),
+          });
+          console.info('[PCB:SOURCE] Nets restaurés depuis le cache', {
+            projectId,
+            count: cachedNets.length,
+          });
+        }
+      } catch (e) {
+        console.warn('[PCB:SOURCE] Restauration nets échouée', e);
+      }
+    }
+
     return NextResponse.json({
       components: refreshed,
       count: refreshed.length,
-      nets: (cached as { nets?: unknown }).nets ?? [],
+      nets: cachedNets,
+      netsMissing: cachedNets.length === 0,
       cached: true,
     });
   }
@@ -145,6 +183,7 @@ export async function POST(req: Request) {
       components: [],
       count: 0,
       nets: [],
+      netsMissing: true,
       cached: false,
       empty: true,
     });
@@ -185,7 +224,8 @@ Réponds UNIQUEMENT en JSON valide, sans markdown, avec la structure :
 
 Règles :
 - Propose tous les composants nécessaires pour réaliser la carte (régulateur, microcontrôleur, capteurs, connecteurs, passifs, etc.).
-- Les coordonnées xMm/yMm sont secondaires : mets des valeurs approximatives ou 0. Le placement final sera optimisé automatiquement par un algorithme déterministe à partir des nets. Si tu les fournis, garde-les dans un plateau 80×60 mm (x 5-75, y 5-55).
+- RÈGLE STRICTE : le tableau "nets" est OBLIGATOIRE et doit contenir au moins 2 réseaux (par exemple VCC et GND), chacun avec au moins 2 pins au format "REF.numéro" (ex. "U1.1", "C1.2"). Sans nets valides, le placement déterministe et le ratsnest sont impossibles.
+- Les coordonnées xMm/yMm sont secondaires : mets 0 ou des valeurs approximatives. Le placement final est calculé automatiquement par un algorithme déterministe à partir des nets. Si tu les fournis, garde-les dans un plateau 80×60 mm (x 5-75, y 5-55).
 - libName DOIT être l'un des noms de bibliothèques KiCad 10 suivants (utilise UNIQUEMENT ces noms, pas d'invention) :
   Audio_Module, Battery, Button_Switch_Keyboard, Button_Switch_SMD, Button_Switch_THT, Buzzer_Beeper, Calibration_Scale, Capacitor_SMD, Capacitor_Tantalum_SMD, Capacitor_THT, Connector, Connector_AMASS, Connector_Amphenol, Connector_Audio, Connector_BarrelJack, Connector_Card, Connector_Coaxial, Connector_DIN, Connector_Dsub, Connector_FFC-FPC, Connector_Harting, Connector_Harwin, Connector_Hirose, Connector_IDC, Connector_JAE, Connector_JST, Connector_Molex, Connector_Pin, Connector_PinHeader_2.54mm, Connector_PinSocket_2.54mm, Connector_RJ, Connector_Samtec, Connector_SATA_SAS, Connector_TE-Connectivity, Connector_USB, Connector_Video, Connector_Wago, Connector_Wire, Connector_Wuerth, Converter_ACDC, Converter_DCDC, Crystal, Diode_SMD, Diode_THT, Display, Display_7Segment, Ferrite_THT, Fiducial, Filter, Fuse, Heatsink, Inductor_SMD, Inductor_SMD_Wurth, Inductor_THT, Inductor_THT_Wurth, Jumper, LED_SMD, LED_THT, Module, Motors, MountingHole, NetTie, OptoDevice, Oscillator, Package_BGA, Package_CSP, Package_DFN_QFN, Package_DIP, Package_LCC, Package_LGA, Package_QFP, Package_SIP, Package_SO, Package_SO_J-Lead, Package_SON, Package_TO_SOT_SMD, Package_TO_SOT_THT, Panelization, Potentiometer_SMD, Potentiometer_THT, Relay_SMD, Relay_THT, Resistor_SMD, Resistor_THT, RF, RF_Antenna, RF_Converter, RF_GPS, RF_GSM, RF_Mini-Circuits, RF_Module, RF_Shielding, RF_WiFi, Rotary_Encoder, Sensor, Sensor_Audio, Sensor_Current, Sensor_Distance, Sensor_Humidity, Sensor_Motion, Sensor_Pressure, Sensor_Voltage, Socket, TerminalBlock, TerminalBlock_Phoenix, TerminalBlock_WAGO, TerminalBlock_Wuerth, TestPoint, Transformer_SMD, Transformer_THT, Transistor_Power, Transistor_Power_Module, Valve, Varistor.
 - footprintName doit être une empreinte existante dans la bibliothèque choisie (ex. TO-220-3_Vertical, R_0603_1608Metric, C_0805_2012Metric).
@@ -450,6 +490,7 @@ Règles :
             count: components.length,
             nets: proposedNets,
             cdcHash,
+            cacheVersion: 2,
           } as object,
         },
       });
@@ -462,7 +503,12 @@ Règles :
       count: components.length,
       nets: proposedNets.length,
     });
-    return NextResponse.json({ components, count: components.length, nets: proposedNets });
+    return NextResponse.json({
+      components,
+      count: components.length,
+      nets: proposedNets,
+      netsMissing: proposedNets.length === 0,
+    });
   } finally {
     guard.release();
   }

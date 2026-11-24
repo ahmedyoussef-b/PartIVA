@@ -73,20 +73,26 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [components, setComponents] = useState<ProposedComponent[]>([]);
   const [selections, setSelections] = useState<Record<number, number>>({});
   const [placing, setPlacing] = useState<number | null>(null);
+  const [placingAll, setPlacingAll] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [netsMissing, setNetsMissing] = useState(false);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
 
   const fetchComponents = useCallback(
-    async (peek = false) => {
+    async (peek = false, forceRefresh = false) => {
       const res = await fetch('/api/pcb/requirements/source-components', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, peek }),
+        body: JSON.stringify({ projectId, peek, forceRefresh }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
-      return (data.components ?? []) as ProposedComponent[];
+      return {
+        components: (data.components ?? []) as ProposedComponent[],
+        netsMissing: data.netsMissing === true,
+      };
     },
     [projectId],
   );
@@ -99,7 +105,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     setPlaced({});
     setPlaceErrors({});
     try {
-      setComponents(await fetchComponents());
+      const result = await fetchComponents();
+      setComponents(result.components);
+      setNetsMissing(result.netsMissing);
       setSelections({});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur');
@@ -112,9 +120,10 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   useEffect(() => {
     let cancelled = false;
     fetchComponents(true)
-      .then((next) => {
+      .then((result) => {
         if (cancelled) return;
-        setComponents(next);
+        setComponents(result.components);
+        setNetsMissing(result.netsMissing);
         setSelections({});
         setPlaced({});
         setPlaceErrors({});
@@ -182,35 +191,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (!comp) return;
       const s = optionFor(comp, idx);
 
-      // Persist component
-      try {
-        const persistRes = await fetch('/api/pcb/components', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            projectId,
-            components: [
-              {
-                reference: s.reference,
-                name: s.value,
-                symbol: `${s.libName}:${s.footprintName}`,
-                footprint: `${s.libName}:${s.footprintName}`,
-                positionX: s.xMm,
-                positionY: s.yMm,
-                rotation: s.rotation,
-              },
-            ],
-          }),
-        });
-        if (!persistRes.ok) {
-          const pj = await persistRes.json().catch(() => ({}));
-          console.warn('Persist failed', pj);
-        }
-      } catch (pe) {
-        console.warn('Persist error', pe);
-      }
-
-      // Place in KiCad
+      // Place in KiCad first : the backend returns the deterministic placement.
       const res = await fetch('/api/pcb/place/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -234,14 +215,48 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+
+      const opt = (data.optimized as Array<{ xMm: number; yMm: number; rotation: number }>)?.[0];
+      const finalX = opt?.xMm ?? s.xMm;
+      const finalY = opt?.yMm ?? s.yMm;
+      const finalRotation = opt?.rotation ?? s.rotation;
+
+      // Persist component with the optimized coordinates (never the LLM guesses).
+      try {
+        const persistRes = await fetch('/api/pcb/components', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId,
+            components: [
+              {
+                reference: s.reference,
+                name: s.value,
+                symbol: `${s.libName}:${s.footprintName}`,
+                footprint: `${s.libName}:${s.footprintName}`,
+                positionX: finalX,
+                positionY: finalY,
+                rotation: finalRotation,
+              },
+            ],
+          }),
+        });
+        if (!persistRes.ok) {
+          const pj = await persistRes.json().catch(() => ({}));
+          console.warn('Persist failed', pj);
+        }
+      } catch (pe) {
+        console.warn('Persist error', pe);
+      }
+
       setPlaced((prev) => ({
         ...prev,
         [idx]: `${data.placed ?? 0} placé(s) · ${data.verified ?? 0} vérifié(s)`,
       }));
-      // Afficher dans le canvas PartIVA
+      // Afficher dans le canvas PartIVA aux coordonnées optimisées.
       const sym = symbolFor(s.reference);
-      const relX = s.xMm - BOARD_ORIGIN_X;
-      const relY = s.yMm - BOARD_ORIGIN_Y;
+      const relX = finalX - BOARD_ORIGIN_X;
+      const relY = finalY - BOARD_ORIGIN_Y;
       addNode(sym, Math.round(relX * PX_PER_MM), Math.round(relY * PX_PER_MM));
       window.dispatchEvent(new Event('pcb:board-refresh'));
       if (typeof data.hint === 'string' && data.hint.trim()) {
@@ -264,6 +279,103 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       });
     } finally {
       setPlacing(null);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    setRegenerating(true);
+    try {
+      const result = await fetchComponents(false, true);
+      setComponents(result.components);
+      setNetsMissing(result.netsMissing);
+      setSelections({});
+      setPlaced({});
+      setPlaceErrors({});
+      toast.success(
+        result.netsMissing
+          ? 'Composants régénérés, mais le LLM n’a toujours pas fourni de netlist'
+          : 'Composants et netlist régénérés',
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Régénération impossible');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  // Placement global : un seul appel avec tous les composants et la netlist
+  // complète, pour que l'algorithme puisse réellement optimiser les distances.
+  const handlePlaceAll = async () => {
+    setPlacingAll(true);
+    try {
+      const items = components.map((comp, idx) => optionFor(comp, idx));
+      const res = await fetch('/api/pcb/place/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          dryRun: false,
+          force: true,
+          optimize: true,
+          components: items.map((s) => ({
+            libName: s.libName,
+            footprintName: s.footprintName,
+            reference: s.reference,
+            value: s.value,
+            xMm: s.xMm,
+            yMm: s.yMm,
+            rotation: s.rotation,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+
+      const byRef = new Map(
+        (
+          (data.optimized ?? []) as Array<{
+            reference: string;
+            xMm: number;
+            yMm: number;
+            rotation: number;
+          }>
+        ).map((o) => [o.reference, o]),
+      );
+      const persistRes = await fetch('/api/pcb/components', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          components: items.map((s) => {
+            const o = byRef.get(s.reference);
+            return {
+              reference: s.reference,
+              name: s.value,
+              symbol: `${s.libName}:${s.footprintName}`,
+              footprint: `${s.libName}:${s.footprintName}`,
+              positionX: o?.xMm ?? s.xMm,
+              positionY: o?.yMm ?? s.yMm,
+              rotation: o?.rotation ?? s.rotation,
+            };
+          }),
+        }),
+      });
+      if (!persistRes.ok)
+        console.warn('Persist global échoué', await persistRes.json().catch(() => ({})));
+
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      toast.success(
+        `${data.placed ?? items.length} composant(s) placé(s) avec optimisation globale`,
+        {
+          description: data.liveSynced
+            ? 'KiCad mis à jour en direct.'
+            : 'KiCad : Fichier > Recharger pour voir le plateau.',
+        },
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Placement global impossible');
+    } finally {
+      setPlacingAll(false);
     }
   };
 
@@ -299,9 +411,31 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   return (
     <div className="rounded-lg border bg-white">
-      <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-        Sourcing composants ({components.length})
+      <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+        <span>Sourcing composants ({components.length})</span>
+        <button
+          type="button"
+          className="rounded border px-2 py-0.5 text-xs font-normal"
+          onClick={handleRegenerate}
+          disabled={regenerating}
+        >
+          {regenerating ? 'Régénération…' : 'Régénérer la netlist (LLM)'}
+        </button>
+        <button
+          type="button"
+          className="rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700"
+          onClick={handlePlaceAll}
+          disabled={placingAll}
+        >
+          {placingAll ? 'Placement…' : 'Tout placer (optimisé)'}
+        </button>
       </div>
+      {netsMissing && (
+        <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+          Aucune netlist disponible : les connexions (ratsnest) ne peuvent pas être tracées. Cliquez
+          sur « Régénérer la netlist » pour que l’IA produise les connexions entre pins.
+        </div>
+      )}
       <div className="space-y-3 p-4">
         {components.map((comp, idx) => {
           const options: { label: string; index: number }[] = [
