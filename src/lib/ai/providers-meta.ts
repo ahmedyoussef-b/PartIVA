@@ -9,4 +9,7 @@ export interface AIProviderMeta {
 }
 
 // Liste alignée sur `availableProviders` (src/lib/ai/providers.ts).
-export const providerOptions: AIProviderMeta[] = [{ id: 'groq', name: 'Groq', tier: 'free' }];
+// « Auto » s'appuie sur `callGroq` et son fallback multi-providers (9 providers).
+export const providerOptions: AIProviderMeta[] = [
+  { id: 'groq', name: 'Auto (fallback)', tier: 'free' },
+];
