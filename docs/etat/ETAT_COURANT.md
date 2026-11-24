@@ -385,6 +385,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — Phase 1.1 & 1.3 de la roadmap P12
+
+- **1.1** : prompt `nets-only` réécrit en 4 blocs fonctionnels (alimentation, MCU, communication, analogique) avec consigne GND global et alimentation obligatoires ; `maxTokens` 768 → 1536.
+- **1.3** : `GET`/`PATCH /api/pcb/requirements/nets` (add/update/delete, validation `REF.PIN`, `status: manual`), modal `NetlistEditorModal` dans Sourcing (tableau, ajout, suppression, édition des pins), synchronisation `sourcingCache.nets` et `clearLlmCacheAsync()`.
+- **UI** : bouton « Éditer la Netlist » ; rafraîchissement du canvas via `pcb:board-refresh` après sauvegarde.
+- **Vérifications** : typecheck 0, lint 0, vitest 361/361, prettier 0. Un test `reconstruct.test.ts` a été flaky une fois (passé en relance isolée puis en suite complète).
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
