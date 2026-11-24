@@ -31,7 +31,9 @@ ROTATION_TOLERANCE_DEG = 0.5
 
 
 def emit(payload, code=0):
-    sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    # Newline initial : isole le JSON même si un avertissement SWIG a été écrit
+    # sans saut de ligne juste avant.
+    sys.stdout.write("\n" + json.dumps(payload, ensure_ascii=False) + "\n")
     sys.stdout.flush()
     sys.exit(code)
 
