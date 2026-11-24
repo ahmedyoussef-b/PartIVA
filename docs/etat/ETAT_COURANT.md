@@ -404,6 +404,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — correctifs formulaire CDC interne
+
+- **Symptômes rapportés** : compiler l'idée « allumage ampoule 9 V » donne une traduction correcte mais en EUR ; cliquer « Valider » ne pré-remplit pas les 7 blocs et ne navigue pas vers l'analyse.
+- **Causes** : champs non contrôlés (`onChange` sans `value`) → réponses compilées invisibles ; type `multiselect` non rendu ; « Valider » ne faisait que poser un drapeau ; aucun contrôle de champs requis.
+- **Correctifs** : champs contrôlés pour 5 types (dont multiselect), validation des champs `required` avec focus/scroll sur le premier manquant et retour au bloc concerné, création projet + redirection vers `/admin/pcb/{id}/cahier-des-charges`, règle « prix en DT/TND, jamais EUR/USD » dans le prompt `compile`, conversion filet `€→DT`, versioning de la clé cache `pcb:compile:v2`.
+- **Vérifications** : typecheck 0, lint 0, vitest 361/361, prettier 0. E2E existants conservés (`select-*`/`input-*` conservés, redirection finale du dernier bloc inchangée).
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
