@@ -61,6 +61,14 @@ Réduire la consommation des quotas gratuits (Groq et fallback) en supprimant le
 - **I6** `query-normalizer` : court-circuit déterministe pour les MPN/références (ex. `LM7805`, `R_0603`) → **0 appel** ; cache persistant 24 h pour le reste.
 - **I7** `extract-params` : plus de dépendance dure à `GROQ_API_KEY` (fallback multi-provider).
 - **I8** Invalidation par empreinte CDC : `PcbProject.cdcHash` pour `analyze` et `sourcingCache.cdcHash` pour `source-components`. Un CDC modifié force une nouvelle analyse/génération ; un CDC inchangé ne coûte **0 appel**.
+- **I9** Découplage client/serveur : `providers-meta.ts` (métadonnées pures) remplace l'import de `providers.ts` dans `AssistantZone`. Sans cela, le client embarquait `groq-client` → `prisma` → `pg` et le build Turbopack échouait (`Can't resolve 'dns'/'fs'/'net'/'tls'`).
+
+### Lot J — Re-analyse et coupe-circuit (2026-11-24)
+- **J1 (B1)** Coupe-circuit journalier dur : `llm-budget.ts`, compteur `LlmDailyUsage` (jour UTC), `assertDailyBudget()` **refuse** tout appel au-delà de `LLM_DAILY_TOKEN_BUDGET` (défaut **100 000** tokens/j). `addDailyTokens()` écrit en base en arrière-plan (timeout 800 ms, repli mémoire). Migration `20261124130000_add_llm_daily_usage`.
+- **J2 (B2)** `/api/ai/chat` : cache L2 par hash `(message + context + provider)` — couvre aussi la génération de fiche technique.
+- **J3 (B3)** `/api/engine` : idempotence (cache résultat 5 min + verrou), cache L2 de la description, `hasLlmProvider()` remplace la garde dure `GROQ_API_KEY`.
+- **J4 (B4)** `/api/search/photo` : rate limit 10/min/utilisateur ; `vision.ts` passe par `hasLlmProvider()` + `callGroq` (fallback 9 providers).
+- **J5 (B5)** Migration `20261124130000_add_llm_daily_usage` à appliquer avec `npx prisma migrate deploy` dès que Neon répond (repli mémoire sinon).
 
 ## 3. Checklist « aucune fuite résiduelle »
 
@@ -89,7 +97,7 @@ Réduire la consommation des quotas gratuits (Groq et fallback) en supprimant le
 
 | Variable | Rôle | Défaut |
 |---|---|---|
-| `LLM_DAILY_TOKEN_BUDGET` | Seuil d'alerte tokens/jour | `0` (désactivé) |
+| `LLM_DAILY_TOKEN_BUDGET` | Plafond journalier de tokens (coupe-circuit dur) | `100000` |
 | `AI_MOCK` | Mode dégradé sans appel | `false` |
 | `GROQ_VISION_MODEL` | Modèle vision | `meta-llama/llama-4-scout-17b-16e-instruct` |
 | `TOGETHER_API_KEY` / `TOGETHER_MODEL` | Fallback Together | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
@@ -97,4 +105,18 @@ Réduire la consommation des quotas gratuits (Groq et fallback) en supprimant le
 | `MISTRAL_API_KEY` / `MISTRAL_MODEL` | Fallback Mistral | `mistral-small-latest` |
 | `SAMBANOVA_API_KEY` / `SAMBANOVA_MODEL` | Fallback SambaNova | `Meta-Llama-3.3-70B-Instruct` |
 
-**Migration requise :** `npx prisma migrate deploy` (migration `20261124120000_add_llm_state`).
+**Migration requise :** `npx prisma migrate deploy` (migrations `20261124120000_add_llm_state` + `20261124130000_add_llm_daily_usage`).
+
+---
+
+## 6. Résidus B1–B5 (audit final)
+
+| # | Correctif | Détail |
+|---|---|---|
+| **B1** | Coupe-circuit journalier **dur** | `src/lib/utils/llm-budget.ts` : compteur `LlmDailyUsage` (UTC), `assertDailyBudget()` **refuse** tout appel au-delà du plafond (défaut 100 000, `LLM_DAILY_TOKEN_BUDGET`). Persistant L2 + repli mémoire L1. |
+| **B2** | Cache L2 `/api/ai/chat` + fiche technique | Clé = `hash(message + context + provider)` via `getLlmCacheAsync`/`setLlmCacheAsync`. |
+| **B3** | Idempotence `/api/engine` | Cache résultat 5 min + verrou ; description en cache **L2** ; `hasLlmProvider()` au lieu de `GROQ_API_KEY`. |
+| **B4** | Rate-limit photo + vision multi-providers | `/api/search/photo` : 10/min/user. `vision.ts` : `hasLlmProvider()` + appel sans clé Groq figée (fallback 9 providers). |
+| **B5** | Migration | `20261124130000_add_llm_daily_usage` créée ; à appliquer avec `prisma migrate deploy` dès que Neon répond (repli mémoire sinon). |
+
+**F6 (verrous/rate-limit en mémoire)** reste P2 : acceptable pour un déploiement mono-instance ; à durcir (Redis/table) si multi-instance.

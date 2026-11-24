@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { z } from 'zod';
 import { computeImageEmbedding, EmbeddingError } from '@/lib/embeddings';
 import { searchPartsByPhoto } from '@/lib/data/part-embeddings';
+import { rateLimit } from '@/lib/utils/rate-limit';
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -21,6 +22,14 @@ export async function POST(req: Request) {
 
     if (!session?.user) {
       return NextResponse.json({ message: 'Non authentifié' }, { status: 401 });
+    }
+
+    const limit = rateLimit(`search:photo:${session.user.id}`, 10, 60_000);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { message: 'Trop de recherches photo, réessayez plus tard' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } },
+      );
     }
 
     const body = await req.json();

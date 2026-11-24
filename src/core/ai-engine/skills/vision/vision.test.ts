@@ -3,6 +3,7 @@ import { vi, describe, it, expect } from 'vitest';
 vi.mock('@/lib/ai/groq-client', () => ({
   callGroq: vi.fn(),
   getGroqApiKey: () => 'test-key',
+  hasLlmProvider: () => true,
 }));
 
 import { callGroq } from '@/lib/ai/groq-client';

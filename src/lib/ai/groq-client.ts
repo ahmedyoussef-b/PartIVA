@@ -3,6 +3,7 @@
 // failure, the next configured provider is used. Each provider is OpenAI-compatible.
 
 import { GroqMessage, GroqRequest, GroqResponse } from './types';
+import { addDailyTokens, assertDailyBudget } from '@/lib/utils/llm-budget';
 
 export type LLMProvider = {
   name: string;
@@ -254,6 +255,7 @@ export async function callGroq(
   if (process.env.AI_MOCK === 'true') {
     return { content: '{}', model: 'mock', provider: 'mock' };
   }
+  await assertDailyBudget();
   const providers = buildProviders(apiKey);
   if (providers.length === 0) {
     throw new Error('Aucun fournisseur LLM configuré (GROQ_API_KEY, CEREBRAS_API_KEY, ...)');
@@ -345,18 +347,7 @@ export async function callGroq(
           total: usage.total_tokens ?? 0,
           cumulated: totalTokensUsed,
         });
-        const budget = Number(process.env.LLM_DAILY_TOKEN_BUDGET ?? '0');
-        if (budget > 0) {
-          const ratio = totalTokensUsed / budget;
-          if (ratio >= 1) {
-            console.warn('[LLM:budget] Budget journalier dépassé', {
-              totalTokensUsed,
-              budget,
-            });
-          } else if (ratio >= 0.8) {
-            console.warn('[LLM:budget] Budget journalier à 80%', { totalTokensUsed, budget });
-          }
-        }
+        addDailyTokens(usage.total_tokens ?? 0);
       }
       if (!data.choices || data.choices.length === 0 || !data.choices[0]) {
         const err = new Error(`LLM ${provider.name}: aucune réponse`);

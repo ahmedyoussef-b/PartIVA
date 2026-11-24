@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getProvider } from '@/lib/ai/providers';
 import { getCurrentUser } from '@/lib/auth-server';
-import { acquireLlmGuard } from '@/lib/utils/llm-guard';
+import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
+import { getLlmCacheAsync, setLlmCacheAsync } from '@/lib/utils/llm-cache';
 import { rateLimit } from '@/lib/utils/rate-limit';
 
 export async function POST(req: Request) {
@@ -39,6 +40,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ reply: `${provider.name} indisponible`, source: 'mock' });
   }
 
+  const cacheKey = `ai:chat:${hashKey(JSON.stringify({ message, context, providerId }))}`;
+  const cached = await getLlmCacheAsync<{ reply: string; source: string }>(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached);
+  }
+
   const guard = acquireLlmGuard(`ai:chat:${userId || ip}`);
   if (!guard.ok) {
     return NextResponse.json({ reply: 'Requête déjà en cours', source: 'mock' }, { status: 429 });
@@ -46,6 +53,7 @@ export async function POST(req: Request) {
 
   try {
     const reply = await provider.chat([{ role: 'user', content: message }], context);
+    await setLlmCacheAsync(cacheKey, { reply, source: provider.id });
     return NextResponse.json({ reply, source: provider.id });
   } catch (e) {
     return NextResponse.json({ reply: e instanceof Error ? e.message : 'Erreur', source: 'mock' });

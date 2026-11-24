@@ -563,3 +563,16 @@
 - **Branche :** `fast-track/p7-dashboard-pcb` (42 commits d'avance sur master, merge-base `d50f4c0`).
 - **Ecart E10 (DECISIONS.md sans entree Fast-Track) :** resorbe par cette section.
 - **Non couvert par cette section :** les decisions de la Phase D et E sont des sous-etapes d'implementation (V30-bis a V37-bis, C1, C2) ; elles sont tracees ici pour memoire mais leur specification detaillee reste dans `SUIVI_DISCUSSION_PCB.md`.
+
+### 15.7 - Decisions P11 — quota LLM (2026-11-24, PR #153)
+
+| ID | Decision | Justification | Consequences |
+|---|---|---|---|
+| P11.1 | `analyze` : double passe et classement IA **desactives par defaut** ; idempotence par `PcbProject.cdcHash` | 3 appels LLM par defaut, puis recalculs identiques | 1 appel par analyse, **0** si le CDC est inchange ; V32-bis/V37-bis restent activables explicitement |
+| P11.2 | `/api/pcb/requirements/parse` : **aucun appel LLM** | L'enrichissement n'etait ni persiste ni renvoye (appel mort) | Validation CDC gratuite ; l'analyse reste concentree dans `/api/pcb/analyze` |
+| P11.3 | Cooldown providers et cache LLM **L1 memoire + L2 Prisma**, timeout DB 800 ms, reprise quota au minuit UTC | Etat purement memoire perdu a chaque instance serverless froide ; retry sur provider epuise | Migration `20261124120000_add_llm_state` requise ; sans elle, repli automatique sur L1 |
+| P11.4 | Fallback etendu (Together, DeepInfra, Mistral, SambaNova) + `hasLlmProvider()` ; plus de garde dure sur `GROQ_API_KEY` | Clefs deja configurees mais inutilisees ; 502 systematique si Groq seul epuise | 6 providers ; la presence d'au moins une cle suffit |
+| P11.5 | `providers-meta.ts` : metadata fournisseurs cote client, separee de `providers.ts`/`groq-client` | Le client embarquait Prisma/`pg` via `AssistantZone`, cassant le build Turbopack (`dns`/`fs`/`net`/`tls`) | Aucun import de code serveur dans un composant client |
+| P11.6 | Invalidation du cache sourcing par `sourcingCache.cdcHash` | Un CDC modifie devait generer une nouvelle BOM ; un CDC identique ne devait rien recalculer | **0** appel si CDC inchange, 1 sinon |
+| P11.7 | Coupe-circuit journalier **dur** a 100 000 tokens (UTC), persistant (`LlmDailyUsage`), avec repli memoire | `LLM_DAILY_TOKEN_BUDGET` n'etait qu'un log : aucun arret d'appel | Tout appel LLM est refuse au-dela du plafond ; migration `20261124130000_add_llm_daily_usage` requise pour le partage entre instances |
+| P11.8 | Cache L2 pour chat/fiche et idempotence `/api/engine` ; rate limit photo | 2 routes n'avaient aucun cache, le moteur pouvait rejouer le pipeline complet | 0 appel sur requete identique ; -1 a -3 appels par Analyse |

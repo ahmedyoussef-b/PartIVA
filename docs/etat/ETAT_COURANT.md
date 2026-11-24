@@ -305,9 +305,26 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 — élimination structurelle des fuites de quota LLM (branche `fix/desktop-pcb-llm-env`)
+
+- **Objectif** : arrêter l'épuisement des quotas gratuits LLM à la racine (analyse CDC, sourcing, placement, cache, fallback).
+- **Analyse** : trois causes structurelles — (1) appels LLM inutiles ou dupliqués (`analyze` ×3 par défaut, enrichissement mort de `parse`, normalisation LLM des MPN), (2) état (cache + cooldown) uniquement en mémoire, donc perdu à chaque instance serverless froide, (3) fallback inexistant et `maxTokens` surdimensionnés.
+- **Correctifs (P11, Lots A→I)** : détail dans `docs/roadmap/P11_LLM_QUOTA_FIX.md`. Points clés : 1 appel par défaut pour `analyze` + idempotence par `cdcHash` ; `parse` sans LLM ; `query-normalizer` avec court-circuit MPN ; cache L2 Prisma (`llm_cache_entries`) + cooldown L2 (`llm_provider_cooldowns`) avec timeout DB 800 ms ; fallback Together/DeepInfra/Mistral/SambaNova + `hasLlmProvider()` ; `maxTokens` 1024–2560 ; cache sourcing invalidé par hash CDC.
+- **Garde-fou build** : `src/lib/ai/providers-meta.ts` sépare les métadonnées fournisseurs du code serveur — `AssistantZone` (client) n'importe plus `providers.ts` → `groq-client` → Prisma/`pg`, ce qui cassait le build Turbopack (`Can't resolve 'dns'/'fs'/'net'/'tls'`).
+- **Vérifications locales** : typecheck, lint, vitest 351/351, prettier, prisma validate/format.
+- **Migration** : `20261124120000_add_llm_state` (cooldown, cache L2, `PcbProject.cdcHash`) **non appliquée** — Neon injoignable depuis le poste (`P1001` ; TCP 5432 ouvert mais session Postgres impossible). Le code retombe automatiquement sur le cache L1 mémoire.
+- **Re-analyse (lot J)** : audit des 9 call sites IA — reste 7 fuites (F1–F7). Corrigées : **B1** coupe-circuit journalier dur (`llm-budget.ts`, 100 k tokens/j par défaut, migration `20261124130000_add_llm_daily_usage`), **B2** cache L2 chat/fiche, **B3** idempotence moteur + cache L2 description, **B4** rate limit photo + vision multi-providers, **B5** migration créée. Restent F6 (verrous mémoire) et F7 (migration non appliquée, repli mémoire).
+- **PR #153** mise à jour ; CI à revalider après le correctif de build.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
+
+**Bloquants immédiats :**
+- Appliquer la migration `20261124120000_add_llm_state` dès que Neon est joignable (`npx prisma migrate deploy`) — active le cache/cooldown partagé.
+- Fusionner la PR #153 après CI verte.
 
 **Prochaines étapes possibles :**
 1. **C3 — canvas lisible** : symboles 2×, labels lisibles, couleurs par type, zoom/pan, grille 2,54 mm, espacement des composants, chemin propre.

@@ -903,3 +903,12 @@ model LlmCacheEntry {
   @@index([expiresAt])
   @@map("llm_cache_entries")
 }
+
+// Compteur de tokens LLM par jour UTC (coupe-circuit budgétaire partagé).
+model LlmDailyUsage {
+  day       String   @id // YYYY-MM-DD (UTC)
+  tokens    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@map("llm_daily_usage")
+}
