@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { usePcbEditor } from './PcbEditorProvider';
+import { NetlistEditorModal } from './NetlistEditorModal';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
 interface Candidate {
@@ -77,6 +78,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [regenerating, setRegenerating] = useState(false);
   const [generatingNets, setGeneratingNets] = useState(false);
   const [routing, setRouting] = useState(false);
+  const [netsEditorOpen, setNetsEditorOpen] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
@@ -504,6 +506,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         >
           {routing ? 'Routage…' : 'Router la carte'}
         </button>
+        <button
+          type="button"
+          className="rounded border px-2 py-0.5 text-xs font-normal"
+          onClick={() => setNetsEditorOpen(true)}
+        >
+          Éditer la Netlist
+        </button>
       </div>
       {netsMissing && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
@@ -598,6 +607,16 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           );
         })}
       </div>
+      {netsEditorOpen && (
+        <NetlistEditorModal
+          projectId={projectId}
+          onClose={() => setNetsEditorOpen(false)}
+          onSaved={(count) => {
+            setNetsMissing(count === 0);
+            window.dispatchEvent(new Event('pcb:board-refresh'));
+          }}
+        />
+      )}
     </div>
   );
 }

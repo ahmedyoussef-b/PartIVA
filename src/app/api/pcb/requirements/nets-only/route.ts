@@ -96,23 +96,29 @@ export async function POST(req: Request) {
   }
 
   try {
-    const prompt = `Tu es un ingénieur électronique senior. Voici la liste des composants d'une carte PCB :
+    const prompt = `Tu es un ingénieur en électronique. Voici la liste des composants d'une carte PCB :
 [${componentList}]
 
-Génère UNIQUEMENT un objet JSON avec la clé "nets" décrivant les connexions électriques entre les pins.
+Génère UNIQUEMENT un objet JSON avec la clé "nets". Organise ta réflexion par blocs fonctionnels :
+1. ALIMENTATION : relie le régulateur à ses condensateurs et au connecteur d'entrée (ex. U1, C1, C2, J1). Inclus le net GND.
+2. MICROCONTRÔLEUR : relie le MCU à son cristal et à ses condensateurs de découplage (ex. U2, Y1, C3). Inclus le net GND.
+3. COMMUNICATION : relie le transceiver RS-485 à son connecteur (ex. U3, J4). Inclus le net GND.
+4. ANALOGIQUE : si une sortie analogique existe, relie-la au MCU et à son connecteur.
+
+Adapte ces exemples de références à la liste réelle fournie ci-dessus.
 
 RÈGLES STRICTES :
-1. Inclus OBLIGATOIREMENT un net nommé "GND" reliant au moins 2 composants.
-2. Inclus OBLIGATOIREMENT un net d'alimentation (ex. "VCC_5V") reliant au moins 2 composants.
-3. Utilise EXACTEMENT le format "REF.PIN" (ex. "U1.1", "C1.2", "U2.GND").
-4. Ne génère AUCUN texte, commentaire ou explication en dehors du JSON.
+- Tu DOIS inclure un net nommé "GND" qui relie TOUS les composants ayant une broche de masse.
+- Tu DOIS inclure au moins un net d'alimentation (ex. "VCC_5V").
+- Utilise EXACTEMENT le format "REF.PIN" (ex. "U1.1", "C1.2").
+- Ne génère AUCUN texte, commentaire ou explication en dehors du JSON.
 
 Format attendu :
-{"nets":[{"name":"GND","pins":["U1.2","C1.2"]},{"name":"VCC_5V","pins":["U1.1","C1.1"]}]}`;
+{"nets":[{"name":"GND","pins":["U1.2","C1.2","U2.16"]},{"name":"VCC_5V","pins":["U1.1","C1.1","U2.4"]}]}`;
 
     const response = await callGroq([{ role: 'user', content: prompt }], undefined, {
       temperature: 0,
-      maxTokens: 768,
+      maxTokens: 1536,
       timeout: 30000,
       responseFormat: 'json_object',
     });
