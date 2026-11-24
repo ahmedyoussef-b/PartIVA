@@ -413,6 +413,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — liste des projets PCB redondante
+
+- **Constat chiffré** : 13 projets en BDD dont **8 brouillons vides** (0 exigence / 0 composant / 0 net) créés par les soumissions répétées ; la page `/admin/pcb/projets` en affichait 11.
+- **Correctifs** : filtrage des projets vides (note « N projets vides masqués »), listing de **tous** les projets ayant du contenu (y compris `requirements_validated` pour voir le projet lampe), bouton « Supprimer » sécurisé (uniquement brouillon sans composants), garde-fou dans `/api/pcb/requirements/parse` (refus d'un projet sans réponses ni description).
+- **Résultat du filtre** : 13 → 5 projets visibles ; 7 vides masqués. Les 3 brouillons partiels restants peuvent être supprimés depuis l'UI par l'admin.
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

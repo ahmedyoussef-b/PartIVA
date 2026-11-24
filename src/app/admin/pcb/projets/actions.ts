@@ -3,6 +3,27 @@
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth-admin';
+
+/** Supprime un brouillon sans composants (anciens projets vides/tests). */
+export async function supprimerProjetBrouillon(formData: FormData) {
+  try {
+    await requireAdmin();
+  } catch {
+    return;
+  }
+  const projectId = String(formData.get('projectId') || '');
+  if (!projectId) return;
+  const project = await prisma.pcbProject.findUnique({
+    where: { id: projectId },
+    select: { status: true, _count: { select: { components: true } } },
+  });
+  if (!project || !['draft', 'in_progress'].includes(project.status)) return;
+  if (project._count.components > 0) return; // ne jamais supprimer de vrai travail
+  await prisma.pcbProject.delete({ where: { id: projectId } });
+  console.info('[PCB:PROJETS] Brouillon supprimé', { projectId });
+  revalidatePath('/admin/pcb/projets');
+}
 
 export async function concevoirDepuisDemande(formData: FormData) {
   const requestId = String(formData.get('requestId') || '');

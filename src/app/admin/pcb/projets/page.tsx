@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { concevoirDepuisDemande } from './actions';
+import { concevoirDepuisDemande, supprimerProjetBrouillon } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,15 +12,26 @@ function formatDate(date: Date | string): string {
 export default async function PcbProjetsPage() {
   console.info('[PCB:PROJETS] Liste des projets reçus chargée');
 
-  const [received, localProjects] = await Promise.all([
+  const [received, localProjects, emptyCount] = await Promise.all([
     prisma.request.findMany({
       where: { type: 'PCB', status: 'PENDING' },
       orderBy: { createdAt: 'desc' },
       include: { client: { select: { name: true, email: true } } },
     }),
+    // Ne pas afficher les projets vides créés par erreur (0 exigence,
+    // 0 composant, 0 net) : ils encombrent la liste sans travail réel.
     prisma.pcbProject.findMany({
-      where: { status: { in: ['draft', 'in_progress'] } },
+      where: {
+        OR: [{ requirements: { some: {} } }, { components: { some: {} } }, { nets: { some: {} } }],
+      },
       orderBy: { updatedAt: 'desc' },
+    }),
+    prisma.pcbProject.count({
+      where: {
+        requirements: { none: {} },
+        components: { none: {} },
+        nets: { none: {} },
+      },
     }),
   ]);
 
@@ -32,7 +43,7 @@ export default async function PcbProjetsPage() {
         <div>
           <h1 className="text-2xl font-bold">Projets PCB</h1>
           <p className="text-sm text-gray-500">
-            File d&apos;attente des cahiers des charges reçus et projets locaux en cours.
+            File d&apos;attente des cahiers des charges reçus et projets locaux.
           </p>
         </div>
         <Link href="/admin/pcb" className="text-sm text-blue-600 hover:underline">
@@ -95,8 +106,14 @@ export default async function PcbProjetsPage() {
       {/* Section 2 — Projets locaux */}
       <section>
         <h2 className="mb-3 text-lg font-semibold">
-          Projets locaux (en cours){' '}
+          Projets locaux{' '}
           <span className="text-sm font-normal text-gray-500">({localProjects.length})</span>
+          {emptyCount > 0 && (
+            <span className="ml-2 text-xs font-normal text-gray-400">
+              ({emptyCount} projet{emptyCount > 1 ? 's' : ''} vide{emptyCount > 1 ? 's' : ''} masqué
+              {emptyCount > 1 ? 's' : ''})
+            </span>
+          )}
         </h2>
         {localProjects.length === 0 ? (
           <div className="rounded border bg-white p-6 text-center text-sm text-gray-500">
@@ -130,9 +147,17 @@ export default async function PcbProjetsPage() {
                       {formatDate(p.updatedAt)}
                     </td>
                     <td className="px-4 py-2 text-right">
-                      <Link href={`/admin/pcb/${p.id}`} className="text-blue-600 hover:underline">
-                        Ouvrir
-                      </Link>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link href={`/admin/pcb/${p.id}`} className="text-blue-600 hover:underline">
+                          Ouvrir
+                        </Link>
+                        <form action={supprimerProjetBrouillon}>
+                          <input type="hidden" name="projectId" value={p.id} />
+                          <button type="submit" className="text-xs text-red-600 hover:underline">
+                            Supprimer
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 ))}
