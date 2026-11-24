@@ -7,7 +7,7 @@
 **Branche :** master
 **Version en cours :** V7 close, V8 close, V8-D-14 close (Desktop Tauri), P6.3 → P10 closes, **Fast-Track P7 close** (Phases A-E, V1-V44), **post-Fast-Track commité** (SYNC-3), **fix chemin plateau KiCad (PR #143)**, **fix normalizeBoardPath platform-aware (PR #146)**, **bundle du plateau KiCad réel dans le build (PR #148)**, **clôture documentaire SYNC-1 → SYNC-4**.
 **Dernière étape close :** PR #153 (live KiCad sync, audit magasin en DT, netlist LLM + placement déterministe, workflow `tauri dev`, correctifs quota LLM P11 A→J) — préc. PR #148 (bundle plateau KiCad).
-**Prochaine étape :** appliquer les migrations LLM (`20261124120000_add_llm_state`, `20261124130000_add_llm_daily_usage`) dès que Neon répond, puis revalider le coupe-circuit en environnement réel.
+**Prochaine étape :** revalider en environnement réel le coupe-circuit journalier et le cache/cooldown partagés (migrations appliquées le 2026-11-24), puis instrumenter les logs `[LLM:usage]` / `[LLM:budget]`.
 
 ---
 
@@ -53,7 +53,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 | **Version** | V7 close — V8 close (V8-B-6 intégralement clôturée) — V8-C-2a close — V8-D-4 close (dette requalifiée « résolution partielle ») — V8-D-5 / TÂCHE 1/2/3 closes — V8-D-7 PCB Design Studio close (a→g) — V8-D-8 → V8-D-13-b tracés (`DECISIONS.md` §14) — P5 (cartographie) close — **V8-D-14 close** — **P6.3 → P10 closes (2026-11-19)** — **Fast-Track P7 close (Phases A-E, V1-V44)** — **post-Fast-Track commité (SYNC-3)** — **fix chemin plateau KiCad (PR #143)** — **fix normalizeBoardPath platform-aware (PR #146)** — **bundle du plateau KiCad réel dans le build (PR #148)** — **clôture documentaire SYNC-1 → SYNC-4** |
 | **HEAD** | `fbf4daa` (merge PR #153, 2026-11-24) |
 | **Dernière étape close** | **PR #153** (live KiCad sync, audit magasin DT, netlist LLM + placement, `tauri dev`, P11 A→J : 0 appel sur CDC inchangé, coupe-circuit 100 k tokens/j, cache L2 chat/moteur) |
-| **Prochaine étape** | Appliquer les 2 migrations LLM en base (Neon `P1001` intermittents) puis revalider le coupe-circuit réel |
+| **Prochaine étape** | Revalider en réel le coupe-circuit 100 k tokens/j et le cache/cooldown L2 (migrations appliquées le 2026-11-24) |
 
 ### Dettes haute / moyenne / basse actives
 
@@ -185,7 +185,7 @@ Voir `PROCEDURE_INTERACTION.md` §2.1. Analyser, planifier, proposer, exiger pre
 
 ## 4. Prochaine action attendue
 
-**Migrations LLM en attente** : `20261124120000_add_llm_state` (cooldown + cache L2 + `cdcHash`) et `20261124130000_add_llm_daily_usage` (compteur journalier). Drift détecté : `componentType`, `stock` et `sourcingCache` déjà présents en base mais migrations associées en échec — 2 résolues (`migrate resolve --applied`), le reste à finaliser quand Neon répond. Sans migration, repli automatique L1 mémoire.
+**Migrations LLM appliquées (2026-11-24)** : `20261124120000_add_llm_state` (cooldown + cache L2 + `cdcHash`) et `20261124130000_add_llm_daily_usage` (compteur journalier) déployées avec succès ; `prisma migrate status` = *Database schema is up to date*. Drift historique résolu : `migrate resolve --applied` sur `20261123130000_add_component_type`, `20261123140000_add_component_stock`, `20261123150000_add_sourcing_cache` (colonnes déjà présentes en base). Prochaine action : revalider le coupe-circuit et le cache partagé en environnement réel (logs `[LLM:usage]`, `[LLM:budget]`).
 
 *Note v8.17 (2026-11-24) : PR #153 mergée (`fbf4daa`). Vérifications : typecheck ✅, lint ✅, vitest 351/351 ✅, prettier ✅, prisma validate ✅, 4 checks CI verts (Build/TypeScript/ESLint+Prettier/Vercel).*
 

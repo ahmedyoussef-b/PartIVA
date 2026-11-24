@@ -105,7 +105,7 @@ Réduire la consommation des quotas gratuits (Groq et fallback) en supprimant le
 | `MISTRAL_API_KEY` / `MISTRAL_MODEL` | Fallback Mistral | `mistral-small-latest` |
 | `SAMBANOVA_API_KEY` / `SAMBANOVA_MODEL` | Fallback SambaNova | `Meta-Llama-3.3-70B-Instruct` |
 
-**Migration requise :** `npx prisma migrate deploy` (migrations `20261124120000_add_llm_state` + `20261124130000_add_llm_daily_usage`).
+**Migrations appliquées le 2026-11-24 :** `20261124120000_add_llm_state` + `20261124130000_add_llm_daily_usage` (`prisma migrate status` = *Database schema is up to date*). Drift historique résolu au préalable par `migrate resolve --applied` sur 3 migrations dont les colonnes existaient déjà.
 
 ---
 
