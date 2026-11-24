@@ -115,7 +115,7 @@ export async function POST(req: Request) {
 
   const project = await prisma.pcbProject.findUnique({
     where: { id: projectId },
-    select: { id: true, kicadFilePath: true },
+    select: { id: true, kicadFilePath: true, sourcingCache: true },
   });
   if (!project) {
     return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
@@ -183,15 +183,36 @@ export async function POST(req: Request) {
         // fallback to defaults
       }
 
-      const { optimizePlacement } = await import('@/lib/pcb/placement');
+      const { optimizePlacement, inferPlacementRole, buildHints } =
+        await import('@/lib/pcb/placement');
+      // Le cache sourcing conserve le type et la rationale du LLM : on les
+      // réinjecte ici pour que les règles métier connaissent les rôles.
+      const cachedComponents =
+        (project.sourcingCache as { components?: Array<Record<string, unknown>> } | null)
+          ?.components ?? [];
+      const cachedByRef = new Map(
+        cachedComponents
+          .filter((c) => typeof c.reference === 'string')
+          .map((c) => [String(c.reference), c]),
+      );
       const optimized = optimizePlacement(
         working.map((c) => {
           const size = getFootprintSize(c.libName, c.footprintName);
+          const cached = cachedByRef.get(c.reference);
+          const meta = {
+            reference: c.reference,
+            value: c.value ?? (typeof cached?.value === 'string' ? cached.value : null),
+            type: typeof cached?.type === 'string' ? cached.type : null,
+            footprint: `${c.libName}:${c.footprintName}`,
+            rationale: typeof cached?.rationale === 'string' ? cached.rationale : null,
+          };
           return {
             reference: c.reference,
             xMm: c.xMm,
             yMm: c.yMm,
             rotation: c.rotation ?? 0,
+            role: inferPlacementRole(meta),
+            hints: buildHints(meta),
             ...(size ? { widthMm: size.widthMm, heightMm: size.heightMm } : {}),
           };
         }),

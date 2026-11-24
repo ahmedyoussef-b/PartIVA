@@ -432,3 +432,11 @@ Table virtuelle `components_vec` (sqlite-vec) : embedding de `description` + `ca
 - **Routage** : choix de la voie A (pistes assistées partielles) ; squelette `scripts/kicad/route_board.py` créé (`PCB_TRACK` en L + zone GND), non câblé.
 - **Interdit pour l'instant** : modification des formules de pénalité et de la grille (étapes 3 et 4) — le coordinateur fournira le code exact.
 - **Vérifications** : typecheck 0, lint 0, vitest **358/358**, prettier 0, py_compile OK.
+
+### 11.21 Règles métier du CDC dans calculateCost (2026-11-24)
+
+- **Demande** : intégrer la physique de la carte (24V→5V chaud, RS‑485 près du connecteur, Y1 collée au MCU, connecteurs sur le bord supérieur) sans coder en dur U1/U2/J4.
+- **Implémentation** : `inferPlacementRole()` déduit les rôles depuis `type`/`rationale` du LLM (communications sur les 15 composants réels) ; `buildHints()` conserve le texte pour apparier régulateur↔entrée 24 V et RS‑485↔DB9.
+- **Coût** : pénalités à seuil `W·max(0, d−cible)²` (et `W·max(0, min−d)²` pour l'éloignement thermique) avec cibles 5/20/8/8/3 mm et poids 40/50/30/50/100.
+- **Réponse à la question du coordinateur** : `calculateCost` reçoit déjà `board.originY` ; pas de plumbing supplémentaire pour la règle « bord supérieur » (le pseudo-code supposait Y=0, ce qui était faux avec originY=81,28 mm).
+- **Vérifications** : typecheck 0, lint 0, vitest **361/361**, prettier 0. Restent : grille 2,54 mm (étape 4) et câblage du routage assisté.

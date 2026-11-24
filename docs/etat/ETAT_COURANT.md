@@ -347,6 +347,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-24 (suite) — règles métier du CDC dans `calculateCost`
+
+- **Règles ajoutées** (CDC régulation 24V→5V, Modbus RTU, sortie 0‑10V) : oscillateur `Y*` collé au MCU (cible 5 mm), régulateur éloigné des parties sensibles (min 20 mm) et rapproché du connecteur d'entrée 24 V (cible 8 mm), transceiver RS‑485 rapproché de son connecteur (cible 8 mm), connecteurs sur le **bord supérieur** (`yMm - originY` ≤ 3 mm).
+- **Rôles non codés en dur** : `inferPlacementRole()` déduit `regulator|mcu|clock|serial|connector|sensitive` depuis `type`/`rationale`/`value` du LLM (vérifié sur les 15 composants réels du projet). `buildHints()` conserve le texte pour le voisinage RS‑485/24 V.
+- **Origine du plateau** : `calculateCost` reçoit déjà `board.originY` — la règle 4 n'a donc **aucun plumbing supplémentaire** ; contrairement au pseudo-code qui supposait `Y=0`.
+- **Poids** : 40/50/30/50/100 avec seuils (au lieu de `W·d²` brut), pour rester comparables à `wireLength`.
+- **Vérifications** : typecheck 0, lint 0, vitest **361/361**, prettier 0. Grille 2,54 mm et routage réel toujours non traités.
+
+---
+
 ## Prochaine étape
 
 **Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
