@@ -336,4 +336,4 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 7. **Runner live** du golden set (rejouer les 10 CDC contre Groq).
 8. **Nettoyage des orphelins** : `PcbProjectWorkspace.tsx`, `PcbPriceCounter.tsx`, `PcbProposalDiff.tsx`, `PcbCanvas.addNodeAtCenter`.
 
-*`master` = `e3085a9` ; branche protégée (3 checks requis, toute fusion par PR). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
+*`master` = `fbf4daa` (merge PR #153, 2026-11-24) ; branche protégée (fusion par PR, checks verts : Build/TypeScript/ESLint+Prettier/Vercel). Aucune nouvelle étape code ne doit être inventée sans spec (charte §9).*
