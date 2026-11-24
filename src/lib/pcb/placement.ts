@@ -10,6 +10,20 @@ export interface PlacementComponent {
   rotation: number;
   widthMm?: number; // empreinte approximative (largeur)
   heightMm?: number; // empreinte approximative (hauteur)
+  /** Rôle fonctionnel déduit du CDC (voir inferPlacementRole). */
+  role?: PlacementRole;
+  /** Texte libre (value/type/rationale/footprint) utilisé par les règles métier. */
+  hints?: string;
+}
+
+export type PlacementRole = 'regulator' | 'mcu' | 'clock' | 'serial' | 'connector' | 'sensitive';
+
+export interface PlacementHints {
+  reference: string;
+  value?: string | null;
+  type?: string | null;
+  footprint?: string | null;
+  rationale?: string | null;
 }
 
 export interface PlacementNet {
@@ -27,7 +41,7 @@ export interface PlacementBoard {
 // Classification des nets à partir de leur nom. Ces helpers sont volontairement
 // indépendants de toute heuristique géométrique : ils serviront de base aux
 // pénalités de découplage (à ajouter dans une étape ultérieure).
-const POWER_NET_RE = /(^|[_+\s-])(vcc|vdd|vbat|3v3|5v|12v|\+?(?:3|5|12)v\d*)(?:$|[_+\s-])/i;
+const POWER_NET_RE = /(^|[_+\s-])(vcc|vdd|vbat|3v3|5v|12v|24v|\+?(?:3|5|12|24)v\d*)(?:$|[_+\s-])/i;
 const GND_NET_RE = /(^|[_+\s-])([a-z]?gnd|vss|ground|0v)(?:$|[_+\s-])/i;
 
 export function isPowerNet(name: string): boolean {
@@ -40,6 +54,41 @@ export function isGndNet(name: string): boolean {
 
 // Map "U1.1" -> nom du net. Une broche peut apparaître dans plusieurs nets
 // (erreur de schéma) : la première occurrence gagne, ce qui reste déterministe.
+/**
+ * Déduit un rôle fonctionnel des métadonnées fournies par le LLM. Les motifs
+ * sont volontairement larges (le CDC utilise « RS‑485 » avec tirets spéciaux,
+ * « Régulateur DC-DC », « STM32F405 », etc.).
+ */
+export function inferPlacementRole(input: PlacementHints): PlacementRole | undefined {
+  const ref = input.reference.trim().toUpperCase();
+  const text = [input.value, input.type, input.footprint, input.rationale]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (/^J|^P|^CN/.test(ref) || /connecteur|connector|db9|terminalblock|pinheader/i.test(text)) {
+    return 'connector';
+  }
+  if (/rs.?485|modbus|transceiver|sn75176|uart/i.test(text)) return 'serial';
+  if (/oscill|cristal|crystal|quartz|horloge|clock/i.test(text) || /^Y|^X/.test(ref)) {
+    return 'clock';
+  }
+  if (/r[eé]gulateur|regulator|dc.?dc|buck|24\s*v|to-220/i.test(text)) return 'regulator';
+  if (/microcontr|mcu|stm32|esp32|atmega|lqfp|qfn/i.test(text)) return 'mcu';
+  if (/capteur|sensor|analog|0.?10\s*v|temp[eé]rature|pt100|thermocouple|adc/i.test(text)) {
+    return 'sensitive';
+  }
+  return undefined;
+}
+
+/** Texte normalisé à conserver dans `hints` pour les règles de voisinage. */
+export function buildHints(input: PlacementHints): string {
+  return [input.value, input.type, input.footprint, input.rationale]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+}
+
 export function buildPinNetMap(nets: PlacementNet[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const net of nets) {
@@ -116,6 +165,83 @@ export function calculateCost(
   const maxY = oy + board.heightMm;
 
   let c = wireLength(components, adj);
+
+  // --- Règles métier issues du CDC (24V->5V, Modbus RTU, sortie 0-10V) ---
+  const CLOCK_TARGET_MM = 5;
+  const CLOCK_WEIGHT = 40;
+  const THERMAL_MIN_MM = 20;
+  const THERMAL_WEIGHT = 50;
+  const REG_INPUT_TARGET_MM = 8;
+  const REG_INPUT_WEIGHT = 30;
+  const SERIAL_TARGET_MM = 8;
+  const SERIAL_WEIGHT = 50;
+  const EDGE_TOP_TARGET_MM = 3;
+  const EDGE_TOP_WEIGHT = 100;
+
+  const withRole = (role: PlacementRole) => components.filter((x) => x.role === role);
+  const penalize = (
+    groupA: PlacementComponent[],
+    groupB: PlacementComponent[],
+    target: number,
+    weight: number,
+    mode: 'toward' | 'away',
+  ): void => {
+    for (const a of groupA) {
+      for (const b of groupB) {
+        if (a === b) continue;
+        const d = distance(a, b);
+        const excess = mode === 'toward' ? Math.max(0, d - target) : Math.max(0, target - d);
+        c += weight * excess * excess;
+      }
+    }
+  };
+
+  const clocks = withRole('clock');
+  const mcus = withRole('mcu');
+  const regulators = withRole('regulator');
+  const serials = withRole('serial');
+  const connectors = withRole('connector');
+  const sensitive = [...mcus, ...withRole('sensitive'), ...clocks];
+
+  // 1. Oscillateur collé au MCU.
+  if (clocks.length > 0 && mcus.length > 0) {
+    penalize(clocks, mcus, CLOCK_TARGET_MM, CLOCK_WEIGHT, 'toward');
+  }
+  // 2. Régulateur (chaud) éloigné des parties sensibles.
+  if (regulators.length > 0 && sensitive.length > 0) {
+    penalize(regulators, sensitive, THERMAL_MIN_MM, THERMAL_WEIGHT, 'away');
+  }
+  // Régulateur près de son connecteur d'entrée 24 V.
+  if (regulators.length > 0 && connectors.length > 0) {
+    const inputConnectors = connectors.filter((x) =>
+      /alim|power|24\s*v|vin|entr[eé]e/.test(x.hints ?? ''),
+    );
+    penalize(
+      regulators,
+      inputConnectors.length > 0 ? inputConnectors : connectors.slice(0, 1),
+      REG_INPUT_TARGET_MM,
+      REG_INPUT_WEIGHT,
+      'toward',
+    );
+  }
+  // 3. Transceiver RS-485 près de son connecteur.
+  if (serials.length > 0 && connectors.length > 0) {
+    const serialConnectors = connectors.filter((x) => /rs.?485|modbus|db9/.test(x.hints ?? ''));
+    penalize(
+      serials,
+      serialConnectors.length > 0 ? serialConnectors : connectors.slice(0, 1),
+      SERIAL_TARGET_MM,
+      SERIAL_WEIGHT,
+      'toward',
+    );
+  }
+  // 4. Connecteurs sur le bord supérieur (contrainte explicite du CDC).
+  // `oy` est l'origine réelle du plateau : pas besoin de supposer Y=0.
+  for (const conn of connectors) {
+    const dTop = conn.yMm - oy;
+    c += EDGE_TOP_WEIGHT * Math.max(0, dTop - EDGE_TOP_TARGET_MM) ** 2;
+  }
+
   // chevauchements
   for (let i = 0; i < components.length; i++) {
     for (let j = i + 1; j < components.length; j++) {

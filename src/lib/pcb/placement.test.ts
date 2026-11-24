@@ -5,6 +5,7 @@ import {
   clampToBoard,
   computePlacement,
   generateReference,
+  inferPlacementRole,
   isGndNet,
   isPowerNet,
   optimizePlacement,
@@ -175,6 +176,60 @@ describe('calculateCost', () => {
   it('pénalise un composant hors plateau', () => {
     const comps = [{ reference: 'J1', xMm: 500, yMm: 20, rotation: 0 }];
     expect(calculateCost(comps, new Map(), board)).toBeGreaterThanOrEqual(1000);
+  });
+});
+
+describe('règles métier CDC', () => {
+  it('déduit les rôles depuis le type et la rationale du LLM', () => {
+    expect(
+      inferPlacementRole({
+        reference: 'U1',
+        value: '5V 2A',
+        type: 'Régulateur DC-DC 5V',
+        rationale: 'Convertit 24V à 5V',
+      }),
+    ).toBe('regulator');
+    expect(
+      inferPlacementRole({
+        reference: 'U2',
+        value: 'STM32F405',
+        type: 'Microcontrôleur STM32F405',
+      }),
+    ).toBe('mcu');
+    expect(
+      inferPlacementRole({ reference: 'U3', type: 'Transceiver RS‑485', rationale: 'Modbus RTU' }),
+    ).toBe('serial');
+    expect(inferPlacementRole({ reference: 'Y1', type: 'Cristal 8 MHz' })).toBe('clock');
+    expect(inferPlacementRole({ reference: 'J4', type: 'Connecteur RS‑485 DB9' })).toBe(
+      'connector',
+    );
+    expect(inferPlacementRole({ reference: 'J2', rationale: 'Capteur température PT100' })).toBe(
+      'connector',
+    );
+  });
+
+  it('pénalise un connecteur éloigné du bord supérieur', () => {
+    const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 10 };
+    const near = [{ reference: 'J1', xMm: 20, yMm: 12, rotation: 0, role: 'connector' as const }];
+    const far = [{ ...near[0]!, yMm: 60 }];
+    expect(calculateCost(far, new Map(), board)).toBeGreaterThan(
+      calculateCost(near, new Map(), board),
+    );
+  });
+
+  it('récompense un oscillateur proche du MCU et un régulateur éloigné du MCU', () => {
+    const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 0 };
+    const mcu = { reference: 'U2', xMm: 50, yMm: 50, rotation: 0, role: 'mcu' as const };
+    const clockFar = { reference: 'Y1', xMm: 10, yMm: 10, rotation: 0, role: 'clock' as const };
+    const clockNear = { ...clockFar, xMm: 53, yMm: 50 };
+    expect(calculateCost([mcu, clockFar], new Map(), board)).toBeGreaterThan(
+      calculateCost([mcu, clockNear], new Map(), board),
+    );
+    const regNear = { reference: 'U1', xMm: 55, yMm: 50, rotation: 0, role: 'regulator' as const };
+    const regFar = { ...regNear, xMm: 10, yMm: 10 };
+    expect(calculateCost([mcu, regNear], new Map(), board)).toBeGreaterThan(
+      calculateCost([mcu, regFar], new Map(), board),
+    );
   });
 });
 

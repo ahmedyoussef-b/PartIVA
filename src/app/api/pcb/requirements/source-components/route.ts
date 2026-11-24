@@ -336,17 +336,33 @@ Règles :
           // Optimize placement using nets
           if (parsedNets.length > 0) {
             try {
-              const { optimizePlacement } = await import('@/lib/pcb/placement');
+              const { optimizePlacement, inferPlacementRole, buildHints } =
+                await import('@/lib/pcb/placement');
               const boardW = 80;
               const boardH = 60;
               const placed = optimizePlacement(
                 proposed.map((c) => {
                   const size = getFootprintSize(c.libName, c.footprintName);
+                  const hints = buildHints({
+                    reference: c.reference,
+                    value: c.value,
+                    type: c.type,
+                    footprint: `${c.libName}:${c.footprintName}`,
+                    rationale: c.rationale,
+                  });
                   return {
                     reference: c.reference,
                     xMm: c.xMm,
                     yMm: c.yMm,
                     rotation: c.rotation,
+                    role: inferPlacementRole({
+                      reference: c.reference,
+                      value: c.value,
+                      type: c.type,
+                      footprint: `${c.libName}:${c.footprintName}`,
+                      rationale: c.rationale,
+                    }),
+                    hints,
                     ...(size ? { widthMm: size.widthMm, heightMm: size.heightMm } : {}),
                   };
                 }),
