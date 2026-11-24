@@ -23,6 +23,13 @@ export async function POST(req: Request) {
     if (!answers || !Array.isArray(answers)) {
       return NextResponse.json({ error: 'answers requis' }, { status: 400 });
     }
+    const hasDescription = typeof description === 'string' && description.trim().length > 0;
+    if (answers.length === 0 && !hasDescription) {
+      return NextResponse.json(
+        { error: 'Aucune réponse et aucune description : projet vide refusé' },
+        { status: 400 },
+      );
+    }
 
     // Créer le projet si absent
     let project = projectId
