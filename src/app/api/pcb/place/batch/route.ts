@@ -5,10 +5,34 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { placeFootprints, syncBoardLive, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
+import { resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
 
 export const runtime = 'nodejs';
 
 const MAX_COMPONENTS = 200;
+
+// Bounds réelles du plateau (Edge.Cuts). Sert à refuser une coordonnée invalide
+// avant d'appeler le script Python, au lieu d'un 500 opaque.
+async function readBoardBounds(
+  boardPath: string,
+): Promise<{ left: number; top: number; right: number; bottom: number } | null> {
+  try {
+    const { parseKicadPcb } = await import('@/lib/pcb/kicad-file-reader');
+    const { readFileSync } = await import('node:fs');
+    const parsed = parseKicadPcb(readFileSync(boardPath, 'utf8'));
+    if (parsed.dimensions.width > 0 && parsed.dimensions.height > 0) {
+      return {
+        left: parsed.origin.x,
+        top: parsed.origin.y,
+        right: parsed.origin.x + parsed.dimensions.width,
+        bottom: parsed.origin.y + parsed.dimensions.height,
+      };
+    }
+  } catch {
+    // plateau illisible : on ne bloque pas le placement pour autant
+  }
+  return null;
+}
 
 export async function POST(req: Request) {
   try {
@@ -178,6 +202,59 @@ export async function POST(req: Request) {
     } catch (e) {
       console.warn('[PCB:PLACE-BATCH] Optimize failed, using provided coords', e);
     }
+  }
+
+  // Pré-validation : répare les empreintes inventées par le LLM et refuse
+  // explicitement les données qui feraient échouer le script Python (500 opaque).
+  const footprintsRoot =
+    process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT?.trim() ||
+    'C:/Program Files/KiCad/10.0/share/kicad/footprints';
+  const bounds = allowOutside ? null : await readBoardBounds(abs);
+  const invalid: string[] = [];
+  const repaired: string[] = [];
+  for (const c of working) {
+    const lib = c.libName.replace(/\.pretty$/i, '');
+    const fp = c.footprintName.replace(/\.kicad_mod$/i, '');
+    const exact = path.join(footprintsRoot, `${lib}.pretty`, `${fp}.kicad_mod`);
+    if (!existsSync(exact)) {
+      const resolved = resolveKicadFootprint(lib, fp, c.reference, footprintsRoot);
+      const candidate = path.join(
+        footprintsRoot,
+        `${resolved.libName}.pretty`,
+        `${resolved.footprintName}.kicad_mod`,
+      );
+      if (!existsSync(candidate)) {
+        invalid.push(`${c.reference} : empreinte introuvable (${lib}:${fp})`);
+        continue;
+      }
+      c.libName = resolved.libName;
+      c.footprintName = resolved.footprintName;
+      repaired.push(
+        `${c.reference} : ${lib}:${fp} → ${resolved.libName}:${resolved.footprintName}`,
+      );
+    }
+    if (
+      bounds &&
+      (c.xMm < bounds.left || c.xMm > bounds.right || c.yMm < bounds.top || c.yMm > bounds.bottom)
+    ) {
+      invalid.push(
+        `${c.reference} : coordonnées hors du plateau (${c.xMm.toFixed(2)}, ${c.yMm.toFixed(2)} mm)`,
+      );
+    }
+  }
+  if (invalid.length > 0) {
+    console.warn('[PCB:PLACE-BATCH] Données invalides', invalid);
+    return NextResponse.json(
+      {
+        error: 'Données de placement invalides',
+        details: invalid,
+        hint: 'Régénérez la netlist/le sourcing ou activez l’option allowOutside pour forcer.',
+      },
+      { status: 400 },
+    );
+  }
+  if (repaired.length > 0) {
+    console.info('[PCB:PLACE-BATCH] Empreintes réparées', repaired);
   }
 
   const footprints: BatchFootprintInput[] = working.map((c) => ({

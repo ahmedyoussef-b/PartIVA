@@ -289,7 +289,21 @@ function parseBatchResult(output: RunOutput): KicadBridgeResult {
   }
 
   if (output.code !== 0) {
-    return { ok: false, error: output.stderr.trim() || `exit code ${output.code}` };
+    // Un `exit code N` sans sortie est un crash brutal (interpreter/pcbnew).
+    // On conserve stdout ET stderr dans le message pour distinguer :
+    // chemin Python erroné, erreur d'import, segfault pcbnew, souci d'encodage...
+    const stderrText = output.stderr.trim();
+    const stdoutTail = output.stdout.trim().slice(-600);
+    const details = [
+      stderrText ? `stderr: ${stderrText}` : '',
+      stdoutTail ? `stdout: ${stdoutTail}` : '',
+    ]
+      .filter(Boolean)
+      .join(' | ');
+    return {
+      ok: false,
+      error: `exit code ${output.code}${details ? ` — ${details}` : ' (aucune sortie : crash Python/pcbnew)'}`,
+    };
   }
 
   return { ok: false, error: 'sortie illisible du script Python (batch)' };
@@ -331,6 +345,18 @@ function executeBatch(
       cli.push(...buildFlags(flags));
 
       const output = await runPython(pyPath, scriptPath, cli);
+      if (output.code !== 0 || output.timedOut) {
+        console.error('[KICAD:BATCH] Échec du script de placement', {
+          python: pyPath,
+          script: scriptPath,
+          board: boardPath,
+          args: cli,
+          code: output.code,
+          timedOut: output.timedOut,
+          stdout: output.stdout.slice(-1000),
+          stderr: output.stderr.slice(-1000),
+        });
+      }
       return parseBatchResult(output);
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };
