@@ -84,7 +84,9 @@ export async function POST(req: Request) {
     .map((c) => `${c.reference} (${String(c.name || '').slice(0, 40)})`)
     .join(', ')
     .slice(0, 2500);
-  const cacheKey = `pcb:nets-only:${hashKey(`${projectId}|${componentList}|${project.description ?? ''}`)}`;
+  // v2 : le prompt hiérarchique produit une topologie plus riche. Invalider
+  // les résultats de l'ancien prompt stockés en L2 avec la même clé.
+  const cacheKey = `pcb:nets-only:v2:${hashKey(`${projectId}|${componentList}|${project.description ?? ''}`)}`;
   const cached = await getLlmCacheAsync<NetsOnlyResult>(cacheKey);
   if (cached) {
     return NextResponse.json({ ok: true, nets: cached.nets, cached: true });
