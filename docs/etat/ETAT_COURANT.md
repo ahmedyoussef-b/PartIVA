@@ -387,7 +387,9 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ## Prochaine étape
 
-**Fast-Track P7 — CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
+**Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
+
+**Fast-Track P7 - CLOS et fusionné sur `master`** (`2224ebe`, PR #141). La branche `fast-track/p7-dashboard-pcb` est entièrement intégrée.
 
 **Bloquants immédiats :**
 - Aucun bloquant technique : PR #153 mergée (`fbf4daa`), migrations LLM appliquées. Reste à valider en environnement réel les logs `[LLM:usage]` / `[LLM:budget]` et le cache L2 partagé.
