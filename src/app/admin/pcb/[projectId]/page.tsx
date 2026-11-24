@@ -196,21 +196,36 @@ export default async function PcbProjectPage({
 
           {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
-            {/* Audit complet du magasin de composants */}
-            <div className="overflow-hidden rounded-lg border bg-white">
-              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                Approvisionnement
-              </div>
-              <div className="p-4">
-                <Link href={`/admin/pcb/${projectId}/magasin`}>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Ouvrir l&apos;audit complet du magasin
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            {/* Ordre = démarche de conception : CDC -> propositions -> sourcing
+                (nets/placement/routage) -> placement manuel -> revue -> contrôles
+                -> visualisation -> fabrication -> audit magasin (tâche support). */}
 
-            {/* C2-bis : conformité remontée en tête de colonne pour rester visible */}
+            {/* Étape 1 — Cahier des charges */}
+            <RequirementInput
+              projectId={projectId}
+              partFunction={clientRequest?.partFunction}
+              kicadFilePath={project.kicadFilePath}
+            />
+
+            {/* Étape 2 — Propositions IA à examiner */}
+            <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
+
+            {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
+            <ComponentSourcingPanel projectId={projectId} />
+
+            {/* Étape 4 — Placement manuel / ajustements */}
+            <PlacementPanel
+              projectId={projectId}
+              boardWidthMm={boardWidthMm}
+              boardHeightMm={boardHeightMm}
+            />
+
+            {/* Étape 5 — Revue de conception */}
+            <DesignReviewPanel projectId={projectId} />
+
+            <CapitalizeButton projectId={projectId} />
+
+            {/* Étape 6 — Conformité physique */}
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
                 Conformité Physique
@@ -220,24 +235,17 @@ export default async function PcbProjectPage({
               </div>
             </div>
 
-            <RequirementInput
-              projectId={projectId}
-              partFunction={clientRequest?.partFunction}
-              kicadFilePath={project.kicadFilePath}
-            />
-            <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
-            <PlacementPanel
-              projectId={projectId}
-              boardWidthMm={boardWidthMm}
-              boardHeightMm={boardHeightMm}
-            />
+            {/* Étape 7 — Visualisation */}
+            <div className="overflow-hidden rounded-lg border bg-white">
+              <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                Visualisation
+              </div>
+              <div className="p-4">
+                <VisualComparisonOverlay projectId={projectId} layers={comparisonLayers} />
+              </div>
+            </div>
 
-            <ComponentSourcingPanel projectId={projectId} />
-
-            <CapitalizeButton projectId={projectId} />
-
-            <DesignReviewPanel projectId={projectId} />
-
+            {/* Étape 8 — Fabrication */}
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
                 Fabrication
@@ -256,12 +264,17 @@ export default async function PcbProjectPage({
               </div>
             </div>
 
+            {/* Tâche support — Audit du magasin */}
             <div className="overflow-hidden rounded-lg border bg-white">
               <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                Visualisation
+                Approvisionnement
               </div>
               <div className="p-4">
-                <VisualComparisonOverlay projectId={projectId} layers={comparisonLayers} />
+                <Link href={`/admin/pcb/${projectId}/magasin`}>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ouvrir l&apos;audit complet du magasin
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
