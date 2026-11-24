@@ -474,51 +474,58 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     <div className="rounded-lg border bg-white">
       <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
         <span>Sourcing composants ({components.length})</span>
+        {/* Ordre d'exécution : 1 topologie, 2 correction, 3 placement,
+            4 routage, 5 reprise complète (écrase les nets manuels). */}
         <button
           type="button"
-          className="rounded border px-2 py-0.5 text-xs font-normal"
-          onClick={handleRegenerate}
-          disabled={regenerating}
-        >
-          {regenerating ? 'Régénération…' : 'Régénérer la netlist (LLM)'}
-        </button>
-        <button
-          type="button"
+          title="1. Générer la topologie (connexions entre pins)"
           className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
           onClick={handleGenerateNetsOnly}
           disabled={generatingNets}
         >
-          {generatingNets ? 'Génération…' : 'Générer les nets (GND/VCC)'}
+          {generatingNets ? 'Génération…' : '1. Générer les nets (GND/VCC)'}
         </button>
         <button
           type="button"
+          title="2. Corriger ou compléter la topologie manuellement"
+          className="rounded border px-2 py-0.5 text-xs font-normal"
+          onClick={() => setNetsEditorOpen(true)}
+        >
+          2. Éditer la Netlist
+        </button>
+        <button
+          type="button"
+          title="3. Placer tous les composants avec la netlist complète"
           className="rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700"
           onClick={handlePlaceAll}
           disabled={placingAll}
         >
-          {placingAll ? 'Placement…' : 'Tout placer (optimisé)'}
+          {placingAll ? 'Placement…' : '3. Tout placer (optimisé)'}
         </button>
         <button
           type="button"
+          title="4. Tracer les pistes et la zone GND"
           className="rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700"
           onClick={handleRouteBoard}
           disabled={routing}
         >
-          {routing ? 'Routage…' : 'Router la carte'}
+          {routing ? 'Routage…' : '4. Router la carte'}
         </button>
         <button
           type="button"
+          title="5. Reprendre depuis zéro : régénère composants ET nets (écrase les modifications manuelles)"
           className="rounded border px-2 py-0.5 text-xs font-normal"
-          onClick={() => setNetsEditorOpen(true)}
+          onClick={handleRegenerate}
+          disabled={regenerating}
         >
-          Éditer la Netlist
+          {regenerating ? 'Régénération…' : '5. Régénérer le sourcing (LLM)'}
         </button>
       </div>
       {netsMissing && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
           Aucune netlist disponible : les connexions (ratsnest) ne peuvent pas être tracées. Cliquez
-          sur « Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur «
-          Régénérer la netlist » pour refaire aussi les composants.
+          sur « 1. Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur « 5.
+          Régénérer le sourcing (LLM) » pour refaire aussi les composants.
         </div>
       )}
       <div className="space-y-3 p-4">

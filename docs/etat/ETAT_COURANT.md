@@ -422,6 +422,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 — ordre des cartes et des boutons (Layout PCB)
+
+- **Colonne droite réordonnée** selon la démarche : 1 Cahier des charges → 2 Propositions IA → 3 Sourcing (nets/placement/routage) → 4 Placement manuel → 5 Revue de conception → 6 Conformité → 7 Visualisation → 8 Fabrication → tâche support : Audit magasin (auparavant en tête).
+- **Boutons Sourcing numérotés** par ordre d'exécution : 1 Générer les nets → 2 Éditer la Netlist → 3 Tout placer → 4 Router la carte → 5 Régénérer le sourcing (outil de reprise, écrase les nets manuels ; `title` explicite).
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
