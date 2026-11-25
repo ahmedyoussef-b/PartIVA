@@ -9,6 +9,7 @@ import {
   isGndNet,
   isPowerNet,
   optimizePlacement,
+  optimizeRotations,
   pxToMm,
   snapToGrid,
   type PlacementContext,
@@ -250,6 +251,21 @@ describe('règles métier CDC', () => {
     expect(calculateCost([mcu, regNear], new Map(), board)).toBeGreaterThan(
       calculateCost([mcu, regFar], new Map(), board),
     );
+  });
+});
+
+describe('optimizeRotations', () => {
+  it('aligne à 0° les rôles connus et conserve les autres', () => {
+    const comps = [
+      { reference: 'J1', xMm: 0, yMm: 0, rotation: 90, role: 'connector' as const },
+      { reference: 'U1', xMm: 0, yMm: 0, rotation: 180, role: 'regulator' as const },
+      { reference: 'C1', xMm: 0, yMm: 0, rotation: 90, role: 'capacitor' as const },
+      { reference: 'Y1', xMm: 0, yMm: 0, rotation: 270, role: 'clock' as const },
+      { reference: 'R7', xMm: 0, yMm: 0, rotation: 45 },
+    ];
+    const out = optimizeRotations(comps);
+    expect(out.slice(0, 4).map((c) => c.rotation)).toEqual([0, 0, 0, 0]);
+    expect(out[4]!.rotation).toBe(45);
   });
 });
 

@@ -132,7 +132,7 @@ const sizeCache = new Map<string, FootprintSize | null>();
 const padCache = new Map<string, string[]>();
 
 /**
- * Bbox approximative du composant, déduite des pads du fichier .kicad_mod.
+ * Bbox du composant : courtyard F.CrtYd/B.CrtYd si présent, sinon pads du .kicad_mod.
  * Volontairement « best-effort » : null si le fichier est absent ou illisible.
  * Le résultat est mis en cache par chemin (les composants répètent souvent
  * la même empreinte sur une carte).
@@ -147,7 +147,9 @@ export function getFootprintSize(
   const fp = footprintName.trim().replace(/\.kicad_mod$/i, '');
   if (!lib || !fp) return null;
   const filePath = `${footprintsRoot.replace(/\/$/, '')}/${lib}.pretty/${fp}.kicad_mod`;
-  if (sizeCache.has(filePath)) return sizeCache.get(filePath) ?? null;
+  // v2 : courtyard (F.CrtYd/B.CrtYd) désormais prioritaire sur les pads.
+  const cacheKey = `${filePath}|v2`;
+  if (sizeCache.has(cacheKey)) return sizeCache.get(cacheKey) ?? null;
 
   let size: FootprintSize | null = null;
   try {
@@ -156,20 +158,17 @@ export function getFootprintSize(
     let maxX = Number.NEGATIVE_INFINITY;
     let minY = Number.POSITIVE_INFINITY;
     let maxY = Number.NEGATIVE_INFINITY;
-    for (const block of text.split(/(?=\(pad\s)/).slice(1)) {
-      const at = block.match(/\(at\s+(-?[\d.]+)\s+(-?[\d.]+)(?:\s+(-?[\d.]+))?\)/);
-      const dims = block.match(/\(size\s+([\d.]+)\s+([\d.]+)\)/);
-      if (!at || !dims) continue;
-      const x = Number(at[1]);
-      const y = Number(at[2]);
-      let w = Number(dims[1]);
-      let h = Number(dims[2]);
-      const angle = Number(at[3] ?? 0);
-      if (Math.abs(angle % 180) === 90) [w, h] = [h, w];
-      minX = Math.min(minX, x - w / 2);
-      maxX = Math.max(maxX, x + w / 2);
-      minY = Math.min(minY, y - h / 2);
-      maxY = Math.max(maxY, y + h / 2);
+
+    // 1. Courtyard réel : il inclut les marges mécaniques de l'empreinte.
+    for (const block of text.split(/(?=\(fp_(?:line|rect)\s)/).slice(1)) {
+      if (!/\(layer\s+"[FB]\.CrtYd"/.test(block)) continue;
+      const start = block.match(/\(start\s+(-?[\d.]+)\s+(-?[\d.]+)\)/);
+      const end = block.match(/\(end\s+(-?[\d.]+)\s+(-?[\d.]+)\)/);
+      if (!start || !end) continue;
+      minX = Math.min(minX, Number(start[1]), Number(end[1]));
+      maxX = Math.max(maxX, Number(start[1]), Number(end[1]));
+      minY = Math.min(minY, Number(start[2]), Number(end[2]));
+      maxY = Math.max(maxY, Number(start[2]), Number(end[2]));
     }
     if (Number.isFinite(minX) && Number.isFinite(minY)) {
       size = {
@@ -177,10 +176,39 @@ export function getFootprintSize(
         heightMm: Math.round((maxY - minY) * 100) / 100,
       };
     }
+
+    // 2. Repli : bbox des pads si aucun courtyard exploitable.
+    if (!size) {
+      minX = Number.POSITIVE_INFINITY;
+      maxX = Number.NEGATIVE_INFINITY;
+      minY = Number.POSITIVE_INFINITY;
+      maxY = Number.NEGATIVE_INFINITY;
+      for (const block of text.split(/(?=\(pad\s)/).slice(1)) {
+        const at = block.match(/\(at\s+(-?[\d.]+)\s+(-?[\d.]+)(?:\s+(-?[\d.]+))?\)/);
+        const dims = block.match(/\(size\s+([\d.]+)\s+([\d.]+)\)/);
+        if (!at || !dims) continue;
+        const x = Number(at[1]);
+        const y = Number(at[2]);
+        let w = Number(dims[1]);
+        let h = Number(dims[2]);
+        const angle = Number(at[3] ?? 0);
+        if (Math.abs(angle % 180) === 90) [w, h] = [h, w];
+        minX = Math.min(minX, x - w / 2);
+        maxX = Math.max(maxX, x + w / 2);
+        minY = Math.min(minY, y - h / 2);
+        maxY = Math.max(maxY, y + h / 2);
+      }
+      if (Number.isFinite(minX) && Number.isFinite(minY)) {
+        size = {
+          widthMm: Math.round((maxX - minX) * 100) / 100,
+          heightMm: Math.round((maxY - minY) * 100) / 100,
+        };
+      }
+    }
   } catch {
     size = null;
   }
-  sizeCache.set(filePath, size);
+  sizeCache.set(cacheKey, size);
   return size;
 }
 
