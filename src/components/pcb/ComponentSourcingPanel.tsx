@@ -382,7 +382,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         toast.error('Freerouting non installé — DSN généré', { duration: 12_000 });
         return;
       }
-      if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      if (!res.ok || !data.ok) {
+        if (data.logs) {
+          setFreeroutingInfo(`${data.error ?? 'Échec Freerouting'}\n${data.logs}`);
+        }
+        throw new Error(data.error || `Erreur ${res.status}`);
+      }
       setFreeroutingInfo(null);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       toast.success(
@@ -578,7 +583,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         </div>
       )}
       {freeroutingInfo && (
-        <div className="border-b border-indigo-200 bg-indigo-50 p-2 text-xs text-indigo-900">
+        <div className="border-b border-indigo-200 bg-indigo-50 p-2 text-xs whitespace-pre-wrap text-indigo-900">
           {freeroutingInfo}
           <br />
           Installation : installez Java puis placez `freerouting.jar` dans `tools/` ou définissez la

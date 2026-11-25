@@ -15,6 +15,11 @@ export const runtime = 'nodejs';
 const execFileAsync = promisify(execFile);
 const ROUTING_TIMEOUT_MS = 5 * 60 * 1000;
 
+function optimizationPasses(): number {
+  const value = Number(process.env.FREEROUTING_PASSES ?? '10');
+  return Number.isFinite(value) ? Math.max(1, Math.min(50, Math.floor(value))) : 10;
+}
+
 function freeroutingJar(): string | null {
   const configured = process.env.FREEROUTING_JAR?.trim();
   if (configured) return configured;
@@ -111,24 +116,29 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: false,
       code: 'FREEROUTING_MISSING',
-      error: `Freerouting non installé (java=${hasJava}, jar=${jar ? 'présent' : 'absent'}). Le DSN complet a été généré : ${dsnPath}`,
+      error: `Freerouting non installé (java=${hasJava ? 'présent' : 'absent'}, jar=${jar ? 'présent' : 'absent'}). Installez Java 17/21 (adoptium.net), téléchargez freerouting.jar depuis github.com/freerouting/freerouting/releases et placez-le dans tools/ (ou définissez FREEROUTING_JAR). Le DSN complet a été généré : ${dsnPath}`,
       dsn: dsnPath,
     });
   }
 
   const sesPath = `${boardPath.replace(/\.kicad_pcb$/i, '')}.ses`;
   try {
-    await execFileAsync('java', ['-jar', jar, '-de', dsnPath, '-do', sesPath], {
-      timeout: ROUTING_TIMEOUT_MS,
-      maxBuffer: 20 * 1024 * 1024,
-    });
+    const passes = optimizationPasses();
+    await execFileAsync(
+      'java',
+      ['-jar', jar, '-de', dsnPath, '-do', sesPath, '-mp', String(passes)],
+      { timeout: ROUTING_TIMEOUT_MS, maxBuffer: 20 * 1024 * 1024 },
+    );
   } catch (error) {
     console.error('[FREEROUTING] Échec', error);
+    const failed = error as { message?: string; stdout?: string; stderr?: string };
+    const logs = [failed.stdout, failed.stderr].filter(Boolean).join('\n').slice(-4000);
     return NextResponse.json(
       {
         ok: false,
         code: 'FREEROUTING_FAILED',
-        error: error instanceof Error ? error.message : String(error),
+        error: failed.message ?? String(error),
+        logs,
         dsn: dsnPath,
       },
       { status: 502 },
