@@ -20,6 +20,7 @@ import { parseKicadPcb } from '@/lib/pcb/kicad-file-reader';
 import fs from 'node:fs';
 import path from 'node:path';
 import { analyzeRealState } from '@/lib/pcb/simulation';
+import { PcbWizard } from '@/components/pcb/PcbWizard';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,7 @@ export default async function PcbProjectPage({
     include: {
       components: true,
       nets: true,
+      requirements: true,
     },
   });
 
@@ -52,14 +54,19 @@ export default async function PcbProjectPage({
   // C.2 — dimensions du plateau (repli 100 x 80 mm si fichier absent/illisible)
   let boardWidthMm = 100;
   let boardHeightMm = 80;
+  const boardStats = { footprints: 0, tracks: 0, zones: 0 };
   if (project.kicadFilePath) {
     try {
       const abs = path.isAbsolute(project.kicadFilePath)
         ? project.kicadFilePath
         : path.join(process.cwd(), project.kicadFilePath);
-      const parsed = parseKicadPcb(fs.readFileSync(abs, 'utf8'));
+      const raw = fs.readFileSync(abs, 'utf8');
+      const parsed = parseKicadPcb(raw);
       if (parsed.dimensions.width > 0) boardWidthMm = parsed.dimensions.width;
       if (parsed.dimensions.height > 0) boardHeightMm = parsed.dimensions.height;
+      boardStats.footprints = parsed.components.length;
+      boardStats.tracks = (raw.match(/\(segment\b/g) ?? []).length;
+      boardStats.zones = (raw.match(/\(zone\b/g) ?? []).length;
     } catch (e) {
       console.warn('[PCB:PLACEMENT] Dimensions indisponibles', e);
     }
@@ -196,32 +203,51 @@ export default async function PcbProjectPage({
 
           {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
+            <PcbWizard
+              requirementsCount={project.requirements.length}
+              netsCount={project.nets.length}
+              footprints={boardStats.footprints}
+              tracks={boardStats.tracks}
+              zones={boardStats.zones}
+              compliant={complianceResult.isCompliant}
+            />
+
             {/* Ordre = démarche de conception : CDC -> propositions -> sourcing
                 (nets/placement/routage) -> placement manuel -> revue -> contrôles
                 -> visualisation -> fabrication -> audit magasin (tâche support). */}
 
             {/* Étape 1 — Cahier des charges */}
-            <RequirementInput
-              projectId={projectId}
-              partFunction={clientRequest?.partFunction}
-              kicadFilePath={project.kicadFilePath}
-            />
+            <div id="card-cdc">
+              <RequirementInput
+                projectId={projectId}
+                partFunction={clientRequest?.partFunction}
+                kicadFilePath={project.kicadFilePath}
+              />
+            </div>
 
             {/* Étape 2 — Propositions IA à examiner */}
-            <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
+            <div id="card-proposals">
+              <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
+            </div>
 
             {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
-            <ComponentSourcingPanel projectId={projectId} />
+            <div id="card-sourcing">
+              <ComponentSourcingPanel projectId={projectId} />
+            </div>
 
             {/* Étape 4 — Placement manuel / ajustements */}
-            <PlacementPanel
-              projectId={projectId}
-              boardWidthMm={boardWidthMm}
-              boardHeightMm={boardHeightMm}
-            />
+            <div id="card-placement">
+              <PlacementPanel
+                projectId={projectId}
+                boardWidthMm={boardWidthMm}
+                boardHeightMm={boardHeightMm}
+              />
+            </div>
 
             {/* Étape 5 — Revue de conception */}
-            <DesignReviewPanel projectId={projectId} />
+            <div id="card-review">
+              <DesignReviewPanel projectId={projectId} />
+            </div>
 
             <CapitalizeButton projectId={projectId} />
 
