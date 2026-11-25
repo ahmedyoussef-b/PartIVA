@@ -583,6 +583,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — champ « Nom du projet »
+
+- `RequirementForm` : premier champ obligatoire « Nom du projet » (`input-project-name`), transmis à la compilation et à la création du projet.
+- `/api/pcb/requirements/compile` : le nom est injecté dans le prompt comme contexte métier ; clé de cache versionnée `pcb:compile:v3:<name|description>`.
+- `/api/pcb/requirements/parse` : `PcbProject.name` est renseigné avec ce nom (au lieu de « Nouveau projet PCB »), y compris lors de la mise à jour d'un projet existant.
+- **Limite assumée** : il n'existe pas encore d'index RAG **par projet** (le RAG actuel porte sur les pièces) ; le nom est désormais structuré et persistant, donc prêt à être indexé ultérieurement pour la recherche de projets similaires.
+- typecheck 0, lint 0, vitest 366/366, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

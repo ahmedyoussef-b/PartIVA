@@ -13,11 +13,12 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const { projectId, answers, description, status } = body as {
+    const { projectId, answers, description, status, projectName } = body as {
       projectId?: string;
       answers: RequirementAnswer[];
       description?: string;
       status?: string;
+      projectName?: string;
     };
 
     if (!answers || !Array.isArray(answers)) {
@@ -37,6 +38,8 @@ export async function POST(req: Request) {
       : null;
 
     const desc = typeof description === 'string' ? description.trim() : undefined;
+    const name =
+      typeof projectName === 'string' && projectName.trim() ? projectName.trim() : undefined;
     const allowedStatuses = new Set([
       'draft',
       'requirements_validated',
@@ -49,13 +52,14 @@ export async function POST(req: Request) {
     if (!project) {
       project = await prisma.pcbProject.create({
         data: {
-          name: 'Nouveau projet PCB',
+          name: name ?? 'Nouveau projet PCB',
           status: nextStatus ?? 'draft',
           description: desc,
         },
       });
     } else {
-      const data: { description?: string; status?: string } = {};
+      const data: { description?: string; status?: string; name?: string } = {};
+      if (name) data.name = name;
       if (desc) data.description = desc;
       if (nextStatus) data.status = nextStatus;
       if (Object.keys(data).length > 0) {
