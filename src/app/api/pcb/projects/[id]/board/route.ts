@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { NextResponse } from 'next/server';
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
 
@@ -183,9 +184,49 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const dest = path.join(dir, 'carte-test.kicad_pcb');
     const raw = template ? readFileSync(template, 'utf8') : EMPTY_BOARD_FALLBACK;
     const emptyBoard = template ? stripFootprints(raw) : raw;
+
+    // En cas d'échec de la transaction BDD, on restaure le plateau précédent
+    // pour ne pas laisser le fichier vide avec des composants encore persistés.
+    let previousBoard: string | null = null;
+    try {
+      previousBoard = existsSync(dest) ? readFileSync(dest, 'utf8') : null;
+    } catch {
+      previousBoard = null;
+    }
     writeFileSync(dest, emptyBoard, 'utf8');
 
-    await prisma.pcbProject.update({ where: { id }, data: { kicadFilePath: dest } });
+    try {
+      await prisma.$transaction(async (tx) => {
+        if (action === 'reset') {
+          // On revient juste après la validation CDC : le cahier des charges
+          // reste intact, tout ce qui en a été dérivé est effacé.
+          await tx.pcbNet.deleteMany({ where: { projectId: id } });
+          await tx.pcbComponent.deleteMany({ where: { projectId: id } }); // pins en cascade
+          await tx.pcbWizardValidation.deleteMany({ where: { projectId: id } });
+        }
+        await tx.pcbProject.update({
+          where: { id },
+          data:
+            action === 'reset'
+              ? {
+                  kicadFilePath: dest,
+                  sourcingCache: Prisma.JsonNull,
+                  status: 'requirements_validated',
+                }
+              : { kicadFilePath: dest },
+        });
+      });
+    } catch (e) {
+      if (previousBoard !== null) {
+        try {
+          writeFileSync(dest, previousBoard, 'utf8');
+        } catch {
+          // restauration impossible : l'erreur d'origine reste remontée
+        }
+      }
+      throw e;
+    }
+
     openBoardInDesktop(dest);
     return NextResponse.json({ ok: true, action, kicadFilePath: dest, exists: true });
   } catch (e) {

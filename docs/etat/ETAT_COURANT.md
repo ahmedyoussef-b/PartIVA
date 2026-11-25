@@ -630,6 +630,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Reset = retour juste après validation CDC
+
+- Le bouton Reset du panneau de droite réinitialisait seulement le fichier `.kicad_pcb`, laissant composants, nets et cache de sourcing en BDD ; le wizard ne pouvait donc pas revenir à l'étape « Générer les composants ».
+- `POST /api/pcb/projects/[id]/board` avec `action: 'reset'` efface désormais dans une transaction : nets, composants (pins en cascade) et validations du wizard ; `sourcingCache` est vidé et `status` repasse à `requirements_validated`. Le CDC, les propositions, checkpoints et versions sont conservés.
+- Restauration du plateau précédent si la transaction échoue, pour éviter un fichier vide avec des composants encore persistés. `open` reste inchangé.
+- 4 tests sur l'endpoint (reset / open / restauration / admin).
+- typecheck 0, lint 0, vitest 374/374, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
