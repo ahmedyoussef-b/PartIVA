@@ -135,7 +135,7 @@ export function PcbWizard({
       target: 'card-sourcing',
       done: netsCount > 0,
       prerequisite: requirementsCount > 0,
-      blockedMessage: "Générez d'abord le cahier des charges (étape 1) avant les nets.",
+      blockedMessage: "Générez d'abord le cahier des charges avant les nets.",
     },
     {
       id: 'placement',
@@ -144,7 +144,7 @@ export function PcbWizard({
       target: 'card-placement',
       done: footprints > 0,
       prerequisite: netsCount > 0,
-      blockedMessage: "Générez d'abord les nets (étape 2) avant de placer.",
+      blockedMessage: "Générez d'abord les connexions avant de placer.",
     },
     {
       id: 'routing',
@@ -153,7 +153,7 @@ export function PcbWizard({
       target: 'card-sourcing',
       done: tracks > 0 || zones > 0,
       prerequisite: footprints > 0,
-      blockedMessage: "Placez d'abord les composants (étape 3) avant de router.",
+      blockedMessage: "Placez d'abord les composants avant de router.",
     },
     {
       id: 'review',
@@ -162,7 +162,7 @@ export function PcbWizard({
       target: 'card-review',
       done: compliant,
       prerequisite: tracks > 0,
-      blockedMessage: "Routez d'abord la carte (étape 4) avant la revue finale.",
+      blockedMessage: "Routez d'abord la carte avant la revue finale.",
     },
   ];
 

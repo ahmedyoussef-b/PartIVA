@@ -603,6 +603,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — renumérotation des boutons Sourcing
+
+- Ordre logique du parcours : **1** Générer les composants (LLM) → **2** Générer les nets → **3** Éditer la Netlist → **4** Tout placer → **5** Router la carte → **6** Routage complet (Freerouting).
+- Libellés, `title`, bandeaux d'aide et libellés de la barre de progression alignés sur cette numérotation ; messages du wizard débarrassés des numéros d'étapes pour éviter toute ambiguïté.
+- typecheck 0, lint 0, vitest 366/366, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

@@ -224,7 +224,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     try {
       const comp = components[idx];
       if (!comp) return;
-      startProgress(`Placement de ${comp.reference} dans KiCad`);
+      startProgress(`4. Placement de ${comp.reference} dans KiCad`);
       await ensureBoard();
       const s = optionFor(comp, idx);
 
@@ -323,7 +323,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const handleRegenerate = async () => {
     setRegenerating(true);
-    startProgress('5. Régénération du sourcing (LLM)');
+    startProgress('1. Génération des composants (LLM)');
     try {
       await ensureBoard();
       const result = await fetchComponents(false, true);
@@ -352,7 +352,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   // Génération des seules connexions : prompt compact, composants inchangés.
   const handleGenerateNetsOnly = async () => {
     setGeneratingNets(true);
-    startProgress('1. Génération des nets (GND/VCC)');
+    startProgress('2. Génération des connexions (GND/VCC)');
     try {
       const res = await fetch('/api/pcb/requirements/nets-only', {
         method: 'POST',
@@ -384,7 +384,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const handleRouteBoard = async () => {
     setRouting(true);
-    startProgress('4. Routage de la carte');
+    startProgress('5. Routage de la carte');
     try {
       const res = await fetch('/api/pcb/route', {
         method: 'POST',
@@ -412,7 +412,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const handleFreeroute = useCallback(async () => {
     setFreerouting(true);
-    startProgress('4 bis. Routage complet (Freerouting)');
+    startProgress('6. Routage complet (Freerouting)');
     try {
       const res = await fetch('/api/pcb/autoroute/freerouting', {
         method: 'POST',
@@ -453,7 +453,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   const handlePlaceAll = async () => {
     setPlacingAll(true);
-    startProgress('3. Placement optimisé de tous les composants');
+    startProgress('4. Placement optimisé de tous les composants');
     try {
       await ensureBoard();
       const items = components.map((comp, idx) => optionFor(comp, idx));
@@ -605,73 +605,73 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     <div className="rounded-lg border bg-white">
       <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
         <span>Sourcing composants ({components.length})</span>
-        {/* Ordre d'exécution : 1 topologie, 2 correction, 3 placement,
-            4 routage, 5 reprise complète (écrase les nets manuels). */}
+        {/* Ordre logique du parcours : composants -> connexions -> correction ->
+            placement -> pistes -> routage avancé. */}
         <button
           type="button"
-          title="1. Générer la topologie (connexions entre pins)"
-          className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
-          onClick={handleGenerateNetsOnly}
-          disabled={generatingNets}
-        >
-          {generatingNets ? 'Génération…' : '1. Générer les nets (GND/VCC)'}
-        </button>
-        <button
-          type="button"
-          title="2. Corriger ou compléter la topologie manuellement"
-          className="rounded border px-2 py-0.5 text-xs font-normal"
-          onClick={() => setNetsEditorOpen(true)}
-        >
-          2. Éditer la Netlist
-        </button>
-        <button
-          type="button"
-          title="3. Placer tous les composants avec la netlist complète"
-          className="rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700"
-          onClick={handlePlaceAll}
-          disabled={placingAll}
-        >
-          {placingAll ? 'Placement…' : '3. Tout placer (optimisé)'}
-        </button>
-        <button
-          type="button"
-          title="4. Tracer les pistes et la zone GND"
-          className="rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700"
-          onClick={handleRouteBoard}
-          disabled={routing}
-        >
-          {routing ? 'Routage…' : '4. Router la carte'}
-        </button>
-        <button
-          type="button"
-          title="4 bis. Routage complet automatique via Freerouting (nécessite Java + freerouting.jar)"
-          className="rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700"
-          onClick={handleFreeroute}
-          disabled={freerouting}
-        >
-          {freerouting ? 'Routage complet…' : '4 bis. Routage complet (Freerouting)'}
-        </button>
-        <button
-          type="button"
-          title="5. Reprendre depuis zéro : régénère composants ET nets (écrase les modifications manuelles)"
+          title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
           className="rounded border px-2 py-0.5 text-xs font-normal"
           onClick={handleRegenerate}
           disabled={regenerating}
         >
-          {regenerating ? 'Régénération…' : '5. Régénérer le sourcing (LLM)'}
+          {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
+        </button>
+        <button
+          type="button"
+          title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
+          className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
+          onClick={handleGenerateNetsOnly}
+          disabled={generatingNets}
+        >
+          {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
+        </button>
+        <button
+          type="button"
+          title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+          className="rounded border px-2 py-0.5 text-xs font-normal"
+          onClick={() => setNetsEditorOpen(true)}
+        >
+          3. Éditer la Netlist
+        </button>
+        <button
+          type="button"
+          title="4. Placer les composants avec la netlist complète"
+          className="rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700"
+          onClick={handlePlaceAll}
+          disabled={placingAll}
+        >
+          {placingAll ? 'Placement…' : '4. Tout placer (optimisé)'}
+        </button>
+        <button
+          type="button"
+          title="5. Tracer les pistes et la zone GND"
+          className="rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700"
+          onClick={handleRouteBoard}
+          disabled={routing}
+        >
+          {routing ? 'Routage…' : '5. Router la carte'}
+        </button>
+        <button
+          type="button"
+          title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
+          className="rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700"
+          onClick={handleFreeroute}
+          disabled={freerouting}
+        >
+          {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
         </button>
       </div>
       {netsMissing && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
           Aucune netlist disponible : les connexions (ratsnest) ne peuvent pas être tracées. Cliquez
-          sur « 1. Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur « 5.
-          Régénérer le sourcing (LLM) » pour refaire aussi les composants.
+          sur « 2. Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur « 1.
+          Générer les composants (LLM) » pour refaire aussi la BOM.
         </div>
       )}
       {heuristicNets > 0 && (
         <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
           {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
-          Vérifiez-les via « 2. Éditer la Netlist ».
+          Vérifiez-les via « 3. Éditer la Netlist ».
         </div>
       )}
       {freeroutingInfo && (
