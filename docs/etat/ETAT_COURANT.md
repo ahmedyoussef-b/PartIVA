@@ -543,6 +543,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — correctif client Prisma dev
+
+- **Erreur** : `Cannot read properties of undefined (reading 'findMany')` sur `prisma.pcbWizardValidation` dans `page.tsx` — client Prisma généré avant l'ajout du modèle.
+- **Correctif racine** : `dev-server.cjs` exécute désormais `npx prisma generate` avant de lancer `next dev`, afin que le client reflète toujours le schéma (y compris après l'ajout d'un modèle). `prisma generate` exécuté localement : requête `findMany` validée (0 validation en BDD).
+- typecheck 0, lint 0, vitest 365/365, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
