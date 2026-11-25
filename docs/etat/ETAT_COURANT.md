@@ -430,6 +430,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — assistant pas-à-pas du Layout PCB
+
+- **`PcbWizard.tsx`** : stepper collant en tête de la colonne droite, 5 étapes calculées depuis l'état réel du projet (exigences, nets, empreintes dans le fichier, segments/zones, conformité) : CDC → Netlist → Placement → Routage → Vérifications.
+- Chaque étape est cliquable et fait défiler + met en évidence la carte concernée ; bandeau « À faire » avec bouton « Y aller → ». Le stepper peut être réduit.
+- Ancres ajoutées sur les cartes (`card-cdc`, `card-proposals`, `card-sourcing`, `card-placement`, `card-review`). Le wizard **guide** vers les boutons existants sans dupliquer leur logique.
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
