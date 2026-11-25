@@ -18,13 +18,14 @@ function normalizePins(raw: unknown): string[] {
 async function readNets(projectId: string) {
   const rows = await prisma.pcbNet.findMany({
     where: { projectId },
-    select: { id: true, name: true, pins: true },
+    select: { id: true, name: true, pins: true, source: true },
     orderBy: { name: 'asc' },
   });
   return rows.map((n) => ({
     id: n.id,
     name: n.name,
     pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
+    source: n.source,
   }));
 }
 
@@ -40,7 +41,7 @@ async function syncSourcingCache(projectId: string): Promise<void> {
     data: {
       sourcingCache: {
         ...previous,
-        nets: nets.map(({ name, pins }) => ({ name, pins })),
+        nets: nets.map(({ name, pins, source }) => ({ name, pins, source })),
         cacheVersion: 2,
       } as object,
     },
@@ -104,7 +105,7 @@ export async function PATCH(req: Request) {
       );
     }
     await prisma.pcbNet.create({
-      data: { projectId, name, pins: pins as object, status: 'manual' },
+      data: { projectId, name, pins: pins as object, source: 'manual', status: 'manual' },
     });
   } else if (action === 'update') {
     const target = await prisma.pcbNet.findFirst({ where: { projectId, name: oldName } });
@@ -118,7 +119,7 @@ export async function PATCH(req: Request) {
     }
     await prisma.pcbNet.update({
       where: { id: target.id },
-      data: { name, pins: pins as object, status: 'manual' },
+      data: { name, pins: pins as object, source: 'manual', status: 'manual' },
     });
   } else {
     const target = await prisma.pcbNet.findFirst({ where: { projectId, name: oldName } });

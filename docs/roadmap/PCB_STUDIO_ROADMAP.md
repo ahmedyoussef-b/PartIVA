@@ -24,7 +24,7 @@ Cette roadmap vise à transformer le prototype en outil d'ingénierie industriel
 | ID | Action | Détail | Priorité |
 |---|---|---|---|
 | 1.1 | **Prompt LLM hiérarchique** ✅ | Prompt de `/api/pcb/requirements/nets-only` générant les nets **par blocs fonctionnels** (Alimentation, MCU, Communication, Analogique) ; `maxTokens` porté à 3072 (PR #170). | **P0 — fait** |
-| 1.2 | **Fallback intelligent** | Si le LLM omet un net pour un composant identifié (ex. `U3` = transceiver RS‑485), appliquer une heuristique backend : relier ses pins A/B au connecteur détecté comme `db9/modbus`. Réutiliser `inferPlacementRole()` / `buildHints()` de `placement.ts`. | P1 |
+| 1.2 | **Fallback intelligent** ✅ | Si le LLM omet un net pour un composant identifié (ex. `U3` = transceiver RS‑485), appliquer une heuristique backend : relier ses pins A/B au connecteur détecté comme `db9/modbus`. Réutiliser `inferPlacementRole()` / `buildHints()` de `placement.ts`. | **P1 — fait** |
 | 1.3 | **Édition manuelle de la netlist** ✅ | Modal « Éditer la Netlist » (tableau nom/pins, ajout, suppression, édition) + `GET`/`PATCH /api/pcb/requirements/nets`. Persistance `PcbNet` + `sourcingCache.nets`, invalidation du cache LLM. | **P0 — fait** |
 
 **Note :** la priorité absolue est **1.1 + 1.3**. Sans netlist complète et corrigeable, le meilleur placement et le meilleur routeur restent inopérants.

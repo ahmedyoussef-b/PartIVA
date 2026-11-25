@@ -7,6 +7,7 @@ interface NetRow {
   id: string;
   name: string;
   pins: string[];
+  source?: string;
 }
 
 interface Props {
@@ -136,11 +137,21 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
                 {draft.map((row, index) => (
                   <tr key={row.id || `new-${index}`}>
                     <td className="border p-1">
-                      <input
-                        className="w-full rounded border px-1 py-0.5"
-                        value={row.name}
-                        onChange={(e) => updateRow(index, { name: e.target.value })}
-                      />
+                      <div className="flex items-center gap-1">
+                        <input
+                          className="min-w-0 flex-1 rounded border px-1 py-0.5"
+                          value={row.name}
+                          onChange={(e) => updateRow(index, { name: e.target.value })}
+                        />
+                        {row.source === 'heuristic' && (
+                          <span
+                            title="Net inféré automatiquement — à vérifier"
+                            className="shrink-0 rounded bg-blue-100 px-1 text-[9px] font-bold text-blue-700"
+                          >
+                            IA?
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="border p-1">
                       <input
