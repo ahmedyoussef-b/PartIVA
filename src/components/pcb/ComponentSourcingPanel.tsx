@@ -80,6 +80,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [routing, setRouting] = useState(false);
   const [netsEditorOpen, setNetsEditorOpen] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
+  const [heuristicNets, setHeuristicNets] = useState(0);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
@@ -322,6 +323,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       setNetsMissing(false);
+      setHeuristicNets(data.heuristicCount ?? 0);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       toast.success(
         `${data.count} réseaux générés (${(data.nets ?? []).map((n: { name: string }) => n.name).join(', ')})`,
@@ -526,6 +528,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           Aucune netlist disponible : les connexions (ratsnest) ne peuvent pas être tracées. Cliquez
           sur « 1. Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur « 5.
           Régénérer le sourcing (LLM) » pour refaire aussi les composants.
+        </div>
+      )}
+      {heuristicNets > 0 && (
+        <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
+          {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
+          Vérifiez-les via « 2. Éditer la Netlist ».
         </div>
       )}
       <div className="space-y-3 p-4">

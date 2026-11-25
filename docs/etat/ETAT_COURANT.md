@@ -447,6 +447,18 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — Phase 1.2 Fallback intelligent
+
+- **Validation des pins** : `getFootprintPadNumbers()` lit les pads réels du `.kicad_mod` (cache) ; `nets-only` filtre les `REF.PIN` inexistants, conserve les nets avec >= 2 pins valides, et ne supprime rien si le footprint est illisible.
+- **Fallback heuristique** : composants orphelins reliés selon leur rôle (serial→connecteur RS‑485, clock→MCU, regulator→entrée 24 V), en n'utilisant que des pads existants ; nets marqués `source: heuristic`.
+- **BDD** : colonne `PcbNet.source` (`llm|heuristic|manual`), migration `20261125120000_add_pcb_net_source` **appliquée** ; PATCH manuel marque `manual`.
+- **UI** : bandeau « N nets inférés automatiquement » dans Sourcing + badge `IA?` dans le modal d'édition.
+- **Vérifié** sur les 7 nets du test LLM : `J4.3`/`J4.4` supprimés (35 pins conservés / 2 rejetés). Les nets `RS485_A/B` devenus incomplets seront reconstruits par l'heuristique.
+- **Limite assumée** : l'heuristique choisit les premiers pads disponibles du transceiver (ex. U3.1/U3.2) — l'affectation électrique exacte reste à vérifier par l'admin (nets marqués `IA?`).
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

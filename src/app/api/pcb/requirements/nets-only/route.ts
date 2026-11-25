@@ -4,11 +4,21 @@ import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 import { getLlmCacheAsync, setLlmCacheAsync } from '@/lib/utils/llm-cache';
+import { getFootprintPadNumbers } from '@/lib/pcb/kicad-footprints';
+import { inferPlacementRole } from '@/lib/pcb/placement';
 
 export const runtime = 'nodejs';
 
+type NetSource = 'llm' | 'heuristic';
+
+interface ScoredNet {
+  name: string;
+  pins: string[];
+  source: NetSource;
+}
+
 interface NetsOnlyResult {
-  nets: { name: string; pins: string[] }[];
+  nets: ScoredNet[];
 }
 
 function normalizePins(raw: unknown): string[] {
@@ -44,6 +54,71 @@ function parseNets(raw: string): { name: string; pins: string[] }[] {
     if (name && pins.length >= 2) nets.push({ name, pins });
   }
   return nets;
+}
+
+/**
+ * Phase 1.2 — complète les nets omis par le LLM à partir des rôles déduits.
+ * N'utilise QUE des pads réellement présents dans les footprints, et marque
+ * chaque net inféré `heuristic` pour que l'admin puisse le vérifier.
+ */
+function buildHeuristicNets(
+  components: Array<{ reference: string; name: string | null; footprint: string | null }>,
+  padsByRef: Map<string, string[]>,
+  coveredRefs: Set<string>,
+  usedNames: Set<string>,
+): ScoredNet[] {
+  const result: ScoredNet[] = [];
+  const roleOf = (c: { reference: string; name: string | null; footprint: string | null }) =>
+    inferPlacementRole({ reference: c.reference, value: c.name, footprint: c.footprint });
+
+  const connectors = components.filter((c) => roleOf(c) === 'connector');
+  const findConnector = (pattern: RegExp) =>
+    connectors.find((c) => pattern.test(`${c.name ?? ''} ${c.footprint ?? ''}`)) ?? connectors[0];
+
+  const pushNet = (name: string, a: string, b: string) => {
+    if (!a || !b || usedNames.has(name)) return;
+    usedNames.add(name);
+    result.push({ name, pins: [a, b], source: 'heuristic' });
+  };
+
+  for (const comp of components) {
+    if (coveredRefs.has(comp.reference)) continue;
+    const role = roleOf(comp);
+    const ownPads = padsByRef.get(comp.reference) ?? [];
+    if (!role || role === 'connector' || ownPads.length === 0) continue;
+
+    if (role === 'serial') {
+      const conn = findConnector(/rs.?485|modbus|db9|uart/i);
+      const connPads = conn ? (padsByRef.get(conn.reference) ?? []) : [];
+      if (conn && connPads.length > 0) {
+        pushNet(
+          'RS485_AUTO_A',
+          `${comp.reference}.${ownPads[0]}`,
+          `${conn.reference}.${connPads[0]}`,
+        );
+        if (ownPads[1] && connPads[1]) {
+          pushNet(
+            'RS485_AUTO_B',
+            `${comp.reference}.${ownPads[1]}`,
+            `${conn.reference}.${connPads[1]}`,
+          );
+        }
+      }
+    } else if (role === 'clock') {
+      const mcu = components.find((c) => roleOf(c) === 'mcu');
+      const mcuPads = mcu ? (padsByRef.get(mcu.reference) ?? []) : [];
+      if (mcu && mcuPads.length > 0) {
+        pushNet('CLK_AUTO', `${comp.reference}.${ownPads[0]}`, `${mcu.reference}.${mcuPads[0]}`);
+      }
+    } else if (role === 'regulator') {
+      const conn = findConnector(/alim|power|24\s*v|vin|entr[eé]e/i);
+      const connPads = conn ? (padsByRef.get(conn.reference) ?? []) : [];
+      if (conn && connPads.length > 0) {
+        pushNet('PWR_AUTO', `${comp.reference}.${ownPads[0]}`, `${conn.reference}.${connPads[0]}`);
+      }
+    }
+  }
+  return result;
 }
 
 export async function POST(req: Request) {
@@ -125,15 +200,47 @@ Format attendu :
       responseFormat: 'json_object',
     });
 
-    let nets: { name: string; pins: string[] }[];
+    let rawNets: { name: string; pins: string[] }[];
     try {
-      nets = parseNets(response.content);
+      rawNets = parseNets(response.content);
     } catch {
       console.warn('[NETS-ONLY] JSON invalide renvoyé par le LLM');
       return NextResponse.json({ error: 'JSON invalide du LLM' }, { status: 502 });
     }
+
+    // Validation des pins contre les pads réels des footprints.
+    const padsByRef = new Map<string, string[]>();
+    for (const c of components) {
+      const fp = String(c.footprint ?? '');
+      const [lib, name] = fp.includes(':') ? fp.split(':', 2) : ['', fp];
+      padsByRef.set(c.reference, getFootprintPadNumbers(lib ?? '', name ?? ''));
+    }
+    const validPins = new Set<string>();
+    for (const [ref, pads] of padsByRef) {
+      for (const pad of pads) validPins.add(`${ref}.${pad}`);
+    }
+    const llmNets: ScoredNet[] = rawNets
+      .map((n) => ({
+        name: n.name,
+        pins: n.pins.filter((pin) => {
+          const ref = pin.split('.')[0] ?? '';
+          const readable = (padsByRef.get(ref) ?? []).length > 0;
+          // Si le footprint est illisible, on ne supprime pas aveuglément.
+          return !readable || validPins.has(pin);
+        }),
+        source: 'llm' as const,
+      }))
+      .filter((n) => n.pins.length >= 2);
+    const droppedPins =
+      rawNets.reduce((acc, n) => acc + n.pins.length, 0) -
+      llmNets.reduce((acc, n) => acc + n.pins.length, 0);
+
+    const coveredRefs = new Set(llmNets.flatMap((n) => n.pins.map((p) => p.split('.')[0]!)));
+    const usedNames = new Set(llmNets.map((n) => n.name));
+    const heuristicNets = buildHeuristicNets(components, padsByRef, coveredRefs, usedNames);
+    const nets = [...llmNets, ...heuristicNets];
     if (nets.length === 0) {
-      console.warn('[NETS-ONLY] Aucun net exploitable dans la réponse LLM');
+      console.warn('[NETS-ONLY] Aucun net exploitable après validation');
       return NextResponse.json({ error: 'Aucun net exploitable généré' }, { status: 502 });
     }
 
@@ -143,6 +250,7 @@ Format attendu :
         projectId,
         name: n.name,
         pins: n.pins as object,
+        source: n.source,
         status: 'proposed',
       })),
     });
@@ -157,9 +265,18 @@ Format attendu :
     console.info('[NETS-ONLY] Nets générés', {
       projectId,
       count: nets.length,
+      droppedPins,
+      heuristic: heuristicNets.length,
       names: nets.map((n) => n.name),
     });
-    return NextResponse.json({ ok: true, nets, count: nets.length, cached: false });
+    return NextResponse.json({
+      ok: true,
+      nets,
+      count: nets.length,
+      heuristicCount: heuristicNets.length,
+      droppedPins,
+      cached: false,
+    });
   } catch (error) {
     console.error('[NETS-ONLY] Erreur', error);
     return NextResponse.json(

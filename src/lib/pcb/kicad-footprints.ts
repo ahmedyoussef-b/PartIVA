@@ -129,6 +129,7 @@ export interface FootprintSize {
 }
 
 const sizeCache = new Map<string, FootprintSize | null>();
+const padCache = new Map<string, string[]>();
 
 /**
  * Bbox approximative du composant, déduite des pads du fichier .kicad_mod.
@@ -181,4 +182,36 @@ export function getFootprintSize(
   }
   sizeCache.set(filePath, size);
   return size;
+}
+
+/**
+ * Numéros de pads réellement présents dans un .kicad_mod (source de vérité
+ * pour valider les "REF.PIN" produits par le LLM). Best-effort : [] si le
+ * fichier est absent ou illisible.
+ */
+export function getFootprintPadNumbers(
+  libName: string,
+  footprintName: string,
+  footprintsRoot = process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT?.trim() ||
+    'C:/Program Files/KiCad/10.0/share/kicad/footprints',
+): string[] {
+  const lib = libName.trim().replace(/\.pretty$/i, '');
+  const fp = footprintName.trim().replace(/\.kicad_mod$/i, '');
+  if (!lib || !fp) return [];
+  const filePath = `${footprintsRoot.replace(/\/$/, '')}/${lib}.pretty/${fp}.kicad_mod`;
+  const cached = padCache.get(filePath);
+  if (cached) return cached;
+
+  let pads: string[] = [];
+  try {
+    const text = readFileSync(filePath, 'utf8');
+    pads = [...text.matchAll(/\(pad\s+"([^"]+)"/g)].map((m) => m[1]!);
+    if (pads.length === 0) {
+      pads = [...text.matchAll(/\(pad\s+([A-Za-z0-9_-]+)\s/g)].map((m) => m[1]!);
+    }
+  } catch {
+    pads = [];
+  }
+  padCache.set(filePath, pads);
+  return pads;
 }
