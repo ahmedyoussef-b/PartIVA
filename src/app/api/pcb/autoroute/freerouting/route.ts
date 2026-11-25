@@ -1,11 +1,12 @@
-import { existsSync } from 'node:fs';
+import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
-import { exportDsn, importSes } from '@/lib/pcb/kicad-bridge';
+import { assignBoardNets, exportDsn, importSes } from '@/lib/pcb/kicad-bridge';
 import { runDrc } from '@/lib/pcb/drc';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 
@@ -59,6 +60,42 @@ export async function POST(req: Request) {
       { error: `Fichier KiCad introuvable : ${boardPath}` },
       { status: 400 },
     );
+  }
+
+  // Prérequis : les pads doivent porter leur net avant tout routage/export DSN,
+  // sinon KiCad déclare des court-circuits (piste sur net, pad sur net 0).
+  const netRows = await prisma.pcbNet.findMany({
+    where: { projectId },
+    select: { name: true, pins: true },
+  });
+  const nets = netRows.map((n) => ({
+    name: n.name,
+    pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
+  }));
+  const netsPath = path.join(
+    tmpdir(),
+    `partiva-nets-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`,
+  );
+  try {
+    writeFileSync(netsPath, JSON.stringify(nets), 'utf8');
+    const assigned = await assignBoardNets(boardPath, netsPath);
+    if (!assigned.ok) {
+      return NextResponse.json(
+        { error: assigned.error ?? 'Assignation des nets aux pads impossible' },
+        { status: 500 },
+      );
+    }
+    console.info('[FREEROUTING] Nets assignés aux pads', {
+      projectId,
+      pads: assigned.assignedPads ?? 0,
+      missing: assigned.missingPins ?? 0,
+    });
+  } finally {
+    try {
+      unlinkSync(netsPath);
+    } catch {
+      // fichier déjà absent
+    }
   }
 
   const dsnPath = `${boardPath.replace(/\.kicad_pcb$/i, '')}.dsn`;

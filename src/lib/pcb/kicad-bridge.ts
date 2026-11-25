@@ -34,6 +34,8 @@ export interface KicadBridgeResult {
   dsn?: string;
   bytes?: number;
   tracks?: number;
+  assignedPads?: number;
+  missingPins?: number;
   error?: string;
 }
 
@@ -210,6 +212,8 @@ function parseResult(output: RunOutput): KicadBridgeResult {
         dsn?: string;
         bytes?: number;
         tracks?: number;
+        assignedPads?: number;
+        missingPins?: number;
         backup?: string;
         error?: string;
       };
@@ -238,6 +242,8 @@ function parseResult(output: RunOutput): KicadBridgeResult {
             dsn: typeof parsed.dsn === 'string' ? parsed.dsn : undefined,
             bytes: typeof parsed.bytes === 'number' ? parsed.bytes : undefined,
             tracks: typeof parsed.tracks === 'number' ? parsed.tracks : undefined,
+            assignedPads: typeof parsed.assignedPads === 'number' ? parsed.assignedPads : undefined,
+            missingPins: typeof parsed.missingPins === 'number' ? parsed.missingPins : undefined,
           };
         }
         return { ok: false, error: parsed.error ?? 'Échec du placement' };
@@ -523,6 +529,34 @@ export function routeBoard(args: {
         // fichier déjà absent
       }
     }
+  });
+}
+
+/** Assigne les nets de la BDD aux pads du plateau (prérequis routage/DSN). */
+export async function assignBoardNets(
+  boardPath: string,
+  netsPath: string,
+): Promise<KicadBridgeResult> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('specctra.py');
+    if (!scriptPath) return { ok: false, error: 'script specctra.py introuvable' };
+    const output = await runPython(pyPath, scriptPath, [
+      'assign-nets',
+      '--board',
+      boardPath,
+      '--nets',
+      netsPath,
+    ]);
+    if (output.code !== 0 || output.timedOut) {
+      console.error('[KICAD:NETS] Échec assignation', {
+        board: boardPath,
+        stdout: output.stdout.slice(-800),
+        stderr: output.stderr.slice(-800),
+      });
+    }
+    return parseResult(output);
   });
 }
 

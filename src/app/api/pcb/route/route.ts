@@ -76,6 +76,8 @@ export async function POST(req: Request) {
     zones: result.zones ?? 0,
     vias: result.vias ?? 0,
     createdNets: result.createdNets ?? [],
+    assignedPads: result.assignedPads ?? 0,
+    missingPins: result.missingPins ?? 0,
     dryRun,
     message: 'Routage assisté partiel — DRC non vérifié',
   });

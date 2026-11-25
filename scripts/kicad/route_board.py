@@ -19,6 +19,8 @@ import os
 import shutil
 import sys
 
+from net_assign import assign_nets
+
 try:
     import pcbnew
 except Exception as exc:  # module absent (hors environnement KiCad)
@@ -159,13 +161,16 @@ def main():
     except Exception as exc:
         fail(f"chargement impossible: {exc}")
 
-    created_nets = ensure_nets(board, nets)
+    # Les pads doivent connaître leur net avant le routage, sinon KiCad
+    # déclare des court-circuits (piste sur net, pad resté sur net 0).
+    created_nets, assigned_pads, missing_pins = assign_nets(board, nets, pcbnew)
     if not args.dry_run:
-        # board.FindNet doit répondre avant de router quoi que ce soit.
         for net in nets:
             name = str(net.get("name") or "").strip()
             if name and board.FindNet(name) is None:
                 fail(f"net introuvable après création: {name}")
+    if missing_pins:
+        print(f"warning: pins introuvables: {', '.join(missing_pins[:10])}", file=sys.stderr)
 
     pads_by_ref = capture_pads(board)
     layer_f = board.GetLayerID("F.Cu")
@@ -230,6 +235,8 @@ def main():
                 "wouldZone": zones,
                 "wouldVias": vias,
                 "createdNets": created_nets,
+                "assignedPads": assigned_pads,
+                "missingPins": len(missing_pins),
             }
         )
 
@@ -242,7 +249,15 @@ def main():
     except Exception as exc:
         fail(f"sauvegarde impossible: {exc}")
 
-    emit({"ok": True, "routed": routed, "zones": zones, "vias": vias, "createdNets": created_nets})
+    emit({
+        "ok": True,
+        "routed": routed,
+        "zones": zones,
+        "vias": vias,
+        "createdNets": created_nets,
+        "assignedPads": assigned_pads,
+        "missingPins": len(missing_pins),
+    })
 
 
 if __name__ == "__main__":

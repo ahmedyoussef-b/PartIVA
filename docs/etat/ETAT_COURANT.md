@@ -472,6 +472,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — assignation des nets aux pads
+
+- **`net_assign.py`** partagé : crée les `NETINFO_ITEM` manquants et assigne chaque pad de la netlist (`pad.SetNet`) avant routage/export DSN. Antis-SWIG : empreintes et pads capturés avant mutation.
+- Appelé depuis `route_board.py` (routage assisté) et depuis `specctra.py` (`assign-nets`, utilisé par la route Freerouting **avant** l'export DSN — sinon le DSN déclarait des pads sans net).
+- **`assignBoardNets()`** dans `kicad-bridge.ts` ; `/api/pcb/route` renvoie `assignedPads`/`missingPins`.
+- **DRC comparé sur copie** : court-circuits **4 → 2** (les pads sont désormais sur leur net). Reste 157 violations, dominées par 90 `solder_mask_bridge` et 15 `clearance` dues au **chevauchement des composants** du placement, et 2 courts restants car la piste en L de VCC_5V traverse le boîtier U2 (pad 1 sur net 0).
+- Conclusion : l'assignation des nets est corrigée ; le routage Manhattan sans évitement d'obstacles reste un brouillon.
+- typecheck 0, lint 0, vitest 361/361, prettier 0, py_compile OK.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
