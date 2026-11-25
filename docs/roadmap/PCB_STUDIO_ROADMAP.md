@@ -3,7 +3,7 @@
 **Version :** 1.0
 **Date :** 2026-11-24
 **Commit de référence :** `912e422` (merge PR #167 — routage assisté partiel)
-**Statut :** Roadmap validée ; **Phase 1.1 et 1.3 implémentées** (PR en cours), phases 2–5 à venir
+**Statut :** Roadmap validée ; **Phase 1.1 et 1.3 implémentées et mergées** (`master` = `c2f38f6`), phase 1.2 et phases 2-5 à venir
 
 ---
 
@@ -23,7 +23,7 @@ Cette roadmap vise à transformer le prototype en outil d'ingénierie industriel
 
 | ID | Action | Détail | Priorité |
 |---|---|---|---|
-| 1.1 | **Prompt LLM hiérarchique** ✅ | Prompt de `/api/pcb/requirements/nets-only` générant les nets **par blocs fonctionnels** (Alimentation, MCU, Communication, Analogique) ; `maxTokens` porté à 1536. | **P0 — fait** |
+| 1.1 | **Prompt LLM hiérarchique** ✅ | Prompt de `/api/pcb/requirements/nets-only` générant les nets **par blocs fonctionnels** (Alimentation, MCU, Communication, Analogique) ; `maxTokens` porté à 3072 (PR #170). | **P0 — fait** |
 | 1.2 | **Fallback intelligent** | Si le LLM omet un net pour un composant identifié (ex. `U3` = transceiver RS‑485), appliquer une heuristique backend : relier ses pins A/B au connecteur détecté comme `db9/modbus`. Réutiliser `inferPlacementRole()` / `buildHints()` de `placement.ts`. | P1 |
 | 1.3 | **Édition manuelle de la netlist** ✅ | Modal « Éditer la Netlist » (tableau nom/pins, ajout, suppression, édition) + `GET`/`PATCH /api/pcb/requirements/nets`. Persistance `PcbNet` + `sourcingCache.nets`, invalidation du cache LLM. | **P0 — fait** |
 
@@ -81,9 +81,9 @@ Cette roadmap vise à transformer le prototype en outil d'ingénierie industriel
 
 ## 7. Décision de départ
 
-**Prochaine action retenue : Phase 1.3 — Édition manuelle de la netlist**, couplée à **1.1** (prompt hiérarchique).
+**Action suivante retenue : Phase 1.2 — Fallback intelligent.** Les phases 1.1 et 1.3 sont livrées ; il reste à éviter que le LLM invente des pins (ex. `J4.3`/`J4.4` sur un connecteur 2 pins) ou omette des connexions, avant d'attaquer la Phase 2 (congestion/orientation) ou la Phase 3 (Freerouting).
 
-Raison : c'est la seule fonctionnalité qui donne à l'ingénieur le pouvoir de corriger les erreurs du LLM, condition nécessaire pour que les phases 2 à 5 aient un sens.
+Raison historique : l'édition manuelle (1.3) donnait à l'ingénieur le pouvoir de corriger les erreurs du LLM, condition nécessaire pour que les phases 2 à 5 aient un sens.
 
 ---
 
