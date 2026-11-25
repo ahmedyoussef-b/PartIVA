@@ -9,6 +9,8 @@ interface Props {
   tracks: number;
   zones: number;
   compliant: boolean;
+  /** Variante compacte pour la barre inférieure du canvas. */
+  compact?: boolean;
 }
 
 interface Step {
@@ -25,6 +27,7 @@ export function PcbWizard({
   tracks,
   zones,
   compliant,
+  compact = false,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -73,6 +76,43 @@ export function PcbWizard({
     el.classList.add('ring-2', 'ring-blue-400');
     window.setTimeout(() => el.classList.remove('ring-2', 'ring-blue-400'), 1600);
   };
+
+  if (compact) {
+    return (
+      <div className="flex min-w-0 items-center gap-2" title="Assistant de conception">
+        <span className="shrink-0 text-[11px] font-semibold text-gray-600">
+          Assistant {doneCount}/{steps.length}
+        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          {steps.map((step, index) => (
+            <button
+              key={step.label}
+              type="button"
+              title={`${step.label} — ${step.hint}`}
+              onClick={() => goTo(step.target)}
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                step.done
+                  ? 'bg-green-600 text-white'
+                  : index === currentIndex
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-600'
+              }`}
+            >
+              {step.done ? '✓' : index + 1}
+            </button>
+          ))}
+        </div>
+        <span className="min-w-0 truncate text-[11px] text-blue-800">{current.hint}</span>
+        <button
+          type="button"
+          onClick={() => goTo(current.target)}
+          className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-[11px] font-semibold text-white"
+        >
+          Y aller →
+        </button>
+      </div>
+    );
+  }
 
   if (collapsed) {
     return (

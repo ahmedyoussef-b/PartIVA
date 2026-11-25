@@ -439,6 +439,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — assistant déplacé en bas du split gauche
+
+- `PcbWizard` n'est plus en tête de colonne droite : il est rendu en **variante compacte** dans la barre inférieure du `PcbCanvas`, à droite des coordonnées du curseur (« symétrique » demandée).
+- La colonne droite commence donc directement par la carte « Cahier des charges » ; les ancres de cartes restent valides pour le bouton « Y aller → ».
+- typecheck 0, lint 0, vitest 361/361, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

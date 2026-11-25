@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { PcbWizard } from './PcbWizard';
 
 type Pad = {
   number: string;
@@ -143,7 +144,16 @@ function Btn({
   );
 }
 
-export function PcbCanvas({ projectId }: { projectId?: string }) {
+export type PcbWizardState = {
+  requirementsCount: number;
+  netsCount: number;
+  footprints: number;
+  tracks: number;
+  zones: number;
+  compliant: boolean;
+};
+
+export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: PcbWizardState }) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const [data, setData] = React.useState<BoardData | null>(null);
@@ -628,12 +638,13 @@ export function PcbCanvas({ projectId }: { projectId?: string }) {
           className={`absolute inset-0 block h-full w-full ${mode === 'move' ? (dragComp ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-grab active:cursor-grabbing'}`}
         />
       </div>
-      <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
-        <span>
+      <div className="mt-1 flex items-center justify-between gap-3 text-xs text-gray-500">
+        <span className="shrink-0">
           {cursorMm
             ? `Curseur : X ${cursorMm.x.toFixed(2)} mm · Y ${cursorMm.y.toFixed(2)} mm`
             : 'Curseur hors plateau'}
         </span>
+        {wizard && <PcbWizard compact {...wizard} />}
       </div>
     </div>
   );
