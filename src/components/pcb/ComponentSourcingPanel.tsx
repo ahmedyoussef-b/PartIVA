@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import { usePcbEditor } from './PcbEditorProvider';
 import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
@@ -77,16 +78,13 @@ const WIZARD_EVENTS: Record<string, true> = {
   'pcb:place-all': true,
   'pcb:regenerate-sourcing': true,
   'pcb:route': true,
+  'pcb:analyze': true,
+  'pcb:generate-components': true,
 };
 
-export function ComponentSourcingPanel({
-  projectId,
-  kicadFilePath,
-}: {
-  projectId: string;
-  kicadFilePath?: string | null;
-}) {
+export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [components, setComponents] = useState<ProposedComponent[]>([]);
@@ -105,10 +103,14 @@ export function ComponentSourcingPanel({
 
   // Le plateau doit exister avant tout placement : création automatique si absent.
   const ensureBoard = useCallback(async () => {
-    if (kicadFilePath?.trim()) return;
+    const status = await fetch(`/api/pcb/projects/${projectId}/board/status`)
+      .then((r) => r.json())
+      .catch(() => null);
+    if (status?.inDb) return;
     await createKicadFile(projectId);
     toast.success('Fichier KiCad créé automatiquement');
-  }, [kicadFilePath, projectId]);
+    router.refresh();
+  }, [projectId, router]);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
@@ -323,6 +325,7 @@ export function ComponentSourcingPanel({
     setRegenerating(true);
     startProgress('5. Régénération du sourcing (LLM)');
     try {
+      await ensureBoard();
       const result = await fetchComponents(false, true);
       setComponents(result.components);
       setNetsMissing(result.netsMissing);
@@ -526,6 +529,25 @@ export function ComponentSourcingPanel({
     }
   };
 
+  const handleAnalyzeCdc = useCallback(async () => {
+    startProgress('1. Analyse du cahier des charges');
+    try {
+      const res = await fetch('/api/pcb/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+      toast.success(`${data.count ?? 0} exigence(s) analysée(s)`);
+      finishProgress('done');
+      router.refresh();
+    } catch (e) {
+      finishProgress('error');
+      toast.error(e instanceof Error ? e.message : 'Analyse impossible');
+    }
+  }, [projectId, router, startProgress, finishProgress]);
+
   // Le wizard déclenche ces actions via des événements (boutons de secours).
   const wizardActions = useRef<Record<string, () => void>>({});
   useEffect(() => {
@@ -537,6 +559,8 @@ export function ComponentSourcingPanel({
       'pcb:place-all': () => void handlePlaceAll(),
       'pcb:regenerate-sourcing': () => void handleRegenerate(),
       'pcb:route': () => void handleRouteBoard(),
+      'pcb:analyze': () => void handleAnalyzeCdc(),
+      'pcb:generate-components': () => void handleRegenerate(),
     };
   });
   useEffect(() => {

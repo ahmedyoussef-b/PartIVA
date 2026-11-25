@@ -593,6 +593,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — wizard dynamique après validation CDC
+
+- **Cause racine** : `/api/pcb/requirements/parse` (bouton « Valider » du formulaire) persiste `RequirementForm` + `RequirementAnswer`, **pas** de `PcbRequirement`. Le wizard testait `requirements.length > 0` → restait sur « Analyser le CDC ».
+- Le wizard reçoit `cdcValidated = project.status === 'requirements_validated' || requirements.length > 0` et calcule l'**action suivante réelle** : analyser → générer les composants → générer les nets → tout placer → router → vérifier. Le libellé du bouton et le bandeau « À faire » suivent cette action.
+- Passage en Sourcing : création automatique du fichier `.kicad_pcb` (status route idempotent) puis `router.refresh()` ; le bouton « Ouvrir un nouveau fichier » disparaît.
+- Nouveaux événements wizard : `pcb:analyze` (analyse LLM via le panneau) et `pcb:generate-components` (sourcing forcé).
+- typecheck 0, lint 0, vitest 366/366, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
