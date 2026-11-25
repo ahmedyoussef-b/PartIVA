@@ -7,7 +7,7 @@
 // This script is used as Tauri's `beforeDevCommand`; Rust navigates the webview
 // to http://localhost:3100/ and skips the Node sidecar in dev mode.
 
-const { spawn } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -91,6 +91,11 @@ if (!fs.existsSync(nextBin)) {
 
 const args = [nextBin, 'dev', '-p', port];
 if (process.env.PARTIVA_DEV_WEBPACK === '1') args.push('--webpack');
+// Le client Prisma doit refléter le schéma courant, sinon les routes qui
+// utilisent un modèle ajouté récemment plantent avec "reading 'findMany'".
+console.log('[dev] prisma generate (client à jour)');
+execSync('npx prisma generate', { cwd: root, stdio: 'inherit' });
+
 console.log(`[dev] next dev -p ${port} (${root})`);
 
 const child = spawn(process.execPath, args, {
