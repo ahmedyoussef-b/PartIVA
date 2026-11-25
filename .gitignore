@@ -134,3 +134,8 @@ first.json
 
 # PCB desktop work files
 data/pcb-work/
+
+# Freerouting binaire local (jar 65 Mo — fourni par l'admin, jamais commité)
+tools/*.jar
+__pycache__/
+*.pyc

@@ -503,6 +503,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — Étape B : environnement installé et chaîne testée
+
+- **Environnement** : JDK 21 Temurin installé via `winget` ; `freerouting-2.5.0.jar` récupéré mais **incompatible** (class 69 = Java 25) → employé `freerouting-2.0.1.jar` (Java 21), placé dans `tools/freerouting.jar` (gitignoré, 64,6 Mo).
+- **Faille corrigée** : sans `--gui.enabled=false`, Freerouting ouvre sa GUI et le process ne termine pas. Ajout de ce flag, de `FREEROUTING_JAVA` (chemin explicite) et maintien de `-mp <passes>`.
+- **Test complet sur copie du plateau** : assignation nets (6 pads) → DSN (21 200 o) → Freerouting 2 passes ≈ 1 s → SES importé (**10 pistes**) → DRC : 140 violations, 1 court, 3 non-connectés, 83 masques, 13 clearance.
+- La chaîne **DSN → Freerouting → SES → DRC** est fonctionnelle de bout en bout. Le résultat reste perfectible car le plateau test n'avait pas le placement Phase 2.
+- typecheck 0, lint 0, vitest 364/364, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
