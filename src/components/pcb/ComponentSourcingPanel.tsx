@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { usePcbEditor } from './PcbEditorProvider';
 import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
+import { createKicadFile } from '@/lib/pcb/client/kicad-file';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
 interface Candidate {
@@ -68,7 +69,23 @@ function symbolFor(reference: string): ResolvedComponent {
   return found;
 }
 
-export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
+const WIZARD_EVENTS: Record<string, true> = {
+  'pcb:edit-netlist': true,
+  'pcb:reroute': true,
+  'pcb:create-file': true,
+  'pcb:generate-nets': true,
+  'pcb:place-all': true,
+  'pcb:regenerate-sourcing': true,
+  'pcb:route': true,
+};
+
+export function ComponentSourcingPanel({
+  projectId,
+  kicadFilePath,
+}: {
+  projectId: string;
+  kicadFilePath?: string | null;
+}) {
   const { addNode } = usePcbEditor();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +102,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [netsMissing, setNetsMissing] = useState(false);
   const [heuristicNets, setHeuristicNets] = useState(0);
   const { start: startProgress, finish: finishProgress } = useActionProgress();
+
+  // Le plateau doit exister avant tout placement : création automatique si absent.
+  const ensureBoard = useCallback(async () => {
+    if (kicadFilePath?.trim()) return;
+    await createKicadFile(projectId);
+    toast.success('Fichier KiCad créé automatiquement');
+  }, [kicadFilePath, projectId]);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
@@ -199,6 +223,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const comp = components[idx];
       if (!comp) return;
       startProgress(`Placement de ${comp.reference} dans KiCad`);
+      await ensureBoard();
       const s = optionFor(comp, idx);
 
       // Place in KiCad first : the backend returns the deterministic placement.
@@ -421,28 +446,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   }, [projectId, startProgress, finishProgress]);
 
-  // Le wizard peut demander l'ouverture du modal nets ou un re-routage.
-  const rerouteRef = useRef<() => void>(() => {});
-  useEffect(() => {
-    rerouteRef.current = handleFreeroute;
-  }, [handleFreeroute]);
-  useEffect(() => {
-    const openNets = () => setNetsEditorOpen(true);
-    const reroute = () => rerouteRef.current();
-    window.addEventListener('pcb:edit-netlist', openNets);
-    window.addEventListener('pcb:reroute', reroute);
-    return () => {
-      window.removeEventListener('pcb:edit-netlist', openNets);
-      window.removeEventListener('pcb:reroute', reroute);
-    };
-  }, []);
-
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   const handlePlaceAll = async () => {
     setPlacingAll(true);
     startProgress('3. Placement optimisé de tous les composants');
     try {
+      await ensureBoard();
       const items = components.map((comp, idx) => optionFor(comp, idx));
       const res = await fetch('/api/pcb/place/batch', {
         method: 'POST',
@@ -515,6 +525,27 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setPlacingAll(false);
     }
   };
+
+  // Le wizard déclenche ces actions via des événements (boutons de secours).
+  const wizardActions = useRef<Record<string, () => void>>({});
+  useEffect(() => {
+    wizardActions.current = {
+      'pcb:edit-netlist': () => setNetsEditorOpen(true),
+      'pcb:reroute': () => void handleFreeroute(),
+      'pcb:create-file': () => void ensureBoard(),
+      'pcb:generate-nets': () => void handleGenerateNetsOnly(),
+      'pcb:place-all': () => void handlePlaceAll(),
+      'pcb:regenerate-sourcing': () => void handleRegenerate(),
+      'pcb:route': () => void handleRouteBoard(),
+    };
+  });
+  useEffect(() => {
+    const dispatch = (event: Event) => wizardActions.current[event.type]?.();
+    for (const type of Object.keys(WIZARD_EVENTS)) window.addEventListener(type, dispatch);
+    return () => {
+      for (const type of Object.keys(WIZARD_EVENTS)) window.removeEventListener(type, dispatch);
+    };
+  }, []);
 
   if (loading) {
     return (

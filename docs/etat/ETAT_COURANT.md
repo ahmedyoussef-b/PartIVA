@@ -561,6 +561,19 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — Tâche 2 Wizard défensif
+
+- `GET /api/pcb/projects/[id]/board/status` : état BDD (`inDb`), disque (`onDisk`), `needsRepair` et `suggestedPath` (chemin standard `pcb-work/<id>/carte-test.kicad_pcb`).
+- Helpers client `kicad-file.ts` : `createKicadFile()` (POST board `open`) et `repairKicadSync()` (PATCH chemin).
+- **Matrice des séquences** dans `PcbWizard` : nets sans fichier → toast + « Créer le fichier » ; nets sans composants persistés → « Tout placer (persister) » ou « Régénérer le sourcing » ; placement sans nets → « Générer les nets » ; routage sans placement → « Tout placer » ; revue sans pistes → « Router la carte ».
+- **Création automatique** : `handlePlaceOne`/`handlePlaceAll` appellent `ensureBoard()` avant le placement si `kicadFilePath` est vide.
+- **Synchro 5 s** + `visibilitychange` dans le wizard ; bandeau « Réparer la synchronisation » si fichier sur disque absent de la BDD.
+- `KicadFileInput` remonté par `key={kicadFilePath}` dans la page pour éviter l'état local périmé.
+- Le projet « Test_Clignotant_LED » n'existe toujours pas en BDD ; état fichier vérifié sur `cmwqu1s0` (inDb=true/onDisk=true).
+- typecheck 0, lint 0, vitest 366/366, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

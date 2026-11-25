@@ -145,6 +145,10 @@ function Btn({
 }
 
 export type PcbWizardState = {
+  projectId: string;
+  kicadFilePath: string | null;
+  persistedComponents: number;
+  proposedComponents: number;
   requirementsCount: number;
   netsCount: number;
   footprints: number;

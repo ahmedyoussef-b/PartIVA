@@ -1,10 +1,15 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { createKicadFile, repairKicadSync } from '@/lib/pcb/client/kicad-file';
 
 interface Props {
+  projectId: string;
+  kicadFilePath: string | null;
+  persistedComponents: number;
+  proposedComponents: number;
   requirementsCount: number;
   netsCount: number;
   heuristicNets: number;
@@ -28,6 +33,10 @@ interface Step {
 }
 
 export function PcbWizard({
+  projectId,
+  kicadFilePath,
+  persistedComponents,
+  proposedComponents,
   requirementsCount,
   netsCount,
   heuristicNets,
@@ -42,6 +51,70 @@ export function PcbWizard({
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [fileStatus, setFileStatus] = useState<{
+    inDb: boolean;
+    onDisk: boolean;
+    needsRepair: boolean;
+    path: string | null;
+    suggestedPath: string | null;
+  } | null>(null);
+
+  const checkFile = async () => {
+    try {
+      const res = await fetch(`/api/pcb/projects/${projectId}/board/status`);
+      if (!res.ok) return null;
+      const data = (await res.json()) as typeof fileStatus;
+      setFileStatus(data);
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // checkFile est asynchrone : le setState arrive après le fetch, pas pendant le rendu.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void checkFile();
+    const interval = window.setInterval(() => void checkFile(), 5000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void checkFile();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+    // Le polling est volontairement indépendant des props (état fichier serveur).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  const ensureFile = async (): Promise<boolean> => {
+    const status = (await checkFile()) ?? {
+      inDb: !!kicadFilePath,
+      onDisk: false,
+      needsRepair: false,
+      path: kicadFilePath,
+      suggestedPath: null,
+    };
+    if (status.inDb) return true;
+    toast.error("Créez d'abord le fichier KiCad", {
+      action: {
+        label: 'Créer le fichier',
+        onClick: async () => {
+          try {
+            await createKicadFile(projectId);
+            await checkFile();
+            router.refresh();
+            toast.success('Fichier KiCad créé');
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : 'Création impossible');
+          }
+        },
+      },
+      duration: 10000,
+    });
+    return false;
+  };
 
   const steps: Step[] = [
     {
@@ -96,9 +169,64 @@ export function PcbWizard({
   const validatedCount = steps.filter((s) => validatedSteps.includes(s.id)).length;
   const canValidate = current.done && !validatedSteps.includes(current.id);
 
-  const goTo = (step: Step) => {
+  const goTo = async (step: Step) => {
     if (!step.prerequisite) {
       toast.error(step.blockedMessage, { duration: 8000 });
+      return;
+    }
+    // Matrice des séquences : chaque prérequis manquant propose son action de secours.
+    if (step.id === 'nets') {
+      if (!(await ensureFile())) return;
+      if (persistedComponents === 0) {
+        toast.error(
+          proposedComponents > 0
+            ? 'Les composants ne sont pas sauvegardés'
+            : 'Générez d’abord les composants (sourcing)',
+          {
+            action: {
+              label: proposedComponents > 0 ? 'Tout placer (persister)' : 'Régénérer le sourcing',
+              onClick: () =>
+                window.dispatchEvent(
+                  new Event(proposedComponents > 0 ? 'pcb:place-all' : 'pcb:regenerate-sourcing'),
+                ),
+            },
+            duration: 10000,
+          },
+        );
+        return;
+      }
+    }
+    if (step.id === 'placement' && netsCount === 0) {
+      toast.error('Générez les nets d’abord', {
+        action: {
+          label: 'Générer les nets',
+          onClick: () => window.dispatchEvent(new Event('pcb:generate-nets')),
+        },
+        duration: 10000,
+      });
+      return;
+    }
+    if (step.id === 'routing') {
+      if (!(await ensureFile())) return;
+      if (footprints === 0) {
+        toast.error('Placez les composants d’abord', {
+          action: {
+            label: 'Tout placer',
+            onClick: () => window.dispatchEvent(new Event('pcb:place-all')),
+          },
+          duration: 10000,
+        });
+        return;
+      }
+    }
+    if (step.id === 'review' && tracks === 0) {
+      toast.error('Routez la carte d’abord', {
+        action: {
+          label: 'Router la carte',
+          onClick: () => window.dispatchEvent(new Event('pcb:route')),
+        },
+        duration: 10000,
+      });
       return;
     }
     const el = document.getElementById(step.target);
@@ -196,6 +324,28 @@ export function PcbWizard({
           );
         })}
       </ol>
+
+      {fileStatus?.needsRepair && (
+        <div className="mt-2 rounded border border-orange-200 bg-orange-50 p-2 text-[11px] text-orange-900">
+          Fichier KiCad présent sur le disque mais absent de la base.
+          <button
+            type="button"
+            className="ml-2 rounded bg-orange-600 px-2 py-0.5 text-[10px] font-semibold text-white"
+            onClick={async () => {
+              try {
+                await repairKicadSync(projectId, fileStatus.suggestedPath!);
+                await checkFile();
+                router.refresh();
+                toast.success('Synchronisation réparée');
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Réparation impossible');
+              }
+            }}
+          >
+            Réparer la synchronisation
+          </button>
+        </div>
+      )}
 
       {heuristicNets > 0 && (
         <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-[11px] text-blue-900">
