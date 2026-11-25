@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { createKicadFile, repairKicadSync } from '@/lib/pcb/client/kicad-file';
+import { usePcbActionBus } from './PcbActionBus';
 
 interface Props {
   projectId: string;
   cdcValidated: boolean;
+  nextActionId: string;
   kicadFilePath: string | null;
   persistedComponents: number;
   proposedComponents: number;
@@ -36,6 +38,7 @@ interface Step {
 export function PcbWizard({
   projectId,
   cdcValidated,
+  nextActionId,
   kicadFilePath,
   persistedComponents,
   proposedComponents,
@@ -51,6 +54,7 @@ export function PcbWizard({
   drcViolations,
 }: Props) {
   const router = useRouter();
+  const { run: runAction } = usePcbActionBus();
   const [collapsed, setCollapsed] = useState(false);
   const [validating, setValidating] = useState(false);
   const [fileStatus, setFileStatus] = useState<{
@@ -171,24 +175,19 @@ export function PcbWizard({
   const validatedCount = steps.filter((s) => validatedSteps.includes(s.id)).length;
   const canValidate = current.done && !validatedSteps.includes(current.id);
 
-  // Étape suivante réellement attendue, déduite de l'état des données.
-  const nextAction = !cdcValidated
-    ? { label: 'Analyser le cahier des charges', event: 'pcb:analyze' }
-    : persistedComponents === 0 && proposedComponents === 0
-      ? { label: 'Générer les composants', event: 'pcb:generate-components' }
-      : netsCount === 0
-        ? { label: 'Générer les nets', event: 'pcb:generate-nets' }
-        : footprints === 0
-          ? { label: 'Tout placer', event: 'pcb:place-all' }
-          : tracks === 0
-            ? { label: 'Router la carte', event: 'pcb:route' }
-            : { label: 'Vérifier la conformité', event: 'pcb:edit-netlist' };
+  // Libellé issu du même calcul côté serveur que le surlignage du bouton.
+  const nextLabels: Record<string, string> = {
+    analyze: 'Analyser le cahier des charges',
+    components: 'Générer les composants',
+    nets: 'Générer les nets',
+    'edit-netlist': 'Corriger la netlist',
+    place: 'Tout placer',
+    route: 'Router la carte',
+    review: 'Vérifier la conformité',
+  };
+  const nextAction = { id: nextActionId, label: nextLabels[nextActionId] ?? 'Étape suivante' };
 
   const goNext = async () => {
-    if (nextAction.event === 'pcb:analyze') {
-      await goTo(steps[0]!);
-      return;
-    }
     // Entrée dans le Sourcing : le fichier plateau est créé automatiquement.
     if (!kicadFilePath) {
       try {
@@ -200,7 +199,9 @@ export function PcbWizard({
         return;
       }
     }
-    window.dispatchEvent(new Event(nextAction.event));
+    if (!runAction(nextAction.id)) {
+      toast.error('Action indisponible — rechargez la page');
+    }
   };
 
   const goTo = async (step: Step) => {
@@ -219,10 +220,7 @@ export function PcbWizard({
           {
             action: {
               label: proposedComponents > 0 ? 'Tout placer (persister)' : 'Régénérer le sourcing',
-              onClick: () =>
-                window.dispatchEvent(
-                  new Event(proposedComponents > 0 ? 'pcb:place-all' : 'pcb:regenerate-sourcing'),
-                ),
+              onClick: () => runAction(proposedComponents > 0 ? 'place' : 'components'),
             },
             duration: 10000,
           },
@@ -234,7 +232,7 @@ export function PcbWizard({
       toast.error('Générez les nets d’abord', {
         action: {
           label: 'Générer les nets',
-          onClick: () => window.dispatchEvent(new Event('pcb:generate-nets')),
+          onClick: () => runAction('nets'),
         },
         duration: 10000,
       });
@@ -246,7 +244,7 @@ export function PcbWizard({
         toast.error('Placez les composants d’abord', {
           action: {
             label: 'Tout placer',
-            onClick: () => window.dispatchEvent(new Event('pcb:place-all')),
+            onClick: () => runAction('place'),
           },
           duration: 10000,
         });
@@ -257,7 +255,7 @@ export function PcbWizard({
       toast.error('Routez la carte d’abord', {
         action: {
           label: 'Router la carte',
-          onClick: () => window.dispatchEvent(new Event('pcb:route')),
+          onClick: () => runAction('route'),
         },
         duration: 10000,
       });
@@ -387,7 +385,7 @@ export function PcbWizard({
           <button
             type="button"
             className="ml-2 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white"
-            onClick={() => window.dispatchEvent(new Event('pcb:edit-netlist'))}
+            onClick={() => runAction('edit-netlist')}
           >
             Éditer la Netlist
           </button>
@@ -436,7 +434,7 @@ export function PcbWizard({
             </button>
             <button
               type="button"
-              onClick={() => window.dispatchEvent(new Event('pcb:reroute'))}
+              onClick={() => runAction('freeroute')}
               className="rounded border border-blue-300 px-2 py-0.5 text-[10px] text-blue-700"
             >
               Re-router
