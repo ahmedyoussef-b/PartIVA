@@ -532,6 +532,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — wizard intelligent
+
+- **Prérequis** : chaque étape du wizard vérifie l'état BDD avant d'autoriser le passage ; un clic sur une étape bloquée affiche un message explicite (toast).
+- **Validation admin** : table `PcbWizardValidation` (projectId, step, validatedBy) + migration `20261125130000_add_pcb_wizard_validations` appliquée ; API `POST /api/pcb/wizard/validate` (validation / dévalidation) ; badge vert = validé, orange = calculé.
+- **Nets IA?** : bandeau dédié dans le wizard avec bouton ouvrant directement le modal d'édition (événement `pcb:edit-netlist`).
+- **Barre de progression** : pourcentage d'étapes **validées** (pas seulement calculées) avec compteur `X/5`.
+- **Récapitulatif final** : pistes, violations DRC lues depuis `<board>.drc.json`, bouton « Exporter pour fabrication » désactivé (Phase 5) et bouton « Re-router » (événement `pcb:reroute`).
+- typecheck 0, lint 0, vitest 365/365, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

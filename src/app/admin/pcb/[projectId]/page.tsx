@@ -44,6 +44,12 @@ export default async function PcbProjectPage({
     return <div className="p-6 text-red-600">Projet introuvable : {projectId}</div>;
   }
 
+  const wizardValidations = await prisma.pcbWizardValidation.findMany({
+    where: { projectId },
+    select: { step: true },
+  });
+  const validatedSteps = wizardValidations.map((v) => v.step);
+
   const clientRequest = project.requestId
     ? await prisma.request.findUnique({
         where: { id: project.requestId },
@@ -55,6 +61,7 @@ export default async function PcbProjectPage({
   let boardWidthMm = 100;
   let boardHeightMm = 80;
   const boardStats = { footprints: 0, tracks: 0, zones: 0 };
+  let drcViolations = 0;
   if (project.kicadFilePath) {
     try {
       const abs = path.isAbsolute(project.kicadFilePath)
@@ -67,6 +74,14 @@ export default async function PcbProjectPage({
       boardStats.footprints = parsed.components.length;
       boardStats.tracks = (raw.match(/\(segment\b/g) ?? []).length;
       boardStats.zones = (raw.match(/\(zone\b/g) ?? []).length;
+      try {
+        const drcRaw = JSON.parse(fs.readFileSync(`${abs}.drc.json`, 'utf8')) as {
+          violations?: unknown[];
+        };
+        drcViolations = Array.isArray(drcRaw.violations) ? drcRaw.violations.length : 0;
+      } catch {
+        drcViolations = 0;
+      }
     } catch (e) {
       console.warn('[PCB:PLACEMENT] Dimensions indisponibles', e);
     }
@@ -208,6 +223,10 @@ export default async function PcbProjectPage({
                     tracks: boardStats.tracks,
                     zones: boardStats.zones,
                     compliant: complianceResult.isCompliant,
+                    heuristicNets: project.nets.filter((n) => n.source === 'heuristic').length,
+                    componentsCount: project.components.length,
+                    validatedSteps,
+                    drcViolations,
                   }}
                 />
               </div>
