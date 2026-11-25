@@ -115,4 +115,30 @@ describe('assessCdcQuality', () => {
     const clean = assessCdcQuality([{ category: 'function', key: 'Tension', value: '3,3 V' }]);
     expect(clean.ok).toBe(true);
   });
+
+  it('15. validation manuelle -> 0 à vérifier et 0 sans source', () => {
+    const inferred = assessCdcQuality([
+      {
+        category: 'usage',
+        key: 'Temperature',
+        value: '0-70C',
+        source: 'inféré',
+        status: 'to_verify',
+      },
+    ]);
+    expect(inferred.toVerify).toBe(1);
+    expect(inferred.unsourced).toBe(1);
+
+    const validated = assessCdcQuality([
+      {
+        category: 'usage',
+        key: 'Temperature',
+        value: '-20 a +70C',
+        source: 'manual',
+        status: 'confirmed',
+      },
+    ]);
+    expect(validated.toVerify).toBe(0);
+    expect(validated.unsourced).toBe(0);
+  });
 });
