@@ -39,6 +39,7 @@ export async function POST(req: Request) {
 
   const b = (body ?? {}) as Record<string, unknown>;
   const description = typeof b.description === 'string' ? b.description.trim() : '';
+  const projectName = typeof b.projectName === 'string' ? b.projectName.trim() : '';
   if (!description) {
     return NextResponse.json({ error: 'description requise' }, { status: 400 });
   }
@@ -51,6 +52,9 @@ export async function POST(req: Request) {
   const questionList = buildQuestionList();
 
   const prompt = `Tu es un ingénieur électronique senior. À partir de la description libre d'une carte électronique, compile une description technique structurée et COMPLÈTE, couvrant obligatoirement les 6 catégories du cahier des charges, puis remplis les champs du formulaire.
+
+NOM DU PROJET (contexte métier, utile pour retrouver des projets similaires) :
+${projectName || '(non renseigné)'}
 
 DESCRIPTION LIBRE :
 ${description}
@@ -89,8 +93,8 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
   ]
 }`;
 
-  // v2 : prix en DT (les anciens résultats en EUR restaient en cache L2).
-  const cacheKey = `pcb:compile:v2:${hashKey(description)}`;
+  // v3 : nom du projet ajouté au contexte LLM (et prix en DT depuis v2).
+  const cacheKey = `pcb:compile:v3:${hashKey(`${projectName}|${description}`)}`;
   const cached = await getLlmCacheAsync<{
     compiled: string;
     answers: RequirementAnswer[];

@@ -6,13 +6,20 @@ import { requirementBlocks } from '@/lib/pcb/requirement-blocks';
 import { detectIncoherences } from '@/lib/pcb/incoherence-detector';
 import type { RequirementAnswer } from '@/lib/pcb/types';
 
-export function RequirementForm({ projectId }: { projectId?: string }) {
+export function RequirementForm({
+  projectId,
+  initialProjectName = '',
+}: {
+  projectId?: string;
+  initialProjectName?: string;
+}) {
   const router = useRouter();
   const [answers, setAnswers] = useState<RequirementAnswer[]>([]);
   const [currentBlock, setCurrentBlock] = useState(0);
   const [incoherences, setIncoherences] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState(initialProjectName);
   const [generalIdea, setGeneralIdea] = useState('');
   const [compiledText, setCompiledText] = useState('');
   const [compiling, setCompiling] = useState(false);
@@ -49,6 +56,10 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
   // sinon création du projet et redirection vers l'analyse automatique du CDC.
   async function submitValidated() {
     const contextText = compiledText.trim();
+    if (!projectName.trim()) {
+      setError('Le nom du projet est obligatoire.');
+      return;
+    }
     if (!contextText) {
       setError('La description technique compilée est obligatoire.');
       return;
@@ -79,6 +90,7 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
           projectId,
           answers,
           description: contextText,
+          projectName: projectName.trim(),
           status: 'requirements_validated',
         }),
       });
@@ -107,98 +119,121 @@ export function RequirementForm({ projectId }: { projectId?: string }) {
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">
         {!validated ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">
-                Idée générale de la carte <span className="text-red-500">*</span>
+          <>
+            <div className="mb-4 space-y-2">
+              <label className="block text-sm font-medium" htmlFor="project-name">
+                Nom du projet <span className="text-red-500">*</span>
               </label>
-              <textarea
-                data-testid="textarea-general-idea"
-                rows={6}
-                className="mt-1 w-full rounded border p-2"
-                placeholder="Ex : Carte de commande moteur pour convoyeur industriel, alimentée en 24 V, avec communication CAN..."
-                value={generalIdea}
-                onChange={(e) => setGeneralIdea(e.target.value)}
+              <input
+                id="project-name"
+                data-testid="input-project-name"
+                type="text"
+                className="w-full rounded border p-2"
+                placeholder="Ex : Clignotant LED 9V — banc d'essai"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
               />
               <p className="text-xs text-gray-500">
-                Description libre du projet : fonction, contexte, contraintes majeures.
+                Contexte métier conservé avec le projet : il servira à retrouver des projets
+                similaires (RAG) et à guider la compilation IA.
               </p>
             </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Idée générale de la carte <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  data-testid="textarea-general-idea"
+                  rows={6}
+                  className="mt-1 w-full rounded border p-2"
+                  placeholder="Ex : Carte de commande moteur pour convoyeur industriel, alimentée en 24 V, avec communication CAN..."
+                  value={generalIdea}
+                  onChange={(e) => setGeneralIdea(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Description libre du projet : fonction, contexte, contraintes majeures.
+                </p>
+              </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">
-                Description technique compilée (IA)
-              </label>
-              <textarea
-                data-testid="textarea-compiled"
-                rows={6}
-                className="mt-1 w-full rounded border p-2"
-                placeholder="Cliquez sur « Compiler » pour générer la description technique structurée..."
-                value={compiledText}
-                onChange={(e) => setCompiledText(e.target.value)}
-              />
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  data-testid="btn-compile"
-                  disabled={compiling || !generalIdea.trim()}
-                  className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-                  onClick={async () => {
-                    if (compiling) return;
-                    setCompiling(true);
-                    setError(null);
-                    try {
-                      const res = await fetch('/api/pcb/requirements/compile', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ description: generalIdea.trim() }),
-                      });
-                      const data = await res.json();
-                      if (!res.ok || data.error) {
-                        throw new Error(data.error || `Erreur ${res.status}`);
-                      }
-                      setCompiledText(data.compiled || '');
-                      if (Array.isArray(data.answers)) {
-                        setAnswers((prev) => {
-                          const next = prev.filter(
-                            (a) =>
-                              !data.answers.some(
-                                (na: { questionId: string }) => na.questionId === a.questionId,
-                              ),
-                          );
-                          next.push(...data.answers);
-                          setIncoherences(detectIncoherences(next));
-                          return next;
-                        });
-                      }
-                    } catch (e) {
-                      setError(e instanceof Error ? e.message : 'Erreur de compilation');
-                    } finally {
-                      setCompiling(false);
-                    }
-                  }}
-                >
-                  {compiling ? 'Compilation...' : compiledText ? 'Relancer' : 'Compiler'}
-                </button>
-                {compiledText && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Description technique compilée (IA)
+                </label>
+                <textarea
+                  data-testid="textarea-compiled"
+                  rows={6}
+                  className="mt-1 w-full rounded border p-2"
+                  placeholder="Cliquez sur « Compiler » pour générer la description technique structurée..."
+                  value={compiledText}
+                  onChange={(e) => setCompiledText(e.target.value)}
+                />
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    data-testid="btn-validate"
-                    disabled={compiling}
-                    className="rounded bg-green-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-                    onClick={() => {
-                      void submitValidated();
+                    data-testid="btn-compile"
+                    disabled={compiling || !generalIdea.trim() || !projectName.trim()}
+                    className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                    onClick={async () => {
+                      if (compiling) return;
+                      setCompiling(true);
+                      setError(null);
+                      try {
+                        const res = await fetch('/api/pcb/requirements/compile', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            description: generalIdea.trim(),
+                            projectName: projectName.trim(),
+                          }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok || data.error) {
+                          throw new Error(data.error || `Erreur ${res.status}`);
+                        }
+                        setCompiledText(data.compiled || '');
+                        if (Array.isArray(data.answers)) {
+                          setAnswers((prev) => {
+                            const next = prev.filter(
+                              (a) =>
+                                !data.answers.some(
+                                  (na: { questionId: string }) => na.questionId === a.questionId,
+                                ),
+                            );
+                            next.push(...data.answers);
+                            setIncoherences(detectIncoherences(next));
+                            return next;
+                          });
+                        }
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : 'Erreur de compilation');
+                      } finally {
+                        setCompiling(false);
+                      }
                     }}
                   >
-                    Valider
+                    {compiling ? 'Compilation...' : compiledText ? 'Relancer' : 'Compiler'}
                   </button>
-                )}
+                  {compiledText && (
+                    <button
+                      type="button"
+                      data-testid="btn-validate"
+                      disabled={compiling}
+                      className="rounded bg-green-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                      onClick={() => {
+                        void submitValidated();
+                      }}
+                    >
+                      Valider
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Généré par IA à partir de l&apos;idée générale. Modifiable avant validation.
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                Généré par IA à partir de l&apos;idée générale. Modifiable avant validation.
-              </p>
             </div>
-          </div>
+          </>
         ) : (
           <div className="space-y-2">
             <label className="block text-sm font-medium">
