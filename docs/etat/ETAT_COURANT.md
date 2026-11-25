@@ -620,6 +620,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 — état BDD temps réel et déblocage du routage
+
+- **Cause du blocage** : les props du wizard (`tracks`, `footprints`, `nextActionId`) venaient du rendu serveur et n'étaient rafraîchies qu'après placement. Après un routage réussi, `tracks` restait à 0 → le wizard restait sur « Router la carte ».
+- **`computeWizardState`** (`src/lib/pcb/wizard-state.ts`) : source de vérité unique BDD + fichier disque, utilisée à la fois par la page et par `GET /api/pcb/projects/[id]/wizard-state`.
+- **`PcbLiveStateProvider`** : polling 3 s + `visibilitychange` + `pcb:board-refresh` ; le wizard et le panneau Sourcing consomment le même état (plus d'anneau figé). `router.refresh()` après chaque action pour un retour immédiat.
+- **Vérification** : 4 tests sur l'endpoint verrouillent la transition `route → review` quand une piste apparaît sur le plateau.
+- typecheck 0, lint 0, vitest 370/370, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
