@@ -30,9 +30,13 @@ function freeroutingJar(): string | null {
   return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
 
+function javaBinary(): string {
+  return process.env.FREEROUTING_JAVA?.trim() || 'java';
+}
+
 async function javaAvailable(): Promise<boolean> {
   try {
-    await execFileAsync('java', ['-version']);
+    await execFileAsync(javaBinary(), ['-version']);
     return true;
   } catch {
     return false;
@@ -125,8 +129,8 @@ export async function POST(req: Request) {
   try {
     const passes = optimizationPasses();
     await execFileAsync(
-      'java',
-      ['-jar', jar, '-de', dsnPath, '-do', sesPath, '-mp', String(passes)],
+      javaBinary(),
+      ['-jar', jar, '-de', dsnPath, '-do', sesPath, '-mp', String(passes), '--gui.enabled=false'],
       { timeout: ROUTING_TIMEOUT_MS, maxBuffer: 20 * 1024 * 1024 },
     );
   } catch (error) {
