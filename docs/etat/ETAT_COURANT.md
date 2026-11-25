@@ -522,6 +522,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — orientation et courtyards
+
+- **Tâche 1** : l'erreur Turbopack `Expected '</', got 'jsx text'` n'existe plus sur `master` (`page.tsx` 315 lignes, balises équilibrées, `tsc` 0) — elle provenait d'un état intermédiaire de la PR #184.
+- **Tâche 2** : `optimizeRotations()` aligne à 0° connecteurs, régulateur, condensateurs (`role: capacitor` ajouté), MCU, horloge, transceiver ; appelée en fin d'`optimizePlacement`. Test unitaire ajouté.
+- **Tâche 3** : `getFootprintSize()` lit désormais les courtyards `F.CrtYd`/`B.CrtYd` avant les pads, clé de cache `v2`. Vérifié : LQFP-48 10,3×10,3 mm, TO-220 10,5×4,9 mm (vs bbox pads plus petites). DRC après replacement : 81 → 80 violations, `courtyards_overlap` 1 → 0.
+- **Tâche 4** : rapport d'analyse du wizard joint au commentaire de PR.
+- typecheck 0, lint 0, vitest **365/365**, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

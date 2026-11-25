@@ -16,7 +16,8 @@ export interface PlacementComponent {
   hints?: string;
 }
 
-export type PlacementRole = 'regulator' | 'mcu' | 'clock' | 'serial' | 'connector' | 'sensitive';
+export type PlacementRole =
+  'regulator' | 'mcu' | 'clock' | 'serial' | 'connector' | 'capacitor' | 'sensitive';
 
 export interface PlacementHints {
   reference: string;
@@ -76,6 +77,7 @@ export function inferPlacementRole(input: PlacementHints): PlacementRole | undef
   if (/microcontr|mcu|stm32|esp32|atmega|lqfp|qfn/i.test(text)) return 'mcu';
   if (/rs.?485|modbus|transceiver|sn75176/i.test(text)) return 'serial';
   if (/r[eé]gulateur|regulator|dc.?dc|buck|to-220/i.test(text)) return 'regulator';
+  if (/^C/.test(ref) || /condensateur|capacitor|d[eé]couplage/i.test(text)) return 'capacitor';
   if (/capteur|sensor|analog|0.?10\s*v|temp[eé]rature|pt100|thermocouple|adc/i.test(text)) {
     return 'sensitive';
   }
@@ -501,6 +503,27 @@ function simulatedAnnealing(
   }
 }
 
+/**
+ * Phase 2 — orientations logiques et reproductibles. Les composants dont le
+ * rôle est connu sont alignés à 0° ; les autres gardent leur orientation
+ * (le recuit reste libre d'optimiser leur rotation).
+ */
+export function optimizeRotations(components: PlacementComponent[]): PlacementComponent[] {
+  for (const c of components) {
+    if (
+      c.role === 'connector' ||
+      c.role === 'regulator' ||
+      c.role === 'capacitor' ||
+      c.role === 'mcu' ||
+      c.role === 'clock' ||
+      c.role === 'serial'
+    ) {
+      c.rotation = 0;
+    }
+  }
+  return components;
+}
+
 // Réparation détermin finale : garantir zéro chevauchement de bounding boxes.
 // Les pénalités du coût poussent dans la bonne direction mais peuvent laisser
 // une paire se chevaucher ; on écarte alors la paire le long de l'axe le moins
@@ -598,7 +621,8 @@ export function optimizePlacement(
     }
   }
 
-  // Dernière passe : supprimer les chevauchements résiduels, puis arrondir.
+  // Dernières passes : orientations logiques, chevauchements, arrondi.
+  optimizeRotations(components);
   resolveOverlaps(components, board);
 
   // Arrondir à la grille 1 mm (KiCad utilise 0.1mm min, 1mm pour l'approx)
