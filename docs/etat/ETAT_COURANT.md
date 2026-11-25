@@ -640,6 +640,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Reset ferme la fenêtre KiCad précédente
+
+- `POST /api/pcb/projects/[id]/board` avec `action: 'reset'` ferme désormais (mode desktop Windows uniquement) la fenêtre KiCad dont le titre contient le nom du plateau attaché au travail précédent, via `CloseMainWindow()` (WM_CLOSE gracieux, jamais `taskkill`).
+- On attend la suppression du `.lck` (jusqu'à 3 s) avant de réécrire le plateau vide, pour éviter que l'état mémoire de KiCad n'écrase le fichier ; le nouveau plateau est ensuite ouvert.
+- Le toast affiche le nombre de fenêtres fermées. 5 tests sur l'endpoint (dont la fermeture et la libération du verrou).
+- typecheck 0, lint 0, vitest 375/375, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
