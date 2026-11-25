@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 import { ActionProgressProvider, ActionProgressBar } from '@/components/pcb/ActionProgressProvider';
+import { PcbActionBusProvider } from '@/components/pcb/PcbActionBus';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +87,23 @@ export default async function PcbProjectPage({
       console.warn('[PCB:PLACEMENT] Dimensions indisponibles', e);
     }
   }
+
+  const cdcValidated =
+    project.status === 'requirements_validated' || project.requirements.length > 0;
+  const proposedCount =
+    (project.sourcingCache as { components?: unknown[] } | null)?.components?.length ?? 0;
+  // Même calcul que le wizard : sert au surlignage du bouton correspondant.
+  const nextActionId = !cdcValidated
+    ? 'analyze'
+    : project.components.length === 0 && proposedCount === 0
+      ? 'components'
+      : project.nets.length === 0
+        ? 'nets'
+        : boardStats.footprints === 0
+          ? 'place'
+          : boardStats.tracks === 0
+            ? 'route'
+            : 'review';
 
   // V39.1 — coût estimé (PcbComponent sans `quantity` → quantité = 1)
   const priceLines = await prisma.pcbComponent.findMany({
@@ -201,146 +219,147 @@ export default async function PcbProjectPage({
 
       <KicadAutoOpen projectId={projectId} kicadFilePath={project.kicadFilePath} />
       <PcbEditorProvider>
-        <ActionProgressProvider>
-          <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
-            {/* Colonne gauche : Layout PCB */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
-              <ActionProgressBar />
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold text-gray-800">Layout PCB</h2>
-                <span className="text-sm font-semibold text-gray-700">
-                  {priceTotal.lineCount === 0
-                    ? 'Coût : —'
-                    : `Coût estimé : ${(priceTotal.currency === 'EUR'
-                        ? priceTotal.total * 3.3
-                        : priceTotal.total
-                      ).toFixed(2)} ${priceTotal.currency === 'EUR' ? 'DT' : priceTotal.currency}`}
-                </span>
-              </div>
-              <div className="flex flex-1 items-stretch">
-                <PcbCanvas
-                  projectId={projectId}
-                  wizard={{
-                    projectId,
-                    cdcValidated:
-                      project.status === 'requirements_validated' ||
-                      project.requirements.length > 0,
-                    kicadFilePath: project.kicadFilePath,
-                    persistedComponents: project.components.length,
-                    proposedComponents:
-                      (project.sourcingCache as { components?: unknown[] } | null)?.components
-                        ?.length ?? 0,
-                    requirementsCount: project.requirements.length,
-                    netsCount: project.nets.length,
-                    footprints: boardStats.footprints,
-                    tracks: boardStats.tracks,
-                    zones: boardStats.zones,
-                    compliant: complianceResult.isCompliant,
-                    heuristicNets: project.nets.filter((n) => n.source === 'heuristic').length,
-                    componentsCount: project.components.length,
-                    validatedSteps,
-                    drcViolations,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
-            <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
-              {/* Ordre = démarche de conception : CDC -> propositions -> sourcing
-                (nets/placement/routage) -> placement manuel -> revue -> contrôles
-                -> visualisation -> fabrication -> audit magasin (tâche support). */}
-
-              {/* Étape 1 — Cahier des charges */}
-              <div id="card-cdc">
-                <RequirementInput
-                  projectId={projectId}
-                  partFunction={clientRequest?.partFunction}
-                  kicadFilePath={project.kicadFilePath}
-                />
-              </div>
-
-              {/* Étape 2 — Propositions IA à examiner */}
-              <div id="card-proposals">
-                <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
-              </div>
-
-              {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
-              <div id="card-sourcing">
-                <ComponentSourcingPanel projectId={projectId} />
-              </div>
-
-              {/* Étape 4 — Placement manuel / ajustements */}
-              <div id="card-placement">
-                <PlacementPanel
-                  projectId={projectId}
-                  boardWidthMm={boardWidthMm}
-                  boardHeightMm={boardHeightMm}
-                />
-              </div>
-
-              {/* Étape 5 — Revue de conception */}
-              <div id="card-review">
-                <DesignReviewPanel projectId={projectId} />
-              </div>
-
-              <CapitalizeButton projectId={projectId} />
-
-              {/* Étape 6 — Conformité physique */}
-              <div className="overflow-hidden rounded-lg border bg-white">
-                <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                  Conformité Physique
+        <PcbActionBusProvider>
+          <ActionProgressProvider>
+            <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 xl:flex-row">
+              {/* Colonne gauche : Layout PCB */}
+              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border bg-white p-6">
+                <ActionProgressBar />
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="font-semibold text-gray-800">Layout PCB</h2>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {priceTotal.lineCount === 0
+                      ? 'Coût : —'
+                      : `Coût estimé : ${(priceTotal.currency === 'EUR'
+                          ? priceTotal.total * 3.3
+                          : priceTotal.total
+                        ).toFixed(
+                          2,
+                        )} ${priceTotal.currency === 'EUR' ? 'DT' : priceTotal.currency}`}
+                  </span>
                 </div>
-                <div className="p-4">
-                  <CompliancePanel projectId={projectId} initialResult={complianceResult} />
-                </div>
-              </div>
-
-              {/* Étape 7 — Visualisation */}
-              <div className="overflow-hidden rounded-lg border bg-white">
-                <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                  Visualisation
-                </div>
-                <div className="p-4">
-                  <VisualComparisonOverlay projectId={projectId} layers={comparisonLayers} />
-                </div>
-              </div>
-
-              {/* Étape 8 — Fabrication */}
-              <div className="overflow-hidden rounded-lg border bg-white">
-                <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                  Fabrication
-                </div>
-                <div className="p-4">
-                  <ExportButtons
+                <div className="flex flex-1 items-stretch">
+                  <PcbCanvas
                     projectId={projectId}
-                    components={project.components.map((c) => ({
-                      id: c.id,
-                      refDes: c.reference,
-                      mpn: c.catalogId ?? undefined,
-                      description: c.name,
-                      footprint: c.footprint ?? undefined,
-                    }))}
+                    wizard={{
+                      projectId,
+                      cdcValidated,
+                      nextActionId,
+                      kicadFilePath: project.kicadFilePath,
+                      persistedComponents: project.components.length,
+                      proposedComponents: proposedCount,
+                      requirementsCount: project.requirements.length,
+                      netsCount: project.nets.length,
+                      footprints: boardStats.footprints,
+                      tracks: boardStats.tracks,
+                      zones: boardStats.zones,
+                      compliant: complianceResult.isCompliant,
+                      heuristicNets: project.nets.filter((n) => n.source === 'heuristic').length,
+                      componentsCount: project.components.length,
+                      validatedSteps,
+                      drcViolations,
+                    }}
                   />
                 </div>
               </div>
 
-              {/* Tâche support — Audit du magasin */}
-              <div className="overflow-hidden rounded-lg border bg-white">
-                <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-                  Approvisionnement
+              {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
+              <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
+                {/* Ordre = démarche de conception : CDC -> propositions -> sourcing
+                (nets/placement/routage) -> placement manuel -> revue -> contrôles
+                -> visualisation -> fabrication -> audit magasin (tâche support). */}
+
+                {/* Étape 1 — Cahier des charges */}
+                <div id="card-cdc">
+                  <RequirementInput
+                    projectId={projectId}
+                    partFunction={clientRequest?.partFunction}
+                    kicadFilePath={project.kicadFilePath}
+                  />
                 </div>
-                <div className="p-4">
-                  <Link href={`/admin/pcb/${projectId}/magasin`}>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Ouvrir l&apos;audit complet du magasin
-                    </Button>
-                  </Link>
+
+                {/* Étape 2 — Propositions IA à examiner */}
+                <div id="card-proposals">
+                  <ProposalsPanel projectId={projectId} proposals={serializedProposals} />
+                </div>
+
+                {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
+                <div id="card-sourcing">
+                  <ComponentSourcingPanel projectId={projectId} activeAction={nextActionId} />
+                </div>
+
+                {/* Étape 4 — Placement manuel / ajustements */}
+                <div id="card-placement">
+                  <PlacementPanel
+                    projectId={projectId}
+                    boardWidthMm={boardWidthMm}
+                    boardHeightMm={boardHeightMm}
+                  />
+                </div>
+
+                {/* Étape 5 — Revue de conception */}
+                <div id="card-review">
+                  <DesignReviewPanel projectId={projectId} />
+                </div>
+
+                <CapitalizeButton projectId={projectId} />
+
+                {/* Étape 6 — Conformité physique */}
+                <div className="overflow-hidden rounded-lg border bg-white">
+                  <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                    Conformité Physique
+                  </div>
+                  <div className="p-4">
+                    <CompliancePanel projectId={projectId} initialResult={complianceResult} />
+                  </div>
+                </div>
+
+                {/* Étape 7 — Visualisation */}
+                <div className="overflow-hidden rounded-lg border bg-white">
+                  <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                    Visualisation
+                  </div>
+                  <div className="p-4">
+                    <VisualComparisonOverlay projectId={projectId} layers={comparisonLayers} />
+                  </div>
+                </div>
+
+                {/* Étape 8 — Fabrication */}
+                <div className="overflow-hidden rounded-lg border bg-white">
+                  <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                    Fabrication
+                  </div>
+                  <div className="p-4">
+                    <ExportButtons
+                      projectId={projectId}
+                      components={project.components.map((c) => ({
+                        id: c.id,
+                        refDes: c.reference,
+                        mpn: c.catalogId ?? undefined,
+                        description: c.name,
+                        footprint: c.footprint ?? undefined,
+                      }))}
+                    />
+                  </div>
+                </div>
+
+                {/* Tâche support — Audit du magasin */}
+                <div className="overflow-hidden rounded-lg border bg-white">
+                  <div className="border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+                    Approvisionnement
+                  </div>
+                  <div className="p-4">
+                    <Link href={`/admin/pcb/${projectId}/magasin`}>
+                      <Button variant="outline" size="sm" className="w-full">
+                        Ouvrir l&apos;audit complet du magasin
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ActionProgressProvider>
+          </ActionProgressProvider>
+        </PcbActionBusProvider>
       </PcbEditorProvider>
     </div>
   );

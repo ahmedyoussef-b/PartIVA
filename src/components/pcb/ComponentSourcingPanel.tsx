@@ -7,6 +7,7 @@ import { usePcbEditor } from './PcbEditorProvider';
 import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
 import { createKicadFile } from '@/lib/pcb/client/kicad-file';
+import { usePcbActionBus } from './PcbActionBus';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
 interface Candidate {
@@ -70,21 +71,16 @@ function symbolFor(reference: string): ResolvedComponent {
   return found;
 }
 
-const WIZARD_EVENTS: Record<string, true> = {
-  'pcb:edit-netlist': true,
-  'pcb:reroute': true,
-  'pcb:create-file': true,
-  'pcb:generate-nets': true,
-  'pcb:place-all': true,
-  'pcb:regenerate-sourcing': true,
-  'pcb:route': true,
-  'pcb:analyze': true,
-  'pcb:generate-components': true,
-};
-
-export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
+export function ComponentSourcingPanel({
+  projectId,
+  activeAction,
+}: {
+  projectId: string;
+  activeAction?: string;
+}) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
+  const { register } = usePcbActionBus();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [components, setComponents] = useState<ProposedComponent[]>([]);
@@ -512,6 +508,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         console.warn('Persist global échoué', await persistRes.json().catch(() => ({})));
 
       window.dispatchEvent(new Event('pcb:board-refresh'));
+      router.refresh();
       toast.success(
         `${data.placed ?? items.length} composant(s) placé(s) avec optimisation globale`,
         {
@@ -548,28 +545,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   }, [projectId, router, startProgress, finishProgress]);
 
-  // Le wizard déclenche ces actions via des événements (boutons de secours).
-  const wizardActions = useRef<Record<string, () => void>>({});
+  // Le wizard appelle exactement ces mêmes fonctions via le bus d'actions.
   useEffect(() => {
-    wizardActions.current = {
-      'pcb:edit-netlist': () => setNetsEditorOpen(true),
-      'pcb:reroute': () => void handleFreeroute(),
-      'pcb:create-file': () => void ensureBoard(),
-      'pcb:generate-nets': () => void handleGenerateNetsOnly(),
-      'pcb:place-all': () => void handlePlaceAll(),
-      'pcb:regenerate-sourcing': () => void handleRegenerate(),
-      'pcb:route': () => void handleRouteBoard(),
-      'pcb:analyze': () => void handleAnalyzeCdc(),
-      'pcb:generate-components': () => void handleRegenerate(),
-    };
+    register('analyze', () => void handleAnalyzeCdc());
+    register('components', () => void handleRegenerate());
+    register('nets', () => void handleGenerateNetsOnly());
+    register('edit-netlist', () => setNetsEditorOpen(true));
+    register('place', () => void handlePlaceAll());
+    register('route', () => void handleRouteBoard());
+    register('freeroute', () => void handleFreeroute());
+    register('reroute', () => void handleFreeroute());
+    register('create-file', () => void ensureBoard());
   });
-  useEffect(() => {
-    const dispatch = (event: Event) => wizardActions.current[event.type]?.();
-    for (const type of Object.keys(WIZARD_EVENTS)) window.addEventListener(type, dispatch);
-    return () => {
-      for (const type of Object.keys(WIZARD_EVENTS)) window.removeEventListener(type, dispatch);
-    };
-  }, []);
 
   if (loading) {
     return (
@@ -605,12 +592,19 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     <div className="rounded-lg border bg-white">
       <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
         <span>Sourcing composants ({components.length})</span>
+        {activeAction && (
+          <span className="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            Étape en cours
+          </span>
+        )}
         {/* Ordre logique du parcours : composants -> connexions -> correction ->
             placement -> pistes -> routage avancé. */}
         <button
           type="button"
           title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
-          className="rounded border px-2 py-0.5 text-xs font-normal"
+          className={`rounded border px-2 py-0.5 text-xs font-normal ${
+            activeAction === 'components' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          }`}
           onClick={handleRegenerate}
           disabled={regenerating}
         >
@@ -619,7 +613,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <button
           type="button"
           title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
-          className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
+          className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
+            activeAction === 'nets' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          }`}
           onClick={handleGenerateNetsOnly}
           disabled={generatingNets}
         >
@@ -628,7 +624,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <button
           type="button"
           title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-          className="rounded border px-2 py-0.5 text-xs font-normal"
+          className={`rounded border px-2 py-0.5 text-xs font-normal ${
+            activeAction === 'edit-netlist' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          }`}
           onClick={() => setNetsEditorOpen(true)}
         >
           3. Éditer la Netlist
@@ -636,7 +634,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <button
           type="button"
           title="4. Placer les composants avec la netlist complète"
-          className="rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700"
+          className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
+            activeAction === 'place' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          }`}
           onClick={handlePlaceAll}
           disabled={placingAll}
         >
@@ -645,7 +645,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <button
           type="button"
           title="5. Tracer les pistes et la zone GND"
-          className="rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700"
+          className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
+            activeAction === 'route' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          }`}
           onClick={handleRouteBoard}
           disabled={routing}
         >
@@ -654,7 +656,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <button
           type="button"
           title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
-          className="rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700"
+          className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
+            activeAction === 'freeroute' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          }`}
           onClick={handleFreeroute}
           disabled={freerouting}
         >

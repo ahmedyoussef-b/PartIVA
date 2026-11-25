@@ -611,6 +611,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — synchronisation wizard ↔ boutons
+
+- **`PcbActionBus`** : contexte partagé (registre d'actions) — le panneau Sourcing enregistre ses handlers sous des ids (`analyze`, `components`, `nets`, `edit-netlist`, `place`, `route`, `freeroute`, …) et le wizard appelle **exactement les mêmes fonctions** via `run(id)`. Suppression des événements window globaux.
+- **Lien visuel** : la page calcule `nextActionId` depuis l'état BDD et le transmet au wizard et au panneau ; le bouton correspondant est entouré d'un anneau bleu avec badge « Étape en cours ».
+- **Feedback** : `router.refresh()` après placement global pour que le wizard avance vers « Router la carte » ; les spinners existants des boutons restent affichés.
+- typecheck 0, lint 0, vitest 366/366, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
