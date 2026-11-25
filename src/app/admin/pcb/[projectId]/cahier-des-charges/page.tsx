@@ -3,6 +3,7 @@ import { ArrowLeft, FileText, Image as ImageIcon, Paperclip } from 'lucide-react
 import { prisma } from '@/lib/prisma';
 import { AnalyzeButton } from './analyze-button';
 import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
+import { RequirementValueEditor } from '@/components/pcb/RequirementValueEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -262,6 +263,11 @@ export default async function CahierDesChargesPage({
             <p className="text-muted-foreground">
               {quality.unsourced} exigence(s) sans source · {quality.toVerify} à vérifier
             </p>
+            {quality.toVerify === 0 && quality.unsourced === 0 && (
+              <p className="rounded border border-green-200 bg-green-50 p-2 text-xs font-semibold text-green-700">
+                ✓ 100 % des exigences validées manuellement
+              </p>
+            )}
           </div>
         </section>
 
@@ -297,14 +303,16 @@ export default async function CahierDesChargesPage({
                               )}
                             </span>
                           </dt>
-                          <dd className="flex-1 text-sm whitespace-pre-wrap text-gray-800">
-                            {requirement.value}
-                            {requirement.source && (
-                              <span className="mt-0.5 block text-xs text-muted-foreground italic">
-                                Source : {requirement.source.slice(0, 120)}
-                              </span>
-                            )}
-                          </dd>
+                          <RequirementValueEditor
+                            projectId={projectId}
+                            requirement={{
+                              id: requirement.id,
+                              key: requirement.key,
+                              value: requirement.value,
+                              source: requirement.source,
+                              status: requirement.status,
+                            }}
+                          />
                           <span className="text-[10px] text-gray-400">{requirement.status}</span>
                         </div>
                       ))}

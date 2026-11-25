@@ -551,6 +551,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — édition des champs « à vérifier »
+
+- **Compilation technique** : chaque exigence est désormais éditable inline (`RequirementValueEditor`) avec bouton « Enregistrer et valider » et raccourci ✓ pour valider tel quel.
+- **API** `PATCH /api/pcb/requirements/technical-field` (requireAdmin, cible par `requirementId` ou `field`) : met `value`, `source: manual`, `status: confirmed`.
+- **Qualité du CDC** : badge vert « 100 % des exigences validées manuellement » quand `toVerify = 0` et `unsourced = 0` (les compteurs sont recalculés depuis la BDD au `router.refresh()`).
+- Test unitaire ajouté dans `cdc-quality.test.ts` ; update BDD validé en transaction rollback sur le projet `cmwv7z3q…` (18 exigences). Le projet « Test_Clignotant_LED » demandé n'existe pas en BDD.
+- typecheck 0, lint 0, vitest **366/366**, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
