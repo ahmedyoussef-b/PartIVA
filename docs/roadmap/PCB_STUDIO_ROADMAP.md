@@ -3,7 +3,7 @@
 **Version :** 1.0
 **Date :** 2026-11-24
 **Commit de référence :** `912e422` (merge PR #167 — routage assisté partiel)
-**Statut :** Roadmap validée ; **Phase 1.1 et 1.3 implémentées et mergées** (`master` = `c2f38f6`), phase 1.2 et phases 2-5 à venir
+**Statut :** Roadmap validée ; **Phase 1 complète (1.1, 1.2, 1.3)** et **Phase 3 Étape A** livrées. Phases 2, 3 Étape B (Freerouting effectif) et 4-5 à venir.
 
 ---
 
@@ -49,9 +49,9 @@ Cette roadmap vise à transformer le prototype en outil d'ingénierie industriel
 
 | ID | Action | Détail |
 |---|---|---|
-| 3.1 | **DSN Specctra complet** | Compléter `src/lib/pcb/autorouter.ts` (actuellement un stub) : outline Edge.Cuts, couches, netclasses, padstacks. |
-| 3.2 | **Intégration Freerouting** | Binaire Java ou appel API, lancement en arrière-plan, puis import du `.ses` dans KiCad via `pcbnew`. |
-| 3.3 | **DRC** | Vérification espacement / largeur / croisement via le DRC natif de KiCad (IPC) ou un script Python dédié. Comble la limite explicite du routage actuel. |
+| 3.1 | **DSN Specctra complet** ✅ | **Étape A** : le stub est supprimé ; `specctra.py` appelle `pcbnew.ExportSpecctraDSN` (outline, couches, netclasses, padstacks réels). DSN vérifié : 371 lignes, boundary + 13 padstacks. |
+| 3.2 | **Intégration Freerouting** ⏳ | **Étape A faite** : import SES via `pcbnew.ImportSpecctraSES`, route `/api/pcb/autoroute/freerouting`, bouton UI et cas « absent » traité. **Étape B à faire** : Java + `freerouting.jar` à fournir pour activer l'exécution. |
+| 3.3 | **DRC** ✅ | `kicad-cli pcb drc --format json` via `drc.ts` (code non nul ignoré, on parse le rapport). Testé : 149 violations / 2 non-connectés sur le plateau de test. |
 
 ---
 

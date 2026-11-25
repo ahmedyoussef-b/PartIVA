@@ -31,6 +31,9 @@ export interface KicadBridgeResult {
   zones?: number;
   vias?: number;
   createdNets?: string[];
+  dsn?: string;
+  bytes?: number;
+  tracks?: number;
   error?: string;
 }
 
@@ -204,6 +207,9 @@ function parseResult(output: RunOutput): KicadBridgeResult {
         zones?: number;
         vias?: number;
         createdNets?: string[];
+        dsn?: string;
+        bytes?: number;
+        tracks?: number;
         backup?: string;
         error?: string;
       };
@@ -229,6 +235,9 @@ function parseResult(output: RunOutput): KicadBridgeResult {
             createdNets: Array.isArray(parsed.createdNets)
               ? parsed.createdNets.filter((n): n is string => typeof n === 'string')
               : undefined,
+            dsn: typeof parsed.dsn === 'string' ? parsed.dsn : undefined,
+            bytes: typeof parsed.bytes === 'number' ? parsed.bytes : undefined,
+            tracks: typeof parsed.tracks === 'number' ? parsed.tracks : undefined,
           };
         }
         return { ok: false, error: parsed.error ?? 'Échec du placement' };
@@ -514,6 +523,58 @@ export function routeBoard(args: {
         // fichier déjà absent
       }
     }
+  });
+}
+
+/** Export Specctra complet (outline, couches, netclasses, padstacks) via KiCad. */
+export async function exportDsn(boardPath: string, outputPath: string): Promise<KicadBridgeResult> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('specctra.py');
+    if (!scriptPath) return { ok: false, error: 'script specctra.py introuvable' };
+    const output = await runPython(pyPath, scriptPath, [
+      'export-dsn',
+      '--board',
+      boardPath,
+      '--output',
+      outputPath,
+    ]);
+    if (output.code !== 0 || output.timedOut) {
+      console.error('[KICAD:DSN] Échec export', {
+        board: boardPath,
+        output: outputPath,
+        stdout: output.stdout.slice(-800),
+        stderr: output.stderr.slice(-800),
+      });
+    }
+    return parseResult(output);
+  });
+}
+
+/** Import d'un fichier SES Specctra dans le plateau KiCad. */
+export async function importSes(boardPath: string, sesPath: string): Promise<KicadBridgeResult> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('specctra.py');
+    if (!scriptPath) return { ok: false, error: 'script specctra.py introuvable' };
+    const output = await runPython(pyPath, scriptPath, [
+      'import-ses',
+      '--board',
+      boardPath,
+      '--ses',
+      sesPath,
+    ]);
+    if (output.code !== 0 || output.timedOut) {
+      console.error('[KICAD:SES] Échec import', {
+        board: boardPath,
+        ses: sesPath,
+        stdout: output.stdout.slice(-800),
+        stderr: output.stderr.slice(-800),
+      });
+    }
+    return parseResult(output);
   });
 }
 
