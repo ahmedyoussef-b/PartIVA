@@ -69,7 +69,7 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
     }
 
     setSaving(true);
-    startProgress('2. Sauvegarde de la netlist');
+    startProgress('3. Sauvegarde de la netlist');
     try {
       const originalById = new Map(original.map((n) => [n.id, n]));
       const draftIds = new Set(draft.filter((n) => n.id).map((n) => n.id));
