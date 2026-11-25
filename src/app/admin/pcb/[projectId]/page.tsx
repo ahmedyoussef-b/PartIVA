@@ -20,7 +20,6 @@ import { parseKicadPcb } from '@/lib/pcb/kicad-file-reader';
 import fs from 'node:fs';
 import path from 'node:path';
 import { analyzeRealState } from '@/lib/pcb/simulation';
-import { PcbWizard } from '@/components/pcb/PcbWizard';
 
 export const dynamic = 'force-dynamic';
 
@@ -197,21 +196,22 @@ export default async function PcbProjectPage({
               </span>
             </div>
             <div className="flex flex-1 items-stretch">
-              <PcbCanvas projectId={projectId} />
+              <PcbCanvas
+                projectId={projectId}
+                wizard={{
+                  requirementsCount: project.requirements.length,
+                  netsCount: project.nets.length,
+                  footprints: boardStats.footprints,
+                  tracks: boardStats.tracks,
+                  zones: boardStats.zones,
+                  compliant: complianceResult.isCompliant,
+                }}
+              />
             </div>
           </div>
 
           {/* Colonne droite : panneaux d'analyse (défilement indépendant) */}
           <div className="min-h-0 space-y-4 overflow-y-auto xl:w-[400px] xl:shrink-0">
-            <PcbWizard
-              requirementsCount={project.requirements.length}
-              netsCount={project.nets.length}
-              footprints={boardStats.footprints}
-              tracks={boardStats.tracks}
-              zones={boardStats.zones}
-              compliant={complianceResult.isCompliant}
-            />
-
             {/* Ordre = démarche de conception : CDC -> propositions -> sourcing
                 (nets/placement/routage) -> placement manuel -> revue -> contrôles
                 -> visualisation -> fabrication -> audit magasin (tâche support). */}
