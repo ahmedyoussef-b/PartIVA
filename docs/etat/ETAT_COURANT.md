@@ -483,6 +483,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — Phase 2 : congestion et chevauchements
+
+- `calculateCost` : chevauchements réels `×100` (au lieu de ×5, gap 5 mm supprimé) + nouvelle pénalité de congestion `10·(2−écart_bords)²` sous 2 mm ; défaut de taille porté à 10×10 mm quand le footprint est illisible.
+- `resolveOverlaps()` : passe déterministe finale qui écarte les paires encore chevauchantes le long de l'axe le moins coûteux (connecteurs déplacés uniquement en X).
+- Tests ajoutés : congestion, chevauchement avec vraies dimensions, séparation de 3 composants initiaux chevauchants.
+- **Mesuré sur le projet réel** (15 composants) : paires chevauchantes **3 → 0** ; après réécriture du plateau sur copie, DRC **149 → 81 violations**, `solder_mask_bridge` **89 → 64**, `clearance` **13 → 0**, `courtyards_overlap` **7 → 1**.
+- typecheck 0, lint 0, vitest **364/364**, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
