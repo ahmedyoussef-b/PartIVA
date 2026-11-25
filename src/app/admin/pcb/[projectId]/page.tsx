@@ -169,7 +169,11 @@ export default async function PcbProjectPage({
       <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-2">
         <div className="flex items-center gap-3">
           <WorkspaceBackButton />
-          <KicadFileInput projectId={projectId} current={project.kicadFilePath} />
+          <KicadFileInput
+            key={project.kicadFilePath ?? 'no-file'}
+            projectId={projectId}
+            current={project.kicadFilePath}
+          />
           <div>
             <h1 className="text-lg leading-tight font-bold text-gray-900">{project.name}</h1>
             <p className="text-xs text-gray-500">
@@ -217,6 +221,12 @@ export default async function PcbProjectPage({
                 <PcbCanvas
                   projectId={projectId}
                   wizard={{
+                    projectId,
+                    kicadFilePath: project.kicadFilePath,
+                    persistedComponents: project.components.length,
+                    proposedComponents:
+                      (project.sourcingCache as { components?: unknown[] } | null)?.components
+                        ?.length ?? 0,
                     requirementsCount: project.requirements.length,
                     netsCount: project.nets.length,
                     footprints: boardStats.footprints,
@@ -254,7 +264,10 @@ export default async function PcbProjectPage({
 
               {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
               <div id="card-sourcing">
-                <ComponentSourcingPanel projectId={projectId} />
+                <ComponentSourcingPanel
+                  projectId={projectId}
+                  kicadFilePath={project.kicadFilePath}
+                />
               </div>
 
               {/* Étape 4 — Placement manuel / ajustements */}
