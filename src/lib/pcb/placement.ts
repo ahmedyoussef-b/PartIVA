@@ -128,7 +128,7 @@ function distance(a: PlacementComponent, b: PlacementComponent): number {
   return Math.hypot(a.xMm - b.xMm, a.yMm - b.yMm);
 }
 
-function overlapPenalty(a: PlacementComponent, b: PlacementComponent, gap = 5): number {
+function overlapPenalty(a: PlacementComponent, b: PlacementComponent, gap = 0): number {
   const wa = (a.widthMm ?? 8) / 2 + gap;
   const ha = (a.heightMm ?? 6) / 2 + gap;
   const wb = (b.widthMm ?? 8) / 2 + gap;
@@ -140,6 +140,27 @@ function overlapPenalty(a: PlacementComponent, b: PlacementComponent, gap = 5): 
     return (wa + wb - dx) * (ha + hb - dy);
   }
   return 0;
+}
+
+// Congestion : même sans chevauchement, deux composants trop proches ne
+// laissent pas de place au routage. On mesure l'écart entre les bords des
+// bounding boxes (distance de Chebyshev), pas entre les centres.
+function congestionPenalty(
+  a: PlacementComponent,
+  b: PlacementComponent,
+  minClearance = 2,
+  weight = 10,
+): number {
+  const halfWa = (a.widthMm ?? 10) / 2;
+  const halfHa = (a.heightMm ?? 10) / 2;
+  const halfWb = (b.widthMm ?? 10) / 2;
+  const halfHb = (b.heightMm ?? 10) / 2;
+  const edgeX = Math.abs(a.xMm - b.xMm) - (halfWa + halfWb);
+  const edgeY = Math.abs(a.yMm - b.yMm) - (halfHa + halfHb);
+  const gap = Math.max(edgeX, edgeY);
+  if (gap >= minClearance) return 0;
+  const deficit = minClearance - Math.max(gap, 0);
+  return weight * deficit * deficit;
 }
 
 function wireLength(components: PlacementComponent[], adj: Map<string, Set<string>>): number {
@@ -246,7 +267,11 @@ export function calculateCost(
   // chevauchements
   for (let i = 0; i < components.length; i++) {
     for (let j = i + 1; j < components.length; j++) {
-      c += overlapPenalty(components[i]!, components[j]!) * 5;
+      const a = components[i]!;
+      const b = components[j]!;
+      // Chevauchement réel (pénalité forte) + congestion (place pour les pistes).
+      c += overlapPenalty(a, b) * 100;
+      c += congestionPenalty(a, b);
     }
     // hors plateau
     const comp = components[i]!;
@@ -476,6 +501,45 @@ function simulatedAnnealing(
   }
 }
 
+// Réparation détermin finale : garantir zéro chevauchement de bounding boxes.
+// Les pénalités du coût poussent dans la bonne direction mais peuvent laisser
+// une paire se chevaucher ; on écarte alors la paire le long de l'axe le moins
+// coûteux. Les connecteurs ne bougent qu'en X (bord supérieur imposé).
+function resolveOverlaps(components: PlacementComponent[], board: PlacementBoard): void {
+  const ox = board.originX ?? 0;
+  const oy = board.originY ?? 0;
+  const maxX = ox + board.widthMm;
+  const maxY = oy + board.heightMm;
+  for (let pass = 0; pass < 40; pass += 1) {
+    let moved = false;
+    for (let i = 0; i < components.length; i += 1) {
+      for (let j = i + 1; j < components.length; j += 1) {
+        let a = components[i]!;
+        let b = components[j]!;
+        if (a.role === 'connector' && b.role !== 'connector') [a, b] = [b, a];
+        const overlapX =
+          (a.widthMm ?? 10) / 2 + (b.widthMm ?? 10) / 2 + 1 - Math.abs(a.xMm - b.xMm);
+        const overlapY =
+          (a.heightMm ?? 10) / 2 + (b.heightMm ?? 10) / 2 + 1 - Math.abs(a.yMm - b.yMm);
+        if (overlapX <= 0 || overlapY <= 0) continue;
+        if (b.role === 'connector' || overlapX <= overlapY) {
+          b.xMm = Math.max(
+            ox + 2,
+            Math.min(maxX - 2, b.xMm + (b.xMm >= a.xMm ? overlapX : -overlapX)),
+          );
+        } else {
+          b.yMm = Math.max(
+            oy + 2,
+            Math.min(maxY - 2, b.yMm + (b.yMm >= a.yMm ? overlapY : -overlapY)),
+          );
+        }
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+}
+
 export function optimizePlacement(
   components: PlacementComponent[],
   nets: PlacementNet[],
@@ -533,6 +597,9 @@ export function optimizePlacement(
       components[i]!.rotation = fallback[i]!.rotation;
     }
   }
+
+  // Dernière passe : supprimer les chevauchements résiduels, puis arrondir.
+  resolveOverlaps(components, board);
 
   // Arrondir à la grille 1 mm (KiCad utilise 0.1mm min, 1mm pour l'approx)
   for (const c of components) {

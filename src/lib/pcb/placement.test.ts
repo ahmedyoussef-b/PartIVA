@@ -173,6 +173,26 @@ describe('calculateCost', () => {
     expect(calculateCost(comps, new Map(), board)).toBeGreaterThan(0);
   });
 
+  it('pénalise la congestion sous 2 mm entre bords', () => {
+    const board = { widthMm: 100, heightMm: 80 };
+    const a = { reference: 'R1', xMm: 20, yMm: 20, rotation: 0, widthMm: 8, heightMm: 8 };
+    const near = { ...a, reference: 'R2', xMm: 29 }; // écart entre bords = 1 mm
+    const far = { ...a, reference: 'R2', xMm: 40 }; // écart = 12 mm
+    expect(calculateCost([a, near], new Map(), board)).toBeGreaterThan(
+      calculateCost([a, far], new Map(), board),
+    );
+  });
+
+  it('pénalise fortement un chevauchement avec les vraies dimensions', () => {
+    const board = { widthMm: 100, heightMm: 80 };
+    const a = { reference: 'U1', xMm: 30, yMm: 30, rotation: 0, widthMm: 10, heightMm: 10 };
+    const overlap = { ...a, reference: 'C1', widthMm: 6, heightMm: 4 };
+    const apart = { ...overlap, xMm: 60 };
+    expect(calculateCost([a, overlap], new Map(), board)).toBeGreaterThan(
+      calculateCost([a, apart], new Map(), board) * 10,
+    );
+  });
+
   it('pénalise un composant hors plateau', () => {
     const comps = [{ reference: 'J1', xMm: 500, yMm: 20, rotation: 0 }];
     expect(calculateCost(comps, new Map(), board)).toBeGreaterThanOrEqual(1000);
@@ -266,5 +286,33 @@ describe('optimizePlacement', () => {
       expect(c.yMm).toBeGreaterThanOrEqual(0);
       expect(c.yMm).toBeLessThanOrEqual(80);
     }
+  });
+
+  it('écarte deux composants initiaux qui se chevauchent', () => {
+    const components = [
+      { reference: 'U1', xMm: 50, yMm: 40, rotation: 0, widthMm: 12, heightMm: 12 },
+      { reference: 'C1', xMm: 51, yMm: 40, rotation: 0, widthMm: 6, heightMm: 4 },
+      { reference: 'R1', xMm: 49, yMm: 41, rotation: 0, widthMm: 4, heightMm: 2 },
+    ];
+    const board = { widthMm: 200, heightMm: 120, originX: 0, originY: 0 };
+    const overlaps = (list: typeof components) => {
+      let n = 0;
+      for (let i = 0; i < list.length; i += 1) {
+        for (let j = i + 1; j < list.length; j += 1) {
+          const a = list[i]!;
+          const b = list[j]!;
+          if (
+            Math.abs(a.xMm - b.xMm) < (a.widthMm + b.widthMm) / 2 &&
+            Math.abs(a.yMm - b.yMm) < (a.heightMm + b.heightMm) / 2
+          ) {
+            n += 1;
+          }
+        }
+      }
+      return n;
+    };
+    expect(overlaps(components)).toBeGreaterThan(0);
+    const out = optimizePlacement(components, [], board);
+    expect(overlaps(out)).toBe(0);
   });
 });
