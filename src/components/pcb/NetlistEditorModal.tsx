@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useActionProgress } from './ActionProgressProvider';
 
 interface NetRow {
   id: string;
@@ -21,6 +22,7 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
   const [draft, setDraft] = useState<NetRow[]>([]);
   const [loading, setLoading] = useState(true); // charge au montage (useEffect plus bas)
   const [saving, setSaving] = useState(false);
+  const { start: startProgress, finish: finishProgress } = useActionProgress();
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +69,7 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
     }
 
     setSaving(true);
+    startProgress('2. Sauvegarde de la netlist');
     try {
       const originalById = new Map(original.map((n) => [n.id, n]));
       const draftIds = new Set(draft.filter((n) => n.id).map((n) => n.id));
@@ -95,7 +98,9 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
       toast.success(`${draft.length} net(s) sauvegardés`);
       onSaved(draft.length);
       onClose();
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Sauvegarde impossible');
     } finally {
       setSaving(false);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { usePcbEditor } from './PcbEditorProvider';
 import { NetlistEditorModal } from './NetlistEditorModal';
+import { useActionProgress } from './ActionProgressProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
 interface Candidate {
@@ -83,6 +84,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [netsEditorOpen, setNetsEditorOpen] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [heuristicNets, setHeuristicNets] = useState(0);
+  const { start: startProgress, finish: finishProgress } = useActionProgress();
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
@@ -196,6 +198,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     try {
       const comp = components[idx];
       if (!comp) return;
+      startProgress(`Placement de ${comp.reference} dans KiCad`);
       const s = optionFor(comp, idx);
 
       // Place in KiCad first : the backend returns the deterministic placement.
@@ -273,7 +276,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       } else {
         toast.success('Composant placé dans KiCad et affiché dans PartIVA');
       }
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
       const isHybrid =
         msg.toLowerCase().includes('hybride tauri') || msg.toLowerCase().includes('mode web');
@@ -291,6 +296,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const handleRegenerate = async () => {
     setRegenerating(true);
+    startProgress('5. Régénération du sourcing (LLM)');
     try {
       const result = await fetchComponents(false, true);
       setComponents(result.components);
@@ -304,7 +310,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           : 'Composants et netlist régénérés',
         { duration: 12_000 },
       );
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Régénération impossible', {
         duration: 12_000,
       });
@@ -316,6 +324,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   // Génération des seules connexions : prompt compact, composants inchangés.
   const handleGenerateNetsOnly = async () => {
     setGeneratingNets(true);
+    startProgress('1. Génération des nets (GND/VCC)');
     try {
       const res = await fetch('/api/pcb/requirements/nets-only', {
         method: 'POST',
@@ -334,7 +343,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         },
       );
       await load();
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Génération des nets impossible', {
         duration: 12_000,
       });
@@ -345,6 +356,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const handleRouteBoard = async () => {
     setRouting(true);
+    startProgress('4. Routage de la carte');
     try {
       const res = await fetch('/api/pcb/route', {
         method: 'POST',
@@ -361,7 +373,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           duration: 12_000,
         },
       );
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Routage impossible', { duration: 12_000 });
     } finally {
       setRouting(false);
@@ -370,6 +384,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const handleFreeroute = async () => {
     setFreerouting(true);
+    startProgress('4 bis. Routage complet (Freerouting)');
     try {
       const res = await fetch('/api/pcb/autoroute/freerouting', {
         method: 'POST',
@@ -380,6 +395,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (data.code === 'FREEROUTING_MISSING') {
         setFreeroutingInfo(data.error ?? 'Freerouting non installé');
         toast.error('Freerouting non installé — DSN généré', { duration: 12_000 });
+        finishProgress('error');
         return;
       }
       if (!res.ok || !data.ok) {
@@ -394,7 +410,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         `Routage complet : ${data.tracks} pistes · ${data.drc?.violations ?? 0} violations DRC`,
         { duration: 12_000 },
       );
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Routage complet impossible', {
         duration: 12_000,
       });
@@ -407,6 +425,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   const handlePlaceAll = async () => {
     setPlacingAll(true);
+    startProgress('3. Placement optimisé de tous les composants');
     try {
       const items = components.map((comp, idx) => optionFor(comp, idx));
       const res = await fetch('/api/pcb/place/batch', {
@@ -472,7 +491,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             : 'KiCad : Fichier > Recharger pour voir le plateau.',
         },
       );
+      finishProgress('done');
     } catch (e) {
+      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Placement global impossible');
     } finally {
       setPlacingAll(false);
