@@ -513,6 +513,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — barre de progression des actions
+
+- **`ActionProgressProvider.tsx`** : contexte client partagé (`start(label)`, `finish(status)`), chronomètre mis à jour toutes les 200 ms, masquage automatique après 5 s.
+- **`ActionProgressBar`** placée sur la ligne « Layout PCB » (colonne gauche) : libellé de l'action, temps écoulé, barre animée pendant l'exécution, vert « Terminé en X s » ou rouge « Échec après X s ».
+- Toutes les actions du panneau Sourcing et du modal sont instrumentées : 1 Génération des nets, 2 Sauvegarde netlist, 3 Placement global (et placement unitaire), 4 Routage partiel, 4 bis Freerouting, 5 Régénération du sourcing.
+- typecheck 0, lint 0, vitest 364/364, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
