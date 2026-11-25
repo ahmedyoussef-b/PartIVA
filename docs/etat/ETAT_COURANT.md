@@ -459,6 +459,19 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — Phase 3 Étape A (Freerouting en attente)
+
+- **Audit préalable** : Java absent, aucun `freerouting.jar` ; `pcbnew.ExportSpecctraDSN` et `ImportSpecctraSES` disponibles ; `kicad-cli pcb drc --format json` disponible. Le prompt initial (DSN écrit à la main) écarté au profit de l'API KiCad.
+- **`specctra.py`** : `export-dsn` et `import-ses` via pcbnew. Vérifié sur copie : DSN 371 lignes, 1 boundary, 13 padstacks, 5 nets.
+- **`drc.ts`** : `runDrc()` parse le JSON (code non nul ignoré). Vérifié : 149 violations, 2 non-connectés.
+- **Route** `POST /api/pcb/autoroute/freerouting` : export DSN → test java/jar → si absents, `ok:false` + `code:FREEROUTING_MISSING` + chemin DSN ; si présents, lance Freerouting, importe le SES, lance le DRC.
+- **UI** : bouton « 4 bis. Routage complet (Freerouting) » ; bandeau d'installation clair (`tools/freerouting.jar` ou `FREEROUTING_JAR`).
+- **Ancien stub** `autorouter.ts` remplacé par un simple re-export bridge ; `/api/pcb/autoroute` renvoie 410 avec redirection vers la nouvelle route.
+- **Limite** : routage complet non exécutable tant que Java + jar ne sont pas fournis (Étape B).
+- typecheck 0, lint 0, vitest 361/361, prettier 0, py_compile OK.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

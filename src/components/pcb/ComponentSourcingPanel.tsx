@@ -78,6 +78,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [regenerating, setRegenerating] = useState(false);
   const [generatingNets, setGeneratingNets] = useState(false);
   const [routing, setRouting] = useState(false);
+  const [freerouting, setFreerouting] = useState(false);
+  const [freeroutingInfo, setFreeroutingInfo] = useState<string | null>(null);
   const [netsEditorOpen, setNetsEditorOpen] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [heuristicNets, setHeuristicNets] = useState(0);
@@ -366,6 +368,36 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  const handleFreeroute = async () => {
+    setFreerouting(true);
+    try {
+      const res = await fetch('/api/pcb/autoroute/freerouting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      const data = await res.json();
+      if (data.code === 'FREEROUTING_MISSING') {
+        setFreeroutingInfo(data.error ?? 'Freerouting non installé');
+        toast.error('Freerouting non installé — DSN généré', { duration: 12_000 });
+        return;
+      }
+      if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      setFreeroutingInfo(null);
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      toast.success(
+        `Routage complet : ${data.tracks} pistes · ${data.drc?.violations ?? 0} violations DRC`,
+        { duration: 12_000 },
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Routage complet impossible', {
+        duration: 12_000,
+      });
+    } finally {
+      setFreerouting(false);
+    }
+  };
+
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   const handlePlaceAll = async () => {
@@ -515,6 +547,15 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         </button>
         <button
           type="button"
+          title="4 bis. Routage complet automatique via Freerouting (nécessite Java + freerouting.jar)"
+          className="rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700"
+          onClick={handleFreeroute}
+          disabled={freerouting}
+        >
+          {freerouting ? 'Routage complet…' : '4 bis. Routage complet (Freerouting)'}
+        </button>
+        <button
+          type="button"
           title="5. Reprendre depuis zéro : régénère composants ET nets (écrase les modifications manuelles)"
           className="rounded border px-2 py-0.5 text-xs font-normal"
           onClick={handleRegenerate}
@@ -534,6 +575,15 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
           {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
           Vérifiez-les via « 2. Éditer la Netlist ».
+        </div>
+      )}
+      {freeroutingInfo && (
+        <div className="border-b border-indigo-200 bg-indigo-50 p-2 text-xs text-indigo-900">
+          {freeroutingInfo}
+          <br />
+          Installation : installez Java puis placez `freerouting.jar` dans `tools/` ou définissez la
+          variable `FREEROUTING_JAR`. Le DSN complet a été exporté et peut être routé manuellement
+          dans Freerouting.
         </div>
       )}
       <div className="space-y-3 p-4">
