@@ -151,6 +151,10 @@ export type PcbWizardState = {
   tracks: number;
   zones: number;
   compliant: boolean;
+  heuristicNets: number;
+  componentsCount: number;
+  validatedSteps: string[];
+  drcViolations: number;
 };
 
 export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: PcbWizardState }) {
@@ -644,8 +648,12 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
             ? `Curseur : X ${cursorMm.x.toFixed(2)} mm · Y ${cursorMm.y.toFixed(2)} mm`
             : 'Curseur hors plateau'}
         </span>
-        {wizard && <PcbWizard compact {...wizard} />}
       </div>
+      {wizard && (
+        <div className="mt-2">
+          <PcbWizard {...wizard} />
+        </div>
+      )}
     </div>
   );
 }

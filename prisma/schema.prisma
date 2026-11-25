@@ -913,3 +913,16 @@ model LlmDailyUsage {
 
   @@map("llm_daily_usage")
 }
+
+// Validations explicites des étapes du wizard par un administrateur.
+model PcbWizardValidation {
+  id          String   @id @default(cuid())
+  projectId   String
+  step        String
+  validatedBy String?
+  createdAt   DateTime @default(now())
+
+  @@unique([projectId, step])
+  @@index([projectId])
+  @@map("pcb_wizard_validations")
+}

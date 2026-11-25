@@ -382,7 +382,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
-  const handleFreeroute = async () => {
+  const handleFreeroute = useCallback(async () => {
     setFreerouting(true);
     startProgress('4 bis. Routage complet (Freerouting)');
     try {
@@ -419,7 +419,23 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     } finally {
       setFreerouting(false);
     }
-  };
+  }, [projectId, startProgress, finishProgress]);
+
+  // Le wizard peut demander l'ouverture du modal nets ou un re-routage.
+  const rerouteRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    rerouteRef.current = handleFreeroute;
+  }, [handleFreeroute]);
+  useEffect(() => {
+    const openNets = () => setNetsEditorOpen(true);
+    const reroute = () => rerouteRef.current();
+    window.addEventListener('pcb:edit-netlist', openNets);
+    window.addEventListener('pcb:reroute', reroute);
+    return () => {
+      window.removeEventListener('pcb:edit-netlist', openNets);
+      window.removeEventListener('pcb:reroute', reroute);
+    };
+  }, []);
 
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
