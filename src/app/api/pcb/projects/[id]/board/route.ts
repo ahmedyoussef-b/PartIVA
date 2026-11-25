@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
@@ -65,6 +65,53 @@ function workRoot(): string {
 /// éviter qu'un rechargement de page n'ouvre une seconde fenêtre sur le même projet.
 function isBoardOpenInKicad(absPath: string): boolean {
   return existsSync(path.join(path.dirname(absPath), `~${path.basename(absPath)}.lck`));
+}
+
+/**
+ * Ferme gracieusement (WM_CLOSE, jamais taskkill) la fenêtre KiCad qui affiche
+ * le plateau du travail précédent. Le nom de fichier est passé par variable
+ * d'environnement pour éviter toute injection dans le script PowerShell.
+ */
+async function closeBoardInDesktop(
+  absPath: string,
+): Promise<{ closed: number; released: boolean }> {
+  if (process.env.PARTIVA_DESKTOP !== '1' || process.platform !== 'win32') {
+    return { closed: 0, released: true };
+  }
+  const fileName = path.basename(absPath);
+  const script = [
+    '$name = $env:PARTIVA_BOARD_NAME',
+    "if (-not $name) { Write-Output '0'; exit }",
+    '$procs = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {',
+    "  ($_.ProcessName -ieq 'pcbnew' -or $_.ProcessName -ieq 'kicad') -and",
+    '  $_.MainWindowTitle -and',
+    '  $_.MainWindowTitle.IndexOf($name, [System.StringComparison]::OrdinalIgnoreCase) -ge 0',
+    '})',
+    '$closed = 0',
+    'foreach ($p in $procs) { try { if ($p.CloseMainWindow()) { $closed++ } } catch {} }',
+    'Write-Output ([string]$closed)',
+  ].join('\n');
+
+  let closed = 0;
+  try {
+    const result = spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', script], {
+      env: { ...process.env, PARTIVA_BOARD_NAME: fileName },
+      encoding: 'utf8',
+      timeout: 10_000,
+      windowsHide: true,
+    });
+    closed = Number.parseInt(String(result.stdout ?? '').trim(), 10) || 0;
+  } catch (e) {
+    console.warn('[PCB:BOARD] fermeture KiCad impossible', e);
+  }
+
+  // KiCad supprime son `.lck` à la fermeture : on attend cette libération avant
+  // de réécrire le plateau, sinon son état mémoire peut écraser le fichier vide.
+  const lockPath = path.join(path.dirname(absPath), `~${path.basename(absPath)}.lck`);
+  for (let i = 0; i < 20 && existsSync(lockPath); i++) {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return { closed, released: !existsSync(lockPath) };
 }
 
 function openBoardInDesktop(absPath: string): void {
@@ -185,6 +232,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const raw = template ? readFileSync(template, 'utf8') : EMPTY_BOARD_FALLBACK;
     const emptyBoard = template ? stripFootprints(raw) : raw;
 
+    // Reset : on ferme d'abord le plateau du travail précédent pour qu'il ne
+    // réécrive pas par-dessus le fichier vide une fois l'éditeur refermé.
+    let closedWindows = 0;
+    let lockReleased = true;
+    if (action === 'reset' && project.kicadFilePath?.trim()) {
+      const previous = project.kicadFilePath.trim();
+      const absPrevious = path.isAbsolute(previous) ? previous : path.join(process.cwd(), previous);
+      const closed = await closeBoardInDesktop(absPrevious);
+      closedWindows = closed.closed;
+      lockReleased = closed.released;
+    }
+
     // En cas d'échec de la transaction BDD, on restaure le plateau précédent
     // pour ne pas laisser le fichier vide avec des composants encore persistés.
     let previousBoard: string | null = null;
@@ -228,7 +287,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     openBoardInDesktop(dest);
-    return NextResponse.json({ ok: true, action, kicadFilePath: dest, exists: true });
+    return NextResponse.json({
+      ok: true,
+      action,
+      kicadFilePath: dest,
+      exists: true,
+      closedWindows,
+      lockReleased,
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Erreur serveur';
     console.error('[PCB:BOARD] open/reset', e);

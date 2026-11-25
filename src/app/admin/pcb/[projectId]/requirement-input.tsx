@@ -31,7 +31,9 @@ export function RequirementInput({
       toast.success(
         action === 'open'
           ? 'Nouveau fichier KiCad créé'
-          : 'Plateau réinitialisé — composants, nets et validations effacés, CDC conservé',
+          : `Plateau réinitialisé — composants, nets et validations effacés, CDC conservé${
+              data.closedWindows > 0 ? ` · ${data.closedWindows} fenêtre(s) KiCad fermée(s)` : ''
+            }`,
         { duration: 8_000 },
       );
       window.dispatchEvent(new Event('pcb:board-refresh'));
