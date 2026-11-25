@@ -222,6 +222,9 @@ export default async function PcbProjectPage({
                   projectId={projectId}
                   wizard={{
                     projectId,
+                    cdcValidated:
+                      project.status === 'requirements_validated' ||
+                      project.requirements.length > 0,
                     kicadFilePath: project.kicadFilePath,
                     persistedComponents: project.components.length,
                     proposedComponents:
@@ -264,10 +267,7 @@ export default async function PcbProjectPage({
 
               {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
               <div id="card-sourcing">
-                <ComponentSourcingPanel
-                  projectId={projectId}
-                  kicadFilePath={project.kicadFilePath}
-                />
+                <ComponentSourcingPanel projectId={projectId} />
               </div>
 
               {/* Étape 4 — Placement manuel / ajustements */}

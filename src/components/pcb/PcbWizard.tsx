@@ -7,6 +7,7 @@ import { createKicadFile, repairKicadSync } from '@/lib/pcb/client/kicad-file';
 
 interface Props {
   projectId: string;
+  cdcValidated: boolean;
   kicadFilePath: string | null;
   persistedComponents: number;
   proposedComponents: number;
@@ -34,6 +35,7 @@ interface Step {
 
 export function PcbWizard({
   projectId,
+  cdcValidated,
   kicadFilePath,
   persistedComponents,
   proposedComponents,
@@ -122,7 +124,7 @@ export function PcbWizard({
       label: 'CDC',
       hint: 'Analyser le cahier des charges',
       target: 'card-cdc',
-      done: requirementsCount > 0,
+      done: cdcValidated,
       prerequisite: true,
       blockedMessage: '',
     },
@@ -168,6 +170,38 @@ export function PcbWizard({
   const current: Step = steps[currentIndex >= 0 ? currentIndex : steps.length - 1]!;
   const validatedCount = steps.filter((s) => validatedSteps.includes(s.id)).length;
   const canValidate = current.done && !validatedSteps.includes(current.id);
+
+  // Étape suivante réellement attendue, déduite de l'état des données.
+  const nextAction = !cdcValidated
+    ? { label: 'Analyser le cahier des charges', event: 'pcb:analyze' }
+    : persistedComponents === 0 && proposedComponents === 0
+      ? { label: 'Générer les composants', event: 'pcb:generate-components' }
+      : netsCount === 0
+        ? { label: 'Générer les nets', event: 'pcb:generate-nets' }
+        : footprints === 0
+          ? { label: 'Tout placer', event: 'pcb:place-all' }
+          : tracks === 0
+            ? { label: 'Router la carte', event: 'pcb:route' }
+            : { label: 'Vérifier la conformité', event: 'pcb:edit-netlist' };
+
+  const goNext = async () => {
+    if (nextAction.event === 'pcb:analyze') {
+      await goTo(steps[0]!);
+      return;
+    }
+    // Entrée dans le Sourcing : le fichier plateau est créé automatiquement.
+    if (!kicadFilePath) {
+      try {
+        await createKicadFile(projectId);
+        await checkFile();
+        router.refresh();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Création du fichier impossible');
+        return;
+      }
+    }
+    window.dispatchEvent(new Event(nextAction.event));
+  };
 
   const goTo = async (step: Step) => {
     if (!step.prerequisite) {
@@ -362,7 +396,7 @@ export function PcbWizard({
 
       <div className="mt-2 flex items-center justify-between gap-2 rounded bg-blue-50 px-2 py-1.5">
         <p className="min-w-0 truncate text-[11px] text-blue-900">
-          <span className="font-semibold">À faire :</span> {current.hint}
+          <span className="font-semibold">À faire :</span> {nextAction.label}
         </p>
         <div className="flex shrink-0 gap-1">
           {canValidate && (
@@ -377,10 +411,10 @@ export function PcbWizard({
           )}
           <button
             type="button"
-            onClick={() => goTo(current)}
+            onClick={() => void goNext()}
             className="rounded bg-blue-600 px-2 py-0.5 text-[11px] font-semibold text-white"
           >
-            Y aller →
+            {nextAction.label} →
           </button>
         </div>
       </div>
