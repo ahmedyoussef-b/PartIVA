@@ -28,7 +28,12 @@ export function RequirementInput({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
-      toast.success(action === 'open' ? 'Nouveau fichier KiCad créé' : 'Plateau réinitialisé');
+      toast.success(
+        action === 'open'
+          ? 'Nouveau fichier KiCad créé'
+          : 'Plateau réinitialisé — composants, nets et validations effacés, CDC conservé',
+        { duration: 8_000 },
+      );
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
     } catch (e) {
