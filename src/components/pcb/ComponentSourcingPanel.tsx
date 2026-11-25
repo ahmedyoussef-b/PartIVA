@@ -8,6 +8,7 @@ import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
 import { createKicadFile } from '@/lib/pcb/client/kicad-file';
 import { usePcbActionBus } from './PcbActionBus';
+import { usePcbLiveState } from './PcbLiveStateProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
 interface Candidate {
@@ -71,16 +72,12 @@ function symbolFor(reference: string): ResolvedComponent {
   return found;
 }
 
-export function ComponentSourcingPanel({
-  projectId,
-  activeAction,
-}: {
-  projectId: string;
-  activeAction?: string;
-}) {
+export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
   const { register } = usePcbActionBus();
+  const { state: liveState } = usePcbLiveState();
+  const activeAction = liveState.nextActionId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [components, setComponents] = useState<ProposedComponent[]>([]);
@@ -328,6 +325,7 @@ export function ComponentSourcingPanel({
       setSelections({});
       setPlaced({});
       setPlaceErrors({});
+      router.refresh();
       toast.success(
         result.netsMissing
           ? 'Composants régénérés, mais le LLM n’a toujours pas fourni de netlist. Vérifiez les clés/quotas des fournisseurs dans les logs serveur.'
@@ -367,6 +365,7 @@ export function ComponentSourcingPanel({
         },
       );
       await load();
+      router.refresh();
       finishProgress('done');
     } catch (e) {
       finishProgress('error');
@@ -390,6 +389,7 @@ export function ComponentSourcingPanel({
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       window.dispatchEvent(new Event('pcb:board-refresh'));
+      router.refresh();
       toast.success(
         `Routage partiel : ${data.routed} pistes, ${data.zones} zone(s) GND, ${data.vias} via(s)`,
         {
@@ -430,6 +430,7 @@ export function ComponentSourcingPanel({
       }
       setFreeroutingInfo(null);
       window.dispatchEvent(new Event('pcb:board-refresh'));
+      router.refresh();
       toast.success(
         `Routage complet : ${data.tracks} pistes · ${data.drc?.violations ?? 0} violations DRC`,
         { duration: 12_000 },
@@ -443,7 +444,7 @@ export function ComponentSourcingPanel({
     } finally {
       setFreerouting(false);
     }
-  }, [projectId, startProgress, finishProgress]);
+  }, [projectId, router, startProgress, finishProgress]);
 
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.

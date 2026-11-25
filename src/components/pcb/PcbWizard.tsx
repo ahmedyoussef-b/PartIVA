@@ -1,28 +1,22 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { createKicadFile, repairKicadSync } from '@/lib/pcb/client/kicad-file';
 import { usePcbActionBus } from './PcbActionBus';
+import { usePcbLiveState } from './PcbLiveStateProvider';
 
 interface Props {
   projectId: string;
-  cdcValidated: boolean;
-  nextActionId: string;
-  kicadFilePath: string | null;
-  persistedComponents: number;
-  proposedComponents: number;
-  requirementsCount: number;
-  netsCount: number;
-  heuristicNets: number;
-  componentsCount: number;
-  footprints: number;
-  tracks: number;
-  zones: number;
-  compliant: boolean;
-  validatedSteps: string[];
-  drcViolations: number;
+}
+
+interface FileStatus {
+  inDb: boolean;
+  onDisk: boolean;
+  needsRepair: boolean;
+  path: string | null;
+  suggestedPath: string | null;
 }
 
 interface Step {
@@ -35,64 +29,50 @@ interface Step {
   blockedMessage: string;
 }
 
-export function PcbWizard({
-  projectId,
-  cdcValidated,
-  nextActionId,
-  kicadFilePath,
-  persistedComponents,
-  proposedComponents,
-  requirementsCount,
-  netsCount,
-  heuristicNets,
-  componentsCount,
-  footprints,
-  tracks,
-  zones,
-  compliant,
-  validatedSteps,
-  drcViolations,
-}: Props) {
+export function PcbWizard({ projectId }: Props) {
   const router = useRouter();
   const { run: runAction } = usePcbActionBus();
+  const { state, refresh } = usePcbLiveState();
   const [collapsed, setCollapsed] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [fileStatus, setFileStatus] = useState<{
-    inDb: boolean;
-    onDisk: boolean;
-    needsRepair: boolean;
-    path: string | null;
-    suggestedPath: string | null;
-  } | null>(null);
 
-  const checkFile = async () => {
+  // État serveur frais (polling 3 s) : le wizard avance dès que la BDD/le plateau change.
+  const {
+    cdcValidated,
+    nextActionId,
+    kicadFilePath,
+    persistedComponents,
+    proposedComponents,
+    requirementsCount,
+    netsCount,
+    heuristicNets,
+    componentsCount,
+    footprints,
+    tracks,
+    zones,
+    compliant,
+    validatedSteps,
+    drcViolations,
+  } = state;
+
+  const fileStatus: FileStatus = {
+    inDb: !!kicadFilePath,
+    onDisk: state.onDisk,
+    needsRepair: state.needsRepair,
+    path: kicadFilePath,
+    suggestedPath: state.suggestedPath,
+  };
+
+  // Vérification ponctuelle (création/réparation) ; le suivi continu est dans le provider.
+  const checkFile = async (): Promise<FileStatus | null> => {
     try {
       const res = await fetch(`/api/pcb/projects/${projectId}/board/status`);
       if (!res.ok) return null;
-      const data = (await res.json()) as typeof fileStatus;
-      setFileStatus(data);
-      return data;
+      return (await res.json()) as FileStatus;
     } catch {
       return null;
     }
   };
-
-  useEffect(() => {
-    // checkFile est asynchrone : le setState arrive après le fetch, pas pendant le rendu.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void checkFile();
-    const interval = window.setInterval(() => void checkFile(), 5000);
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') void checkFile();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      window.clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-    // Le polling est volontairement indépendant des props (état fichier serveur).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
 
   const ensureFile = async (): Promise<boolean> => {
     const status = (await checkFile()) ?? {
@@ -193,6 +173,7 @@ export function PcbWizard({
       try {
         await createKicadFile(projectId);
         await checkFile();
+        await refresh();
         router.refresh();
       } catch (e) {
         toast.error(e instanceof Error ? e.message : 'Création du fichier impossible');

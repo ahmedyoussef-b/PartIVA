@@ -144,23 +144,9 @@ function Btn({
   );
 }
 
+/** L'état détaillé du wizard est désormais fourni par PcbLiveStateProvider. */
 export type PcbWizardState = {
   projectId: string;
-  cdcValidated: boolean;
-  nextActionId: string;
-  kicadFilePath: string | null;
-  persistedComponents: number;
-  proposedComponents: number;
-  requirementsCount: number;
-  netsCount: number;
-  footprints: number;
-  tracks: number;
-  zones: number;
-  compliant: boolean;
-  heuristicNets: number;
-  componentsCount: number;
-  validatedSteps: string[];
-  drcViolations: number;
 };
 
 export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: PcbWizardState }) {
