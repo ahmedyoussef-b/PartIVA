@@ -493,6 +493,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — Étape B Freerouting : câblage final en attente de Java
+
+- **Prérequis vérifiés** : `java` absent, `tools/freerouting.jar` absent, `FREEROUTING_JAR` non défini. Exécution complète **non testable** à ce stade.
+- **Route `/api/pcb/autoroute/freerouting` finalisée** : `-mp <passes>` (défaut 10, configurable `FREEROUTING_PASSES`, borné 1–50), message d'erreur avec lien Adoptium/GitHub pour l'installation, et renvoi des `logs` stdout/stderr (4000 derniers caractères) en cas d'échec.
+- **UI** : le bandeau affiche les logs d'échec (`whitespace-pre-wrap`).
+- La chaîne d'exécution DSN → Freerouting → SES → DRC était déjà câblée en Étape A ; il ne manque que le JRE + le jar.
+- typecheck 0, lint 0, vitest 364/364, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
