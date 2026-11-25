@@ -14,6 +14,8 @@ import os
 import shutil
 import sys
 
+from net_assign import assign_nets
+
 try:
     import pcbnew
 except Exception as exc:
@@ -79,6 +81,27 @@ def import_ses(args):
     emit({"ok": True, "tracks": tracks, "board": board_path, "backup": backup})
 
 
+def assign_board_nets(args):
+    board_path = os.path.abspath(args.board)
+    if not os.path.isfile(board_path):
+        fail(f"plateau introuvable: {board_path}")
+    with open(os.path.abspath(args.nets), "r", encoding="utf-8") as fh:
+        nets = json.load(fh)
+    if not isinstance(nets, list):
+        fail("nets : tableau attendu")
+    board = load_board(board_path)
+    created, assigned, missing = assign_nets(board, nets, pcbnew)
+    backup = board_path + ".bak"
+    tmp = board_path + ".tmp"
+    try:
+        shutil.copy2(board_path, backup)
+        pcbnew.SaveBoard(tmp, board)
+        os.replace(tmp, board_path)
+    except Exception as exc:
+        fail(f"sauvegarde impossible: {exc}")
+    emit({"ok": True, "createdNets": created, "assignedPads": assigned, "missingPins": missing})
+
+
 def main():
     parser = argparse.ArgumentParser(description="Export DSN / import SES Specctra (KiCad 10)")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -88,13 +111,18 @@ def main():
     p_import = sub.add_parser("import-ses")
     p_import.add_argument("--board", required=True)
     p_import.add_argument("--ses", required=True)
+    p_assign = sub.add_parser("assign-nets")
+    p_assign.add_argument("--board", required=True)
+    p_assign.add_argument("--nets", required=True)
     args = parser.parse_args()
     if pcbnew is None:
         fail(f"module pcbnew indisponible ({PCBNEW_ERROR})")
     if args.command == "export-dsn":
         export_dsn(args)
-    else:
+    elif args.command == "import-ses":
         import_ses(args)
+    else:
+        assign_board_nets(args)
 
 
 if __name__ == "__main__":
