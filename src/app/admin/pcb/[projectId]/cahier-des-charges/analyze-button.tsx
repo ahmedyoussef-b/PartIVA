@@ -13,7 +13,13 @@ interface DivergenceView {
   reason: string;
 }
 
-export function AnalyzeButton({ projectId }: { projectId: string }) {
+export function AnalyzeButton({
+  projectId,
+  hasExisting = false,
+}: {
+  projectId: string;
+  hasExisting?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<{
@@ -30,7 +36,7 @@ export function AnalyzeButton({ projectId }: { projectId: string }) {
       const res = await fetch('/api/pcb/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId }),
+        body: JSON.stringify({ projectId, ...(hasExisting ? { force: true } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -63,7 +69,7 @@ export function AnalyzeButton({ projectId }: { projectId: string }) {
         ) : (
           <Sparkles className="mr-2 h-4 w-4" />
         )}
-        Analyser le cahier des charges
+        {hasExisting ? 'Re-analyser le cahier des charges' : 'Analyser le cahier des charges'}
       </Button>
 
       {report && report.divergences.length > 0 && (

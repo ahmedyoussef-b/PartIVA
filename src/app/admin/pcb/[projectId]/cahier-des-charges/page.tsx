@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { AnalyzeButton } from './analyze-button';
 import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
 import { RequirementValueEditor } from '@/components/pcb/RequirementValueEditor';
+import { hashKey } from '@/lib/utils/llm-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,13 @@ export default async function CahierDesChargesPage({
 
   const photos = Array.isArray(request?.photos) ? (request?.photos as unknown as string[]) : [];
 
+  // Une analyse est "à jour" si des exigences existent et que l'empreinte du
+  // CDC n'a pas changé depuis. Le bouton disparaît alors définitivement (y
+  // compris après un retour depuis le Layout PCB, la page étant force-dynamic).
+  const cdcText = request?.partDescription?.trim() || project.description?.trim() || '';
+  const analysisDone =
+    project.requirements.length > 0 && !!project.cdcHash && project.cdcHash === hashKey(cdcText);
+
   const quality = assessCdcQuality(
     project.requirements.map((r) => ({
       category: r.category,
@@ -112,7 +120,13 @@ export default async function CahierDesChargesPage({
             </p>
           </div>
         </div>
-        <AnalyzeButton projectId={projectId} />
+        {analysisDone ? (
+          <span className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
+            ✓ Analyse effectuée · {project.requirements.length} exigence(s)
+          </span>
+        ) : (
+          <AnalyzeButton projectId={projectId} hasExisting={project.requirements.length > 0} />
+        )}
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">

@@ -574,6 +574,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-25 (suite) — bouton Analyser masqué après résultat
+
+- La page CDC calcule `analysisDone = requirements.length > 0 && cdcHash === hashKey(cdc)` (même source que la route `/api/pcb/analyze`). Si vrai, le bouton est remplacé par un badge vert « ✓ Analyse effectuée · N exigence(s) ».
+- La page étant `force-dynamic`, un retour depuis le Layout PCB re-calcule l'état serveur : le bouton ne réapparaît pas. `AnalyzeButton` reçoit `hasExisting` pour afficher « Re-analyser… » et envoyer `force:true` uniquement si le CDC a changé.
+- Vérifié en BDD sur `cmwv7z3q` (18 exigences, hash `igcvyg`) et `cmwqu1s0` (10, `1y1ovk2`) : hash stocké = hash calculé → analyse à jour.
+- typecheck 0, lint 0, vitest 366/366, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
