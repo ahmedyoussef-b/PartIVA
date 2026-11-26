@@ -71,6 +71,9 @@ export async function GET(req: Request) {
         origin: parsed.origin,
         dimensions: parsed.dimensions,
         edges: parsed.edges ?? [],
+        tracks: parsed.tracks ?? [],
+        vias: parsed.vias ?? [],
+        zones: parsed.zones ?? [],
       },
       components: parsed.components.map((c) => ({
         reference: c.reference,

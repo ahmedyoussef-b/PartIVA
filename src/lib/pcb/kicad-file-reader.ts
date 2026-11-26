@@ -29,6 +29,29 @@ export interface ParsedGraphic {
   width?: number;
 }
 
+export interface ParsedTrack {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  width: number;
+  layer: string;
+  net?: string;
+}
+
+export interface ParsedVia {
+  x: number;
+  y: number;
+  size: number;
+  drill?: number;
+  layers: string[];
+  net?: string;
+}
+
+export interface ParsedZone {
+  layer: string;
+  net?: string;
+  points: Array<{ x: number; y: number }>;
+}
+
 export interface ParsedFootprint {
   library: string;
   name: string;
@@ -49,6 +72,9 @@ export interface ParsedKicadPcb {
   dimensions: { width: number; height: number };
   components: ParsedFootprint[];
   edges?: ParsedGraphic[];
+  tracks?: ParsedTrack[];
+  vias?: ParsedVia[];
+  zones?: ParsedZone[];
 }
 
 type Sexpr = string | Sexpr[];
@@ -356,6 +382,91 @@ function collectBoardEdges(node: Sexpr | undefined): ParsedGraphic[] {
   return edges;
 }
 
+/** Nom du net : KiCad 10 écrit `(net "GND")`, les anciens formats `(net 1)`. */
+function parseNetName(node: Sexpr | undefined): string | undefined {
+  const netNode = firstChild(node, 'net');
+  if (!netNode) return undefined;
+  return atom(netNode[1]) ?? undefined;
+}
+
+function parseTrack(node: Sexpr[]): ParsedTrack | null {
+  const start = firstChild(node, 'start');
+  const end = firstChild(node, 'end');
+  const x1 = num(start?.[1]);
+  const y1 = num(start?.[2]);
+  const x2 = num(end?.[1]);
+  const y2 = num(end?.[2]);
+  if (x1 === null || y1 === null || x2 === null || y2 === null) return null;
+
+  const widthNode = firstChild(node, 'width');
+  const layerNode = firstChild(node, 'layer');
+  return {
+    start: { x: x1, y: y1 },
+    end: { x: x2, y: y2 },
+    width: num(widthNode?.[1]) ?? 0.25,
+    layer: (layerNode ? atom(layerNode[1]) : null) ?? 'F.Cu',
+    net: parseNetName(node),
+  };
+}
+
+function parseVia(node: Sexpr[]): ParsedVia | null {
+  const at = parseAt(node);
+  if (!at) return null;
+
+  const sizeNode = firstChild(node, 'size');
+  const drillNode = firstChild(node, 'drill');
+  const layersNode = firstChild(node, 'layers');
+  const layers = layersNode
+    ? layersNode
+        .slice(1)
+        .map((l) => atom(l))
+        .filter((l): l is string => !!l)
+    : [];
+
+  return {
+    x: at.x,
+    y: at.y,
+    size: num(sizeNode?.[1]) ?? 0.6,
+    drill: num(drillNode?.[1]) ?? undefined,
+    layers,
+    net: parseNetName(node),
+  };
+}
+
+function parseZone(node: Sexpr[]): ParsedZone | null {
+  const layerNode = firstChild(node, 'layer');
+  let layer = (layerNode ? atom(layerNode[1]) : null) ?? '';
+
+  // Un contour rempli peut être stocké dans `filled_polygon` (avec sa couche)
+  // plutôt que dans `polygon`.
+  let polygon = firstChild(node, 'polygon');
+  if (!polygon) {
+    polygon = firstChild(node, 'filled_polygon');
+    if (polygon) {
+      const filledLayer = firstChild(polygon, 'layer');
+      if (filledLayer) layer = atom(filledLayer[1]) ?? layer;
+    }
+  }
+  if (!polygon) return null;
+
+  const pts = firstChild(polygon, 'pts');
+  if (!pts) return null;
+
+  const points: Array<{ x: number; y: number }> = [];
+  for (const xy of children(pts, 'xy')) {
+    const x = num(xy[1]);
+    const y = num(xy[2]);
+    if (x !== null && y !== null) points.push({ x, y });
+  }
+  if (points.length < 3) return null;
+
+  return {
+    layer: layer || 'F.Cu',
+    net: parseNetName(node),
+    points,
+  };
+}
+
 export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
   const text = typeof input === 'string' ? input : input.toString('utf-8');
   const tree = parseTokens(tokenize(text));
@@ -369,6 +480,9 @@ export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
       dimensions: { width: 0, height: 0 },
       components: [],
       edges: [],
+      tracks: [],
+      vias: [],
+      zones: [],
     };
   }
 
@@ -402,5 +516,15 @@ export function parseKicadPcb(input: string | Buffer): ParsedKicadPcb {
     if (parsed) components.push(parsed);
   }
 
-  return { version, generator, origin, dimensions, components, edges };
+  const tracks = children(root, 'segment')
+    .map(parseTrack)
+    .filter((t): t is ParsedTrack => t !== null);
+  const vias = children(root, 'via')
+    .map(parseVia)
+    .filter((v): v is ParsedVia => v !== null);
+  const zones = children(root, 'zone')
+    .map(parseZone)
+    .filter((z): z is ParsedZone => z !== null);
+
+  return { version, generator, origin, dimensions, components, edges, tracks, vias, zones };
 }

@@ -725,6 +725,18 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — processus complet « Lancer »
+
+- La carte Sourcing vide expose un bouton **Lancer** qui enchaîne composants (LLM) → placement optimisé → connexions → routage assisté → Freerouting (best-effort).
+- Pendant l'exécution, aucun affichage n'est déclenché (pas de `pcb:board-refresh`, pas de rechargement KiCad) ; un bouton **Afficher le résultat** en bas de la carte déclenche l'affichage (layout + KiCad).
+- KiCad est ouvert sous le nom du projet : action `show` renomme `carte-test.kicad_pcb` en `<projet>.kicad_pcb` (fermeture gracieuse puis réouverture).
+- Après un routage, la carte ne garde que **Relancer** et **3. Éditer la Netlist** ; les autres boutons sont masqués ; le per-composant « Valider et placer dans KiCad » reste disponible.
+- `KicadAutoOpen` ne relance plus KiCad automatiquement si le plateau est déjà routé (affichage gated par le bouton).
+- Le canvas rend maintenant pistes, vias et zones (toggle « Cuivre »).
+- typecheck 0, lint 0, vitest 386/386, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
