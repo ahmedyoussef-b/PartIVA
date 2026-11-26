@@ -190,10 +190,80 @@ function wireLength(components: PlacementComponent[], adj: Map<string, Set<strin
   return total / 2; // chaque arête comptée deux fois
 }
 
+// Densité globale : on évite que plusieurs composants se partagent la même
+// cellule, même sans chevauchement, pour réserver des canaux de routage.
+const GRID_COLS = 10;
+const GRID_ROWS = 10;
+const DENSITY_THRESHOLD = 3;
+const DENSITY_WEIGHT = 30;
+
+function densityPenalty(components: PlacementComponent[], board: PlacementBoard): number {
+  const ox = board.originX ?? 0;
+  const oy = board.originY ?? 0;
+  const cellWidth = board.widthMm / GRID_COLS;
+  const cellHeight = board.heightMm / GRID_ROWS;
+  if (cellWidth <= 0 || cellHeight <= 0) return 0;
+
+  const density: number[][] = Array.from({ length: GRID_COLS }, () =>
+    Array.from({ length: GRID_ROWS }, () => 0),
+  );
+  for (const comp of components) {
+    const col = Math.min(GRID_COLS - 1, Math.max(0, Math.floor((comp.xMm - ox) / cellWidth)));
+    const row = Math.min(GRID_ROWS - 1, Math.max(0, Math.floor((comp.yMm - oy) / cellHeight)));
+    density[col]![row]! += 1;
+  }
+
+  let penalty = 0;
+  for (const column of density) {
+    for (const count of column) {
+      if (count > DENSITY_THRESHOLD) {
+        penalty += DENSITY_WEIGHT * (count - DENSITY_THRESHOLD) ** 2;
+      }
+    }
+  }
+  return penalty;
+}
+
+// Orientation par flux de signal (Étape 5 roadmap).
+const CRITICAL_NET_RE = /(osc_in|osc_out|\bclk\b|clock|xtal|vcc|vdd|3v3|5v|rs485|uart|spi|i2c)/i;
+const ROTATION_WEIGHT = 20;
+
+function idealSignalRotation(
+  net: PlacementNet,
+  byRef: Map<string, PlacementComponent>,
+): number | null {
+  const refs = [...new Set(net.pins.map((p) => p.split('.')[0] ?? p))].filter((r) => byRef.has(r));
+  if (refs.length < 2) return null;
+  const first = byRef.get(refs[0]!)!;
+  const last = byRef.get(refs[refs.length - 1]!)!;
+  const angle = (Math.atan2(last.yMm - first.yMm, last.xMm - first.xMm) * 180) / Math.PI;
+  return (((Math.round(angle / 90) * 90) % 180) + 180) % 180;
+}
+
+function signalRotationPenalty(components: PlacementComponent[], nets: PlacementNet[]): number {
+  if (nets.length === 0) return 0;
+  const byRef = new Map(components.map((c) => [c.reference, c]));
+  let penalty = 0;
+  for (const net of nets) {
+    if (!CRITICAL_NET_RE.test(net.name)) continue;
+    const ideal = idealSignalRotation(net, byRef);
+    if (ideal === null) continue;
+    for (const comp of components) {
+      if (!net.pins.some((p) => p.split('.')[0] === comp.reference)) continue;
+      const current = ((comp.rotation % 180) + 180) % 180;
+      const delta = Math.abs(current - ideal);
+      const perpendicular = Math.min(delta, 180 - delta);
+      if (perpendicular > 45) penalty += ROTATION_WEIGHT * perpendicular;
+    }
+  }
+  return penalty;
+}
+
 export function calculateCost(
   components: PlacementComponent[],
   adj: Map<string, Set<string>>,
   board: PlacementBoard,
+  nets: PlacementNet[] = [],
 ): number {
   const ox = board.originX ?? 0;
   const oy = board.originY ?? 0;
@@ -301,6 +371,10 @@ export function calculateCost(
       c += 1000;
     }
   }
+  // Densité globale (canaux de routage réservés entre les blocs).
+  c += densityPenalty(components, board);
+  // Alignement avec l'axe des nets critiques.
+  c += signalRotationPenalty(components, nets);
   return c;
 }
 
@@ -514,6 +588,7 @@ function simulatedAnnealing(
   components: PlacementComponent[],
   adj: Map<string, Set<string>>,
   board: PlacementBoard,
+  nets: PlacementNet[],
   iterations = 300,
 ): void {
   const rng = (seed: number) => {
@@ -530,9 +605,9 @@ function simulatedAnnealing(
   const maxY = oy + board.heightMm;
 
   let best = cloneComponents(components);
-  let bestCost = calculateCost(best, adj, board);
+  let bestCost = calculateCost(best, adj, board, nets);
   const current = cloneComponents(components);
-  let currentCost = calculateCost(current, adj, board);
+  let currentCost = calculateCost(current, adj, board, nets);
 
   for (let i = 0; i < iterations; i++) {
     const t = 1 - i / iterations;
@@ -604,7 +679,7 @@ function simulatedAnnealing(
       }
     }
 
-    const newCost = calculateCost(current, adj, board);
+    const newCost = calculateCost(current, adj, board, nets);
     const delta = newCost - currentCost;
     const accept = delta < 0 || rng(i * 103 + 23) < Math.exp(-delta / temp);
 
@@ -635,7 +710,11 @@ function simulatedAnnealing(
  * rôle est connu sont alignés à 0° ; les autres gardent leur orientation
  * (le recuit reste libre d'optimiser leur rotation).
  */
-export function optimizeRotations(components: PlacementComponent[]): PlacementComponent[] {
+export function optimizeRotations(
+  components: PlacementComponent[],
+  nets: PlacementNet[] = [],
+): PlacementComponent[] {
+  const byRef = new Map(components.map((c) => [c.reference, c]));
   for (const c of components) {
     if (
       c.role === 'connector' ||
@@ -645,7 +724,15 @@ export function optimizeRotations(components: PlacementComponent[]): PlacementCo
       c.role === 'clock' ||
       c.role === 'serial'
     ) {
-      c.rotation = 0;
+      // Alignement sur l'axe du net critique le plus proche, sinon 0°.
+      let ideal: number | null = null;
+      for (const net of nets) {
+        if (!CRITICAL_NET_RE.test(net.name)) continue;
+        if (!net.pins.some((p) => p.split('.')[0] === c.reference)) continue;
+        ideal = idealSignalRotation(net, byRef);
+        if (ideal !== null) break;
+      }
+      c.rotation = ideal ?? 0;
     }
   }
   return components;
@@ -700,17 +787,17 @@ export function optimizePlacement(
   if (components.length === 0) return components;
   const adj = buildAdjacency(components, nets);
   const initial = cloneComponents(components);
-  const initialCost = calculateCost(initial, adj, board);
+  const initialCost = calculateCost(initial, adj, board, nets);
 
   // Étape 2 : passes séquentielles par blocs fonctionnels avant le recuit.
   placeSequentially(components, nets, board);
   const sequential = cloneComponents(components);
   let seed = sequential;
-  let seedCost = calculateCost(sequential, adj, board);
+  let seedCost = calculateCost(sequential, adj, board, nets);
 
   // Garantie de non-régression : on démarre du meilleur des trois états.
   forceDirected(components, adj, board, 30);
-  const forceCost = calculateCost(components, adj, board);
+  const forceCost = calculateCost(components, adj, board, nets);
   if (forceCost < seedCost) {
     seed = cloneComponents(components);
     seedCost = forceCost;
@@ -731,10 +818,10 @@ export function optimizePlacement(
     dst.movementRangeMm = src.movementRangeMm;
   }
 
-  simulatedAnnealing(components, adj, board, 800);
+  simulatedAnnealing(components, adj, board, nets, 800);
 
   // Le recuit ne doit jamais dégrader l'état de départ.
-  if (calculateCost(components, adj, board) > seedCost) {
+  if (calculateCost(components, adj, board, nets) > seedCost) {
     for (let i = 0; i < components.length; i += 1) {
       const src = seed[i]!;
       const dst = components[i]!;
@@ -749,7 +836,7 @@ export function optimizePlacement(
   }
 
   // Dernières passes : orientations logiques, chevauchements, arrondi.
-  optimizeRotations(components);
+  optimizeRotations(components, nets);
   resolveOverlaps(components, board);
 
   // Arrondir à la grille 1 mm (KiCad utilise 0.1mm min, 1mm pour l'approx)
