@@ -776,6 +776,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 3 DRC catégorisé
+
+- `drc.ts` étendu : `DrcViolationDetail` (type, sévérité, description, position, catégorie, suggestion), `categories` (placement/routage/fabrication/autre) et `preExisting` extrait du log Freerouting.
+- Classification : placement (courtyards_overlap, solder_mask_bridge), routage (clearance, unconnected_items, shorting_items, via_dangling), fabrication (silk_overlap, copper_edge_clearance, etc.).
+- API `runDrc(boardPath, reportPath?, routingLogs?)` ; le toast affiche le résumé catégorisé ; bouton « Voir les détails DRC » avec position et suggestion.
+- Test réel : 41 violations (11 placement / 30 routage / 0 fabrication), 11 non-connectés, 12 pré-existantes.
+- 6 tests DRC ajoutés (395 total).
+- typecheck 0, lint 0, vitest 395/395, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

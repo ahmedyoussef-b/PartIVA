@@ -86,6 +86,21 @@ function assertJsonResponse(res: Response): void {
   );
 }
 
+/** Résumé lisible des violations DRC catégorisées. */
+function formatDrcCategories(drc: {
+  categories?: Record<string, number>;
+  preExisting?: number;
+}): string | undefined {
+  const c = drc.categories;
+  if (!c) return undefined;
+  const parts: string[] = [];
+  if (c.placement) parts.push(`Placement : ${c.placement}`);
+  if (c.routage) parts.push(`Routage : ${c.routage}`);
+  if (c.fabrication) parts.push(`Fabrication : ${c.fabrication}`);
+  if (drc.preExisting) parts.push(`Pré-existantes : ${drc.preExisting}`);
+  return parts.length > 0 ? parts.join(' · ') : undefined;
+}
+
 export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
@@ -111,6 +126,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [resultShown, setResultShown] = useState(false);
   const [showingResult, setShowingResult] = useState(false);
   const [flowSummary, setFlowSummary] = useState<string | null>(null);
+  const [lastDrc, setLastDrc] = useState<{
+    details?: Array<{
+      type: string;
+      description: string;
+      x?: number;
+      y?: number;
+      category: string;
+      suggestion: string;
+    }>;
+    categories?: Record<string, number>;
+    preExisting?: number;
+  } | null>(null);
   const { start: startProgress, finish: finishProgress } = useActionProgress();
 
   // Le plateau doit exister avant tout placement : création automatique si absent.
@@ -579,6 +606,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         throw new Error(data.error || `Erreur ${res.status}`);
       }
       setFreeroutingInfo(null);
+      setLastDrc(data.drc ?? null);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
       await reloadKiCad();
@@ -588,9 +616,10 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         } violations DRC${typeof data.score === 'number' ? ` · Score : ${data.score}/1000` : ''}`,
         {
           description:
-            data.drc?.unconnected > 0
+            formatDrcCategories(data.drc ?? {}) ??
+            (data.drc?.unconnected > 0
               ? `${data.drc.unconnected} élément(s) encore non connecté(s).`
-              : undefined,
+              : undefined),
           duration: 12_000,
         },
       );
@@ -1118,9 +1147,29 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         </div>
       )}
       {fullRouted && (
-        <div className="border-t bg-gray-50 p-3 text-[11px] text-gray-500">
-          Le résultat est prêt : cliquez sur « Afficher les résultats » dans l&apos;en-tête
-          ci-dessus pour l&apos;afficher dans le layout et dans KiCad.
+        <div className="space-y-2 border-t bg-gray-50 p-3 text-[11px] text-gray-500">
+          <p>
+            Le résultat est prêt : cliquez sur « Afficher les résultats » dans l&apos;en-tête
+            ci-dessus pour l&apos;afficher dans le layout et dans KiCad.
+          </p>
+          {lastDrc && (lastDrc.details?.length ?? 0) > 0 && (
+            <details className="rounded border bg-white p-2">
+              <summary className="cursor-pointer font-semibold text-gray-700">
+                Voir les détails DRC ({lastDrc.details?.length})
+              </summary>
+              <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                {lastDrc.details?.map((v, i) => (
+                  <li key={`${v.type}-${i}`} className="rounded bg-gray-50 p-1.5">
+                    <span className="font-semibold">{v.category}</span> · {v.type}
+                    {typeof v.x === 'number' && typeof v.y === 'number'
+                      ? ` @ (${v.x.toFixed(1)}, ${v.y.toFixed(1)})`
+                      : ''}
+                    <div className="text-gray-500">{v.suggestion}</div>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </div>
       )}
       {netsEditorOpen && (

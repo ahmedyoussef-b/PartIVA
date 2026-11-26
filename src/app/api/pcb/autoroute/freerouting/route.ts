@@ -271,7 +271,7 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
-  const drc = await runDrc(boardPath);
+  const drc = await runDrc(boardPath, undefined, `${stdout}\n${stderr}`);
   const score = parseRoutingScore(`${stdout}\n${stderr}`);
   console.info('[FREEROUTING] Terminé', {
     projectId,
