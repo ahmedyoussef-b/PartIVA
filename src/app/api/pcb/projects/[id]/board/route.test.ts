@@ -8,9 +8,12 @@ const deleteNets = vi.fn();
 const deleteComponents = vi.fn();
 const deleteValidations = vi.fn();
 const updateProject = vi.fn();
+const updateProjectDirect = vi.fn();
 const existsSync = vi.fn();
 const mkdirSync = vi.fn();
 const readFileSync = vi.fn();
+const renameSync = vi.fn();
+const unlinkSync = vi.fn();
 const writeFileSync = vi.fn();
 const spawnSync = vi.fn();
 
@@ -24,7 +27,10 @@ const tx = {
 vi.mock('@/lib/auth-admin', () => ({ requireAdmin: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    pcbProject: { findUnique: (...args: unknown[]) => findUnique(...args) },
+    pcbProject: {
+      findUnique: (...args: unknown[]) => findUnique(...args),
+      update: (...args: unknown[]) => updateProjectDirect(...args),
+    },
     $transaction: (...args: unknown[]) => transaction(...args),
   },
 }));
@@ -36,6 +42,8 @@ vi.mock('node:fs', () => ({
   existsSync: (...args: unknown[]) => existsSync(...args),
   mkdirSync: (...args: unknown[]) => mkdirSync(...args),
   readFileSync: (...args: unknown[]) => readFileSync(...args),
+  renameSync: (...args: unknown[]) => renameSync(...args),
+  unlinkSync: (...args: unknown[]) => unlinkSync(...args),
   writeFileSync: (...args: unknown[]) => writeFileSync(...args),
 }));
 
@@ -60,7 +68,11 @@ describe('POST /api/pcb/projects/[id]/board — reset', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(requireAdmin).mockResolvedValue({ role: 'ADMIN' } as never);
-    findUnique.mockResolvedValue({ id: 'proj-1', kicadFilePath: 'C:/data/carte.kicad_pcb' });
+    findUnique.mockResolvedValue({
+      id: 'proj-1',
+      name: 'Projet Test',
+      kicadFilePath: 'C:/data/carte.kicad_pcb',
+    });
     existsSync.mockReturnValue(true);
     readFileSync.mockReturnValue('(kicad_pcb (footprint "R1"))');
     transaction.mockImplementation(async (cb: (t: typeof tx) => Promise<void>) => cb(tx));
@@ -68,6 +80,7 @@ describe('POST /api/pcb/projects/[id]/board — reset', () => {
     deleteComponents.mockResolvedValue({ count: 3 });
     deleteValidations.mockResolvedValue({ count: 1 });
     updateProject.mockResolvedValue({ id: 'proj-1' });
+    updateProjectDirect.mockResolvedValue({ id: 'proj-1' });
   });
 
   it('exige un administrateur', async () => {
@@ -147,5 +160,29 @@ describe('POST /api/pcb/projects/[id]/board — reset', () => {
       '(kicad_pcb (footprint "R1"))',
       'utf8',
     );
+  });
+
+  it('affiche le résultat sous le nom du projet (show)', async () => {
+    vi.stubEnv('PARTIVA_DESKTOP', '1');
+    existsSync.mockImplementation((p: string) => !String(p).endsWith('.lck'));
+    spawnSync.mockReturnValue({ stdout: '1', stderr: '', status: 0 });
+    findUnique.mockResolvedValue({
+      id: 'proj-1',
+      name: 'Carte Test',
+      kicadFilePath: 'C:/data/carte-test.kicad_pcb',
+    });
+    const res = await post('show');
+    expect(res.status).toBe(200);
+    expect(renameSync).toHaveBeenCalledWith(
+      'C:/data/carte-test.kicad_pcb',
+      expect.stringContaining('Carte Test.kicad_pcb'),
+    );
+    expect(updateProjectDirect).toHaveBeenCalledWith({
+      where: { id: 'proj-1' },
+      data: { kicadFilePath: expect.stringContaining('Carte Test.kicad_pcb') },
+    });
+    const body = (await res.json()) as { kicadFilePath: string; renamed: boolean };
+    expect(body.renamed).toBe(true);
+    expect(body.kicadFilePath).toContain('Carte Test.kicad_pcb');
   });
 });

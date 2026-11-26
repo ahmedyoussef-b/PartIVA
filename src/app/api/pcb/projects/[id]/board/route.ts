@@ -1,4 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@/generated/prisma/client';
@@ -108,6 +115,18 @@ function stripFootprints(content: string): string {
   return out.endsWith('\n') ? out : out + '\n';
 }
 
+function boardFileName(name: string): string {
+  const cleaned = name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  const base = cleaned.length > 0 ? cleaned : 'carte';
+  return `${base}.kicad_pcb`;
+}
+
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
@@ -126,13 +145,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const b = (body ?? {}) as Record<string, unknown>;
   const action = typeof b.action === 'string' ? b.action : 'open';
   const source = b.source === 'manual' ? 'manual' : 'auto';
-  if (action !== 'open' && action !== 'reset' && action !== 'launch' && action !== 'reload') {
+  if (
+    action !== 'open' &&
+    action !== 'reset' &&
+    action !== 'launch' &&
+    action !== 'reload' &&
+    action !== 'show'
+  ) {
     return NextResponse.json({ error: 'action invalide' }, { status: 400 });
   }
 
   const project = await prisma.pcbProject.findUnique({
     where: { id },
-    select: { id: true, kicadFilePath: true },
+    select: { id: true, kicadFilePath: true, name: true },
   });
   if (!project) return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
 
@@ -152,6 +177,54 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       ok: true,
       action,
       kicadFilePath: abs,
+      closedWindows: closed.closed,
+      lockReleased: closed.released,
+    });
+  }
+
+  // `show` : affiche le résultat complet sous le nom du projet. Le fichier
+  // courant (`carte-test.kicad_pcb`) est fermé, renommé `<projet>.kicad_pcb`
+  // et rouvert dans KiCad. Le chemin est mis à jour en base.
+  if (action === 'show') {
+    const boardPath = project.kicadFilePath?.trim();
+    if (!boardPath) return NextResponse.json({ ok: false, reason: 'no-file' }, { status: 200 });
+    const abs = path.isAbsolute(boardPath) ? boardPath : path.join(process.cwd(), boardPath);
+    if (!existsSync(abs)) {
+      return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
+    }
+    const closed = await closeBoardInDesktop(abs);
+    const target = path.join(path.dirname(abs), boardFileName(project.name ?? 'carte'));
+    let renamed = false;
+    try {
+      if (path.resolve(target) !== path.resolve(abs)) {
+        if (existsSync(target)) unlinkSync(target);
+        renameSync(abs, target);
+        renamed = true;
+      }
+      await prisma.pcbProject.update({
+        where: { id },
+        data: { kicadFilePath: target },
+      });
+    } catch (e) {
+      if (renamed) {
+        try {
+          renameSync(target, abs);
+        } catch {
+          // restauration impossible — l'erreur d'origine reste remontée
+        }
+      }
+      console.error('[PCB:BOARD] show', e);
+      return NextResponse.json(
+        { error: e instanceof Error ? e.message : 'Renommage impossible' },
+        { status: 500 },
+      );
+    }
+    openBoardInDesktop(target);
+    return NextResponse.json({
+      ok: true,
+      action,
+      kicadFilePath: target,
+      renamed,
       closedWindows: closed.closed,
       lockReleased: closed.released,
     });

@@ -169,7 +169,11 @@ export default async function PcbProjectPage({
         </span>
       </div>
 
-      <KicadAutoOpen projectId={projectId} kicadFilePath={project.kicadFilePath} />
+      <KicadAutoOpen
+        projectId={projectId}
+        kicadFilePath={project.kicadFilePath}
+        hasResult={wizardState.tracks > 0 || wizardState.zones > 0}
+      />
       <PcbEditorProvider>
         <PcbLiveStateProvider projectId={projectId} initial={wizardState}>
           <ActionProgressProvider>

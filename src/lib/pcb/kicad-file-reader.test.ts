@@ -18,6 +18,29 @@ const EMPTY_BOARD = `(kicad_pcb
 )
 `;
 
+const ROUTED_BOARD = `(kicad_pcb
+	(version 20241229)
+	(generator "pcbnew")
+	(paper "A4")
+	(gr_line (start 0 0) (end 100 0) (stroke (width 0.05) (type solid)) (layer "Edge.Cuts") (uuid "00000000-0000-0000-0000-000000000001"))
+	(gr_line (start 100 0) (end 100 80) (stroke (width 0.05) (type solid)) (layer "Edge.Cuts") (uuid "00000000-0000-0000-0000-000000000002"))
+	(gr_line (start 100 80) (end 0 80) (stroke (width 0.05) (type solid)) (layer "Edge.Cuts") (uuid "00000000-0000-0000-0000-000000000003"))
+	(gr_line (start 0 80) (end 0 0) (stroke (width 0.05) (type solid)) (layer "Edge.Cuts") (uuid "00000000-0000-0000-0000-000000000004"))
+	(segment
+		(start 10 10) (end 20 10)
+		(width 0.25) (layer "F.Cu") (net "VCC") (uuid "11111111-0000-0000-0000-000000000001")
+	)
+	(via
+		(at 15 15) (size 0.6) (drill 0.3)
+		(layers "F.Cu" "B.Cu") (net "GND") (uuid "22222222-0000-0000-0000-000000000002")
+	)
+	(zone
+		(net "GND") (layer "B.Cu")
+		(polygon (pts (xy 0 0) (xy 100 0) (xy 100 80) (xy 0 80)))
+	)
+)
+`;
+
 describe('parseKicadPcb', () => {
   const board = parseKicadPcb(readFileSync(fixturePath, 'utf-8'));
 
@@ -52,6 +75,23 @@ describe('parseKicadPcb', () => {
     const fromBuffer = parseKicadPcb(readFileSync(fixturePath));
     expect(fromBuffer.components).toHaveLength(1);
     expect(fromBuffer.dimensions).toEqual({ width: 100, height: 80 });
+  });
+
+  it("parse les pistes, vias et zones d'un plateau routé", () => {
+    const board = parseKicadPcb(ROUTED_BOARD);
+    expect(board.tracks).toHaveLength(1);
+    expect(board.tracks?.[0]?.start).toEqual({ x: 10, y: 10 });
+    expect(board.tracks?.[0]?.end).toEqual({ x: 20, y: 10 });
+    expect(board.tracks?.[0]?.layer).toBe('F.Cu');
+    expect(board.tracks?.[0]?.net).toBe('VCC');
+    expect(board.vias).toHaveLength(1);
+    expect(board.vias?.[0]?.x).toBe(15);
+    expect(board.vias?.[0]?.size).toBe(0.6);
+    expect(board.vias?.[0]?.net).toBe('GND');
+    expect(board.zones).toHaveLength(1);
+    expect(board.zones?.[0]?.layer).toBe('B.Cu');
+    expect(board.zones?.[0]?.net).toBe('GND');
+    expect(board.zones?.[0]?.points).toHaveLength(4);
   });
 
   it('ne leve pas sur un plateau vide (sans Edge.Cuts ni footprint)', () => {

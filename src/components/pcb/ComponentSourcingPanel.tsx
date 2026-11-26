@@ -105,6 +105,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [netsEditorOpen, setNetsEditorOpen] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [heuristicNets, setHeuristicNets] = useState(0);
+  const [fullFlowRunning, setFullFlowRunning] = useState(false);
+  const [fullFlowDone, setFullFlowDone] = useState(false);
+  const fullRouted = fullFlowDone || (liveState.tracks ?? 0) > 0 || (liveState.zones ?? 0) > 0;
+  const [resultShown, setResultShown] = useState(false);
+  const [showingResult, setShowingResult] = useState(false);
+  const [flowSummary, setFlowSummary] = useState<string | null>(null);
   const { start: startProgress, finish: finishProgress } = useActionProgress();
 
   // Le plateau doit exister avant tout placement : création automatique si absent.
@@ -506,7 +512,10 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
   // Placement global partagé : utilisé par « Optimiser la répartition » et
   // directement par « Générer les composants » pour poser la BOM sur le layout.
-  const placeComponents = async (items: Selection[]) => {
+  const placeComponents = async (
+    items: Selection[],
+    opts: { display?: boolean; markPlaced?: boolean } = {},
+  ) => {
     await ensureBoard();
     const res = await fetch('/api/pcb/place/batch', {
       method: 'POST',
@@ -563,12 +572,16 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     if (!persistRes.ok)
       console.warn('Persist global échoué', await persistRes.json().catch(() => ({})));
 
-    setPlaced(
-      Object.fromEntries(items.map((_, idx) => [idx, `${data.placed ?? items.length} placé(s)`])),
-    );
-    window.dispatchEvent(new Event('pcb:board-refresh'));
-    router.refresh();
-    await reloadKiCad();
+    if (opts.markPlaced !== false) {
+      setPlaced(
+        Object.fromEntries(items.map((_, idx) => [idx, `${data.placed ?? items.length} placé(s)`])),
+      );
+    }
+    if (opts.display !== false) {
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      router.refresh();
+      await reloadKiCad();
+    }
     return data as { placed?: number; liveSynced?: boolean; movedTracks?: number };
   };
 
@@ -592,6 +605,117 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       toast.error(e instanceof Error ? e.message : 'Optimisation de la répartition impossible');
     } finally {
       setPlacingAll(false);
+    }
+  };
+
+  const showResult = useCallback(async () => {
+    setShowingResult(true);
+    try {
+      const res = await fetch(`/api/pcb/projects/${projectId}/board`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'show' }),
+      });
+      assertJsonResponse(res);
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      setResultShown(true);
+      router.refresh();
+      toast.success('Résultat affiché dans le layout et dans KiCad', {
+        description: data.kicadFilePath ? String(data.kicadFilePath) : undefined,
+        duration: 10_000,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Affichage impossible', { duration: 12_000 });
+    } finally {
+      setShowingResult(false);
+    }
+  }, [projectId, router]);
+
+  const runFullFlow = async (displayAfter: boolean) => {
+    if (fullFlowRunning) return;
+    setFullFlowRunning(true);
+    setFlowSummary(null);
+    setResultShown(false);
+    startProgress('Processus complet : composants (LLM)');
+    try {
+      await ensureBoard();
+      const sourced = await fetchComponents(false, true);
+      if (sourced.components.length === 0) throw new Error('Aucun composant proposé par le LLM');
+      setComponents(sourced.components);
+      setSelections({});
+      setPlaceErrors({});
+      setNetsMissing(sourced.netsMissing);
+
+      startProgress('Processus complet : placement sur le layout');
+      const items = sourced.components.map((comp, idx) => optionFor(comp, idx, {}));
+      await placeComponents(items, { display: false, markPlaced: false });
+
+      startProgress('Processus complet : connexions (GND/VCC)');
+      const netsRes = await fetch('/api/pcb/requirements/nets-only', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      assertJsonResponse(netsRes);
+      const netsData = await netsRes.json();
+      if (!netsRes.ok || !netsData.ok)
+        throw new Error(netsData.error || `Erreur ${netsRes.status}`);
+      setNetsMissing(false);
+      setHeuristicNets(netsData.heuristicCount ?? 0);
+
+      startProgress('Processus complet : routage assisté');
+      const routeRes = await fetch('/api/pcb/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      assertJsonResponse(routeRes);
+      const routeData = await routeRes.json();
+      if (!routeRes.ok || !routeData.ok)
+        throw new Error(routeData.error || `Erreur ${routeRes.status}`);
+
+      let freeroute: {
+        tracks?: number;
+        wires?: number;
+        drc?: { violations?: number; unconnected?: number };
+      } | null = null;
+      let freerouteError: string | null = null;
+      try {
+        startProgress('Processus complet : routage avancé (Freerouting)');
+        const freeRes = await fetch('/api/pcb/autoroute/freerouting', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId }),
+        });
+        assertJsonResponse(freeRes);
+        const freeData = await freeRes.json();
+        if (freeRes.ok && freeData.ok) freeroute = freeData;
+        else freerouteError = freeData.error ?? `Erreur ${freeRes.status}`;
+      } catch (e) {
+        freerouteError = e instanceof Error ? e.message : 'Freerouting indisponible';
+      }
+
+      const summary = freeroute
+        ? `Routage complet : ${freeroute.tracks ?? 0} pistes · ${freeroute.wires ?? 0} connexions · ${freeroute.drc?.violations ?? 0} violation(s) DRC`
+        : `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND${freerouteError ? ' · Freerouting indisponible' : ''}`;
+      setFlowSummary(summary);
+      setFullFlowDone(true);
+      finishProgress('done');
+      toast.success('Processus complet terminé', {
+        description: `${summary}${freerouteError ? ` (${freerouteError})` : ''}`,
+        duration: 15_000,
+      });
+      router.refresh();
+      if (displayAfter) await showResult();
+    } catch (e) {
+      finishProgress('error');
+      toast.error(e instanceof Error ? e.message : 'Processus complet impossible', {
+        duration: 15_000,
+      });
+    } finally {
+      setFullFlowRunning(false);
     }
   };
 
@@ -626,16 +750,16 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           )}
           <button
             type="button"
-            title="Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
+            title="Processus complet : composants, connexions et routage"
             className={`rounded border px-2 py-0.5 text-xs font-normal ${
               activeAction === 'components'
                 ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
                 : ''
             }`}
-            onClick={handleRegenerate}
-            disabled={regenerating}
+            onClick={() => runFullFlow(false)}
+            disabled={fullFlowRunning}
           >
-            {regenerating ? 'Génération…' : 'Lancer'}
+            {fullFlowRunning ? 'Processus…' : 'Lancer'}
           </button>
         </div>
       </div>
@@ -651,75 +775,107 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             À cliquer →
           </span>
         )}
-        {/* Ordre logique du parcours : composants -> connexions -> correction ->
-            placement -> pistes -> routage avancé. */}
-        <button
-          type="button"
-          title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
-          className={`rounded border px-2 py-0.5 text-xs font-normal ${
-            activeAction === 'components' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-          }`}
-          onClick={handleRegenerate}
-          disabled={regenerating}
-        >
-          {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
-        </button>
-        <button
-          type="button"
-          title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
-          className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
-            activeAction === 'nets' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-          }`}
-          onClick={handleGenerateNetsOnly}
-          disabled={generatingNets}
-        >
-          {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
-        </button>
-        <button
-          type="button"
-          title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-          className={`rounded border px-2 py-0.5 text-xs font-normal ${
-            activeAction === 'edit-netlist'
-              ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-              : ''
-          }`}
-          onClick={() => setNetsEditorOpen(true)}
-        >
-          3. Éditer la Netlist
-        </button>
-        <button
-          type="button"
-          title="4. Optimiser la répartition des composants sur le plateau"
-          className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
-            activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-          }`}
-          onClick={handlePlaceAll}
-          disabled={placingAll}
-        >
-          {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
-        </button>
-        <button
-          type="button"
-          title="5. Tracer les pistes et la zone GND"
-          className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
-            activeAction === 'route' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-          }`}
-          onClick={handleRouteBoard}
-          disabled={routing}
-        >
-          {routing ? 'Routage…' : '5. Router la carte'}
-        </button>
-        <button
-          type="button"
-          title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
-          className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
-            activeAction === 'freeroute' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-          }`}
-          onClick={handleFreeroute}
-          disabled={freerouting}
-        >
-          {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
-        </button>
+        {fullRouted ? (
+          <>
+            <button
+              type="button"
+              title="Relancer le processus complet : composants, connexions, routage"
+              className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
+              onClick={() => runFullFlow(true)}
+              disabled={fullFlowRunning}
+            >
+              {fullFlowRunning ? 'Processus…' : 'Relancer'}
+            </button>
+            <button
+              type="button"
+              title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+              className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                activeAction === 'edit-netlist'
+                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                  : ''
+              }`}
+              onClick={() => setNetsEditorOpen(true)}
+            >
+              3. Éditer la Netlist
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Ordre logique du parcours : composants -> connexions -> correction ->
+                placement -> pistes -> routage avancé. */}
+            <button
+              type="button"
+              title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
+              className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                activeAction === 'components'
+                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                  : ''
+              }`}
+              onClick={handleRegenerate}
+              disabled={regenerating}
+            >
+              {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
+            </button>
+            <button
+              type="button"
+              title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
+              className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
+                activeAction === 'nets' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
+              }`}
+              onClick={handleGenerateNetsOnly}
+              disabled={generatingNets}
+            >
+              {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
+            </button>
+            <button
+              type="button"
+              title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+              className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                activeAction === 'edit-netlist'
+                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                  : ''
+              }`}
+              onClick={() => setNetsEditorOpen(true)}
+            >
+              3. Éditer la Netlist
+            </button>
+            <button
+              type="button"
+              title="4. Optimiser la répartition des composants sur le plateau"
+              className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
+                activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
+              }`}
+              onClick={handlePlaceAll}
+              disabled={placingAll}
+            >
+              {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
+            </button>
+            <button
+              type="button"
+              title="5. Tracer les pistes et la zone GND"
+              className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
+                activeAction === 'route' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
+              }`}
+              onClick={handleRouteBoard}
+              disabled={routing}
+            >
+              {routing ? 'Routage…' : '5. Router la carte'}
+            </button>
+            <button
+              type="button"
+              title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
+              className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
+                activeAction === 'freeroute'
+                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                  : ''
+              }`}
+              onClick={handleFreeroute}
+              disabled={freerouting}
+            >
+              {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
+            </button>
+          </>
+        )}
       </div>
       {netsMissing && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
@@ -829,6 +985,31 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           );
         })}
       </div>
+      {flowSummary && (
+        <div className="border-b border-green-200 bg-green-50 p-2 text-xs text-green-800">
+          {flowSummary}
+        </div>
+      )}
+      {fullRouted && (
+        <div className="border-t bg-gray-50 p-3">
+          <button
+            type="button"
+            onClick={showResult}
+            disabled={showingResult || fullFlowRunning}
+            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+          >
+            {showingResult
+              ? 'Affichage…'
+              : resultShown
+                ? 'Réafficher le résultat'
+                : 'Afficher le résultat'}
+          </button>
+          <p className="mt-1 text-[11px] text-gray-500">
+            Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d&apos;après
+            le projet. Sinon, validez et placez les composants un par un avec les boutons ci-dessus.
+          </p>
+        </div>
+      )}
       {netsEditorOpen && (
         <NetlistEditorModal
           projectId={projectId}

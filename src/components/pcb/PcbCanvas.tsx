@@ -38,6 +38,27 @@ type BoardComponent = {
   pads: Pad[];
   graphics: Graphic[];
 };
+type BoardTrack = {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  width: number;
+  layer: string;
+  net?: string;
+};
+type BoardVia = {
+  x: number;
+  y: number;
+  size: number;
+  drill?: number;
+  layers: string[];
+  net?: string;
+};
+type BoardZone = {
+  layer: string;
+  net?: string;
+  points: Array<{ x: number; y: number }>;
+};
+
 type BoardNet = {
   name: string;
   pins: string[];
@@ -48,6 +69,9 @@ type BoardData = {
     origin: { x: number; y: number };
     dimensions: { width: number; height: number };
     edges: Graphic[];
+    tracks?: BoardTrack[];
+    vias?: BoardVia[];
+    zones?: BoardZone[];
   };
   components: BoardComponent[];
   nets?: BoardNet[];
@@ -162,6 +186,7 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
   const [showRefs, setShowRefs] = React.useState(true);
   const [showFab, setShowFab] = React.useState(false);
   const [showNets, setShowNets] = React.useState(true);
+  const [showCopper, setShowCopper] = React.useState(true);
   const [mode, setMode] = React.useState<'pan' | 'move'>('pan');
   const [dragComp, setDragComp] = React.useState<{
     ref: string;
@@ -268,6 +293,51 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
     if ((data?.board?.edges ?? []).length === 0)
       ctx.strokeRect(sx(ox), sy(oy), bw * scale, bh * scale);
 
+    // Cuivre : zones, pistes et vias.
+    if (showCopper) {
+      // Zones (pleines, sous les pistes)
+      for (const zone of data?.board?.zones ?? []) {
+        if ((zone.points ?? []).length < 3) continue;
+        ctx.beginPath();
+        ctx.moveTo(sx(zone.points[0]!.x), sy(zone.points[0]!.y));
+        for (let i = 1; i < zone.points.length; i++) {
+          ctx.lineTo(sx(zone.points[i]!.x), sy(zone.points[i]!.y));
+        }
+        ctx.closePath();
+        const isBack = zone.layer === 'B.Cu';
+        ctx.fillStyle = isBack ? 'rgba(77,139,216,0.18)' : 'rgba(224,108,90,0.18)';
+        ctx.fill();
+        ctx.strokeStyle = isBack ? 'rgba(120,170,230,0.55)' : 'rgba(230,140,120,0.55)';
+        ctx.lineWidth = Math.max(0.6, 0.05 * scale);
+        ctx.stroke();
+      }
+      // Pistes
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (const track of data?.board?.tracks ?? []) {
+        ctx.strokeStyle =
+          track.layer === 'F.Cu' ? '#e06c5a' : track.layer === 'B.Cu' ? '#4d8bd8' : '#b58cff';
+        ctx.lineWidth = Math.max(0.8, track.width * scale);
+        ctx.beginPath();
+        ctx.moveTo(sx(track.start.x), sy(track.start.y));
+        ctx.lineTo(sx(track.end.x), sy(track.end.y));
+        ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      // Vias
+      for (const via of data?.board?.vias ?? []) {
+        const r = Math.max(1.5, (via.size * scale) / 2);
+        ctx.fillStyle = '#d8b45a';
+        ctx.beginPath();
+        ctx.arc(sx(via.x), sy(via.y), r, 0, Math.PI * 2);
+        ctx.fill();
+        const drill = via.drill ?? via.size / 2;
+        ctx.fillStyle = '#0a0a0a';
+        ctx.beginPath();
+        ctx.arc(sx(via.x), sy(via.y), Math.max(0.6, (drill * scale) / 2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
     // Ratsnest : lignes pointillées entre composants connectés par un net.
     if (showNets) {
       const byRef = new Map(comps.map((c) => [c.reference, c]));
@@ -386,6 +456,7 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
     showRefs,
     showFab,
     showNets,
+    showCopper,
     dragComp,
     busyRef,
   ]);
@@ -601,6 +672,9 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
           </Btn>
           <Btn active={showNets} onClick={() => setShowNets((v) => !v)} title="Ratsnest (nets)">
             Nets
+          </Btn>
+          <Btn active={showCopper} onClick={() => setShowCopper((v) => !v)} title="Pistes et zones">
+            Cuivre
           </Btn>
           <Btn onClick={fetchBoard} title="Rafraîchir">
             Rafraîchir
