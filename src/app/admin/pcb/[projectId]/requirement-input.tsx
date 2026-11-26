@@ -15,10 +15,10 @@ export function RequirementInput({
   kicadFilePath?: string | null;
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState<'open' | 'reset' | 'reload' | null>(null);
+  const [loading, setLoading] = useState<'open' | 'reset' | null>(null);
   const hasFile = !!kicadFilePath?.trim();
 
-  const run = async (action: 'open' | 'reset' | 'reload') => {
+  const run = async (action: 'open' | 'reset') => {
     try {
       setLoading(action);
       const res = await fetch(`/api/pcb/projects/${projectId}/board`, {
@@ -31,13 +31,9 @@ export function RequirementInput({
       toast.success(
         action === 'open'
           ? 'Nouveau fichier KiCad créé'
-          : action === 'reload'
-            ? `Plateau rechargé dans KiCad${
-                data.closedWindows > 0 ? ` · ${data.closedWindows} fenêtre(s) fermée(s)` : ''
-              }`
-            : `Plateau réinitialisé — composants, nets et validations effacés, CDC conservé${
-                data.closedWindows > 0 ? ` · ${data.closedWindows} fenêtre(s) KiCad fermée(s)` : ''
-              }`,
+          : `Plateau réinitialisé — composants, nets et validations effacés, CDC conservé${
+              data.closedWindows > 0 ? ` · ${data.closedWindows} fenêtre(s) KiCad fermée(s)` : ''
+            }`,
         { duration: 8_000 },
       );
       window.dispatchEvent(new Event('pcb:board-refresh'));
@@ -64,14 +60,6 @@ export function RequirementInput({
           </Button>
         ) : (
           <>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => run('reload')}
-              disabled={loading !== null}
-            >
-              {loading === 'reload' ? 'Rechargement…' : 'Recharger dans KiCad'}
-            </Button>
             <Button
               size="sm"
               variant="destructive"

@@ -708,6 +708,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — carte CDC simplifiée
+
+- Suppression du bouton « Recharger dans KiCad » de la carte **Cahier des charges** (le rechargement reste disponible là où il est utile : placement et étapes du wizard).
+- La carte ne garde que « Consulter cahier des charges », « Ouvrir un nouveau fichier » (si absent) et « Reset ».
+- typecheck 0, lint 0, vitest 384/384, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
