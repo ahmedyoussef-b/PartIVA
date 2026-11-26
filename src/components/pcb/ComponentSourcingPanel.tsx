@@ -585,7 +585,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       toast.success(
         `Routage complet : ${data.tracks} pistes · ${data.wires ?? 0} connexions routées · ${
           data.drc?.violations ?? 0
-        } violations DRC`,
+        } violations DRC${typeof data.score === 'number' ? ` · Score : ${data.score}/1000` : ''}`,
         {
           description:
             data.drc?.unconnected > 0

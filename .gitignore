@@ -137,5 +137,6 @@ data/pcb-work/
 
 # Freerouting binaire local (jar 65 Mo — fourni par l'admin, jamais commité)
 tools/*.jar
+tools/*.bak
 __pycache__/
 *.pyc

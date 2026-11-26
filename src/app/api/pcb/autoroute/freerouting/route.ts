@@ -13,7 +13,7 @@ import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 export const runtime = 'nodejs';
 
 const execFileAsync = promisify(execFile);
-const ROUTING_TIMEOUT_MS = 5 * 60 * 1000;
+const ROUTING_TIMEOUT_MS = 10 * 60 * 1000;
 
 function optimizationPasses(): number {
   const value = Number(process.env.FREEROUTING_PASSES ?? '10');
@@ -31,7 +31,14 @@ function freeroutingJar(): string | null {
 }
 
 function javaBinary(): string {
-  return process.env.FREEROUTING_JAVA?.trim() || 'java';
+  const configured = process.env.FREEROUTING_JAVA?.trim();
+  if (configured) return configured;
+  // Freerouting v2.6.0 est compilé en Java 25 : privilégier un JDK 25 présent.
+  const candidates = [
+    'C:/Program Files/Eclipse Adoptium/jdk-25.0.5.10002-hotspot/bin/java.exe',
+    'C:/Program Files/Eclipse Adoptium/jdk-21.0.13.10002-hotspot/bin/java.exe',
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) ?? 'java';
 }
 
 /**
@@ -66,6 +73,15 @@ function sanitizeDsn(dsnPath: string): number {
 function countSesWires(sesPath: string): number {
   const text = readFileSync(sesPath, 'utf8');
   return (text.match(/\(wire\b/g) ?? []).length;
+}
+
+/** Extrait le score 0-1000 du log Freerouting v2.6 (best-effort). */
+function parseRoutingScore(logs: string): number | null {
+  const match = logs.match(/(?:routing\s+)?score\s*[:=]\s*(\d+(?:\.\d+)?)/i);
+  if (!match) return null;
+  const value = Number.parseFloat(match[1] ?? '');
+  if (!Number.isFinite(value)) return null;
+  return Math.max(0, Math.min(1000, Math.round(value)));
 }
 
 async function javaAvailable(): Promise<boolean> {
@@ -186,16 +202,35 @@ export async function POST(req: Request) {
   }
 
   const sesPath = `${boardPath.replace(/\.kicad_pcb$/i, '')}.ses`;
+  const passes = optimizationPasses();
+  let stdout = '';
+  let stderr = '';
   try {
-    const passes = optimizationPasses();
-    await execFileAsync(
+    const result = await execFileAsync(
       javaBinary(),
-      ['-jar', jar, '-de', dsnPath, '-do', sesPath, '-mp', String(passes), '--gui.enabled=false'],
-      { timeout: ROUTING_TIMEOUT_MS, maxBuffer: 20 * 1024 * 1024 },
+      [
+        '-jar',
+        jar,
+        '-de',
+        dsnPath,
+        '-do',
+        sesPath,
+        '--router.autorouter.max_passes',
+        String(passes),
+        '--router.autorouter.ignore_net_classes',
+        'GND,VCC',
+        '--router.copperToEdgeClearanceUm=500',
+        '--gui.enabled=false',
+      ],
+      { timeout: ROUTING_TIMEOUT_MS, maxBuffer: 50 * 1024 * 1024 },
     );
+    stdout = result.stdout ?? '';
+    stderr = result.stderr ?? '';
   } catch (error) {
-    console.error('[FREEROUTING] Échec', error);
     const failed = error as { message?: string; stdout?: string; stderr?: string };
+    if (!stdout) stdout = failed.stdout ?? '';
+    if (!stderr) stderr = failed.stderr ?? '';
+    console.error('[FREEROUTING] Échec', error);
     const logs = [failed.stdout, failed.stderr].filter(Boolean).join('\n').slice(-4000);
     return NextResponse.json(
       {
@@ -237,10 +272,12 @@ export async function POST(req: Request) {
     );
   }
   const drc = await runDrc(boardPath);
+  const score = parseRoutingScore(`${stdout}\n${stderr}`);
   console.info('[FREEROUTING] Terminé', {
     projectId,
     tracks: imported.tracks ?? 0,
     violations: drc.violations,
+    score,
   });
   return NextResponse.json({
     ok: true,
@@ -249,6 +286,7 @@ export async function POST(req: Request) {
     missingPins,
     wires,
     sanitizedChars,
+    score,
     drc,
     dsn: dsnPath,
     ses: sesPath,

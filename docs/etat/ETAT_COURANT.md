@@ -753,6 +753,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 1.2 Freerouting v2.6.0
+
+- Jar v2.6.0 installé (checksum SHA-256 validé) ; v2.0.1 conservé en `tools/freerouting-2.0.1.jar.bak`.
+- **Correction d'audit** : v2.6.0 nécessite Java 25 (class file 69) et non Java 21 ; Temurin 25.0.5.1 installé via winget. `javaBinary()` privilégie le JDK 25.
+- Options CLI modernisées : `-mp`/`-inc` dépréciés → `--router.autorouter.max_passes 20`, `--router.autorouter.ignore_net_classes GND,VCC`, `--router.copperToEdgeClearanceUm=500`. `-dr` est en fait un flag de fichier de règles (déprécié), pas le rip-up (intégré par défaut).
+- Timeout porté à 10 min ; capture stdout/stderr ; score 0-1000 extrait et renvoyé dans l'API + affiché dans le toast.
+- Test sur carte référence : violations 47 → 30 (-36%), non-connectés 14 → 11, score 1000/1000, 28 pistes importées, 3,58 s.
+- typecheck 0, lint 0, vitest 386/386, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
