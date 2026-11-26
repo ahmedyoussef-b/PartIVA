@@ -808,26 +808,25 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   if (components.length === 0) {
     return (
       <div className="rounded-lg border bg-white">
-        <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-          <span>Sourcing</span>
-          {activeAction === 'components' && (
-            <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-              À cliquer →
-            </span>
-          )}
-          <button
-            type="button"
-            title="Processus complet : composants, connexions et routage"
-            className={`rounded border px-2 py-0.5 text-xs font-normal ${
-              activeAction === 'components'
-                ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                : ''
-            }`}
-            onClick={() => runFullFlow(false)}
-            disabled={fullFlowRunning}
-          >
-            {fullFlowRunning ? 'Processus…' : 'Lancer'}
-          </button>
+        <div className="flex flex-col gap-2 border-b bg-gray-50 p-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <span>Sourcing</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              title="Processus complet : composants, connexions et routage"
+              className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                activeAction === 'components'
+                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                  : ''
+              }`}
+              onClick={() => runFullFlow(false)}
+              disabled={fullFlowRunning}
+            >
+              {fullFlowRunning ? 'Processus…' : 'Lancer'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -835,127 +834,126 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   return (
     <div className="rounded-lg border bg-white">
-      <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-        <span>Sourcing ({components.length})</span>
-        {activeAction && (
-          <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-            À cliquer →
-          </span>
-        )}
-        {fullRouted ? (
-          <>
-            <button
-              type="button"
-              title="Relancer le processus complet : composants, connexions, routage"
-              className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
-              onClick={() => runFullFlow(true)}
-              disabled={fullFlowRunning}
-            >
-              {fullFlowRunning ? 'Processus…' : 'Relancer'}
-            </button>
-            <button
-              type="button"
-              title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-              className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                activeAction === 'edit-netlist'
-                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                  : ''
-              }`}
-              onClick={() => setNetsEditorOpen(true)}
-            >
-              Éditer la Netlist
-            </button>
-            <button
-              type="button"
-              title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
-              className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
-              onClick={showResult}
-              disabled={showingResult || fullFlowRunning}
-            >
-              {showingResult
-                ? 'Affichage…'
-                : resultShown
-                  ? 'Réafficher les résultats'
-                  : 'Afficher les résultats'}
-            </button>
-          </>
-        ) : (
-          <>
-            {/* Ordre logique du parcours : composants -> connexions -> correction ->
+      <div className="flex flex-col gap-2 border-b bg-gray-50 p-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <span>Sourcing ({components.length})</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {fullRouted ? (
+            <>
+              <button
+                type="button"
+                title="Relancer le processus complet : composants, connexions, routage"
+                className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
+                onClick={() => runFullFlow(true)}
+                disabled={fullFlowRunning}
+              >
+                {fullFlowRunning ? 'Processus…' : 'Relancer'}
+              </button>
+              <button
+                type="button"
+                title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
+                className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
+                onClick={showResult}
+                disabled={showingResult || fullFlowRunning}
+              >
+                {showingResult
+                  ? 'Affichage…'
+                  : resultShown
+                    ? 'Réafficher les résultats'
+                    : 'Afficher les résultats'}
+              </button>
+              <button
+                type="button"
+                title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+                className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                  activeAction === 'edit-netlist'
+                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                    : ''
+                }`}
+                onClick={() => setNetsEditorOpen(true)}
+              >
+                Éditer la Netlist
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Ordre logique du parcours : composants -> connexions -> correction ->
                 placement -> pistes -> routage avancé. */}
-            <button
-              type="button"
-              title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
-              className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                activeAction === 'components'
-                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                  : ''
-              }`}
-              onClick={handleRegenerate}
-              disabled={regenerating}
-            >
-              {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
-            </button>
-            <button
-              type="button"
-              title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
-              className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
-                activeAction === 'nets' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-              }`}
-              onClick={handleGenerateNetsOnly}
-              disabled={generatingNets}
-            >
-              {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
-            </button>
-            <button
-              type="button"
-              title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-              className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                activeAction === 'edit-netlist'
-                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                  : ''
-              }`}
-              onClick={() => setNetsEditorOpen(true)}
-            >
-              Éditer la Netlist
-            </button>
-            <button
-              type="button"
-              title="4. Optimiser la répartition des composants sur le plateau"
-              className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
-                activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-              }`}
-              onClick={handlePlaceAll}
-              disabled={placingAll}
-            >
-              {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
-            </button>
-            <button
-              type="button"
-              title="5. Tracer les pistes et la zone GND"
-              className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
-                activeAction === 'route' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-              }`}
-              onClick={handleRouteBoard}
-              disabled={routing}
-            >
-              {routing ? 'Routage…' : '5. Router la carte'}
-            </button>
-            <button
-              type="button"
-              title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
-              className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
-                activeAction === 'freeroute'
-                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                  : ''
-              }`}
-              onClick={handleFreeroute}
-              disabled={freerouting}
-            >
-              {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
-            </button>
-          </>
-        )}
+              <button
+                type="button"
+                title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
+                className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                  activeAction === 'components'
+                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                    : ''
+                }`}
+                onClick={handleRegenerate}
+                disabled={regenerating}
+              >
+                {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
+              </button>
+              <button
+                type="button"
+                title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
+                className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
+                  activeAction === 'nets' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
+                }`}
+                onClick={handleGenerateNetsOnly}
+                disabled={generatingNets}
+              >
+                {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
+              </button>
+              <button
+                type="button"
+                title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+                className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                  activeAction === 'edit-netlist'
+                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                    : ''
+                }`}
+                onClick={() => setNetsEditorOpen(true)}
+              >
+                Éditer la Netlist
+              </button>
+              <button
+                type="button"
+                title="4. Optimiser la répartition des composants sur le plateau"
+                className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
+                  activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
+                }`}
+                onClick={handlePlaceAll}
+                disabled={placingAll}
+              >
+                {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
+              </button>
+              <button
+                type="button"
+                title="5. Tracer les pistes et la zone GND"
+                className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
+                  activeAction === 'route' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
+                }`}
+                onClick={handleRouteBoard}
+                disabled={routing}
+              >
+                {routing ? 'Routage…' : '5. Router la carte'}
+              </button>
+              <button
+                type="button"
+                title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
+                className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
+                  activeAction === 'freeroute'
+                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                    : ''
+                }`}
+                onClick={handleFreeroute}
+                disabled={freerouting}
+              >
+                {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
       {netsMissing && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
