@@ -294,12 +294,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const summary = `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`;
       setFlowSummary(summary);
       setFullFlowDone(true);
+      await showResult();
       toast.success('Placement manuel terminé — connexions et pistes tracées', {
         description: summary,
         duration: 12_000,
       });
       finishProgress('done');
-      router.refresh();
     } catch (e) {
       finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Routage impossible', { duration: 12_000 });
@@ -381,6 +381,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         console.warn('Persist error', pe);
       }
 
+      const wasLast = components.length > 0 && components.every((_, i) => i === idx || !!placed[i]);
+
       setPlaced((prev) => ({
         ...prev,
         [idx]: `${data.placed ?? 0} placé(s) · ${data.verified ?? 0} vérifié(s)`,
@@ -391,7 +393,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const relY = finalY - BOARD_ORIGIN_Y;
       addNode(sym, Math.round(relX * PX_PER_MM), Math.round(relY * PX_PER_MM));
       window.dispatchEvent(new Event('pcb:board-refresh'));
-      await reloadKiCad();
       toast.success('Composant placé ; pistes connectées déplacées avec lui', {
         description:
           data.movedTracks > 0
@@ -401,6 +402,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               : 'Fenêtre KiCad rouverte sur le plateau à jour.',
       });
       finishProgress('done');
+      if (wasLast) {
+        void runPostPlacementPipeline();
+      }
     } catch (e) {
       finishProgress('error');
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
