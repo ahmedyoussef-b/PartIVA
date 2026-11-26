@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { PcbWizard } from './PcbWizard';
+import { Pcb3DViewer } from './Pcb3DViewer';
 
 type Pad = {
   number: string;
@@ -187,6 +188,7 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
   const [showFab, setShowFab] = React.useState(false);
   const [showNets, setShowNets] = React.useState(true);
   const [showCopper, setShowCopper] = React.useState(true);
+  const [view3d, setView3d] = React.useState(false);
   const [mode, setMode] = React.useState<'pan' | 'move'>('pan');
   const [dragComp, setDragComp] = React.useState<{
     ref: string;
@@ -679,6 +681,9 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
           <Btn onClick={fetchBoard} title="Rafraîchir">
             Rafraîchir
           </Btn>
+          <Btn active={view3d} onClick={() => setView3d((v) => !v)} title="Vue 3D du PCB">
+            Vue 3D
+          </Btn>
           <Btn onClick={openInKicad} title="Ouvrir dans KiCad">
             KiCad
           </Btn>
@@ -694,20 +699,28 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
           {error && <span className="text-red-500">{error}</span>}
         </div>
       )}
-      <div
-        ref={wrapperRef}
-        className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700 bg-[#111315]"
-        onWheel={onWheel}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseLeave}
-      >
-        <canvas
-          ref={canvasRef}
-          className={`absolute inset-0 block h-full w-full ${mode === 'move' ? (dragComp ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-grab active:cursor-grabbing'}`}
-        />
-      </div>
+      {view3d ? (
+        projectId ? (
+          <Pcb3DViewer projectId={projectId} />
+        ) : (
+          <div className="flex-1 text-sm text-gray-400">Projet requis pour la vue 3D.</div>
+        )
+      ) : (
+        <div
+          ref={wrapperRef}
+          className="relative min-h-[300px] w-full flex-1 overflow-hidden rounded border border-gray-700 bg-[#111315]"
+          onWheel={onWheel}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseLeave}
+        >
+          <canvas
+            ref={canvasRef}
+            className={`absolute inset-0 block h-full w-full ${mode === 'move' ? (dragComp ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-grab active:cursor-grabbing'}`}
+          />
+        </div>
+      )}
       <div className="mt-1 flex items-center justify-between gap-3 text-xs text-gray-500">
         <span className="shrink-0">
           {cursorMm
