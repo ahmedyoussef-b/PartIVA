@@ -3,8 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { createKicadFile, repairKicadSync } from '@/lib/pcb/client/kicad-file';
-import { usePcbActionBus } from './PcbActionBus';
+import { repairKicadSync } from '@/lib/pcb/client/kicad-file';
 import { usePcbLiveState } from './PcbLiveStateProvider';
 
 interface Props {
@@ -31,8 +30,7 @@ interface Step {
 
 export function PcbWizard({ projectId }: Props) {
   const router = useRouter();
-  const { run: runAction } = usePcbActionBus();
-  const { state, refresh } = usePcbLiveState();
+  const { state } = usePcbLiveState();
   const [collapsed, setCollapsed] = useState(false);
   const [validating, setValidating] = useState(false);
 
@@ -41,8 +39,6 @@ export function PcbWizard({ projectId }: Props) {
     cdcValidated,
     nextActionId,
     kicadFilePath,
-    persistedComponents,
-    proposedComponents,
     requirementsCount,
     netsCount,
     heuristicNets,
@@ -72,34 +68,6 @@ export function PcbWizard({ projectId }: Props) {
     } catch {
       return null;
     }
-  };
-
-  const ensureFile = async (): Promise<boolean> => {
-    const status = (await checkFile()) ?? {
-      inDb: !!kicadFilePath,
-      onDisk: false,
-      needsRepair: false,
-      path: kicadFilePath,
-      suggestedPath: null,
-    };
-    if (status.inDb) return true;
-    toast.error("Créez d'abord le fichier KiCad", {
-      action: {
-        label: 'Créer le fichier',
-        onClick: async () => {
-          try {
-            await createKicadFile(projectId);
-            await checkFile();
-            router.refresh();
-            toast.success('Fichier KiCad créé');
-          } catch (e) {
-            toast.error(e instanceof Error ? e.message : 'Création impossible');
-          }
-        },
-      },
-      duration: 10000,
-    });
-    return false;
   };
 
   const steps: Step[] = [
@@ -155,91 +123,57 @@ export function PcbWizard({ projectId }: Props) {
   const validatedCount = steps.filter((s) => validatedSteps.includes(s.id)).length;
   const canValidate = current.done && !validatedSteps.includes(current.id);
 
-  // Libellé issu du même calcul côté serveur que le surlignage du bouton.
-  const nextLabels: Record<string, string> = {
-    analyze: 'Analyser le cahier des charges',
-    components: 'Générer les composants',
-    nets: 'Générer les nets',
-    'edit-netlist': 'Corriger la netlist',
-    place: 'Tout placer',
-    route: 'Router la carte',
-    review: 'Vérifier la conformité',
+  // Le wizard GUIDE : il ne déclenche jamais l'action. Il nomme le bouton exact
+  // à actionner (libellés alignés sur ComponentSourcingPanel) et le panneau de
+  // droite le met en évidence via `nextActionId`.
+  const nextGuidance: Record<string, { label: string; button: string; where: string }> = {
+    analyze: {
+      label: 'Analyser le cahier des charges',
+      button: 'Analyser',
+      where: 'dans la page Cahier des charges',
+    },
+    components: {
+      label: 'Générer les composants',
+      button: '1. Générer les composants (LLM)',
+      where: 'dans le panneau Sourcing (droite)',
+    },
+    nets: {
+      label: 'Générer les nets',
+      button: '2. Générer les nets (GND/VCC)',
+      where: 'dans le panneau Sourcing (droite)',
+    },
+    'edit-netlist': {
+      label: 'Corriger la netlist',
+      button: '3. Éditer la Netlist',
+      where: 'dans le panneau Sourcing (droite)',
+    },
+    place: {
+      label: 'Tout placer',
+      button: '4. Tout placer (optimisé)',
+      where: 'dans le panneau Sourcing (droite)',
+    },
+    route: {
+      label: 'Router la carte',
+      button: '5. Router la carte',
+      where: 'dans le panneau Sourcing (droite)',
+    },
+    review: {
+      label: 'Vérifier la conformité',
+      button: 'Revue / Conformité',
+      where: 'dans le panneau de droite',
+    },
   };
-  const nextAction = { id: nextActionId, label: nextLabels[nextActionId] ?? 'Étape suivante' };
-
-  const goNext = async () => {
-    // Entrée dans le Sourcing : le fichier plateau est créé automatiquement.
-    if (!kicadFilePath) {
-      try {
-        await createKicadFile(projectId);
-        await checkFile();
-        await refresh();
-        router.refresh();
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : 'Création du fichier impossible');
-        return;
-      }
-    }
-    if (!runAction(nextAction.id)) {
-      toast.error('Action indisponible — rechargez la page');
-    }
+  const nextAction = nextGuidance[nextActionId] ?? {
+    label: 'Étape suivante',
+    button: '…',
+    where: 'dans le panneau de droite',
   };
 
-  const goTo = async (step: Step) => {
+  // Navigation uniquement : on amène l'utilisateur à la carte Concernée,
+  // sans exécuter l'action à sa place.
+  const goTo = (step: Step) => {
     if (!step.prerequisite) {
       toast.error(step.blockedMessage, { duration: 8000 });
-      return;
-    }
-    // Matrice des séquences : chaque prérequis manquant propose son action de secours.
-    if (step.id === 'nets') {
-      if (!(await ensureFile())) return;
-      if (persistedComponents === 0) {
-        toast.error(
-          proposedComponents > 0
-            ? 'Les composants ne sont pas sauvegardés'
-            : 'Générez d’abord les composants (sourcing)',
-          {
-            action: {
-              label: proposedComponents > 0 ? 'Tout placer (persister)' : 'Régénérer le sourcing',
-              onClick: () => runAction(proposedComponents > 0 ? 'place' : 'components'),
-            },
-            duration: 10000,
-          },
-        );
-        return;
-      }
-    }
-    if (step.id === 'placement' && netsCount === 0) {
-      toast.error('Générez les nets d’abord', {
-        action: {
-          label: 'Générer les nets',
-          onClick: () => runAction('nets'),
-        },
-        duration: 10000,
-      });
-      return;
-    }
-    if (step.id === 'routing') {
-      if (!(await ensureFile())) return;
-      if (footprints === 0) {
-        toast.error('Placez les composants d’abord', {
-          action: {
-            label: 'Tout placer',
-            onClick: () => runAction('place'),
-          },
-          duration: 10000,
-        });
-        return;
-      }
-    }
-    if (step.id === 'review' && tracks === 0) {
-      toast.error('Routez la carte d’abord', {
-        action: {
-          label: 'Router la carte',
-          onClick: () => runAction('route'),
-        },
-        duration: 10000,
-      });
       return;
     }
     const el = document.getElementById(step.target);
@@ -362,40 +296,33 @@ export function PcbWizard({ projectId }: Props) {
 
       {heuristicNets > 0 && (
         <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-[11px] text-blue-900">
-          {heuristicNets} net(s) inféré(s) automatiquement. Vérifiez-les avant de continuer.
-          <button
-            type="button"
-            className="ml-2 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white"
-            onClick={() => runAction('edit-netlist')}
-          >
-            Éditer la Netlist
-          </button>
+          {heuristicNets} net(s) inféré(s) automatiquement. Vérifiez-les avec le bouton « 3. Éditer
+          la Netlist » du panneau Sourcing avant de continuer.
         </div>
       )}
 
-      <div className="mt-2 flex items-center justify-between gap-2 rounded bg-blue-50 px-2 py-1.5">
-        <p className="min-w-0 truncate text-[11px] text-blue-900">
+      <div className="mt-2 rounded border border-blue-300 bg-blue-50 px-2 py-1.5">
+        <p className="text-[11px] text-blue-900">
           <span className="font-semibold">À faire :</span> {nextAction.label}
         </p>
-        <div className="flex shrink-0 gap-1">
-          {canValidate && (
-            <button
-              type="button"
-              onClick={validate}
-              disabled={validating}
-              className="rounded bg-green-600 px-2 py-0.5 text-[11px] font-semibold text-white"
-            >
-              {validating ? '…' : 'Valider'}
-            </button>
-          )}
+        <p className="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-semibold text-blue-800">
+          <span className="animate-pulse text-sm">→</span>
+          Cliquez sur{' '}
+          <span className="rounded bg-blue-700 px-1.5 py-0.5 text-[10px] text-white">
+            {nextAction.button}
+          </span>{' '}
+          {nextAction.where} — ce bouton est surligné en bleu.
+        </p>
+        {canValidate && (
           <button
             type="button"
-            onClick={() => void goNext()}
-            className="rounded bg-blue-600 px-2 py-0.5 text-[11px] font-semibold text-white"
+            onClick={validate}
+            disabled={validating}
+            className="mt-1.5 rounded bg-green-600 px-2 py-0.5 text-[11px] font-semibold text-white"
           >
-            {nextAction.label} →
+            {validating ? '…' : 'Valider cette étape'}
           </button>
-        </div>
+        )}
       </div>
 
       {tracks > 0 && (
@@ -404,23 +331,10 @@ export function PcbWizard({ projectId }: Props) {
           <p className="text-gray-600">
             {tracks} pistes · {drcViolations} violations DRC · {componentsCount} composants
           </p>
-          <div className="mt-1 flex gap-2">
-            <button
-              type="button"
-              disabled
-              title="Disponible en Phase 5 — export fabrication"
-              className="rounded border px-2 py-0.5 text-[10px] text-gray-400"
-            >
-              Exporter pour fabrication
-            </button>
-            <button
-              type="button"
-              onClick={() => runAction('freeroute')}
-              className="rounded border border-blue-300 px-2 py-0.5 text-[10px] text-blue-700"
-            >
-              Re-router
-            </button>
-          </div>
+          <p className="mt-1 text-[10px] text-gray-600">
+            Pour un routage complet, actionnez « 6. Routage complet (Freerouting) » dans le panneau
+            Sourcing. Export fabrication : Phase 5.
+          </p>
         </div>
       )}
     </section>

@@ -659,6 +659,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — wizard guide uniquement
+
+- Le wizard n'exécute plus aucune action : suppression de `goNext`, des boutons d'action et des toasts avec `onClick` qui déclenchaient une étape. Il ne fait plus que naviguer (`goTo`) et valider l'étape.
+- Guidage explicite : pour chaque étape, le wizard affiche le **libellé exact du bouton** à actionner et où le trouver ; le panneau Sourcing met ce bouton en évidence (anneau bleu pulsé + badge « À cliquer → »).
+- `PcbActionBus` supprimé (plus aucun consommateur) ainsi que son provider et les `register` morts ; le surlignage repose uniquement sur `nextActionId` partagé par `PcbLiveStateProvider`.
+- typecheck 0, lint 0, vitest 376/376, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

@@ -7,7 +7,6 @@ import { usePcbEditor } from './PcbEditorProvider';
 import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
 import { createKicadFile } from '@/lib/pcb/client/kicad-file';
-import { usePcbActionBus } from './PcbActionBus';
 import { usePcbLiveState } from './PcbLiveStateProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
@@ -75,7 +74,6 @@ function symbolFor(reference: string): ResolvedComponent {
 export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
-  const { register } = usePcbActionBus();
   const { state: liveState } = usePcbLiveState();
   const activeAction = liveState.nextActionId;
   const [loading, setLoading] = useState(true);
@@ -545,38 +543,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
-  const handleAnalyzeCdc = useCallback(async () => {
-    startProgress('1. Analyse du cahier des charges');
-    try {
-      const res = await fetch('/api/pcb/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
-      toast.success(`${data.count ?? 0} exigence(s) analysée(s)`);
-      finishProgress('done');
-      router.refresh();
-    } catch (e) {
-      finishProgress('error');
-      toast.error(e instanceof Error ? e.message : 'Analyse impossible');
-    }
-  }, [projectId, router, startProgress, finishProgress]);
-
-  // Le wizard appelle exactement ces mêmes fonctions via le bus d'actions.
-  useEffect(() => {
-    register('analyze', () => void handleAnalyzeCdc());
-    register('components', () => void handleRegenerate());
-    register('nets', () => void handleGenerateNetsOnly());
-    register('edit-netlist', () => setNetsEditorOpen(true));
-    register('place', () => void handlePlaceAll());
-    register('route', () => void handleRouteBoard());
-    register('freeroute', () => void handleFreeroute());
-    register('reroute', () => void handleFreeroute());
-    register('create-file', () => void ensureBoard());
-  });
-
   if (loading) {
     return (
       <div className="rounded-lg border bg-white p-4 text-sm text-gray-500">
@@ -612,8 +578,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
         <span>Sourcing composants ({components.length})</span>
         {activeAction && (
-          <span className="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-            Étape en cours
+          <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            À cliquer →
           </span>
         )}
         {/* Ordre logique du parcours : composants -> connexions -> correction ->
@@ -622,7 +588,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           type="button"
           title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
           className={`rounded border px-2 py-0.5 text-xs font-normal ${
-            activeAction === 'components' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+            activeAction === 'components' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
           }`}
           onClick={handleRegenerate}
           disabled={regenerating}
@@ -633,7 +599,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           type="button"
           title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
           className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
-            activeAction === 'nets' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+            activeAction === 'nets' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
           }`}
           onClick={handleGenerateNetsOnly}
           disabled={generatingNets}
@@ -644,7 +610,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           type="button"
           title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
           className={`rounded border px-2 py-0.5 text-xs font-normal ${
-            activeAction === 'edit-netlist' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+            activeAction === 'edit-netlist'
+              ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+              : ''
           }`}
           onClick={() => setNetsEditorOpen(true)}
         >
@@ -654,7 +622,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           type="button"
           title="4. Placer les composants avec la netlist complète"
           className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
-            activeAction === 'place' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+            activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
           }`}
           onClick={handlePlaceAll}
           disabled={placingAll}
@@ -665,7 +633,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           type="button"
           title="5. Tracer les pistes et la zone GND"
           className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
-            activeAction === 'route' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+            activeAction === 'route' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
           }`}
           onClick={handleRouteBoard}
           disabled={routing}
@@ -676,7 +644,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           type="button"
           title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
           className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
-            activeAction === 'freeroute' ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+            activeAction === 'freeroute' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
           }`}
           onClick={handleFreeroute}
           disabled={freerouting}
