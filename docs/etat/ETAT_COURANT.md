@@ -737,6 +737,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — correction affichage + placement manuel
+
+- Le processus complet affiche le bouton « Afficher le résultat » dès la fin du routage assisté (Freerouting continue en arrière-plan) ; le bouton reste désactivé jusqu'à la fin totale.
+- Option manuelle : après le dernier « Valider et placer dans KiCad », les connexions et le routage se tracent automatiquement et le résultat s'affiche sous le nom du projet.
+- typecheck 0, lint 0, vitest 386/386, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
