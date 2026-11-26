@@ -1,10 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-admin';
+import {
+  closeBoardInDesktop,
+  isBoardOpenInKicad,
+  openBoardInDesktop,
+} from '@/lib/pcb/kicad-desktop';
 
 export const runtime = 'nodejs';
 
@@ -59,79 +63,6 @@ function workRoot(): string {
   const appdata = process.env.APPDATA;
   if (appdata) return path.join(appdata, 'PartIVA');
   return path.join(process.cwd(), 'data');
-}
-
-/// KiCad pose `~<fichier>.lck` tant que le plateau est ouvert. On s'en sert pour
-/// éviter qu'un rechargement de page n'ouvre une seconde fenêtre sur le même projet.
-function isBoardOpenInKicad(absPath: string): boolean {
-  return existsSync(path.join(path.dirname(absPath), `~${path.basename(absPath)}.lck`));
-}
-
-/**
- * Ferme gracieusement (WM_CLOSE, jamais taskkill) la fenêtre KiCad qui affiche
- * le plateau du travail précédent. Le nom de fichier est passé par variable
- * d'environnement pour éviter toute injection dans le script PowerShell.
- */
-async function closeBoardInDesktop(
-  absPath: string,
-): Promise<{ closed: number; released: boolean }> {
-  if (process.env.PARTIVA_DESKTOP !== '1' || process.platform !== 'win32') {
-    return { closed: 0, released: true };
-  }
-  const fileName = path.basename(absPath);
-  const script = [
-    '$name = $env:PARTIVA_BOARD_NAME',
-    "if (-not $name) { Write-Output '0'; exit }",
-    '$procs = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {',
-    "  ($_.ProcessName -ieq 'pcbnew' -or $_.ProcessName -ieq 'kicad') -and",
-    '  $_.MainWindowTitle -and',
-    '  $_.MainWindowTitle.IndexOf($name, [System.StringComparison]::OrdinalIgnoreCase) -ge 0',
-    '})',
-    '$closed = 0',
-    'foreach ($p in $procs) { try { if ($p.CloseMainWindow()) { $closed++ } } catch {} }',
-    'Write-Output ([string]$closed)',
-  ].join('\n');
-
-  let closed = 0;
-  try {
-    const result = spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', script], {
-      env: { ...process.env, PARTIVA_BOARD_NAME: fileName },
-      encoding: 'utf8',
-      timeout: 10_000,
-      windowsHide: true,
-    });
-    closed = Number.parseInt(String(result.stdout ?? '').trim(), 10) || 0;
-  } catch (e) {
-    console.warn('[PCB:BOARD] fermeture KiCad impossible', e);
-  }
-
-  // KiCad supprime son `.lck` à la fermeture : on attend cette libération avant
-  // de réécrire le plateau, sinon son état mémoire peut écraser le fichier vide.
-  const lockPath = path.join(path.dirname(absPath), `~${path.basename(absPath)}.lck`);
-  for (let i = 0; i < 20 && existsSync(lockPath); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-  }
-  return { closed, released: !existsSync(lockPath) };
-}
-
-function openBoardInDesktop(absPath: string): void {
-  if (process.env.PARTIVA_DESKTOP !== '1') return;
-  try {
-    if (process.platform === 'win32') {
-      const child = spawn('cmd', ['/c', 'start', '', absPath], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-      });
-      child.unref();
-      return;
-    }
-    const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-    const child = spawn(cmd, [absPath], { detached: true, stdio: 'ignore' });
-    child.unref();
-  } catch (e) {
-    console.warn('[PCB:BOARD] open board failed', e);
-  }
 }
 
 function stripFootprints(content: string): string {
@@ -195,7 +126,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const b = (body ?? {}) as Record<string, unknown>;
   const action = typeof b.action === 'string' ? b.action : 'open';
   const source = b.source === 'manual' ? 'manual' : 'auto';
-  if (action !== 'open' && action !== 'reset' && action !== 'launch') {
+  if (action !== 'open' && action !== 'reset' && action !== 'launch' && action !== 'reload') {
     return NextResponse.json({ error: 'action invalide' }, { status: 400 });
   }
 
@@ -204,6 +135,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     select: { id: true, kicadFilePath: true },
   });
   if (!project) return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
+
+  // `reload` : KiCad ne recharge pas un fichier modifié en externe. On ferme
+  // gracieusement la fenêtre puis on rouvre le plateau courant pour refléter
+  // l'état réel après nets / placement / routage.
+  if (action === 'reload') {
+    const boardPath = project.kicadFilePath?.trim();
+    if (!boardPath) return NextResponse.json({ ok: false, reason: 'no-file' }, { status: 200 });
+    const abs = path.isAbsolute(boardPath) ? boardPath : path.join(process.cwd(), boardPath);
+    if (!existsSync(abs)) {
+      return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
+    }
+    const closed = await closeBoardInDesktop(abs);
+    openBoardInDesktop(abs);
+    return NextResponse.json({
+      ok: true,
+      action,
+      kicadFilePath: abs,
+      closedWindows: closed.closed,
+      lockReleased: closed.released,
+    });
+  }
 
   if (action === 'launch') {
     const boardPath = project.kicadFilePath?.trim();

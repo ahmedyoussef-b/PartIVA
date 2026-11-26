@@ -649,6 +649,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — KiCad reflète enfin les étapes du layout
+
+- **Symptôme** : le canvas « Layout PCB » était à jour, mais la fenêtre KiCad restait sur le plateau vide car elle ne recharge pas un fichier modifié en externe.
+- **`kicad-desktop.ts`** : helpers partagés (fermeture gracieuse `CloseMainWindow`, attente `.lck`, ouverture) extraits de la route Board.
+- **`action: 'reload'`** sur `POST /api/pcb/projects/[id]/board` : ferme la fenêtre KiCad et rouvre le plateau courant. Appelé automatiquement après nets, placement, routage et Freerouting ; bouton « Recharger dans KiCad » ajouté dans le panneau CDC pour l'état courant.
+- Les toasts n'invitent plus à recharger manuellement. 6 tests sur l'endpoint.
+- typecheck 0, lint 0, vitest 376/376, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
