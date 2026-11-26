@@ -36,6 +36,8 @@ export interface KicadBridgeResult {
   tracks?: number;
   assignedPads?: number;
   missingPins?: number;
+  /** Pistes/vias déplacés avec un composant replacé. */
+  movedTracks?: number;
   error?: string;
 }
 

@@ -366,6 +366,7 @@ export async function POST(req: Request) {
       : {}),
   };
   if (result.verified !== undefined) payload.verified = result.verified;
+  if (result.movedTracks !== undefined) payload.movedTracks = result.movedTracks;
   if (result.backup !== undefined) payload.backup = result.backup;
 
   return NextResponse.json(payload);

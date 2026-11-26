@@ -42,6 +42,68 @@ def fail(message, code=1):
     emit({"ok": False, "error": message}, code)
 
 
+def move_connected_tracks(board, old_fp, new_fp, pcbnew):
+    """Fait suivre les pistes/vias connectés à une empreinte déplacée.
+
+    Sans cela, le script remplace l'empreinte à sa nouvelle position mais
+    laisse les segments sur l'ancienne : le composant se retrouve déconnecté
+    de son propre routage. Le déplacement est calculé par pad (donc correct
+    aussi quand la rotation change) et ne touche que les extrémités reliées
+    aux pads de l'ancienne empreinte ; l'autre extrémité reste en place.
+    """
+    old_pads = {}
+    for pad in old_fp.Pads():
+        old_pads[pad.GetNumber()] = pad.GetPosition()
+    new_pads = {}
+    for pad in new_fp.Pads():
+        new_pads[pad.GetNumber()] = pad.GetPosition()
+
+    deltas = []
+    for number, old_pos in old_pads.items():
+        new_pos = new_pads.get(number)
+        if new_pos is None:
+            continue
+        dx = new_pos.x - old_pos.x
+        dy = new_pos.y - old_pos.y
+        if dx or dy:
+            deltas.append((old_pos, dx, dy))
+    if not deltas:
+        return 0
+
+    tolerance = 2000  # nm — marge pour les arrondis KiCad
+
+    def delta_for(pos):
+        for old_pos, dx, dy in deltas:
+            if abs(pos.x - old_pos.x) <= tolerance and abs(pos.y - old_pos.y) <= tolerance:
+                return dx, dy
+        return None
+
+    moved = 0
+    for track in list(board.GetTracks()):
+        try:
+            if isinstance(track, pcbnew.PCB_VIA):
+                delta = delta_for(track.GetPosition())
+                if delta:
+                    pos = track.GetPosition()
+                    track.SetPosition(pcbnew.VECTOR2I(pos.x + delta[0], pos.y + delta[1]))
+                    moved += 1
+                continue
+            start = track.GetStart()
+            end = track.GetEnd()
+            ds = delta_for(start)
+            de = delta_for(end)
+            if ds:
+                track.SetStart(pcbnew.VECTOR2I(start.x + ds[0], start.y + ds[1]))
+                moved += 1
+            if de:
+                track.SetEnd(pcbnew.VECTOR2I(end.x + de[0], end.y + de[1]))
+                moved += 1
+        except Exception:
+            # Une piste non déplacée ne doit pas faire échouer le placement.
+            continue
+    return moved
+
+
 def find_kicad_share():
     env = os.environ.get("PARTIVA_KICAD_SHARE")
     if env:
@@ -253,6 +315,7 @@ def main():
         fail(f"lecture des empreintes du plateau impossible: {exc}")
 
     expected = []
+    moved_tracks = 0
     for index, (item, reference, fp) in enumerate(prepared):
         try:
             x_mm = float(item.get("xMm", 0) or 0)
@@ -274,6 +337,9 @@ def main():
         # (déjà capturée avant toute mutation du plateau).
         old = existing_by_ref.pop(reference, None)
         if old is not None:
+            # Le composant est peut-être déjà routé : les pistes attachées à
+            # ses pads doivent suivre le déplacement, sinon il est déconnecté.
+            moved_tracks += move_connected_tracks(board, old, fp, pcbnew)
             try:
                 board.Remove(old)
             except Exception as exc:
@@ -359,6 +425,7 @@ def main():
             "ok": True,
             "placed": len(expected),
             "verified": len(expected),
+            "movedTracks": moved_tracks,
             "board": board_path,
             "backup": backup_path,
         }

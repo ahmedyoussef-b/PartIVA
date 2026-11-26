@@ -689,6 +689,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — les pistes suivent le composant déplacé
+
+- **Blocage** : « Valider et placer dans KiCad » remplaçait l'empreinte à sa nouvelle position mais laissait les segments sur l'ancienne → composant déconnecté de son propre routage.
+- `place_footprints.py` déplace désormais les extrémités de pistes et les vias reliés aux pads de l'ancienne empreinte. Le delta est calculé **par pad** (donc valide aussi si la rotation change) ; l'autre extrémité du segment reste en place. Retour `movedTracks` remonté par `/api/pcb/place/batch`.
+- Le toast indique le nombre d'extrémités suivies et invite à vérifier la DRC ; la fenêtre KiCad est rouverte après ce placement individuel (comme pour le placement global).
+- **Vérifié sur une copie du plateau routé** : déplacement de U1 de 122,5 → 130 mm, `movedTracks: 2`, les deux extrémités VCC_5V suivent, les autres restent en place.
+- typecheck 0, lint 0, vitest 384/384, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

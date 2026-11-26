@@ -305,13 +305,15 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const relY = finalY - BOARD_ORIGIN_Y;
       addNode(sym, Math.round(relX * PX_PER_MM), Math.round(relY * PX_PER_MM));
       window.dispatchEvent(new Event('pcb:board-refresh'));
-      if (typeof data.hint === 'string' && data.hint.trim()) {
-        toast.success('Composant placé dans le plateau', {
-          description: 'KiCad : Fichier > Recharger pour afficher le composant.',
-        });
-      } else {
-        toast.success('Composant placé dans KiCad et affiché dans PartIVA');
-      }
+      await reloadKiCad();
+      toast.success('Composant placé ; pistes connectées déplacées avec lui', {
+        description:
+          data.movedTracks > 0
+            ? `${data.movedTracks} extrémité(s) de piste suivie(s) — vérifiez la DRC.`
+            : typeof data.hint === 'string' && data.hint.trim()
+              ? data.hint
+              : 'Fenêtre KiCad rouverte sur le plateau à jour.',
+      });
       finishProgress('done');
     } catch (e) {
       finishProgress('error');
@@ -546,7 +548,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     window.dispatchEvent(new Event('pcb:board-refresh'));
     router.refresh();
     await reloadKiCad();
-    return data as { placed?: number; liveSynced?: boolean };
+    return data as { placed?: number; liveSynced?: boolean; movedTracks?: number };
   };
 
   const handlePlaceAll = async () => {
@@ -556,9 +558,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const items = components.map((comp, idx) => optionFor(comp, idx));
       const data = await placeComponents(items);
       toast.success(`${data.placed ?? items.length} composant(s) réparti(s) sur le plateau`, {
-        description: data.liveSynced
-          ? 'KiCad mis à jour en direct.'
-          : 'Fenêtre KiCad rouverte sur le plateau à jour.',
+        description:
+          (data.movedTracks ?? 0) > 0
+            ? `${data.movedTracks} extrémité(s) de piste suivie(s) — vérifiez la DRC.`
+            : data.liveSynced
+              ? 'KiCad mis à jour en direct.'
+              : 'Fenêtre KiCad rouverte sur le plateau à jour.',
       });
       finishProgress('done');
     } catch (e) {
