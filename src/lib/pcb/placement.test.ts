@@ -332,3 +332,68 @@ describe('optimizePlacement', () => {
     expect(overlaps(out)).toBe(0);
   });
 });
+
+describe('placement séquentiel par blocs', () => {
+  const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 5 };
+
+  function components() {
+    return [
+      {
+        reference: 'J1',
+        xMm: 50,
+        yMm: 70,
+        rotation: 90,
+        widthMm: 10,
+        heightMm: 4,
+        role: 'connector' as const,
+      },
+      {
+        reference: 'U1',
+        xMm: 10,
+        yMm: 10,
+        rotation: 180,
+        widthMm: 10,
+        heightMm: 10,
+        role: 'regulator' as const,
+      },
+      {
+        reference: 'C1',
+        xMm: 90,
+        yMm: 75,
+        rotation: 0,
+        widthMm: 3,
+        heightMm: 2,
+        role: 'capacitor' as const,
+      },
+      { reference: 'D1', xMm: 95, yMm: 75, rotation: 0, widthMm: 3, heightMm: 2 },
+    ];
+  }
+
+  const nets = [
+    { name: 'GND', pins: ['U1.2', 'C1.2', 'J1.1'] },
+    { name: 'VCC_5V', pins: ['U1.1', 'C1.1'] },
+  ];
+
+  it('verrouille les connecteurs sur le bord supérieur', () => {
+    const out = optimizePlacement(components(), nets, board);
+    const j1 = out.find((c) => c.reference === 'J1')!;
+    expect(j1.locked).toBe(true);
+    expect(j1.yMm).toBe(8);
+    expect(j1.rotation).toBe(0);
+  });
+
+  it('ancre les ICs au centre avec un déplacement limité', () => {
+    const out = optimizePlacement(components(), nets, board);
+    const u1 = out.find((c) => c.reference === 'U1')!;
+    expect(u1.anchorX).toBeDefined();
+    expect(u1.movementRangeMm).toBe(2);
+    expect(Math.abs(u1.xMm - u1.anchorX!)).toBeLessThanOrEqual(2);
+  });
+
+  it('place les passifs à proximité de leur IC', () => {
+    const out = optimizePlacement(components(), nets, board);
+    const u1 = out.find((c) => c.reference === 'U1')!;
+    const c1 = out.find((c) => c.reference === 'C1')!;
+    expect(Math.hypot(c1.xMm - u1.xMm, c1.yMm - u1.yMm)).toBeLessThanOrEqual(12);
+  });
+});

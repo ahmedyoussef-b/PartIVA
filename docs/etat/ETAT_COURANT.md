@@ -764,6 +764,18 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 2 Placement séquentiel
+
+- `PlacementComponent` gagne `locked`, `anchorX/Y`, `movementRangeMm`.
+- Nouvelle passe `placeSequentially` : connecteurs verrouillés sur le bord supérieur, ICs au centre (±2 mm), passifs attachés à leur IC via les nets (angle doré), secondaires en bas.
+- `forceDirected` / recuit / `resolveOverlaps` respectent les verrous et les ancrages.
+- `inferPlacementRole` reconnaît le NE555 comme IC principal ; `calculateCost` pénalise l'éloignement des passifs de support (> 5 mm).
+- Test clignotant LED : J1 en haut verrouillé, U1 au centre, R1/R2/C1 autour, LED en bas. Longueur des nets 355 → 172 mm.
+- 3 tests de placement séquentiels ajoutés (total 389).
+- typecheck 0, lint 0, vitest 389/389, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
