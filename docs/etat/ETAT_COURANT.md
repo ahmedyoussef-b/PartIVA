@@ -668,6 +668,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — séquence CDC → layout alignée
+
+- **Étape 1** : « Générer les composants (LLM) » génère la BOM **et la place immédiatement sur le layout** via le même `placeComponents()` que l'étape 4 (selections IA par défaut, persist BDD + fichier + KiCad rouvert).
+- **Étape 2** : « Générer les nets » crée les réseaux GND/VCC en BDD **et les assigne aux pads du plateau** (`assignBoardNets`) pour afficher les connexions sur le layout. Best-effort : sans Python KiCad, les nets restent valides en BDD et le toast le signale.
+- **Étape 4** : le bouton est renommé « 4. Optimiser la répartition » (libellé aligné dans le wizard).
+- 3 tests sur l'endpoint nets-only (cache / frais / KiCad indisponible).
+- typecheck 0, lint 0, vitest 379/379, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

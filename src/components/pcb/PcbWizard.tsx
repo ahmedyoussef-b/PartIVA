@@ -92,7 +92,7 @@ export function PcbWizard({ projectId }: Props) {
     {
       id: 'placement',
       label: 'Placement',
-      hint: 'Tout placer (optimisé) dans le plateau',
+      hint: 'Optimiser la répartition des composants sur le plateau',
       target: 'card-placement',
       done: footprints > 0,
       prerequisite: netsCount > 0,
@@ -148,8 +148,8 @@ export function PcbWizard({ projectId }: Props) {
       where: 'dans le panneau Sourcing (droite)',
     },
     place: {
-      label: 'Tout placer',
-      button: '4. Tout placer (optimisé)',
+      label: 'Optimiser la répartition',
+      button: '4. Optimiser la répartition',
       where: 'dans le panneau Sourcing (droite)',
     },
     route: {

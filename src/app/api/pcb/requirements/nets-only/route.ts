@@ -1,3 +1,6 @@
+import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { callGroq, hasLlmProvider } from '@/lib/ai/groq-client';
 import { requireAdmin } from '@/lib/auth-admin';
@@ -5,6 +8,8 @@ import { prisma } from '@/lib/prisma';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 import { getLlmCacheAsync, setLlmCacheAsync } from '@/lib/utils/llm-cache';
 import { getFootprintPadNumbers } from '@/lib/pcb/kicad-footprints';
+import { assignBoardNets } from '@/lib/pcb/kicad-bridge';
+import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { inferPlacementRole } from '@/lib/pcb/placement';
 
 export const runtime = 'nodejs';
@@ -19,6 +24,42 @@ interface ScoredNet {
 
 interface NetsOnlyResult {
   nets: ScoredNet[];
+}
+
+/**
+ * Étape 2 : les nets générés sont aussi assignés aux pads du plateau pour que
+ * les connexions (ratsnest) apparaissent sur le layout. Best-effort : sans
+ * Python KiCad ou sans fichier, les nets restent valides en BDD.
+ */
+async function assignNetsOnBoard(kicadFilePath: string | null, nets: ScoredNet[]) {
+  const boardPath = process.env.PARTIVA_KICAD_BOARD?.trim() || kicadFilePath?.trim();
+  if (!boardPath) return { assigned: false, reason: 'no-board' };
+  const normalized = normalizeBoardPath(boardPath);
+  const abs = path.isAbsolute(normalized) ? normalized : path.join(process.cwd(), normalized);
+  if (!existsSync(abs)) return { assigned: false, reason: 'missing-board' };
+
+  const netsPath = path.join(
+    tmpdir(),
+    `partiva-nets-only-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`,
+  );
+  try {
+    writeFileSync(
+      netsPath,
+      JSON.stringify(nets.map((n) => ({ name: n.name, pins: n.pins }))),
+      'utf8',
+    );
+    const result = await assignBoardNets(abs, netsPath);
+    if (!result.ok) return { assigned: false, error: result.error ?? 'assignation impossible' };
+    return { assigned: true, pads: result.assignedPads ?? 0, missing: result.missingPins ?? 0 };
+  } catch (e) {
+    return { assigned: false, error: e instanceof Error ? e.message : String(e) };
+  } finally {
+    try {
+      unlinkSync(netsPath);
+    } catch {
+      // fichier déjà supprimé
+    }
+  }
 }
 
 function normalizePins(raw: unknown): string[] {
@@ -137,7 +178,7 @@ export async function POST(req: Request) {
 
   const project = await prisma.pcbProject.findUnique({
     where: { id: projectId },
-    select: { id: true, sourcingCache: true, description: true },
+    select: { id: true, sourcingCache: true, description: true, kicadFilePath: true },
   });
   if (!project) {
     return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
@@ -164,7 +205,13 @@ export async function POST(req: Request) {
   const cacheKey = `pcb:nets-only:v2:${hashKey(`${projectId}|${componentList}|${project.description ?? ''}`)}`;
   const cached = await getLlmCacheAsync<NetsOnlyResult>(cacheKey);
   if (cached) {
-    return NextResponse.json({ ok: true, nets: cached.nets, cached: true });
+    const board = await assignNetsOnBoard(project.kicadFilePath, cached.nets);
+    return NextResponse.json({
+      ok: true,
+      nets: cached.nets,
+      cached: true,
+      boardAssigned: board.assigned,
+    });
   }
 
   const guard = acquireLlmGuard(cacheKey);
@@ -261,12 +308,14 @@ Format attendu :
       data: { sourcingCache: { ...(previousCache ?? {}), nets, cacheVersion: 2 } as object },
     });
 
+    const board = await assignNetsOnBoard(project.kicadFilePath, nets);
     await setLlmCacheAsync(cacheKey, { nets });
     console.info('[NETS-ONLY] Nets générés', {
       projectId,
       count: nets.length,
       droppedPins,
       heuristic: heuristicNets.length,
+      boardAssigned: board.assigned,
       names: nets.map((n) => n.name),
     });
     return NextResponse.json({
@@ -276,6 +325,9 @@ Format attendu :
       heuristicCount: heuristicNets.length,
       droppedPins,
       cached: false,
+      boardAssigned: board.assigned,
+      boardPads: 'pads' in board ? board.pads : 0,
+      boardError: 'error' in board ? board.error : undefined,
     });
   } catch (error) {
     console.error('[NETS-ONLY] Erreur', error);
