@@ -104,6 +104,20 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     toast.success('Fichier KiCad créé automatiquement');
     router.refresh();
   }, [projectId, router]);
+
+  // KiCad garde le plateau en mémoire et ne voit pas les écritures externes :
+  // on referme/rouvre la fenêtre pour qu'il reflète l'état réel du fichier.
+  const reloadKiCad = useCallback(async () => {
+    try {
+      await fetch(`/api/pcb/projects/${projectId}/board`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reload' }),
+      });
+    } catch {
+      // Le fichier est à jour : un rechargement manuel reste possible dans KiCad.
+    }
+  }, [projectId]);
   const [placed, setPlaced] = useState<Record<number, string>>({});
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
@@ -366,6 +380,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       );
       await load();
       router.refresh();
+      await reloadKiCad();
       finishProgress('done');
     } catch (e) {
       finishProgress('error');
@@ -390,10 +405,11 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
+      await reloadKiCad();
       toast.success(
         `Routage partiel : ${data.routed} pistes, ${data.zones} zone(s) GND, ${data.vias} via(s)`,
         {
-          description: 'DRC non vérifié — rechargez le plateau dans KiCad (Fichier > Recharger).',
+          description: 'DRC non vérifié — la fenêtre KiCad a été rouverte sur le plateau à jour.',
           duration: 12_000,
         },
       );
@@ -431,6 +447,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setFreeroutingInfo(null);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
+      await reloadKiCad();
       toast.success(
         `Routage complet : ${data.tracks} pistes · ${data.drc?.violations ?? 0} violations DRC`,
         { duration: 12_000 },
@@ -444,7 +461,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     } finally {
       setFreerouting(false);
     }
-  }, [projectId, router, startProgress, finishProgress]);
+  }, [projectId, reloadKiCad, router, startProgress, finishProgress]);
 
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
@@ -510,12 +527,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
+      await reloadKiCad();
       toast.success(
         `${data.placed ?? items.length} composant(s) placé(s) avec optimisation globale`,
         {
           description: data.liveSynced
             ? 'KiCad mis à jour en direct.'
-            : 'KiCad : Fichier > Recharger pour voir le plateau.',
+            : 'Fenêtre KiCad rouverte sur le plateau à jour.',
         },
       );
       finishProgress('done');

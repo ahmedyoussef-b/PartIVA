@@ -122,6 +122,22 @@ describe('POST /api/pcb/projects/[id]/board — reset', () => {
     expect(body.lockReleased).toBe(true);
   });
 
+  it('recharge la fenêtre KiCad sur le plateau courant', async () => {
+    vi.stubEnv('PARTIVA_DESKTOP', '1');
+    existsSync.mockImplementation((p: string) => !String(p).endsWith('.lck'));
+    spawnSync.mockReturnValue({ stdout: '1', stderr: '', status: 0 });
+    const res = await post('reload');
+    expect(res.status).toBe(200);
+    expect(spawnSync).toHaveBeenCalledWith(
+      'powershell',
+      expect.arrayContaining([expect.stringContaining('CloseMainWindow()')]),
+      expect.any(Object),
+    );
+    const body = (await res.json()) as { closedWindows: number; kicadFilePath: string };
+    expect(body.closedWindows).toBe(1);
+    expect(body.kicadFilePath).toBe('C:/data/carte.kicad_pcb');
+  });
+
   it('restaure le plateau si la transaction échoue', async () => {
     transaction.mockRejectedValue(new Error('DB down'));
     const res = await post('reset');
