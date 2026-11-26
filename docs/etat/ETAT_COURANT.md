@@ -745,6 +745,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — bouton Afficher + complétion manuelle
+
+- Le résultat ne s'affiche qu'après actionnement du bouton « Afficher le résultat » (dans la carte Sourcing).
+- En mode manuel (placement composant par composant), après le dernier composant un bouton « Placer routage et connexion » complète le schéma ; l'affichage reste gated par « Afficher le résultat ».
+- typecheck 0, lint 0, vitest 386/386, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
