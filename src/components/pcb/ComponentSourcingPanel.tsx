@@ -128,6 +128,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [showingResult, setShowingResult] = useState(false);
   const [flowSummary, setFlowSummary] = useState<string | null>(null);
   const [validationIssues, setValidationIssues] = useState<string[]>([]);
+  const [rerouting, setRerouting] = useState(false);
+  const [lastScore, setLastScore] = useState<number | null>(null);
+  const [lastTracks, setLastTracks] = useState(0);
+  const [routingAttempts, setRoutingAttempts] = useState<
+    Array<{
+      id: string;
+      score: number | null;
+      tracks: number;
+      violations: number;
+      createdAt: string;
+    }>
+  >([]);
   const [lastDrc, setLastDrc] = useState<{
     details?: Array<{
       type: string;
@@ -344,8 +356,11 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         });
         assertJsonResponse(freeRes);
         const freeData = await freeRes.json();
-        if (freeRes.ok && freeData.ok) freeroute = freeData;
-        else freerouteError = freeData.error ?? `Erreur ${freeRes.status}`;
+        if (freeRes.ok && freeData.ok) {
+          freeroute = freeData;
+          setLastScore(typeof freeData.score === 'number' ? freeData.score : null);
+          setLastTracks(freeData.tracks ?? 0);
+        } else freerouteError = freeData.error ?? `Erreur ${freeRes.status}`;
       } catch (e) {
         freerouteError = e instanceof Error ? e.message : 'Freerouting indisponible';
       }
@@ -610,7 +625,15 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         throw new Error(data.error || `Erreur ${res.status}`);
       }
       setFreeroutingInfo(null);
+      setLastScore(typeof data.score === 'number' ? data.score : null);
+      setLastTracks(data.tracks ?? 0);
       setLastDrc(data.drc ?? null);
+      fetch(`/api/pcb/projects/${projectId}/routing-attempts`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (Array.isArray(d.attempts)) setRoutingAttempts(d.attempts);
+        })
+        .catch(() => {});
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
       await reloadKiCad();
@@ -738,6 +761,62 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  const rerouteWithThreshold = async () => {
+    if (typeof lastScore !== 'number') return;
+    setRerouting(true);
+    startProgress('Re-routage avec seuil de score');
+    try {
+      const res = await fetch('/api/pcb/autoroute/freerouting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, minScore: lastScore, restoreIfWorse: true }),
+      });
+      assertJsonResponse(res);
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        if (data.code === 'ROUTE_NOT_IMPROVED') {
+          toast.info(data.error ?? 'Le nouveau routage est moins bon. L’ancien a été conservé.', {
+            duration: 10_000,
+          });
+          return;
+        }
+        throw new Error(data.error ?? `Erreur ${res.status}`);
+      }
+      setLastScore(data.score ?? null);
+      setLastTracks(data.tracks ?? 0);
+      setLastDrc(data.drc ?? null);
+      fetch(`/api/pcb/projects/${projectId}/routing-attempts`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (Array.isArray(d.attempts)) setRoutingAttempts(d.attempts);
+        })
+        .catch(() => {});
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      toast.success(`Re-routage terminé — Score : ${data.score}/1000`, { duration: 10_000 });
+      finishProgress('done');
+    } catch (e) {
+      finishProgress('error');
+      toast.error(e instanceof Error ? e.message : 'Re-routage impossible');
+    } finally {
+      setRerouting(false);
+    }
+  };
+
+  const loadRoutingAttempts = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/pcb/projects/${projectId}/routing-attempts`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.attempts)) setRoutingAttempts(data.attempts);
+    } catch {
+      // historique optionnel
+    }
+  }, [projectId, setRoutingAttempts]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => void loadRoutingAttempts(), 0);
+    return () => window.clearTimeout(id);
+  }, [loadRoutingAttempts]);
+
   const showResult = useCallback(async () => {
     setShowingResult(true);
     try {
@@ -832,8 +911,11 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         });
         assertJsonResponse(freeRes);
         const freeData = await freeRes.json();
-        if (freeRes.ok && freeData.ok) freeroute = freeData;
-        else freerouteError = freeData.error ?? `Erreur ${freeRes.status}`;
+        if (freeRes.ok && freeData.ok) {
+          freeroute = freeData;
+          setLastScore(typeof freeData.score === 'number' ? freeData.score : null);
+          setLastTracks(freeData.tracks ?? 0);
+        } else freerouteError = freeData.error ?? `Erreur ${freeRes.status}`;
       } catch (e) {
         freerouteError = e instanceof Error ? e.message : 'Freerouting indisponible';
       }
@@ -1179,6 +1261,49 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             Le résultat est prêt : cliquez sur « Afficher les résultats » dans l&apos;en-tête
             ci-dessus pour l&apos;afficher dans le layout et dans KiCad.
           </p>
+          {lastScore !== null && (
+            <div className="rounded border border-blue-200 bg-blue-50 p-2 text-blue-900">
+              <div className="font-semibold">Routage terminé</div>
+              <div>Score : {lastScore}/1000</div>
+              <div>Pistes : {lastTracks}</div>
+              <div>
+                Violations : {Object.values(lastDrc?.categories ?? {}).reduce((a, b) => a + b, 0)}
+                {lastDrc?.categories
+                  ? ` (${lastDrc.categories.placement ?? 0} placement, ${lastDrc.categories.routage ?? 0} routage)`
+                  : ''}
+              </div>
+            </div>
+          )}
+          {lastScore !== null && (
+            <button
+              type="button"
+              onClick={rerouteWithThreshold}
+              disabled={rerouting || fullFlowRunning}
+              className="rounded border border-indigo-300 bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 disabled:opacity-50"
+            >
+              {rerouting ? 'Re-routage…' : 'Re-router avec score minimum'}
+            </button>
+          )}
+          {routingAttempts.length > 1 && (
+            <div className="rounded border bg-white p-2">
+              <div className="font-semibold">Historique des routages</div>
+              <div className="mt-1 flex h-16 items-end gap-1">
+                {routingAttempts.map((a, i) => {
+                  const height = Math.max(4, ((a.score ?? 0) / 1000) * 60);
+                  return (
+                    <div key={a.id} className="flex flex-1 flex-col items-center gap-0.5">
+                      <div
+                        className="w-full rounded-t bg-blue-400"
+                        style={{ height: `${height}px` }}
+                        title={`Routage ${i + 1} : ${a.score ?? '—'}/1000`}
+                      />
+                      <span className="text-[9px] text-gray-500">{i + 1}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {lastDrc && (lastDrc.details?.length ?? 0) > 0 && (
             <details className="rounded border bg-white p-2">
               <summary className="cursor-pointer font-semibold text-gray-700">

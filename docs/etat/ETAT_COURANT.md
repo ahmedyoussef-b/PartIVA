@@ -818,6 +818,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 7 Score et itération
+
+- Modèle Prisma `PcbRoutingAttempt` (score, tracks, violations, placement, routing) + migration `20261126120000_add_pcb_routing_attempts` (non appliquée : Neon injoignable, code best-effort).
+- Freerouting enregistre chaque tentative ; bouton « Re-router avec score minimum » avec restauration du plateau précédent si le score régresse (`ROUTE_NOT_IMPROVED`).
+- Récapitulatif : score /1000, pistes, violations catégorisées ; historique en mini-graphe de progression.
+- GET `/api/pcb/projects/[id]/routing-attempts` (fallback vide si table absente).
+- Tests freerouting adaptés (mock copyFileSync + pcbRoutingAttempt). 404 total.
+- typecheck 0, lint 0, vitest 404/404, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

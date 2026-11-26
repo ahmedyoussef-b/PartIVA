@@ -697,6 +697,7 @@ model PcbProject {
   validations  PcbValidation[]
   checkpoints  PcbCheckpoint[]
   versions     PcbVersion[]
+  routingAttempts PcbRoutingAttempt[]
 
   @@index([requestId])
   @@map("pcb_projects")
@@ -822,6 +823,21 @@ model PcbVersion {
 
   @@index([projectId])
   @@map("pcb_versions")
+}
+
+model PcbRoutingAttempt {
+  id         String     @id @default(cuid())
+  projectId  String
+  project    PcbProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  score      Int?
+  tracks     Int
+  violations Int
+  placement  Int
+  routing    Int
+  createdAt  DateTime   @default(now())
+
+  @@index([projectId])
+  @@map("pcb_routing_attempts")
 }
 
 model ComponentCatalog {
