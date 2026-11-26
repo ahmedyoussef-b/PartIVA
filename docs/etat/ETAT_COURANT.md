@@ -712,6 +712,7 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 - Suppression du bouton « Recharger dans KiCad » de la carte **Cahier des charges** (le rechargement reste disponible là où il est utile : placement et étapes du wizard).
 - La carte ne garde que « Consulter cahier des charges », « Ouvrir un nouveau fichier » (si absent) et « Reset ».
+- Carte **Sourcing** : titre unifié « Sourcing (N) », état vide sans texte parasite, bouton « Lancer » qui déclenche la génération LLM (au lieu de « Relancer » qui ne rechargeait que l’affichage).
 - typecheck 0, lint 0, vitest 384/384, prettier 0.
 
 ---
