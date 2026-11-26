@@ -65,6 +65,9 @@ export async function closeBoardInDesktop(
 
 export function openBoardInDesktop(absPath: string): void {
   if (!isDesktopKiCad()) return;
+  // Ne jamais ouvrir une seconde fenêtre sur un plateau déjà ouvert :
+  // on laisse l'appelant utiliser reload/show pour rafraîchir.
+  if (isBoardOpenInKicad(absPath)) return;
   try {
     if (process.platform === 'win32') {
       const child = spawn('cmd', ['/c', 'start', '', absPath], {
