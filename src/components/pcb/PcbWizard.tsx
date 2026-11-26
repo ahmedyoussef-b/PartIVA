@@ -144,7 +144,7 @@ export function PcbWizard({ projectId }: Props) {
     },
     'edit-netlist': {
       label: 'Corriger la netlist',
-      button: '3. Éditer la Netlist',
+      button: 'Éditer la Netlist',
       where: 'dans le panneau Sourcing (droite)',
     },
     place: {
@@ -296,8 +296,8 @@ export function PcbWizard({ projectId }: Props) {
 
       {heuristicNets > 0 && (
         <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-[11px] text-blue-900">
-          {heuristicNets} net(s) inféré(s) automatiquement. Vérifiez-les avec le bouton « 3. Éditer
-          la Netlist » du panneau Sourcing avant de continuer.
+          {heuristicNets} net(s) inféré(s) automatiquement. Vérifiez-les avec le bouton « Éditer la
+          Netlist » du panneau Sourcing avant de continuer.
         </div>
       )}
 

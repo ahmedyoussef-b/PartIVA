@@ -855,6 +855,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             </button>
             <button
               type="button"
+              title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+              className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                activeAction === 'edit-netlist'
+                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                  : ''
+              }`}
+              onClick={() => setNetsEditorOpen(true)}
+            >
+              Éditer la Netlist
+            </button>
+            <button
+              type="button"
               title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
               className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
               onClick={showResult}
@@ -865,18 +877,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
                 : resultShown
                   ? 'Réafficher les résultats'
                   : 'Afficher les résultats'}
-            </button>
-            <button
-              type="button"
-              title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-              className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                activeAction === 'edit-netlist'
-                  ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                  : ''
-              }`}
-              onClick={() => setNetsEditorOpen(true)}
-            >
-              3. Éditer la Netlist
             </button>
           </>
         ) : (
@@ -917,7 +917,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               }`}
               onClick={() => setNetsEditorOpen(true)}
             >
-              3. Éditer la Netlist
+              Éditer la Netlist
             </button>
             <button
               type="button"
@@ -967,7 +967,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       {heuristicNets > 0 && (
         <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
           {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
-          Vérifiez-les via « 3. Éditer la Netlist ».
+          Vérifiez-les via « Éditer la Netlist ».
         </div>
       )}
       {freeroutingInfo && (
