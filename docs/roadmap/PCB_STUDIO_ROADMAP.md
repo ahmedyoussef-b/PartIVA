@@ -1,95 +1,141 @@
 # P12 — Feuille de route PCB Studio : du prototype à l'outil d'ingénierie
 
-**Version :** 1.0
-**Date :** 2026-11-24
-**Commit de référence :** `912e422` (merge PR #167 — routage assisté partiel)
-**Statut :** Roadmap validée ; **Phase 1 complète (1.1, 1.2, 1.3)** et **Phase 3 Étape A** livrées. Phases 2, 3 Étape B (Freerouting effectif) et 4-5 à venir.
+**Version :** 2.0
+**Date :** 2026-11-26
+**Commit de référence :** `f1dac1a` (merge PR #218 — source unique de vérité pour l'affichage)
+**Statut :** Roadmap mise à jour suite à l'audit croisé IA interne / IA externe. Phase 1 (topologie) complète. Phase 2-3 en cours. Phases 4-8 à venir.
 
 ---
 
 ## 1. Contexte et périmètre
 
-La chaîne complète est désormais opérationnelle : **LLM → BDD → Placement intelligent → KiCad → Pistes & Zones** (PR #153 à #167). Le jalon actuel est un **routage assisté partiel** : 4 pistes, 1 zone GND, 3 vias, DRC non vérifié, 13 composants sans net restent non câblés.
+La chaîne complète est désormais opérationnelle : **LLM → BDD → Placement intelligent → KiCad → Pistes & Zones** (PR #153 à #218). Le jalon actuel :
+
+- Routage assisté partiel : pistes + zone GND, DRC non vert (140 violations sur la carte de test).
+- Placement déterministe (force dirigée + recuit simulé) avec règles métier CDC.
+- Affichage gated : « Lancer » → processus complet en arrière-plan → « Afficher les résultats ».
+- Reset, reload KiCad, wizard guide pur, polling temps réel.
 
 Cette roadmap vise à transformer le prototype en outil d'ingénierie industrielle, par phases incrémentales et testables.
 
-**Principe directeur :** ne pas empiler de fonctionnalités tant que la topologie (netlist) n'est pas complète et corrigeable par l'ingénieur.
+**Principe directeur :** ne pas empiler de fonctionnalités tant que la topologie (netlist) n'est pas complète et corrigeable par l'ingénieur. Le LLM reste cantonné à la topologie logique ; le placement et le routage sont déterministes.
 
 ---
 
-## 2. Phase 1 — Fiabiliser la topologie (la Netlist)
+## 2. État de l'art (audit IA externe × codebase)
 
-*Objectif : passer de 2 nets à une netlist complète, éditable par l'admin.*
+L'IA externe a proposé 10 nouveautés. L'IA interne les a confrontées au code réel. Synthèse :
 
-| ID | Action | Détail | Priorité |
+| # | Nouveauté | Statut dans le code | Effort | Priorité |
+|---|---|---|---|---|
+| 1 | ERC KiCad | Partiel — pas de schéma généré | Élevé | Remplacer par validation interne |
+| 2 | Placement séquentiel par blocs | Partiel — rôles mais pas de verrouillage strict | Moyen | **Haute** |
+| 3 | Congestion multi-objectifs | Partiel — pairwise, pas de densité globale | Moyen | Moyenne |
+| 4 | Orientation par flux de signal | Absent | Moyen | Moyenne |
+| 5 | Découplage opposite side | Absent | Élevé | Basse (différer) |
+| 6 | Freerouting v2.5+ copper pour | Partiel (v2.0.1 installé) | **Faible** | **Haute** |
+| 7 | Score de routage | Absent | Faible-Moyen | Moyenne |
+| 8 | Rip-up & reroute | Partiel (passes uniformes) | Faible-Moyen | Moyenne |
+| 9 | DRC catégorisé | Absent | Moyen | Moyenne |
+| 10 | DFM JLCPCB | Absent | Moyen | Basse (différer) |
+
+---
+
+## 3. Roadmap détaillée
+
+### 🎯 Étape 1 : Mise à jour Freerouting v2.6.0
+*Objectif : Réduire drastiquement les violations DRC et activer les nouvelles fonctionnalités.*
+
+- **1.1** Télécharger `freerouting-2.6.0.jar`, remplacer `tools/freerouting.jar`, vérifier la version.
+- **1.2** Activer `-mp 20`, `-inc GND,VCC`, `-dr` (rip-up) dans l'appel CLI (`freerouting/route.ts`).
+- **1.3** Parser le score de routage (0-1000) depuis le stdout et l'afficher dans le toast.
+- **1.4** Test : re-router la carte test, cible réduction de 30% des violations.
+
+### 🎯 Étape 2 : Placement séquentiel par blocs
+*Objectif : Éliminer les placements aléatoires en imposant un ordre logique.*
+
+- **2.1** Verrouiller les connecteurs sur les bords (passe préalable, immobiles pendant le recuit).
+- **2.2** Placer les ICs principaux (mcu, regulator, serial, clock) dans une zone centrale, espacement 5 mm.
+- **2.3** Attacher les passifs (capacitor, resistor) à leurs ICs parent via les nets, rayon 5 mm, pénalité forte si éloignés.
+- **2.4** Placer les secondaires (LED, test points) dans les espaces libres.
+- **2.5** Test : vérifier visuellement + métriques (longueur nets, respect contraintes de bord).
+
+### 🎯 Étape 3 : Catégorisation DRC
+*Objectif : Distinguer les violations de placement des violations de routage.*
+
+- **3.1** Parser le rapport DRC JSON pour extraire chaque violation avec son type.
+- **3.2** Classifier : placement (`courtyards_overlap`, `solder_mask_bridge`), routage (`clearance`, `unconnected_items`), fabrication (`silk_overlap`, `edge_clearance`).
+- **3.3** Afficher dans l'interface : "Placement : X, Routage : Y, Fabrication : Z" + bouton "Voir les détails".
+- **3.4** Test : lancer le DRC sur la carte test, vérifier la catégorisation.
+
+### 🎯 Étape 4 : Densité de congestion globale
+*Objectif : Éviter que les composants s'agglutinent et bloquent le routage.*
+
+- **4.1** Diviser le plateau en grille (ex. 10×10 cellules), compter les composants par cellule.
+- **4.2** Ajouter une pénalité de densité dans `calculateCost` si une cellule dépasse 3 composants.
+- **4.3** Test : vérifier que les composants sont répartis sur toute la surface.
+
+### 🎯 Étape 5 : Orientation par flux de signal
+*Objectif : Aligner les composants pour minimiser les croisements de pistes.*
+
+- **5.1** Calculer l'axe du signal principal pour chaque net critique (horloge, alimentation).
+- **5.2** Aligner les composants sur cet axe (cristal face au MCU, dissipateur vers le bord).
+- **5.3** Test : vérifier visuellement l'alignement.
+
+### 🎯 Étape 6 : Validation interne (remplace ERC)
+*Objectif : Vérifier la cohérence électrique sans schéma KiCad.*
+
+- **6.1** Vérifier que tous les pins des nets appartiennent à des composants existants.
+- **6.2** Vérifier que chaque IC a au moins une broche VCC et une broche GND.
+- **6.3** Vérifier que l'horloge est connectée entre cristal et MCU, et la communication entre transceiver et connecteur.
+- **6.4** Bloquer le placement si validation échoue, avec message clair.
+
+### 🎯 Étape 7 : Score de routage et itération
+*Objectif : Permettre à l'utilisateur de comparer plusieurs routages.*
+
+- **7.1** Afficher le score Freerouting dans le récapitulatif final.
+- **7.2** Bouton "Re-router avec score minimum" (seuil configurable).
+- **7.3** Historique des routages avec graphique de progression.
+
+### 🎯 Étape 8 : DFM JLCPCB (différée)
+*Objectif : Vérifier que la carte est fabricable chez JLCPCB.*
+
+- **8.1** Charger le profil JLCPCB (largeur min 0.1 mm, espacement min 0.1 mm, perçage min 0.3 mm).
+- **8.2** Vérifier les règles DFM.
+- **8.3** Export Gerber + BOM via `kicad-cli`.
+- **8.4** Devis automatique (optionnel).
+
+---
+
+## 4. Résumé de la roadmap
+
+| Étape | Effort | Impact | Priorité |
 |---|---|---|---|
-| 1.1 | **Prompt LLM hiérarchique** ✅ | Prompt de `/api/pcb/requirements/nets-only` générant les nets **par blocs fonctionnels** (Alimentation, MCU, Communication, Analogique) ; `maxTokens` porté à 3072 (PR #170). | **P0 — fait** |
-| 1.2 | **Fallback intelligent** ✅ | Si le LLM omet un net pour un composant identifié (ex. `U3` = transceiver RS‑485), appliquer une heuristique backend : relier ses pins A/B au connecteur détecté comme `db9/modbus`. Réutiliser `inferPlacementRole()` / `buildHints()` de `placement.ts`. | **P1 — fait** |
-| 1.3 | **Édition manuelle de la netlist** ✅ | Modal « Éditer la Netlist » (tableau nom/pins, ajout, suppression, édition) + `GET`/`PATCH /api/pcb/requirements/nets`. Persistance `PcbNet` + `sourcingCache.nets`, invalidation du cache LLM. | **P0 — fait** |
-
-**Note :** la priorité absolue est **1.1 + 1.3**. Sans netlist complète et corrigeable, le meilleur placement et le meilleur routeur restent inopérants.
-
----
-
-## 3. Phase 2 — Améliorer le placement (l'algorithme)
-
-*Objectif : un placement plus « humain », qui anticipe le routage.*
-
-| ID | Action | Détail |
-|---|---|---|
-| 2.1 | **Routabilité / congestion** | Ajouter dans `calculateCost` une pénalité de congestion : si deux composants très connectés sont trop proches, les écarter pour laisser passer les pistes. |
-| 2.2 | **Orientation des composants** | Règles d'orientation : connecteurs vers l'extérieur, condensateurs de découplage parallèles aux pistes d'alimentation. Le coût intègre déjà la rotation mais sans orientation cible. |
-| 2.3 | **Algorithme génétique (NSGA-II)** | Remplacer le recuit simulé par une optimisation multi-objectifs (longueur, bords, découplage) pour éviter qu'un critère n'écrase les autres. Conserver la garantie de non-régression acquise en PR #165/#166. |
+| 1. Freerouting v2.6 | Faible | Fort | **Immédiate** |
+| 2. Placement séquentiel | Moyen | Fort | **Haute** |
+| 3. DRC catégorisé | Faible | Moyen | **Haute** |
+| 4. Congestion globale | Moyen | Moyen | Moyenne |
+| 5. Orientation signal | Moyen | Moyen | Moyenne |
+| 6. Validation interne | Moyen | Fort | Moyenne |
+| 7. Score routage | Faible | Moyen | Basse |
+| 8. DFM JLCPCB | Moyen | Fort | Différée |
 
 ---
 
-## 4. Phase 3 — Le routage complet (voie B / Freerouting)
+## 5. Décision de départ
 
-*Objectif : passer du routage assisté au routage automatique complet.*
-
-| ID | Action | Détail |
-|---|---|---|
-| 3.1 | **DSN Specctra complet** ✅ | **Étape A** : le stub est supprimé ; `specctra.py` appelle `pcbnew.ExportSpecctraDSN` (outline, couches, netclasses, padstacks réels). DSN vérifié : 371 lignes, boundary + 13 padstacks. |
-| 3.2 | **Intégration Freerouting** ⏳ | **Étape A faite** : import SES via `pcbnew.ImportSpecctraSES`, route `/api/pcb/autoroute/freerouting`, bouton UI et cas « absent » traité. **Étape B à faire** : Java + `freerouting.jar` à fournir pour activer l'exécution. |
-| 3.3 | **DRC** ✅ | `kicad-cli pcb drc --format json` via `drc.ts` (code non nul ignoré, on parse le rapport). Testé : 149 violations / 2 non-connectés sur le plateau de test. |
+**Action suivante retenue : Étape 1 (Freerouting v2.6) puis Étape 2 (Placement séquentiel).** Ces deux étapes sont les plus rentables pour l'objectif "zéro erreur + pas d'emplacement aléatoire" avec un effort modéré.
 
 ---
 
-## 5. Phase 4 — L'expérience utilisateur (le Studio)
+## 6. Limites actuellement connues
 
-*Objectif : rendre l'outil utilisable par un ingénieur au quotidien.*
-
-| ID | Action | Détail |
-|---|---|---|
-| 4.1 | **Canvas 3D** | Vue 3D du PCB (Three.js ou viewer KiCad) avant fabrication. |
-| 4.2 | **Édition interactive** | Clic-glisser un composant sur `PcbCanvas` avec **re-routage à la volée** des pistes autour de lui. |
-| 4.3 | **Historique / versioning** | Sauvegarder chaque version du PCB (avant/après placement) et permettre le retour arrière. S'appuyer sur `PcbCheckpoint` / `PcbVersion` déjà présents dans le schéma. |
-
----
-
-## 6. Phase 5 — Industrialisation (fabrication)
-
-*Objectif : préparer la carte pour JLCPCB.*
-
-| ID | Action | Détail |
-|---|---|---|
-| 5.1 | **Export Gerber & BOM** | Génération en un clic via `kicad-cli` (Gerber, Drill, BOM, Pick-and-Place). Des briques existent déjà : `gerber-exporter.ts`, `bom-exporter.ts`, `kicad-cli-adapter.ts`. |
-| 5.2 | **DFM JLCPCB** | Règles de vérification : largeur de piste min, perçage min, espacement min. |
-| 5.3 | **Devis automatique** | Intégration d'une API fabricant (JLCPCB / PCBWay) pour un coût en temps réel selon dimensions et nombre de couches. |
-
----
-
-## 7. Décision de départ
-
-**Action suivante retenue : Phase 1.2 — Fallback intelligent.** Les phases 1.1 et 1.3 sont livrées ; il reste à éviter que le LLM invente des pins (ex. `J4.3`/`J4.4` sur un connecteur 2 pins) ou omette des connexions, avant d'attaquer la Phase 2 (congestion/orientation) ou la Phase 3 (Freerouting).
-
-Raison historique : l'édition manuelle (1.3) donnait à l'ingénieur le pouvoir de corriger les erreurs du LLM, condition nécessaire pour que les phases 2 à 5 aient un sens.
-
----
-
-## 8. Limites actuellement connues (à ne pas confondre avec la roadmap)
-
-- Routage partiel : **pas de DRC**, pas de garantie d'absence de croisement, seuls les nets présents en BDD sont câblés.
-- Verrous `acquireLlmGuard` et `rateLimit` en mémoire par instance (mono-instance acceptable).
+- Routage partiel : DRC non vert (140 violations sur la carte de test).
 - Grille : `optimizePlacement` arrondit encore à 0,1 mm alors que `computePlacement` utilise 2,54 mm (harmonisation non faite).
-- Position de l'horloge `Y1` mesurée à 8,1 mm au lieu de la cible 5 mm.
+- Freerouting v2.0.1 installé ; v2.6.0 disponible.
+- Le LLM reste cantonné à la topologie (ne pas demander de coordonnées).
+- Ne pas introduire de ML/RL (trop lourd pour une app desktop).
+
+---
+
+*Roadmap mise à jour le 2026-11-26. Basée sur l'audit croisé IA interne (exploration complète de `src/lib/pcb/`, `src/app/api/pcb/`, 386 tests verts) et IA externe (10 nouveautés proposées).*
