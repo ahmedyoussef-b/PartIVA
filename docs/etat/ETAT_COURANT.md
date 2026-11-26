@@ -841,6 +841,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 — Canvas 3D (hors roadmap)
+
+- `Pcb3DViewer` (three.js / @react-three-fiber + drei) : bouton « Vue 3D » dans `PcbCanvas`, remplace le canvas 2D.
+- Charge le GLB exporté par `kicad-cli pcb export glb` via `GET /api/pcb/projects/[id]/glb` (base64 → blob URL). Contrôles OrbitControls (rotation gauche, zoom molette, panoramique droit).
+- Fallback paramétrique (substrat + boîtes composants + label « 3D non disponible ») si GLB absent ou illisible (ErrorBoundary), récupérant board/components depuis `/api/pcb/board/render`.
+- Vérifié : endpoint GLB → 200, 358 Ko base64 ; page projet → 200. La boucle de chargement observée venait de l'onglet navigateur de test (HMR Turbopack), pas de l'application.
+- 409 tests verts, typecheck 0, lint 0, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
