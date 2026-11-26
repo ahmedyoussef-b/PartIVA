@@ -245,6 +245,44 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     };
   };
 
+  const runPostPlacementPipeline = async () => {
+    setFullFlowDone(true);
+    startProgress('Placement manuel complet : connexions et routage');
+    try {
+      const netsRes = await fetch('/api/pcb/requirements/nets-only', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      assertJsonResponse(netsRes);
+      const netsData = await netsRes.json();
+      if (!netsRes.ok || !netsData.ok)
+        throw new Error(netsData.error || `Erreur ${netsRes.status}`);
+      setNetsMissing(false);
+      setHeuristicNets(netsData.heuristicCount ?? 0);
+
+      const routeRes = await fetch('/api/pcb/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      assertJsonResponse(routeRes);
+      const routeData = await routeRes.json();
+      if (!routeRes.ok || !routeData.ok)
+        throw new Error(routeData.error || `Erreur ${routeRes.status}`);
+
+      await showResult();
+      toast.success('Placement manuel terminé — connexions et pistes tracées', {
+        description: `${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`,
+        duration: 12_000,
+      });
+      finishProgress('done');
+    } catch (e) {
+      finishProgress('error');
+      toast.error(e instanceof Error ? e.message : 'Routage impossible', { duration: 12_000 });
+    }
+  };
+
   const handlePlaceOne = async (idx: number, force = false) => {
     setPlacing(idx);
     setPlaceErrors((prev) => {
@@ -318,6 +356,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         console.warn('Persist error', pe);
       }
 
+      const wasLast = components.length > 0 && components.every((_, i) => i === idx || !!placed[i]);
+
       setPlaced((prev) => ({
         ...prev,
         [idx]: `${data.placed ?? 0} placé(s) · ${data.verified ?? 0} vérifié(s)`,
@@ -338,6 +378,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               : 'Fenêtre KiCad rouverte sur le plateau à jour.',
       });
       finishProgress('done');
+      if (wasLast) {
+        void runPostPlacementPipeline();
+      }
     } catch (e) {
       finishProgress('error');
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
@@ -676,6 +719,11 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (!routeRes.ok || !routeData.ok)
         throw new Error(routeData.error || `Erreur ${routeRes.status}`);
 
+      const assistedSummary = `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`;
+      setFullFlowDone(true);
+      setFlowSummary(assistedSummary);
+      router.refresh();
+
       let freeroute: {
         tracks?: number;
         wires?: number;
@@ -699,9 +747,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
       const summary = freeroute
         ? `Routage complet : ${freeroute.tracks ?? 0} pistes · ${freeroute.wires ?? 0} connexions · ${freeroute.drc?.violations ?? 0} violation(s) DRC`
-        : `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND${freerouteError ? ' · Freerouting indisponible' : ''}`;
+        : `${assistedSummary}${freerouteError ? ' · Freerouting indisponible' : ''}`;
       setFlowSummary(summary);
-      setFullFlowDone(true);
       finishProgress('done');
       toast.success('Processus complet terminé', {
         description: `${summary}${freerouteError ? ` (${freerouteError})` : ''}`,
