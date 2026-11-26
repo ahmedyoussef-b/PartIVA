@@ -71,6 +71,21 @@ function symbolFor(reference: string): ResolvedComponent {
   return found;
 }
 
+/**
+ * Une réponse HTML (page 404 Next pendant une recompilation/HMR) faisait
+ * échouer `res.json()` avec « Unexpected token '<' ». On rend le cas lisible
+ * etactionnable pour l'utilisateur.
+ */
+function assertJsonResponse(res: Response): void {
+  const contentType = res.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) return;
+  throw new Error(
+    res.status === 404
+      ? 'Route temporairement indisponible (404) — rechargez la page et réessayez.'
+      : `Réponse inattendue du serveur (${res.status}) — réessayez.`,
+  );
+}
+
 export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
@@ -127,6 +142,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, peek, forceRefresh, force: forceRefresh }),
       });
+      assertJsonResponse(res);
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
       return {
@@ -259,6 +275,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           ],
         }),
       });
+      assertJsonResponse(res);
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
 
@@ -373,6 +390,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId }),
       });
+      assertJsonResponse(res);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       setNetsMissing(false);
@@ -412,6 +430,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId }),
       });
+      assertJsonResponse(res);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       window.dispatchEvent(new Event('pcb:board-refresh'));
@@ -442,6 +461,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId }),
       });
+      assertJsonResponse(res);
       const data = await res.json();
       if (data.code === 'FREEROUTING_MISSING') {
         setFreeroutingInfo(data.error ?? 'Freerouting non installé');
@@ -507,6 +527,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         })),
       }),
     });
+    assertJsonResponse(res);
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
 
