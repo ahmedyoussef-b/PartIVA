@@ -108,7 +108,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [fullFlowRunning, setFullFlowRunning] = useState(false);
   const [fullFlowDone, setFullFlowDone] = useState(false);
   const fullRouted = fullFlowDone || (liveState.tracks ?? 0) > 0 || (liveState.zones ?? 0) > 0;
-  const allPlaced = components.length > 0 && components.every((_, i) => !!placed[i]);
   const [resultShown, setResultShown] = useState(false);
   const [showingResult, setShowingResult] = useState(false);
   const [flowSummary, setFlowSummary] = useState<string | null>(null);
@@ -139,6 +138,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   }, [projectId]);
   const [placed, setPlaced] = useState<Record<number, string>>({});
+  const allPlaced = components.length > 0 && components.every((_, i) => !!placed[i]);
   const [placeErrors, setPlaceErrors] = useState<Record<number, string>>({});
   const loadingRef = useRef(false);
 
