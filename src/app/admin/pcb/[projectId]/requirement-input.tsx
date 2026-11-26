@@ -37,6 +37,7 @@ export function RequirementInput({
         { duration: 8_000 },
       );
       window.dispatchEvent(new Event('pcb:board-refresh'));
+      window.dispatchEvent(new Event('pcb:sourcing-reset'));
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Erreur');
