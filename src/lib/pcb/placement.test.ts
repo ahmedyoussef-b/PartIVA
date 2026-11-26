@@ -198,6 +198,22 @@ describe('calculateCost', () => {
     const comps = [{ reference: 'J1', xMm: 500, yMm: 20, rotation: 0 }];
     expect(calculateCost(comps, new Map(), board)).toBeGreaterThanOrEqual(1000);
   });
+
+  it('pénalise une cellule surchargée (> 3 composants)', () => {
+    const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 0 };
+    const crowded = Array.from({ length: 4 }, (_, i) => ({
+      reference: `R${i + 1}`,
+      xMm: 10 + i * 0.5,
+      yMm: 10,
+      rotation: 0,
+      widthMm: 1,
+      heightMm: 1,
+    }));
+    const spread = crowded.map((c, i) => ({ ...c, xMm: 10 + i * 20 }));
+    expect(calculateCost(crowded, new Map(), board)).toBeGreaterThan(
+      calculateCost(spread, new Map(), board),
+    );
+  });
 });
 
 describe('règles métier CDC', () => {
@@ -330,6 +346,31 @@ describe('optimizePlacement', () => {
     expect(overlaps(components)).toBeGreaterThan(0);
     const out = optimizePlacement(components, [], board);
     expect(overlaps(out)).toBe(0);
+  });
+});
+
+describe('orientation par flux de signal', () => {
+  it('aligne un composant sur l’axe du net critique', () => {
+    const comps = [
+      { reference: 'U1', xMm: 20, yMm: 40, rotation: 0, role: 'mcu' as const },
+      { reference: 'Y1', xMm: 60, yMm: 40, rotation: 90, role: 'clock' as const },
+    ];
+    const nets = [{ name: 'OSC_IN', pins: ['U1.5', 'Y1.1'] }];
+    const out = optimizeRotations(comps, nets);
+    expect(out[1]!.rotation).toBe(0); // axe horizontal
+  });
+
+  it('pénalise une rotation perpendiculaire à l’axe du signal', () => {
+    const board = { widthMm: 100, heightMm: 80, originX: 0, originY: 0 };
+    const nets = [{ name: 'CLK', pins: ['U1.1', 'Y1.1'] }];
+    const aligned = [
+      { reference: 'U1', xMm: 20, yMm: 40, rotation: 0, role: 'mcu' as const },
+      { reference: 'Y1', xMm: 60, yMm: 40, rotation: 0, role: 'clock' as const },
+    ];
+    const perpendicular = [{ ...aligned[0]! }, { ...aligned[1]!, rotation: 90 }];
+    expect(calculateCost(perpendicular, new Map(), board, nets)).toBeGreaterThan(
+      calculateCost(aligned, new Map(), board, nets),
+    );
   });
 });
 

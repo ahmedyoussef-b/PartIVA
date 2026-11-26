@@ -787,6 +787,26 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 4 Congestion globale
+
+- `calculateCost` intègre une grille de densité 10×10 : au-delà de 3 composants dans une cellule, pénalité de 30 × (dépassement)².
+- Test clignotant LED : longueur des nets stable à 172 mm, densité max 1 composant/cellule, aucun chevauchement, coût stable à 2677.
+- 1 test de densité ajouté (396 total).
+- typecheck 0, lint 0, vitest 396/396, prettier 0.
+
+---
+
+## Session 2026-11-26 (suite) — Étape 5 Orientation par flux de signal
+
+- `CRITICAL_NET_RE` (OSC, CLK, XTAL, VCC, VDD, RS485, UART, SPI, I2C) + `idealSignalRotation()` : angle du net critique arrondi à 0/90°.
+- `calculateCost(components, adj, board, nets?)` pénalise une rotation perpendiculaire (ROTATION_WEIGHT 20).
+- `optimizeRotations(components, nets?)` aligne les composants sur l'axe du net critique.
+- Test clignotant LED : J1/U1/R1 à 90° (axe VCC vertical), R2/C1/D1 à 0°, longueur des nets stable à 172 mm.
+- 2 tests d'orientation ajoutés (398 total).
+- typecheck 0, lint 0, vitest 398/398, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
