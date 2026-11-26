@@ -14,6 +14,12 @@ export interface PlacementComponent {
   role?: PlacementRole;
   /** Texte libre (value/type/rationale/footprint) utilisé par les règles métier. */
   hints?: string;
+  /** Composant verrouillé par la passe séquentielle (connecteurs). */
+  locked?: boolean;
+  /** Ancrage et amplitude de déplacement autorisée pendant le recuit (ICs). */
+  anchorX?: number;
+  anchorY?: number;
+  movementRangeMm?: number;
 }
 
 export type PlacementRole =
@@ -75,6 +81,8 @@ export function inferPlacementRole(input: PlacementHints): PlacementRole | undef
   }
   // MCU AVANT serial : la rationale d'un MCU mentionne souvent « UART ».
   if (/microcontr|mcu|stm32|esp32|atmega|lqfp|qfn/i.test(text)) return 'mcu';
+  // Le NE555 (et ses dérivés) est le IC principal d'un clignotant LED.
+  if (/\bne?555\b|\b555\b|timer ic|timer.*555/i.test(text)) return 'mcu';
   if (/rs.?485|modbus|transceiver|sn75176/i.test(text)) return 'serial';
   if (/r[eé]gulateur|regulator|dc.?dc|buck|to-220/i.test(text)) return 'regulator';
   if (/^C/.test(ref) || /condensateur|capacitor|d[eé]couplage/i.test(text)) return 'capacitor';
@@ -128,6 +136,10 @@ function buildAdjacency(
 
 function distance(a: PlacementComponent, b: PlacementComponent): number {
   return Math.hypot(a.xMm - b.xMm, a.yMm - b.yMm);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }
 
 function overlapPenalty(a: PlacementComponent, b: PlacementComponent, gap = 0): number {
@@ -231,6 +243,14 @@ export function calculateCost(
   if (clocks.length > 0 && mcus.length > 0) {
     penalize(clocks, mcus, CLOCK_TARGET_MM, CLOCK_WEIGHT, 'toward');
   }
+  // 1b. Découplage / résistances de support collés à leur IC principal.
+  const mainIcs = [...mcus, ...regulators, ...serials];
+  const supportPassives = components.filter(
+    (c) => c.role === 'capacitor' || /^R/i.test(c.reference),
+  );
+  if (mainIcs.length > 0 && supportPassives.length > 0) {
+    penalize(supportPassives, mainIcs, 5, 40, 'toward');
+  }
   // 2. Régulateur (chaud) éloigné des parties sensibles.
   if (regulators.length > 0 && sensitive.length > 0) {
     penalize(regulators, sensitive, THERMAL_MIN_MM, THERMAL_WEIGHT, 'away');
@@ -288,6 +308,84 @@ function cloneComponents(components: PlacementComponent[]): PlacementComponent[]
   return components.map((c) => ({ ...c }));
 }
 
+// Passe séquentielle par blocs fonctionnels (Étape 2 roadmap).
+// Ordre : connecteurs verrouillés sur les bords → ICs au centre → passifs
+// attachés à leur IC → secondaires dans les espaces libres.
+export function placeSequentially(
+  components: PlacementComponent[],
+  nets: PlacementNet[],
+  board: PlacementBoard,
+): void {
+  // Sans rôles connus, on ne force rien : le recuit gère le placement initial.
+  if (!components.some((c) => c.role)) return;
+
+  const ox = board.originX ?? 0;
+  const oy = board.originY ?? 0;
+  const maxX = ox + board.widthMm;
+  const maxY = oy + board.heightMm;
+  const byRef = new Map(components.map((c) => [c.reference, c]));
+  const adj = buildAdjacency(components, nets);
+
+  // 1. Connecteurs : bord supérieur, répartis sur X, verrouillés.
+  const connectors = components
+    .filter((c) => c.role === 'connector')
+    .sort((a, b) => a.reference.localeCompare(b.reference));
+  connectors.forEach((conn, index) => {
+    conn.xMm = ox + ((index + 1) / (connectors.length + 1)) * board.widthMm;
+    conn.yMm = oy + 3;
+    conn.rotation = 0;
+    conn.locked = true;
+  });
+
+  // 2. ICs principaux : zone centrale, espacement >= 5 mm, déplacement ±2 mm.
+  const ics = components.filter(
+    (c) =>
+      (c.role === 'mcu' || c.role === 'regulator' || c.role === 'serial' || c.role === 'clock') &&
+      !c.locked,
+  );
+  if (ics.length > 0) {
+    const cols = Math.ceil(Math.sqrt(ics.length));
+    const rows = Math.ceil(ics.length / cols);
+    const spacing = 8;
+    ics.forEach((ic, index) => {
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      ic.xMm = clamp(ox + board.widthMm / 2 + (col - (cols - 1) / 2) * spacing, ox + 2, maxX - 2);
+      ic.yMm = clamp(oy + board.heightMm / 2 + (row - (rows - 1) / 2) * spacing, oy + 2, maxY - 2);
+      ic.rotation = 0;
+      ic.anchorX = ic.xMm;
+      ic.anchorY = ic.yMm;
+      ic.movementRangeMm = 2;
+    });
+  }
+
+  // 3. Passifs attachés à leur IC via un net, à ~5 mm, angle réparti (doré).
+  const icsRefs = new Set(ics.map((c) => c.reference));
+  const passives = components.filter(
+    (c) => !c.locked && (c.role === 'capacitor' || /^R/i.test(c.reference)),
+  );
+  passives.forEach((passive, index) => {
+    const parentRef = [...(adj.get(passive.reference) ?? [])].find((r) => icsRefs.has(r));
+    const parent = parentRef ? byRef.get(parentRef) : undefined;
+    if (!parent) return;
+    const angle = (index * 137.5 * Math.PI) / 180;
+    passive.xMm = clamp(parent.xMm + 5 * Math.cos(angle), ox + 2, maxX - 2);
+    passive.yMm = clamp(parent.yMm + 5 * Math.sin(angle), oy + 2, maxY - 2);
+  });
+
+  // 4. Secondaires : répartis dans la partie basse, en évitant les connecteurs.
+  const placedRefs = new Set([...connectors, ...ics, ...passives].map((c) => c.reference));
+  const secondaries = components.filter((c) => !placedRefs.has(c.reference));
+  secondaries.forEach((secondary, index) => {
+    secondary.xMm = clamp(
+      ox + ((index + 1) / (secondaries.length + 1)) * board.widthMm,
+      ox + 2,
+      maxX - 2,
+    );
+    secondary.yMm = clamp(oy + board.heightMm - 8, oy + 2, maxY - 2);
+  });
+}
+
 // Force dirigée : quelques itérations pour rapprocher les connectés et écarter les autres.
 function forceDirected(
   components: PlacementComponent[],
@@ -341,9 +439,14 @@ function forceDirected(
     // Application avec amortissement + clamp au plateau
     const damping = 0.5;
     for (const c of components) {
+      if (c.locked) continue;
       const f = forces.get(c.reference)!;
       c.xMm = Math.max(ox + 2, Math.min(maxX - 2, c.xMm + f.fx * damping));
       c.yMm = Math.max(oy + 2, Math.min(maxY - 2, c.yMm + f.fy * damping));
+      if (c.anchorX !== undefined && c.anchorY !== undefined && c.movementRangeMm !== undefined) {
+        c.xMm = clamp(c.xMm, c.anchorX - c.movementRangeMm, c.anchorX + c.movementRangeMm);
+        c.yMm = clamp(c.yMm, c.anchorY - c.movementRangeMm, c.anchorY + c.movementRangeMm);
+      }
     }
   }
 }
@@ -438,6 +541,9 @@ function simulatedAnnealing(
     const idx = Math.floor(r * current.length);
     const comp = current[idx]!;
 
+    // Les composants verrouillés (connecteurs) ne bougent jamais pendant le recuit.
+    if (comp.locked) continue;
+
     // Sauvegarde de l'état du composant
     const oldX = comp.xMm;
     const oldY = comp.yMm;
@@ -474,6 +580,27 @@ function simulatedAnnealing(
         other.xMm = tx;
         other.yMm = ty;
         other.rotation = tr;
+      }
+    }
+
+    // Les ICs ancrés ne peuvent pas s'éloigner de plus de movementRangeMm.
+    for (const anchored of [comp, current[Math.floor(r * current.length)]!]) {
+      if (
+        anchored.movementRangeMm !== undefined &&
+        anchored.anchorX !== undefined &&
+        anchored.anchorY !== undefined
+      ) {
+        const range = anchored.movementRangeMm;
+        anchored.xMm = clamp(
+          anchored.xMm,
+          Math.max(ox + 2, anchored.anchorX - range),
+          Math.min(maxX - 2, anchored.anchorX + range),
+        );
+        anchored.yMm = clamp(
+          anchored.yMm,
+          Math.max(oy + 2, anchored.anchorY - range),
+          Math.min(maxY - 2, anchored.anchorY + range),
+        );
       }
     }
 
@@ -539,7 +666,9 @@ function resolveOverlaps(components: PlacementComponent[], board: PlacementBoard
       for (let j = i + 1; j < components.length; j += 1) {
         let a = components[i]!;
         let b = components[j]!;
-        if (a.role === 'connector' && b.role !== 'connector') [a, b] = [b, a];
+        if ((a.locked && !b.locked) || (a.role === 'connector' && b.role !== 'connector')) {
+          [a, b] = [b, a];
+        }
         const overlapX =
           (a.widthMm ?? 10) / 2 + (b.widthMm ?? 10) / 2 + 1 - Math.abs(a.xMm - b.xMm);
         const overlapY =
@@ -570,54 +699,52 @@ export function optimizePlacement(
 ): PlacementComponent[] {
   if (components.length === 0) return components;
   const adj = buildAdjacency(components, nets);
-  // Garantie de non-régression : la force dirigée peut dégrader un placement
-  // déjà cohérent (notamment les règles métier du CDC). Le recuit démarre donc
-  // du meilleur des deux états : placement initial ou résultat de la force.
   const initial = cloneComponents(components);
   const initialCost = calculateCost(initial, adj, board);
 
+  // Étape 2 : passes séquentielles par blocs fonctionnels avant le recuit.
+  placeSequentially(components, nets, board);
+  const sequential = cloneComponents(components);
+  let seed = sequential;
+  let seedCost = calculateCost(sequential, adj, board);
+
+  // Garantie de non-régression : on démarre du meilleur des trois états.
   forceDirected(components, adj, board, 30);
   const forceCost = calculateCost(components, adj, board);
-  const seed = forceCost <= initialCost ? cloneComponents(components) : initial;
+  if (forceCost < seedCost) {
+    seed = cloneComponents(components);
+    seedCost = forceCost;
+  }
+  if (initialCost < seedCost) {
+    seed = initial;
+    seedCost = initialCost;
+  }
   for (let i = 0; i < components.length; i += 1) {
-    components[i]!.xMm = seed[i]!.xMm;
-    components[i]!.yMm = seed[i]!.yMm;
-    components[i]!.rotation = seed[i]!.rotation;
+    const src = seed[i]!;
+    const dst = components[i]!;
+    dst.xMm = src.xMm;
+    dst.yMm = src.yMm;
+    dst.rotation = src.rotation;
+    dst.locked = src.locked;
+    dst.anchorX = src.anchorX;
+    dst.anchorY = src.anchorY;
+    dst.movementRangeMm = src.movementRangeMm;
   }
-
-  // Initialisation guidée des connecteurs : les aligner sur le bord supérieur
-  // AVANT le recuit évite la coordination difficile de 4 déplacements
-  // simultanés vers la même contrainte.
-  const connectors = components
-    .filter((c) => c.role === 'connector')
-    .sort((a, b) => a.reference.localeCompare(b.reference));
-  const ox = board.originX ?? 0;
-  const oy = board.originY ?? 0;
-  if (connectors.length > 0) {
-    const spacing = board.widthMm / (connectors.length + 1);
-    connectors.forEach((conn, index) => {
-      conn.xMm = ox + spacing * (index + 1);
-      conn.yMm = oy + 3;
-      conn.rotation = 0;
-    });
-  }
-  const constrained = cloneComponents(components);
-  const constrainedCost = calculateCost(constrained, adj, board);
 
   simulatedAnnealing(components, adj, board, 800);
 
-  // La contrainte bord supérieur est imposée : on ne restaure le placement
-  // initial que s'il n'y avait aucun connecteur (sinon on la contournerait).
-  const needsFallback =
-    connectors.length === 0
-      ? calculateCost(components, adj, board) > initialCost
-      : calculateCost(components, adj, board) > constrainedCost;
-  if (needsFallback) {
-    const fallback = connectors.length === 0 ? initial : constrained;
+  // Le recuit ne doit jamais dégrader l'état de départ.
+  if (calculateCost(components, adj, board) > seedCost) {
     for (let i = 0; i < components.length; i += 1) {
-      components[i]!.xMm = fallback[i]!.xMm;
-      components[i]!.yMm = fallback[i]!.yMm;
-      components[i]!.rotation = fallback[i]!.rotation;
+      const src = seed[i]!;
+      const dst = components[i]!;
+      dst.xMm = src.xMm;
+      dst.yMm = src.yMm;
+      dst.rotation = src.rotation;
+      dst.locked = src.locked;
+      dst.anchorX = src.anchorX;
+      dst.anchorY = src.anchorY;
+      dst.movementRangeMm = src.movementRangeMm;
     }
   }
 
