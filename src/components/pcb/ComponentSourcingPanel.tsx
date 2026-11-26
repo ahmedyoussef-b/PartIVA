@@ -181,8 +181,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     };
   }, [fetchComponents]);
 
-  const optionFor = (comp: ProposedComponent, idx: number): Selection => {
-    const sel = selections[idx] ?? -1;
+  const optionFor = (
+    comp: ProposedComponent,
+    idx: number,
+    selMap: Record<number, number> = selections,
+  ): Selection => {
+    const sel = selMap[idx] ?? -1;
     if (sel === -1) {
       return {
         libName: comp.libName,
@@ -335,15 +339,17 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setComponents(result.components);
       setNetsMissing(result.netsMissing);
       setSelections({});
-      setPlaced({});
       setPlaceErrors({});
-      router.refresh();
+      // Étape 1 : la BOM générée est immédiatement posée sur le layout.
+      const items = result.components.map((comp, idx) => optionFor(comp, idx, {}));
+      const placed = await placeComponents(items);
       toast.success(
-        result.netsMissing
-          ? 'Composants régénérés, mais le LLM n’a toujours pas fourni de netlist. Vérifiez les clés/quotas des fournisseurs dans les logs serveur.'
-          : 'Composants et netlist régénérés',
+        `${placed.placed ?? items.length} composant(s) généré(s) et placé(s) sur le layout${
+          result.netsMissing ? ' — netlist absente, vérifiez les clés/quotas LLM' : ''
+        }`,
         { duration: 12_000 },
       );
+      router.refresh();
       finishProgress('done');
     } catch (e) {
       finishProgress('error');
@@ -371,8 +377,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setHeuristicNets(data.heuristicCount ?? 0);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       toast.success(
-        `${data.count} réseaux générés (${(data.nets ?? []).map((n: { name: string }) => n.name).join(', ')})`,
+        `${data.count} réseaux générés et connectés sur le layout (${(data.nets ?? [])
+          .map((n: { name: string }) => n.name)
+          .join(', ')})`,
         {
+          description: data.boardAssigned
+            ? `${data.boardPads ?? 0} pads assignés dans KiCad.`
+            : 'Nets enregistrés en BDD ; assignation aux pads indisponible (KiCad Python).',
           duration: 12_000,
         },
       );
@@ -463,81 +474,88 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   // Placement global : un seul appel avec tous les composants et la netlist
   // complète, pour que l'algorithme puisse réellement optimiser les distances.
+  // Placement global partagé : utilisé par « Optimiser la répartition » et
+  // directement par « Générer les composants » pour poser la BOM sur le layout.
+  const placeComponents = async (items: Selection[]) => {
+    await ensureBoard();
+    const res = await fetch('/api/pcb/place/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectId,
+        dryRun: false,
+        force: true,
+        optimize: true,
+        components: items.map((s) => ({
+          libName: s.libName,
+          footprintName: s.footprintName,
+          reference: s.reference,
+          value: s.value,
+          xMm: s.xMm,
+          yMm: s.yMm,
+          rotation: s.rotation,
+        })),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+
+    const byRef = new Map(
+      (
+        (data.optimized ?? []) as Array<{
+          reference: string;
+          xMm: number;
+          yMm: number;
+          rotation: number;
+        }>
+      ).map((o) => [o.reference, o]),
+    );
+    const persistRes = await fetch('/api/pcb/components', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectId,
+        components: items.map((s) => {
+          const o = byRef.get(s.reference);
+          return {
+            reference: s.reference,
+            name: s.value,
+            symbol: `${s.libName}:${s.footprintName}`,
+            footprint: `${s.libName}:${s.footprintName}`,
+            positionX: o?.xMm ?? s.xMm,
+            positionY: o?.yMm ?? s.yMm,
+            rotation: o?.rotation ?? s.rotation,
+          };
+        }),
+      }),
+    });
+    if (!persistRes.ok)
+      console.warn('Persist global échoué', await persistRes.json().catch(() => ({})));
+
+    setPlaced(
+      Object.fromEntries(items.map((_, idx) => [idx, `${data.placed ?? items.length} placé(s)`])),
+    );
+    window.dispatchEvent(new Event('pcb:board-refresh'));
+    router.refresh();
+    await reloadKiCad();
+    return data as { placed?: number; liveSynced?: boolean };
+  };
+
   const handlePlaceAll = async () => {
     setPlacingAll(true);
-    startProgress('4. Placement optimisé de tous les composants');
+    startProgress('4. Optimisation de la répartition');
     try {
-      await ensureBoard();
       const items = components.map((comp, idx) => optionFor(comp, idx));
-      const res = await fetch('/api/pcb/place/batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId,
-          dryRun: false,
-          force: true,
-          optimize: true,
-          components: items.map((s) => ({
-            libName: s.libName,
-            footprintName: s.footprintName,
-            reference: s.reference,
-            value: s.value,
-            xMm: s.xMm,
-            yMm: s.yMm,
-            rotation: s.rotation,
-          })),
-        }),
+      const data = await placeComponents(items);
+      toast.success(`${data.placed ?? items.length} composant(s) réparti(s) sur le plateau`, {
+        description: data.liveSynced
+          ? 'KiCad mis à jour en direct.'
+          : 'Fenêtre KiCad rouverte sur le plateau à jour.',
       });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
-
-      const byRef = new Map(
-        (
-          (data.optimized ?? []) as Array<{
-            reference: string;
-            xMm: number;
-            yMm: number;
-            rotation: number;
-          }>
-        ).map((o) => [o.reference, o]),
-      );
-      const persistRes = await fetch('/api/pcb/components', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId,
-          components: items.map((s) => {
-            const o = byRef.get(s.reference);
-            return {
-              reference: s.reference,
-              name: s.value,
-              symbol: `${s.libName}:${s.footprintName}`,
-              footprint: `${s.libName}:${s.footprintName}`,
-              positionX: o?.xMm ?? s.xMm,
-              positionY: o?.yMm ?? s.yMm,
-              rotation: o?.rotation ?? s.rotation,
-            };
-          }),
-        }),
-      });
-      if (!persistRes.ok)
-        console.warn('Persist global échoué', await persistRes.json().catch(() => ({})));
-
-      window.dispatchEvent(new Event('pcb:board-refresh'));
-      router.refresh();
-      await reloadKiCad();
-      toast.success(
-        `${data.placed ?? items.length} composant(s) placé(s) avec optimisation globale`,
-        {
-          description: data.liveSynced
-            ? 'KiCad mis à jour en direct.'
-            : 'Fenêtre KiCad rouverte sur le plateau à jour.',
-        },
-      );
       finishProgress('done');
     } catch (e) {
       finishProgress('error');
-      toast.error(e instanceof Error ? e.message : 'Placement global impossible');
+      toast.error(e instanceof Error ? e.message : 'Optimisation de la répartition impossible');
     } finally {
       setPlacingAll(false);
     }
@@ -620,14 +638,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         </button>
         <button
           type="button"
-          title="4. Placer les composants avec la netlist complète"
+          title="4. Optimiser la répartition des composants sur le plateau"
           className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
             activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
           }`}
           onClick={handlePlaceAll}
           disabled={placingAll}
         >
-          {placingAll ? 'Placement…' : '4. Tout placer (optimisé)'}
+          {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
         </button>
         <button
           type="button"
