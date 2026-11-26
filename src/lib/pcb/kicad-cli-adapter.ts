@@ -36,7 +36,7 @@ export interface KicadCliResult {
   exitCode: number;
 }
 
-async function runKicadCli(args: string[]): Promise<KicadCliResult> {
+export async function runKicadCli(args: string[]): Promise<KicadCliResult> {
   const cli = await detectKicadCli();
   if (!cli) {
     return { success: false, stdout: '', stderr: 'kicad-cli introuvable', exitCode: -1 };

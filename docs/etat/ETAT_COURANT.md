@@ -829,6 +829,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 8 DFM JLCPCB + export
+
+- `src/lib/pcb/dfm/jlcpcb-rules.ts` : profil JLCPCB (piste 0,1 mm, espacement 0,1 mm, perçage 0,3 mm, anneau 0,13 mm, bord 0,5 mm) + `validateDfm`.
+- Route `POST /api/pcb/export/fabrication` : Gerbers + Drill via `kicad-cli`, BOM CSV et Pos CSV depuis la BDD, archive ZIP base64 renvoyée au client.
+- UI : badge « ✓ Conforme JLCPCB » / « ✗ Non conforme JLCPCB » avec suggestions, bouton « Exporter pour JLCPCB » téléchargeant le zip (export autorisé même non conforme).
+- `runKicadCli` exporté pour la route. Test réel : kicad-cli génère 5 Gerbers + 1 fichier drill ; DFM sur la carte test = 20 violations (shorting_items) → badge rouge.
+- 5 tests DFM ajoutés (409 total).
+- typecheck 0, lint 0, vitest 409/409, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
