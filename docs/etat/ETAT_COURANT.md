@@ -699,6 +699,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — diagnostic du 404 HTML au placement
+
+- Symptôme : `POST /api/pcb/place/batch 404` puis toast « Unexpected token '<', "<!DOCTYPE "... is not valid JSON » — le client tentait de parser une **page HTML 404** comme du JSON (route Next en recompilation/HMR après merge, pas un 404 JSON de l'API).
+- Le projet `cmwwmezr7001iccfc6m1o9b3p` a été vérifié présent en BDD avec son `.kicad_pcb`, et la seule source de 404 JSON de la route est `Projet introuvable` — donc erreur transitoire de route, pas donnée manquante.
+- `assertJsonResponse()` dans le panneau Sourcing : si la réponse n'est pas du JSON, message explicite « Route temporairement indisponible (404) — rechargez la page et réessayez » au lieu du token invalide.
+- typecheck 0, lint 0, vitest 384/384, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
