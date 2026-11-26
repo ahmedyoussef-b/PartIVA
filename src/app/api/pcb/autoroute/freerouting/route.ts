@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
 import path from 'node:path';
@@ -103,6 +103,8 @@ export async function POST(req: Request) {
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
+  const minScore = typeof body.minScore === 'number' ? body.minScore : null;
+  const restoreIfWorse = body.restoreIfWorse === true;
   if (!projectId) return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
 
   const project = await prisma.pcbProject.findUnique({
@@ -176,6 +178,9 @@ export async function POST(req: Request) {
       // fichier déjà absent
     }
   }
+
+  const backupPath = `${boardPath}.routing-bak`;
+  copyFileSync(boardPath, backupPath);
 
   const dsnPath = `${boardPath.replace(/\.kicad_pcb$/i, '')}.dsn`;
   const exported = await exportDsn(boardPath, dsnPath);
@@ -279,6 +284,37 @@ export async function POST(req: Request) {
     violations: drc.violations,
     score,
   });
+
+  // Historique des tentatives (best-effort : la table peut ne pas encore être migrée).
+  try {
+    await prisma.pcbRoutingAttempt.create({
+      data: {
+        projectId,
+        score,
+        tracks: imported.tracks ?? 0,
+        violations: drc.violations,
+        placement: drc.categories?.placement ?? 0,
+        routing: drc.categories?.routage ?? 0,
+      },
+    });
+  } catch (e) {
+    console.warn('[FREEROUTING] Historique indisponible', e);
+  }
+
+  // Re-router avec seuil : on restaure l'ancien plateau si le score régresse.
+  if (minScore !== null && score !== null && score < minScore && restoreIfWorse) {
+    copyFileSync(backupPath, boardPath);
+    console.warn('[FREEROUTING] Score en baisse, ancien routage restauré', { score, minScore });
+    return NextResponse.json({
+      ok: false,
+      code: 'ROUTE_NOT_IMPROVED',
+      error: 'Le nouveau routage est moins bon. L’ancien a été conservé.',
+      score,
+      previousScore: minScore,
+      restored: true,
+    });
+  }
+
   return NextResponse.json({
     ok: true,
     tracks: imported.tracks ?? 0,

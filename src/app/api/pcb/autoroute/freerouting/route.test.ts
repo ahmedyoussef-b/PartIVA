@@ -11,6 +11,7 @@ const m = vi.hoisted(() => ({
   readFileSync: vi.fn(),
   writeFileSync: vi.fn(),
   unlinkSync: vi.fn(),
+  copyFileSync: vi.fn(),
   execFileAsync: vi.fn(),
 }));
 const {
@@ -24,6 +25,7 @@ const {
   readFileSync,
   writeFileSync,
   unlinkSync,
+  copyFileSync,
   execFileAsync,
 } = m;
 
@@ -32,6 +34,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     pcbProject: { findUnique: (...a: unknown[]) => findProject(...a) },
     pcbNet: { findMany: (...a: unknown[]) => findNets(...a) },
+    pcbRoutingAttempt: { create: vi.fn().mockResolvedValue({ id: 'a1' }) },
   },
 }));
 vi.mock('@/lib/pcb/kicad-bridge', () => ({
@@ -45,6 +48,7 @@ vi.mock('node:fs', () => ({
   readFileSync: (...a: unknown[]) => readFileSync(...a),
   writeFileSync: (...a: unknown[]) => writeFileSync(...a),
   unlinkSync: (...a: unknown[]) => unlinkSync(...a),
+  copyFileSync: (...a: unknown[]) => copyFileSync(...a),
 }));
 vi.mock('node:util', () => ({ promisify: () => m.execFileAsync }));
 
@@ -79,6 +83,7 @@ describe('POST /api/pcb/autoroute/freerouting — chaîne DSN → SES → DRC', 
     });
     writeFileSync.mockImplementation(() => {});
     unlinkSync.mockImplementation(() => {});
+    copyFileSync.mockImplementation(() => {});
     vi.stubEnv('FREEROUTING_JAR', 'C:/tools/freerouting.jar');
   });
 
