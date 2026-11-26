@@ -7,6 +7,7 @@ import { usePcbEditor } from './PcbEditorProvider';
 import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
 import { createKicadFile } from '@/lib/pcb/client/kicad-file';
+import { validateNetlist } from '@/lib/pcb/netlist-validation';
 import { usePcbLiveState } from './PcbLiveStateProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
@@ -126,6 +127,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [resultShown, setResultShown] = useState(false);
   const [showingResult, setShowingResult] = useState(false);
   const [flowSummary, setFlowSummary] = useState<string | null>(null);
+  const [validationIssues, setValidationIssues] = useState<string[]>([]);
   const [lastDrc, setLastDrc] = useState<{
     details?: Array<{
       type: string;
@@ -181,6 +183,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
       return {
         components: (data.components ?? []) as ProposedComponent[],
+        nets: (data.nets ?? []) as Array<{ name: string; pins: string[] }>,
         netsMissing: data.netsMissing === true,
       };
     },
@@ -244,6 +247,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setResultShown(false);
       setFlowSummary(null);
       setError(null);
+      setValidationIssues([]);
       setLoading(false);
     };
     window.addEventListener('pcb:sourcing-reset', handler);
@@ -773,6 +777,12 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setSelections({});
       setPlaceErrors({});
       setNetsMissing(sourced.netsMissing);
+      const validation = validateNetlist(sourced.components, sourced.nets);
+      if (!validation.ok) {
+        setValidationIssues(validation.errors.map((e) => e.message));
+        throw new Error(validation.errors[0]?.message ?? 'Netlist invalide');
+      }
+      setValidationIssues([]);
 
       startProgress('Processus complet : placement sur le layout');
       const items = sourced.components.map((comp, idx) => optionFor(comp, idx, {}));
@@ -1126,6 +1136,23 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           );
         })}
       </div>
+      {validationIssues.length > 0 && (
+        <div className="border-b border-red-200 bg-red-50 p-2 text-xs text-red-800">
+          <div className="font-semibold">Netlist invalide — placement bloqué :</div>
+          <ul className="mt-1 list-inside list-disc">
+            {validationIssues.map((issue, i) => (
+              <li key={i}>{issue}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            className="mt-2 rounded border border-red-300 bg-white px-2 py-0.5"
+            onClick={() => setNetsEditorOpen(true)}
+          >
+            Éditer la Netlist
+          </button>
+        </div>
+      )}
       {flowSummary && (
         <div className="border-b border-green-200 bg-green-50 p-2 text-xs text-green-800">
           {flowSummary}

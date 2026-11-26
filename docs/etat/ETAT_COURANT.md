@@ -807,6 +807,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — Étape 6 Validation interne
+
+- Nouveau module `netlist-validation.ts` : `validateNetlist(components, nets)` vérifie nets ≥ 2 pins, broches existantes, broches dupliquées, alimentation/GND des composants U*/IC*, nets d'horloge (cristal + IC) et RS485 (transceiver + connecteur).
+- Intégré dans `runFullFlow` avant le placement : erreur critique → toast + bandeau « Netlist invalide — placement bloqué » avec bouton « Éditer la Netlist ».
+- Reset efface les erreurs de validation.
+- Test clignotant LED : netlist valide passe ; suppression du net GND → « Le composant U1 n'a pas de connexion GND » et placement bloqué.
+- 6 tests ajoutés (404 total).
+- typecheck 0, lint 0, vitest 404/404, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
