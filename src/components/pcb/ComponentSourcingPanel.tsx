@@ -204,6 +204,25 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     };
   }, [fetchComponents]);
 
+  // Reset : revenir à l'état initial du Sourcing après un reset du plateau.
+  useEffect(() => {
+    const handler = () => {
+      setComponents([]);
+      setSelections({});
+      setPlaced({});
+      setPlaceErrors({});
+      setNetsMissing(false);
+      setHeuristicNets(0);
+      setFullFlowDone(false);
+      setResultShown(false);
+      setFlowSummary(null);
+      setError(null);
+      setLoading(false);
+    };
+    window.addEventListener('pcb:sourcing-reset', handler);
+    return () => window.removeEventListener('pcb:sourcing-reset', handler);
+  }, []);
+
   const optionFor = (
     comp: ProposedComponent,
     idx: number,
