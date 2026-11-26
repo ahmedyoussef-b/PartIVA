@@ -108,6 +108,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [fullFlowRunning, setFullFlowRunning] = useState(false);
   const [fullFlowDone, setFullFlowDone] = useState(false);
   const fullRouted = fullFlowDone || (liveState.tracks ?? 0) > 0 || (liveState.zones ?? 0) > 0;
+  const allPlaced = components.length > 0 && components.every((_, i) => !!placed[i]);
   const [resultShown, setResultShown] = useState(false);
   const [showingResult, setShowingResult] = useState(false);
   const [flowSummary, setFlowSummary] = useState<string | null>(null);
@@ -246,7 +247,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   };
 
   const runPostPlacementPipeline = async () => {
-    setFullFlowDone(true);
+    setRouting(true);
     startProgress('Placement manuel complet : connexions et routage');
     try {
       const netsRes = await fetch('/api/pcb/requirements/nets-only', {
@@ -271,15 +272,20 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (!routeRes.ok || !routeData.ok)
         throw new Error(routeData.error || `Erreur ${routeRes.status}`);
 
-      await showResult();
+      const summary = `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`;
+      setFlowSummary(summary);
+      setFullFlowDone(true);
       toast.success('Placement manuel terminé — connexions et pistes tracées', {
-        description: `${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`,
+        description: summary,
         duration: 12_000,
       });
       finishProgress('done');
+      router.refresh();
     } catch (e) {
       finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Routage impossible', { duration: 12_000 });
+    } finally {
+      setRouting(false);
     }
   };
 
@@ -356,8 +362,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         console.warn('Persist error', pe);
       }
 
-      const wasLast = components.length > 0 && components.every((_, i) => i === idx || !!placed[i]);
-
       setPlaced((prev) => ({
         ...prev,
         [idx]: `${data.placed ?? 0} placé(s) · ${data.verified ?? 0} vérifié(s)`,
@@ -378,9 +382,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               : 'Fenêtre KiCad rouverte sur le plateau à jour.',
       });
       finishProgress('done');
-      if (wasLast) {
-        void runPostPlacementPipeline();
-      }
     } catch (e) {
       finishProgress('error');
       const msg = e instanceof Error ? e.message : 'Erreur de placement';
@@ -674,7 +675,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     } finally {
       setShowingResult(false);
     }
-  }, [projectId, router]);
+  }, [projectId, router, setShowingResult, setResultShown]);
 
   const runFullFlow = async (displayAfter: boolean) => {
     if (fullFlowRunning) return;
@@ -1035,6 +1036,21 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       {flowSummary && (
         <div className="border-b border-green-200 bg-green-50 p-2 text-xs text-green-800">
           {flowSummary}
+        </div>
+      )}
+      {allPlaced && !fullRouted && (
+        <div className="border-t bg-gray-50 p-3">
+          <button
+            type="button"
+            onClick={runPostPlacementPipeline}
+            disabled={routing || fullFlowRunning}
+            className="rounded bg-purple-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+          >
+            {routing ? 'Routage…' : 'Placer routage et connexion'}
+          </button>
+          <p className="mt-1 text-[11px] text-gray-500">
+            Génère les connexions et trace les pistes à partir des composants placés.
+          </p>
         </div>
       )}
       {fullRouted && (
