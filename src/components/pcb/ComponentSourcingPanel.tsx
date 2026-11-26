@@ -616,11 +616,28 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   if (components.length === 0) {
     return (
-      <div className="rounded-lg border bg-white p-4 text-sm text-gray-500">
-        Aucun composant proposé. Vérifiez le contexte validé.
-        <button type="button" className="ml-2 rounded border px-2 py-0.5 text-xs" onClick={load}>
-          Relancer
-        </button>
+      <div className="rounded-lg border bg-white">
+        <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
+          <span>Sourcing</span>
+          {activeAction === 'components' && (
+            <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              À cliquer →
+            </span>
+          )}
+          <button
+            type="button"
+            title="Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
+            className={`rounded border px-2 py-0.5 text-xs font-normal ${
+              activeAction === 'components'
+                ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                : ''
+            }`}
+            onClick={handleRegenerate}
+            disabled={regenerating}
+          >
+            {regenerating ? 'Génération…' : 'Lancer'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -628,7 +645,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   return (
     <div className="rounded-lg border bg-white">
       <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
-        <span>Sourcing composants ({components.length})</span>
+        <span>Sourcing ({components.length})</span>
         {activeAction && (
           <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
             À cliquer →
