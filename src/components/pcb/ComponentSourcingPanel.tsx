@@ -855,6 +855,19 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             </button>
             <button
               type="button"
+              title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
+              className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
+              onClick={showResult}
+              disabled={showingResult || fullFlowRunning}
+            >
+              {showingResult
+                ? 'Affichage…'
+                : resultShown
+                  ? 'Réafficher les résultats'
+                  : 'Afficher les résultats'}
+            </button>
+            <button
+              type="button"
               title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
               className={`rounded border px-2 py-0.5 text-xs font-normal ${
                 activeAction === 'edit-netlist'
@@ -1073,23 +1086,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         </div>
       )}
       {fullRouted && (
-        <div className="border-t bg-gray-50 p-3">
-          <button
-            type="button"
-            onClick={showResult}
-            disabled={showingResult || fullFlowRunning}
-            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {showingResult
-              ? 'Affichage…'
-              : resultShown
-                ? 'Réafficher les résultats'
-                : 'Afficher les résultats'}
-          </button>
-          <p className="mt-1 text-[11px] text-gray-500">
-            Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d&apos;après
-            le projet. Sinon, validez et placez les composants un par un avec les boutons ci-dessus.
-          </p>
+        <div className="border-t bg-gray-50 p-3 text-[11px] text-gray-500">
+          Le résultat est prêt : cliquez sur « Afficher les résultats » dans l&apos;en-tête
+          ci-dessus pour l&apos;afficher dans le layout et dans KiCad.
         </div>
       )}
       {netsEditorOpen && (
