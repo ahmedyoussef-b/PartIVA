@@ -82,8 +82,8 @@ export function PcbWizard({ projectId }: Props) {
     },
     {
       id: 'nets',
-      label: 'Netlist',
-      hint: 'Générer puis vérifier les connexions',
+      label: 'Sourcing',
+      hint: 'Générer les composants puis les connexions',
       target: 'card-sourcing',
       done: netsCount > 0,
       prerequisite: requirementsCount > 0,
