@@ -1083,8 +1083,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             {showingResult
               ? 'Affichage…'
               : resultShown
-                ? 'Réafficher le résultat'
-                : 'Afficher le résultat'}
+                ? 'Réafficher les résultats'
+                : 'Afficher les résultats'}
           </button>
           <p className="mt-1 text-[11px] text-gray-500">
             Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d&apos;après
