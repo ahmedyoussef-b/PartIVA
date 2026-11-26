@@ -811,11 +811,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         <div className="flex flex-col gap-2 border-b bg-gray-50 p-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
             <span>Sourcing</span>
-            {activeAction === 'components' && (
-              <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                À cliquer →
-              </span>
-            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -842,11 +837,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       <div className="flex flex-col gap-2 border-b bg-gray-50 p-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
           <span>Sourcing ({components.length})</span>
-          {activeAction && (
-            <span className="animate-pulse rounded bg-blue-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-              À cliquer →
-            </span>
-          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {fullRouted ? (
@@ -862,18 +852,6 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               </button>
               <button
                 type="button"
-                title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-                className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                  activeAction === 'edit-netlist'
-                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
-                onClick={() => setNetsEditorOpen(true)}
-              >
-                Éditer la Netlist
-              </button>
-              <button
-                type="button"
                 title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
                 className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
                 onClick={showResult}
@@ -884,6 +862,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
                   : resultShown
                     ? 'Réafficher les résultats'
                     : 'Afficher les résultats'}
+              </button>
+              <button
+                type="button"
+                title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+                className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                  activeAction === 'edit-netlist'
+                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                    : ''
+                }`}
+                onClick={() => setNetsEditorOpen(true)}
+              >
+                Éditer la Netlist
               </button>
             </>
           ) : (
