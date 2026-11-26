@@ -8,6 +8,7 @@ import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
 import { createKicadFile } from '@/lib/pcb/client/kicad-file';
 import { validateNetlist } from '@/lib/pcb/netlist-validation';
+import { validateDfm } from '@/lib/pcb/dfm/jlcpcb-rules';
 import { usePcbLiveState } from './PcbLiveStateProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
 
@@ -131,6 +132,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [rerouting, setRerouting] = useState(false);
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [lastTracks, setLastTracks] = useState(0);
+  const [exporting, setExporting] = useState(false);
   const [routingAttempts, setRoutingAttempts] = useState<
     Array<{
       id: string;
@@ -143,6 +145,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [lastDrc, setLastDrc] = useState<{
     details?: Array<{
       type: string;
+      severity: string;
       description: string;
       x?: number;
       y?: number;
@@ -802,6 +805,35 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  const exportFabrication = async () => {
+    setExporting(true);
+    startProgress('Export fabrication JLCPCB');
+    try {
+      const res = await fetch('/api/pcb/export/fabrication', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      assertJsonResponse(res);
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error ?? `Erreur ${res.status}`);
+      const link = document.createElement('a');
+      link.href = `data:application/zip;base64,${data.base64}`;
+      link.download = data.fileName ?? 'fabrication.zip';
+      link.click();
+      toast.success(`Archive fabrication prête (${data.fileCount} fichiers)`, {
+        description: `Gerbers : ${data.gerberOk ? 'OK' : 'indisponible'} · Perçage : ${data.drillOk ? 'OK' : 'indisponible'}`,
+        duration: 10_000,
+      });
+      finishProgress('done');
+    } catch (e) {
+      finishProgress('error');
+      toast.error(e instanceof Error ? e.message : 'Export impossible');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const loadRoutingAttempts = useCallback(async () => {
     try {
       const res = await fetch(`/api/pcb/projects/${projectId}/routing-attempts`);
@@ -1304,6 +1336,36 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               </div>
             </div>
           )}
+          {lastDrc && (
+            <div className="rounded border bg-white p-2">
+              {validateDfm(lastDrc).ok ? (
+                <span className="rounded bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
+                  ✓ Conforme JLCPCB
+                </span>
+              ) : (
+                <>
+                  <span className="rounded bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-800">
+                    ✗ Non conforme JLCPCB
+                  </span>
+                  <ul className="mt-1 space-y-0.5">
+                    {validateDfm(lastDrc).violations.map((v, i) => (
+                      <li key={i} className="text-gray-600">
+                        {v.type} — {v.suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={exportFabrication}
+            disabled={exporting || fullFlowRunning}
+            className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+          >
+            {exporting ? 'Export…' : 'Exporter pour JLCPCB'}
+          </button>
           {lastDrc && (lastDrc.details?.length ?? 0) > 0 && (
             <details className="rounded border bg-white p-2">
               <summary className="cursor-pointer font-semibold text-gray-700">
