@@ -267,8 +267,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
 
   const runPostPlacementPipeline = async () => {
     setRouting(true);
-    startProgress('Placement manuel complet : connexions et routage');
+    startProgress('Placement manuel complet : placement optimis\u00e9');
     try {
+      // Ré-optimiser le placement de tous les composants (source de vérité unique,
+      // identique au flux complet) avant les connexions et le routage.
+      const items = components.map((comp, idx) => optionFor(comp, idx));
+      await placeComponents(items, { display: false, markPlaced: false });
+
+      startProgress('Placement manuel complet : connexions');
       const netsRes = await fetch('/api/pcb/requirements/nets-only', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -281,6 +287,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setNetsMissing(false);
       setHeuristicNets(netsData.heuristicCount ?? 0);
 
+      startProgress('Placement manuel complet : routage assisté');
       const routeRes = await fetch('/api/pcb/route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -291,11 +298,34 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       if (!routeRes.ok || !routeData.ok)
         throw new Error(routeData.error || `Erreur ${routeRes.status}`);
 
-      const summary = `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`;
+      let freeroute: {
+        tracks?: number;
+        wires?: number;
+        drc?: { violations?: number; unconnected?: number };
+      } | null = null;
+      let freerouteError: string | null = null;
+      try {
+        startProgress('Placement manuel complet : routage avancé (Freerouting)');
+        const freeRes = await fetch('/api/pcb/autoroute/freerouting', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId }),
+        });
+        assertJsonResponse(freeRes);
+        const freeData = await freeRes.json();
+        if (freeRes.ok && freeData.ok) freeroute = freeData;
+        else freerouteError = freeData.error ?? `Erreur ${freeRes.status}`;
+      } catch (e) {
+        freerouteError = e instanceof Error ? e.message : 'Freerouting indisponible';
+      }
+
+      const summary = freeroute
+        ? `Routage complet : ${freeroute.tracks ?? 0} pistes · ${freeroute.wires ?? 0} connexions · ${freeroute.drc?.violations ?? 0} violation(s) DRC`
+        : `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND${freerouteError ? ' · Freerouting indisponible' : ''}`;
       setFlowSummary(summary);
       setFullFlowDone(true);
       await showResult();
-      toast.success('Placement manuel terminé — connexions et pistes tracées', {
+      toast.success('Placement manuel terminé — résultat affiché', {
         description: summary,
         duration: 12_000,
       });
