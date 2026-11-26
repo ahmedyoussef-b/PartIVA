@@ -1,4 +1,4 @@
-import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
 import path from 'node:path';
@@ -32,6 +32,40 @@ function freeroutingJar(): string | null {
 
 function javaBinary(): string {
   return process.env.FREEROUTING_JAVA?.trim() || 'java';
+}
+
+/**
+ * Freerouting 2.x exige un DSN ANSI. KiCad exporte les valeurs de composants
+ * avec des caractères UTC-8 (Ω, µ, espaces fins) dans les champs `(PN "...")` :
+ * on les translittère pour éviter les avertissements de parsing et les nets
+ * perdus. Seuls les caractères non-ANSI sont touchés.
+ */
+const NON_ASCII: Record<string, string> = {
+  Ω: 'Ohm',
+  µ: 'u',
+  μ: 'u',
+  '°': ' deg',
+  '\u00a0': ' ',
+  '\u202f': ' ',
+  '–': '-',
+  '—': '-',
+  '’': "'",
+};
+
+function sanitizeDsn(dsnPath: string): number {
+  const raw = readFileSync(dsnPath, 'utf8');
+  let replaced = 0;
+  const clean = raw.replace(/[^\x00-\x7F]/g, (ch) => {
+    replaced++;
+    return NON_ASCII[ch] ?? '?';
+  });
+  if (replaced > 0) writeFileSync(dsnPath, clean, 'utf8');
+  return replaced;
+}
+
+function countSesWires(sesPath: string): number {
+  const text = readFileSync(sesPath, 'utf8');
+  return (text.match(/\(wire\b/g) ?? []).length;
 }
 
 async function javaAvailable(): Promise<boolean> {
@@ -81,13 +115,23 @@ export async function POST(req: Request) {
     name: n.name,
     pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
   }));
+  if (nets.length === 0) {
+    return NextResponse.json(
+      { error: 'Aucun net exploitable — générez d’abord la netlist (étape 2)' },
+      { status: 400 },
+    );
+  }
   const netsPath = path.join(
     tmpdir(),
     `partiva-nets-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`,
   );
+  let assignedPads = 0;
+  let missingPins = 0;
   try {
     writeFileSync(netsPath, JSON.stringify(nets), 'utf8');
     const assigned = await assignBoardNets(boardPath, netsPath);
+    assignedPads = assigned.assignedPads ?? 0;
+    missingPins = assigned.missingPins ?? 0;
     if (!assigned.ok) {
       return NextResponse.json(
         { error: assigned.error ?? 'Assignation des nets aux pads impossible' },
@@ -96,9 +140,19 @@ export async function POST(req: Request) {
     }
     console.info('[FREEROUTING] Nets assignés aux pads', {
       projectId,
-      pads: assigned.assignedPads ?? 0,
-      missing: assigned.missingPins ?? 0,
+      pads: assignedPads,
+      missing: missingPins,
     });
+    if (assignedPads === 0) {
+      return NextResponse.json(
+        {
+          error: `Aucun pad assigné : Freerouting ne peut pas router. Vérifiez les REF.PIN de la netlist (pads introuvables : ${missingPins}).`,
+          assignedPads: 0,
+          missingPins,
+        },
+        { status: 422 },
+      );
+    }
   } finally {
     try {
       unlinkSync(netsPath);
@@ -112,7 +166,13 @@ export async function POST(req: Request) {
   if (!exported.ok) {
     return NextResponse.json({ error: exported.error ?? 'Export DSN impossible' }, { status: 500 });
   }
-  console.info('[FREEROUTING] DSN exporté', { projectId, dsnPath, bytes: exported.bytes ?? 0 });
+  const sanitizedChars = sanitizeDsn(dsnPath);
+  console.info('[FREEROUTING] DSN exporté', {
+    projectId,
+    dsnPath,
+    bytes: exported.bytes ?? 0,
+    sanitizedChars,
+  });
 
   const jar = freeroutingJar();
   const hasJava = await javaAvailable();
@@ -154,6 +214,20 @@ export async function POST(req: Request) {
       { status: 502 },
     );
   }
+  const wires = countSesWires(sesPath);
+  if (wires === 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: 'SES_EMPTY',
+        error:
+          'Freerouting n’a produit aucune piste (SES vide) — vérifiez la netlist et les règles DSN.',
+        dsn: dsnPath,
+        ses: sesPath,
+      },
+      { status: 502 },
+    );
+  }
 
   const imported = await importSes(boardPath, sesPath);
   if (!imported.ok) {
@@ -171,6 +245,10 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     tracks: imported.tracks ?? 0,
+    assignedPads,
+    missingPins,
+    wires,
+    sanitizedChars,
     drc,
     dsn: dsnPath,
     ses: sesPath,

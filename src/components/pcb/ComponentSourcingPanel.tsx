@@ -458,8 +458,16 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       router.refresh();
       await reloadKiCad();
       toast.success(
-        `Routage complet : ${data.tracks} pistes · ${data.drc?.violations ?? 0} violations DRC`,
-        { duration: 12_000 },
+        `Routage complet : ${data.tracks} pistes · ${data.wires ?? 0} connexions routées · ${
+          data.drc?.violations ?? 0
+        } violations DRC`,
+        {
+          description:
+            data.drc?.unconnected > 0
+              ? `${data.drc.unconnected} élément(s) encore non connecté(s).`
+              : undefined,
+          duration: 12_000,
+        },
       );
       finishProgress('done');
     } catch (e) {

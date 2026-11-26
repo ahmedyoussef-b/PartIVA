@@ -678,6 +678,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-26 (suite) — chaîne Freerouting durcie
+
+- **Diagnostic rejoué sur une copie du plateau réel** : assignation 6 pads → DSN 21 Ko → Freerouting 2.0.1/Java 21 → SES 6 wires + 3 vias → import 10 pistes → DRC.
+- corrections : refus explicite si aucun net ou aucun pad assigné (`assignedPads = 0` ne produisait pas de pistes et renvoyait un succès trompeur), assainissement ANSI du DSN (Ω, µ, espaces fins) avant Freerouting, refus d'un SES sans `wire`, rapport DRC enrichi (`unconnected`, pads assignés, wires).
+- toast du bouton 6 affiche pistes/connexions/violations et éléments non connectés.
+- 5 tests sur l'endpoint Freerouting.
+- **Limite** : la DRC reste non verte (140 violations sur le plateau de référence, dont 83 `solder_mask_bridge`, 13 `clearance`) — objet d'une phase séparée.
+- typecheck 0, lint 0, vitest 384/384, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
