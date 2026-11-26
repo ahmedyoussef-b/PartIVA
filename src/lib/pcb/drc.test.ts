@@ -16,6 +16,21 @@ describe('catégorisation des types', () => {
     expect(categorizeDrcType('silk_over_copper')).toBe('fabrication');
     expect(categorizeDrcType('copper_edge_clearance')).toBe('fabrication');
   });
+
+  it('classe un solder_mask_bridge avec piste en routage et pad-pad en placement', () => {
+    expect(
+      categorizeDrcType('solder_mask_bridge', [
+        { description: 'Piste [VCC] sur F.Cu' },
+        { description: 'Pad métallisé 1 [GND] de U1' },
+      ]),
+    ).toBe('routage');
+    expect(
+      categorizeDrcType('solder_mask_bridge', [
+        { description: 'Pad métallisé 1 [GND] de U1' },
+        { description: 'Pad métallisé 2 [VCC] de U1' },
+      ]),
+    ).toBe('placement');
+  });
 });
 
 describe('parsePreExistingViolations', () => {
