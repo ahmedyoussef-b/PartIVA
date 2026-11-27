@@ -102,6 +102,31 @@ def assign_board_nets(args):
     emit({"ok": True, "createdNets": created, "assignedPads": assigned, "missingPins": missing})
 
 
+def clean_tracks(args):
+    """Retire toutes les pistes/vias (conserve empreintes, pads et zones)."""
+    board_path = os.path.abspath(args.board)
+    if not os.path.isfile(board_path):
+        fail(f"plateau introuvable: {board_path}")
+    board = load_board(board_path)
+    removed = 0
+    try:
+        for track in list(board.GetTracks()):
+            board.Remove(track)
+            removed += 1
+    except Exception as exc:
+        fail(f"nettoyage des pistes impossible: {exc}")
+    if not args.dry_run:
+        backup = board_path + ".bak"
+        tmp = board_path + ".tmp"
+        try:
+            shutil.copy2(board_path, backup)
+            pcbnew.SaveBoard(tmp, board)
+            os.replace(tmp, board_path)
+        except Exception as exc:
+            fail(f"sauvegarde impossible: {exc}")
+    emit({"ok": True, "removed": removed, "board": board_path})
+
+
 def main():
     parser = argparse.ArgumentParser(description="Export DSN / import SES Specctra (KiCad 10)")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -114,6 +139,9 @@ def main():
     p_assign = sub.add_parser("assign-nets")
     p_assign.add_argument("--board", required=True)
     p_assign.add_argument("--nets", required=True)
+    p_clean = sub.add_parser("clean-tracks")
+    p_clean.add_argument("--board", required=True)
+    p_clean.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if pcbnew is None:
         fail(f"module pcbnew indisponible ({PCBNEW_ERROR})")
@@ -121,6 +149,8 @@ def main():
         export_dsn(args)
     elif args.command == "import-ses":
         import_ses(args)
+    elif args.command == "clean-tracks":
+        clean_tracks(args)
     else:
         assign_board_nets(args)
 

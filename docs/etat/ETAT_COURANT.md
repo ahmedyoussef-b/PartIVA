@@ -875,6 +875,18 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Option 3 correctifs routage
+
+- Correctif 1 : `route_board.py` nettoie pistes/vias/zones existants au démarrage (idempotence) ; réutilise une zone GND si le nettoyage SWIG échoue.
+- Correctif 2 : `find_safe_lane` vérifie les 3 segments du chemin L ; dégagement porté à 0,5 mm.
+- Correctif 3 : `cleanBoardTracks` (specctra.py `clean-tracks`) appelé avant Freerouting ; sauvegarde du plateau AVANT nettoyage pour restauration.
+- Correctif 4 : `ZONE_FILLER.Fill(board.Zones())` après création de la zone GND.
+- Correctif 5 : DSN `(clearance 200)` → `(clearance 500)`.
+- **Test hors ligne complet** (route → clean → DSN → Freerouting → SES → DRC) : violations **92 → 0**, non-connectés **14 → 0**, score **1000/1000**, 33 pistes. Cible dépassée (≤20 / ≤5 / ≥950).
+- 410 tests verts, typecheck 0, lint 0, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

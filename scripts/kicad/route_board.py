@@ -31,6 +31,7 @@ TRACK_WIDTH_MM = 0.25
 VIA_WIDTH_MM = 0.6
 VIA_DRILL_MM = 0.3
 CLEARANCE_MM = 0.3
+ROUTE_CLEARANCE_MM = 0.5
 EDGE_INSET_MM = 0.5
 
 
@@ -97,35 +98,67 @@ def capture_pads(board):
     return result
 
 
-def foreign_pad_lane(pads_by_ref, net_code, y, x1, x2, clearance_nm):
-    """Recherche un couloir Y libre pour un segment horizontal.
-
-    Renvoie (ok, y_alternatif). Un couloir est libre si aucun pad d'un autre
-    net n'est à moins de clearance_nm de la ligne.
-    """
-    obstacles = []
-    for pads in pads_by_ref.values():
-        for info in pads.values():
-            if info["net"] == net_code:
-                continue
-            obstacles.append(info)
+def is_segment_clear(x1, y1, x2, y2, obstacles, clearance_nm):
+    """Vrai si aucun pad étranger n'est à moins de clearance_nm du segment."""
     xmin, xmax = min(x1, x2), max(x1, x2)
-    candidates = [y]
+    ymin, ymax = min(y1, y2), max(y1, y2)
+    margin = clearance_nm + TRACK_WIDTH_MM * 500_000
     for info in obstacles:
-        pos = info["pos"]
-        if xmin - info["half_w"] <= pos.x <= xmax + info["half_w"]:
-            limit = info["half_h"] + clearance_nm + TRACK_WIDTH_MM * 500_000
-            candidates.append(pos.y - limit)
-            candidates.append(pos.y + limit)
-    # un couloir est valide s'il n'entre en conflit avec aucun obstacle
-    for candidate in candidates:
-        if all(
-            abs(info["pos"].y - candidate) >= info["half_h"] + clearance_nm
-            or not (xmin - info["half_w"] <= info["pos"].x <= xmax + info["half_w"])
-            for info in obstacles
+        px, py = info["pos"].x, info["pos"].y
+        if xmin - info["half_w"] - margin <= px <= xmax + info["half_w"] + margin and \
+           ymin - info["half_h"] - margin <= py <= ymax + info["half_h"] + margin:
+            # distance approximative du point au segment (axe dominant)
+            if x1 == x2:
+                if xmin - info["half_w"] - margin <= px <= xmax + info["half_w"] + margin:
+                    return False
+            elif y1 == y2:
+                if ymin - info["half_h"] - margin <= py <= ymax + info["half_h"] + margin:
+                    return False
+    return True
+
+
+def find_safe_lane(pads_by_ref, net_code, x1, y1, x2, y2, clearance_nm):
+    """Choisit un couloir Y tel que les 3 segments du chemin L soient dégagés."""
+    obstacles = [
+        info
+        for pads in pads_by_ref.values()
+        for info in pads.values()
+        if info["net"] != net_code
+    ]
+    candidates = [y1]
+    for info in obstacles:
+        limit = info["half_h"] + clearance_nm + TRACK_WIDTH_MM * 500_000
+        candidates.extend([info["pos"].y - limit, info["pos"].y + limit])
+    for lane in candidates:
+        if (
+            is_segment_clear(x1, y1, x1, lane, obstacles, clearance_nm)
+            and is_segment_clear(x1, lane, x2, lane, obstacles, clearance_nm)
+            and is_segment_clear(x2, lane, x2, y2, obstacles, clearance_nm)
         ):
-            return True, int(candidate)
-    return False, int(y)
+            return True, int(lane)
+    return False, int(y1)
+
+
+def clear_routing(board):
+    """Idempotence : retire pistes, vias et zones existants, garde les empreintes."""
+    removed = {"tracks": 0, "vias": 0, "zones": 0}
+    for track in list(board.GetTracks()):
+        try:
+            board.Remove(track)
+            removed["tracks" if not isinstance(track, pcbnew.PCB_VIA) else "vias"] += 1
+        except Exception:
+            pass
+    for zone in list(board.Zones()):
+        try:
+            board.Delete(zone)
+            removed["zones"] += 1
+        except Exception:
+            try:
+                board.Remove(zone)
+                removed["zones"] += 1
+            except Exception:
+                pass
+    return removed
 
 
 def add_l_segment(board, net, start, end, layer_id, pads_by_ref=None, board_bbox=None):
@@ -135,8 +168,14 @@ def add_l_segment(board, net, start, end, layer_id, pads_by_ref=None, board_bbox
     x2, y2 = end.x, end.y
     lane = y1
     if pads_by_ref is not None:
-        ok, candidate = foreign_pad_lane(
-            pads_by_ref, net.GetNetCode(), y1, x1, x2, int(CLEARANCE_MM * 1_000_000)
+        ok, candidate = find_safe_lane(
+            pads_by_ref,
+            net.GetNetCode(),
+            x1,
+            y1,
+            x2,
+            y2,
+            int(ROUTE_CLEARANCE_MM * 1_000_000),
         )
         if ok:
             lane = candidate
@@ -164,6 +203,13 @@ def add_l_segment(board, net, start, end, layer_id, pads_by_ref=None, board_bbox
 
 
 def add_gnd_zone(board, net):
+    # Réutilise une zone GND existante si le nettoyage SWIG n'a pas pu la retirer.
+    for existing in list(board.Zones()):
+        try:
+            if existing.GetNetCode() == net.GetNetCode():
+                return existing
+        except Exception:
+            pass
     zone = pcbnew.ZONE(board)
     zone.SetLayer(board.GetLayerID("B.Cu"))
     zone.SetNet(net)
@@ -180,6 +226,12 @@ def add_gnd_zone(board, net):
     ):
         outline.Append(int(x), int(y))
     board.Add(zone)
+    # Remplissage de la zone : sans cela les vias GND restent non connectés.
+    try:
+        filler = pcbnew.ZONE_FILLER(board)
+        filler.Fill(board.Zones())
+    except Exception as exc:
+        print(f"warning: remplissage zone GND impossible: {exc}", file=sys.stderr)
     return zone
 
 
@@ -217,6 +269,11 @@ def main():
         board = pcbnew.LoadBoard(board_path)
     except Exception as exc:
         fail(f"chargement impossible: {exc}")
+
+    # Idempotence : un nouveau routage repart d'un plateau sans pistes ni zones.
+    removed = clear_routing(board)
+    if removed["tracks"] or removed["vias"] or removed["zones"]:
+        print(f"warning: ancien routage nettoyé: {removed}", file=sys.stderr)
 
     # Les pads doivent connaître leur net avant le routage, sinon KiCad
     # déclare des court-circuits (piste sur net, pad resté sur net 0).

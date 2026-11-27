@@ -562,6 +562,25 @@ export async function assignBoardNets(
   });
 }
 
+/** Retire toutes les pistes/vias avant un routage Freerouting (évite les croisements). */
+export async function cleanBoardTracks(boardPath: string): Promise<KicadBridgeResult> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('specctra.py');
+    if (!scriptPath) return { ok: false, error: 'script specctra.py introuvable' };
+    const output = await runPython(pyPath, scriptPath, ['clean-tracks', '--board', boardPath]);
+    if (output.code !== 0 || output.timedOut) {
+      console.error('[KICAD:CLEAN] Échec nettoyage', {
+        board: boardPath,
+        stdout: output.stdout.slice(-800),
+        stderr: output.stderr.slice(-800),
+      });
+    }
+    return parseResult(output);
+  });
+}
+
 /** Export Specctra complet (outline, couches, netclasses, padstacks) via KiCad. */
 export async function exportDsn(boardPath: string, outputPath: string): Promise<KicadBridgeResult> {
   return withMutex(async () => {
