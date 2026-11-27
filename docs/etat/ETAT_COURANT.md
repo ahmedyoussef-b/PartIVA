@@ -927,6 +927,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Démarrage `tauri dev`
+
+- Mesure : build Rust incrémental `cargo build --no-default-features` = 1,35 s ; les 56 s du journal venaient d'une compilation à froid (après Ctrl+C), pas d'un coût récurrent. Profil Cargo laissé inchangé pour ne pas invalider le cache.
+- `desktop/scripts/dev-server.cjs` : `prisma generate` conditionnel (empreinte SHA-256 de `schema.prisma` + `prisma7.config.ts` + version Prisma, stamp dans `.next-desktop/prisma-client.stamp`), économie ~1,3 s + npx à chaque démarrage.
+- Pré-chauffage de `/api/health` (sonde), `/` et `/login` dès que Next répond, pendant la compilation Rust : la webview n'attend plus la compilation de la page.
+- Vérifié isolément : sans stamp = generate, stamp valide = ignoré, stamp modifié = generate ; sondes health/home/login = 200. typecheck 0, lint 0, vitest 410/410, prettier 0, `node --check` 0, `git diff --check` 0.
+- PR #245 (en attente de CI). À vérifier au prochain lancement réel : logs `[dev] prisma generate ignoré` et `[dev] routes pré-chauffées`.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

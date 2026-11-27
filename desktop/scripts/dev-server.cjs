@@ -8,7 +8,9 @@
 // to http://localhost:3100/ and skips the Node sidecar in dev mode.
 
 const { execSync, spawn } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
+const http = require('http');
 const net = require('net');
 const path = require('path');
 
@@ -96,8 +98,39 @@ const args = [nextBin, 'dev', '-p', port];
 if (process.env.PARTIVA_DEV_WEBPACK === '1') args.push('--webpack');
 // Le client Prisma doit refléter le schéma courant, sinon les routes qui
 // utilisent un modèle ajouté récemment plantent avec "reading 'findMany'".
-console.log('[dev] prisma generate (client à jour)');
-execSync('npx prisma generate', { cwd: root, stdio: 'inherit' });
+// `npx prisma generate` coûte ~1,3 s + le démarrage de npx à chaque lancement :
+// on ne le relance que si le schéma, la config ou la version de Prisma changent.
+function prismaFingerprint() {
+  const hash = crypto.createHash('sha256');
+  for (const file of [
+    path.join(root, 'prisma', 'schema.prisma'),
+    path.join(root, 'prisma7.config.ts'),
+    path.join(root, 'node_modules', 'prisma', 'package.json'),
+  ]) {
+    if (fs.existsSync(file)) hash.update(fs.readFileSync(file));
+  }
+  return hash.digest('hex');
+}
+
+function prismaClientIsCurrent() {
+  const stamp = path.join(root, '.next-desktop', 'prisma-client.stamp');
+  const client = path.join(root, 'src', 'generated', 'prisma', 'client.ts');
+  return (
+    fs.existsSync(client) &&
+    fs.existsSync(stamp) &&
+    fs.readFileSync(stamp, 'utf8').trim() === prismaFingerprint()
+  );
+}
+
+if (prismaClientIsCurrent()) {
+  console.log('[dev] prisma generate ignoré (schéma inchangé)');
+} else {
+  console.log('[dev] prisma generate (client à jour)');
+  execSync('npx prisma generate', { cwd: root, stdio: 'inherit' });
+  const stamp = path.join(root, '.next-desktop', 'prisma-client.stamp');
+  fs.mkdirSync(path.dirname(stamp), { recursive: true });
+  fs.writeFileSync(stamp, prismaFingerprint());
+}
 
 console.log(`[dev] next dev -p ${port} (${root})`);
 
@@ -118,12 +151,45 @@ function portIsListening(portNumber) {
   });
 }
 
+// La webview n'ouvre `/` qu'après la compilation Rust (~56 s à froid).
+// Pré-chauffons `/` et `/login` dès que Next répond, pendant que cargo travaille,
+// pour éviter d'attendre leur compilation à l'ouverture de la fenêtre.
+function httpStatus(pathname, timeoutMs) {
+  return new Promise((resolve) => {
+    const req = http.get({ host: '127.0.0.1', port: Number(port), path: pathname }, (res) => {
+      res.resume();
+      res.on('end', () => resolve(res.statusCode ?? 0));
+    });
+    req.setTimeout(timeoutMs, () => {
+      req.destroy();
+      resolve(0);
+    });
+    req.on('error', () => resolve(0));
+  });
+}
+
+async function warmUpNext() {
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    // /api/health : ni BDD ni auth — sonde de disponibilité sans effet de bord.
+    if ((await httpStatus('/api/health', 4000)) > 0) break;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  const paths = ['/', '/login'];
+  const statuses = await Promise.all(paths.map((p) => httpStatus(p, 60_000)));
+  console.log(
+    `[dev] routes pré-chauffées: ${paths.map((p, i) => `${p}=${statuses[i]}`).join(', ')}`,
+  );
+}
+
 function startNext() {
   const child = spawn(process.execPath, args, {
     cwd: root,
     env,
     stdio: 'inherit',
   });
+
+  warmUpNext().catch((err) => console.error('[dev] pré-chauffage ignoré:', err.message));
 
   let stopping = false;
   function stop(code) {
