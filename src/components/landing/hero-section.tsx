@@ -11,6 +11,7 @@ import {
   Sparkles,
   ChevronRight,
   CheckCircle2,
+  CircuitBoard,
 } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -95,6 +96,15 @@ export function HeroSection({
                 <span>{secondaryCtaText}</span>
               </Link>
             </div>
+
+            <Link
+              href="/#pcb-studio"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-tech-primary-light underline decoration-tech-primary/40 underline-offset-4 transition-colors hover:text-white"
+            >
+              <CircuitBoard className="h-4 w-4" />
+              <span>Découvrir PCB Studio — de l’idée à la carte fabriquée</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
 
             {/* Metric Trust Indicators */}
             <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-6 text-center lg:text-left">

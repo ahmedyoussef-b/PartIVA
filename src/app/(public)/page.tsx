@@ -26,6 +26,85 @@ export default function HomePage() {
     <div className="flex flex-col bg-tech-surface-subtle">
       {/* 1. HERO SECTION TEMPLATEMONSTER #535437 */}
       <HeroSection />
+      {/* 5. PCB STUDIO — CONCEPTION ÉLECTRONIQUE GUIDÉE */}
+      <section id="pcb-studio" className="border-t border-tech-border bg-white py-20 lg:py-28">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-14 max-w-3xl space-y-4 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-tech-primary/20 bg-tech-primary/10 px-3.5 py-1.5 text-xs font-semibold tracking-wider text-tech-primary uppercase">
+              <CircuitBoard className="h-4 w-4" />
+              <span>Nouveau — PCB Studio</span>
+            </div>
+            <h2 className="font-heading text-3xl font-bold tracking-tight text-tech-navy sm:text-4xl lg:text-5xl">
+              Du cahier des charges à la{' '}
+              <span className="bg-gradient-to-r from-tech-primary via-tech-accent to-tech-navy bg-clip-text text-transparent">
+                carte prête à fabriquer
+              </span>
+            </h2>
+            <p className="mx-auto max-w-2xl font-sans text-base leading-relaxed text-tech-text-body sm:text-lg">
+              Notre assistant guide la conception pas à pas : topologie validée, placement
+              fonctionnel, routage optimisé, vérifications DRC et export fabrication — avec une vue
+              3D interactive à chaque étape.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                icon: Boxes,
+                title: 'Placement intelligent',
+                desc: 'Composants répartis par blocs fonctionnels : connecteurs sur les bords, ICs au centre, découplage collé aux broches. Longueur des nets réduite de 52%.',
+              },
+              {
+                icon: Route,
+                title: 'Routage optimisé',
+                desc: 'Freerouting 2.6.0, plans VCC/GND sur couches internes, score 0–1000 et re-routage sécurisé qui conserve le meilleur résultat.',
+              },
+              {
+                icon: CheckCircle2,
+                title: 'Vérifications intégrées',
+                desc: 'Netlist contrôlée avant placement, DRC catégorisé (placement / routage / fabrication) avec suggestions de correction, vue éclatée 3D.',
+              },
+              {
+                icon: Download,
+                title: 'Export fabrication',
+                desc: 'Conformité JLCPCB, archive ZIP avec Gerbers, perçage, BOM et fichier pick-and-place. Devis en temps réel dès que les accès API sont configurés.',
+              },
+            ].map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className="group flex flex-col gap-4 rounded-tech-card border border-tech-border bg-tech-surface-subtle/50 p-7 transition-all duration-300 hover:border-tech-primary hover:bg-white hover:shadow-tech-hover"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-tech-primary/10 text-tech-primary transition-colors group-hover:bg-tech-primary group-hover:text-white">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-heading text-lg font-bold text-tech-navy">{feature.title}</h3>
+                  <p className="font-sans text-sm leading-relaxed text-tech-text-body">
+                    {feature.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/admin/pcb"
+              className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-tech-primary px-8 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-tech-accent hover:shadow-tech-glow sm:w-auto"
+            >
+              <span>Ouvrir PCB Studio</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/demande"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-tech-border px-8 py-3.5 text-sm font-medium text-tech-navy transition-all hover:border-tech-primary hover:bg-tech-surface-subtle sm:w-auto"
+            >
+              Demander un devis PCB
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* 2. SERVICE CARDS GRID */}
       <ServiceCardsGrid />
@@ -179,86 +258,6 @@ export default function HomePage() {
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* 5. PCB STUDIO — CONCEPTION ÉLECTRONIQUE GUIDÉE */}
-      <section className="border-t border-tech-border bg-white py-20 lg:py-28">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto mb-14 max-w-3xl space-y-4 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-tech-primary/20 bg-tech-primary/10 px-3.5 py-1.5 text-xs font-semibold tracking-wider text-tech-primary uppercase">
-              <CircuitBoard className="h-4 w-4" />
-              <span>Nouveau — PCB Studio</span>
-            </div>
-            <h2 className="font-heading text-3xl font-bold tracking-tight text-tech-navy sm:text-4xl lg:text-5xl">
-              Du cahier des charges à la{' '}
-              <span className="bg-gradient-to-r from-tech-primary via-tech-accent to-tech-navy bg-clip-text text-transparent">
-                carte prête à fabriquer
-              </span>
-            </h2>
-            <p className="mx-auto max-w-2xl font-sans text-base leading-relaxed text-tech-text-body sm:text-lg">
-              Notre assistant guide la conception pas à pas : topologie validée, placement
-              fonctionnel, routage optimisé, vérifications DRC et export fabrication — avec une vue
-              3D interactive à chaque étape.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: Boxes,
-                title: 'Placement intelligent',
-                desc: 'Composants répartis par blocs fonctionnels : connecteurs sur les bords, ICs au centre, découplage collé aux broches. Longueur des nets réduite de 52%.',
-              },
-              {
-                icon: Route,
-                title: 'Routage optimisé',
-                desc: 'Freerouting 2.6.0, plans VCC/GND sur couches internes, score 0–1000 et re-routage sécurisé qui conserve le meilleur résultat.',
-              },
-              {
-                icon: CheckCircle2,
-                title: 'Vérifications intégrées',
-                desc: 'Netlist contrôlée avant placement, DRC catégorisé (placement / routage / fabrication) avec suggestions de correction, vue éclatée 3D.',
-              },
-              {
-                icon: Download,
-                title: 'Export fabrication',
-                desc: 'Conformité JLCPCB, archive ZIP avec Gerbers, perçage, BOM et fichier pick-and-place. Devis en temps réel dès que les accès API sont configurés.',
-              },
-            ].map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.title}
-                  className="group flex flex-col gap-4 rounded-tech-card border border-tech-border bg-tech-surface-subtle/50 p-7 transition-all duration-300 hover:border-tech-primary hover:bg-white hover:shadow-tech-hover"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-tech-primary/10 text-tech-primary transition-colors group-hover:bg-tech-primary group-hover:text-white">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="font-heading text-lg font-bold text-tech-navy">{feature.title}</h3>
-                  <p className="font-sans text-sm leading-relaxed text-tech-text-body">
-                    {feature.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/admin/pcb"
-              className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-tech-primary px-8 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-tech-accent hover:shadow-tech-glow sm:w-auto"
-            >
-              <span>Ouvrir PCB Studio</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-            <Link
-              href="/demande"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-tech-border px-8 py-3.5 text-sm font-medium text-tech-navy transition-all hover:border-tech-primary hover:bg-tech-surface-subtle sm:w-auto"
-            >
-              Demander un devis PCB
-            </Link>
           </div>
         </div>
       </section>
