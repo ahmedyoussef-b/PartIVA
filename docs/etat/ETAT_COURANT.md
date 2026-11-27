@@ -898,6 +898,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Prompt 2 Import de schémas
+
+- Audit KiCad 10.0.5 : `kicad-cli sch` n'a **pas** de sous-commande `import` (seuls erc/export/upgrade). L'import(non-KiCad) se fait via l'interface graphique ; on implémente donc un parseur Eagle `.sch` XML en Python.
+- `import_schematic.py` : détecte le format, extrait `parts` (référence, valeur, `attribute FOOTPRINT`) et `nets` (`pin ref="U1-8"` → `U1.8`), produit un rapport avec avertissements.
+- Route `POST /api/pcb/import/schematic` (multipart) : persiste `PcbComponent` + `PcbNet` dans une transaction, renvoie le rapport.
+- UI : bouton « Importer un schéma » dans la carte Sourcing + modal avec composants, nets et avertissements.
+- Test hors ligne sur un `.sch` Eagle synthétique : 3 composants, 3 nets, 3 avertissements (2 sans empreinte, 1 pin orpheline). Test API non réalisé (Neon injoignable).
+- typecheck 0, lint 0, vitest 410/410, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
