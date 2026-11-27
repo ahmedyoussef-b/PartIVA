@@ -947,6 +947,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Erreur de champ requis persistante
+
+- `RequirementForm.handleAnswer()` mettait à jour la réponse mais ne effaçait jamais `error` : le message « Champ requis manquant : Quantité prévue » restait affiché après que l'utilisateur ait corrigé le champ.
+- Correction : `setError(null)` dès qu'une réponse change (y compris via les cases à cocher, qui passent par `handleAnswer`).
+- Vérifié en direct sur `/admin/pcb/nouveau` (serveur 3100) : compilation IA, quantité vidée, clic Valider → erreur affichée et retour au bloc Fabrication ; saisie de `100` → erreur absente immédiatement, sans nouveau clic.
+- Deux projets de test crées pendant la manipulation ont été supprimés.
+- typecheck 0, lint 0, vitest 410/410, prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

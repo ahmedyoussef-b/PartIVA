@@ -34,6 +34,9 @@ export function RequirementForm({
   const isLastBlock = currentBlock === requirementBlocks.length - 1;
 
   function handleAnswer(questionId: string, answer: string) {
+    // Un message de champ manquant devient faux dès que l'utilisateur corrige
+    // une réponse : on l'efface immédiatement (pas seulement au prochain clic).
+    setError(null);
     setAnswers((prev) => {
       const next = prev.filter((a) => a.questionId !== questionId);
       next.push({ blockId: block!.id, questionId, answer, status: 'proposed' });
