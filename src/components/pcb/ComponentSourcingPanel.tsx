@@ -133,6 +133,14 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [lastTracks, setLastTracks] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importReport, setImportReport] = useState<{
+    format?: string;
+    components?: Array<{ reference: string; value: string; footprint: string }>;
+    nets?: Array<{ name: string; pins: string[] }>;
+    warnings?: string[];
+    counts?: { components: number; nets: number; warnings: number };
+  } | null>(null);
   const [routingAttempts, setRoutingAttempts] = useState<
     Array<{
       id: string;
@@ -805,6 +813,31 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  const importSchematicFile = async (file: File) => {
+    setImporting(true);
+    startProgress('Import du schéma');
+    try {
+      const form = new FormData();
+      form.append('projectId', projectId);
+      form.append('file', file);
+      const res = await fetch('/api/pcb/import/schematic', { method: 'POST', body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error ?? `Erreur ${res.status}`);
+      setImportReport(data);
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      router.refresh();
+      toast.success(
+        `Import terminé : ${data.counts?.components ?? 0} composants, ${data.counts?.nets ?? 0} nets`,
+      );
+      finishProgress('done');
+    } catch (e) {
+      finishProgress('error');
+      toast.error(e instanceof Error ? e.message : 'Import impossible');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const exportFabrication = async () => {
     setExporting(true);
     startProgress('Export fabrication JLCPCB');
@@ -1250,6 +1283,23 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           );
         })}
       </div>
+      <div className="flex items-center gap-2 border-b bg-gray-50 p-2">
+        <label className="cursor-pointer rounded border border-gray-400 bg-white px-2 py-1 text-[11px] font-medium text-gray-700">
+          {importing ? 'Import…' : 'Importer un schéma'}
+          <input
+            type="file"
+            accept=".sch,.brd,.net"
+            className="hidden"
+            disabled={importing}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void importSchematicFile(file);
+              e.target.value = '';
+            }}
+          />
+        </label>
+        <span className="text-[10px] text-gray-500">Eagle .sch / .brd</span>
+      </div>
       {validationIssues.length > 0 && (
         <div className="border-b border-red-200 bg-red-50 p-2 text-xs text-red-800">
           <div className="font-semibold">Netlist invalide — placement bloqué :</div>
@@ -1384,6 +1434,46 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
               </ul>
             </details>
           )}
+        </div>
+      )}
+      {importReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-4 text-xs">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800">
+                Rapport d&apos;import ({importReport.format})
+              </h3>
+              <button
+                type="button"
+                onClick={() => setImportReport(null)}
+                className="rounded border px-2 py-0.5"
+              >
+                Fermer
+              </button>
+            </div>
+            <p className="mb-2 text-gray-600">
+              {importReport.counts?.components ?? 0} composants · {importReport.counts?.nets ?? 0}{' '}
+              nets · {importReport.counts?.warnings ?? 0} avertissements
+            </p>
+            <div className="space-y-2">
+              {(importReport.components ?? []).map((c) => (
+                <div key={c.reference} className="rounded border p-2">
+                  <span className="font-semibold">{c.reference}</span> · {c.value || '—'} ·{' '}
+                  {c.footprint || 'sans empreinte'}
+                </div>
+              ))}
+              {(importReport.nets ?? []).map((n) => (
+                <div key={n.name} className="rounded border p-2">
+                  <span className="font-semibold">{n.name}</span> : {n.pins.join(', ')}
+                </div>
+              ))}
+              {(importReport.warnings ?? []).map((w, i) => (
+                <div key={i} className="rounded bg-amber-50 p-2 text-amber-800">
+                  {w}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
       {netsEditorOpen && (

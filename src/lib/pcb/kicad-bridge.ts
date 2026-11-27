@@ -565,6 +565,51 @@ export async function assignBoardNets(
   });
 }
 
+/** Import d'un schéma Eagle (.sch) : composants + nets + avertissements. */
+export async function importSchematic(filePath: string): Promise<{
+  ok: boolean;
+  error?: string;
+  format?: string;
+  components?: Array<{ reference: string; value: string; footprint: string }>;
+  nets?: Array<{ name: string; pins: string[] }>;
+  warnings?: string[];
+}> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('import_schematic.py');
+    if (!scriptPath) return { ok: false, error: 'script import_schematic.py introuvable' };
+    const output = await runPython(pyPath, scriptPath, ['--file', filePath]);
+    const lastLine = lastJsonLine(output.stdout);
+    if (!lastLine) {
+      return {
+        ok: false,
+        error: output.stderr.slice(-1000) || 'réponse illisible du script Python',
+      };
+    }
+    try {
+      const parsed = JSON.parse(lastLine) as {
+        ok: boolean;
+        error?: string;
+        format?: string;
+        components?: Array<{ reference: string; value: string; footprint: string }>;
+        nets?: Array<{ name: string; pins: string[] }>;
+        warnings?: string[];
+      };
+      if (!parsed.ok) return { ok: false, error: parsed.error ?? 'échec import' };
+      return {
+        ok: true,
+        format: parsed.format,
+        components: parsed.components ?? [],
+        nets: parsed.nets ?? [],
+        warnings: parsed.warnings ?? [],
+      };
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'JSON illisible' };
+    }
+  });
+}
+
 /** Retire toutes les pistes/vias avant un routage Freerouting (évite les croisements). */
 export async function cleanBoardTracks(boardPath: string): Promise<KicadBridgeResult> {
   return withMutex(async () => {
