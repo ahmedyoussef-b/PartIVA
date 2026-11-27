@@ -16,7 +16,6 @@ import {
   Pill,
   Sparkles,
   CircuitBoard,
-  Route,
   Boxes,
   Download,
 } from 'lucide-react';
@@ -26,48 +25,48 @@ export default function HomePage() {
     <div className="flex flex-col bg-tech-surface-subtle">
       {/* 1. HERO SECTION TEMPLATEMONSTER #535437 */}
       <HeroSection />
-      {/* 5. PCB STUDIO — CONCEPTION ÉLECTRONIQUE GUIDÉE */}
+      {/* 2. CONCEPTION PCB — OFFRE CLIENT */}
       <section id="pcb-studio" className="border-t border-tech-border bg-white py-20 lg:py-28">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto mb-14 max-w-3xl space-y-4 text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-tech-primary/20 bg-tech-primary/10 px-3.5 py-1.5 text-xs font-semibold tracking-wider text-tech-primary uppercase">
               <CircuitBoard className="h-4 w-4" />
-              <span>Nouveau — PCB Studio</span>
+              <span>Nouveau — Conception électronique</span>
             </div>
             <h2 className="font-heading text-3xl font-bold tracking-tight text-tech-navy sm:text-4xl lg:text-5xl">
-              Du cahier des charges à la{' '}
+              Vos cartes électroniques, conçues sur mesure et{' '}
               <span className="bg-gradient-to-r from-tech-primary via-tech-accent to-tech-navy bg-clip-text text-transparent">
-                carte prête à fabriquer
+                prêtes à fabriquer
               </span>
             </h2>
             <p className="mx-auto max-w-2xl font-sans text-base leading-relaxed text-tech-text-body sm:text-lg">
-              Notre assistant guide la conception pas à pas : topologie validée, placement
-              fonctionnel, routage optimisé, vérifications DRC et export fabrication — avec une vue
-              3D interactive à chaque étape.
+              Une idée, un cahier des charges, une carte à faire évoluer ? Nos ingénieurs la
+              transforment en un dossier de fabrication complet, contrôlé et directement exploitable
+              — sans allers-retours interminables.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                icon: Boxes,
-                title: 'Placement intelligent',
-                desc: 'Composants répartis par blocs fonctionnels : connecteurs sur les bords, ICs au centre, découplage collé aux broches. Longueur des nets réduite de 52%.',
+                icon: CircuitBoard,
+                title: 'Conception sur mesure',
+                desc: 'Analyse de votre besoin, choix des composants et schéma de connexion adaptés à votre application. Une carte pensée pour votre usage, pas un modèle générique.',
               },
               {
-                icon: Route,
-                title: 'Routage optimisé',
-                desc: 'Freerouting 2.6.0, plans VCC/GND sur couches internes, score 0–1000 et re-routage sécurisé qui conserve le meilleur résultat.',
+                icon: Boxes,
+                title: 'Du prototype à la série',
+                desc: 'Quelques cartes pour valider une idée ou un dossier complet pour lancer une production : nous dimensionnons la solution avec vous.',
               },
               {
                 icon: CheckCircle2,
-                title: 'Vérifications intégrées',
-                desc: 'Netlist contrôlée avant placement, DRC catégorisé (placement / routage / fabrication) avec suggestions de correction, vue éclatée 3D.',
+                title: 'Qualité contrôlée',
+                desc: 'Avant livraison, chaque conception est vérifiée : connexions, dégagements, conformité. Vous recevez un fichier propre, sans mauvaise surprise à la fabrication.',
               },
               {
                 icon: Download,
-                title: 'Export fabrication',
-                desc: 'Conformité JLCPCB, archive ZIP avec Gerbers, perçage, BOM et fichier pick-and-place. Devis en temps réel dès que les accès API sont configurés.',
+                title: 'Dossier fabrication complet',
+                desc: 'Gerbers, perçage, nomenclature et fichier de posage : tout ce que votre fabricant attend, avec un accompagnement pour le devis et la commande.',
               },
             ].map((feature) => {
               const Icon = feature.icon;
@@ -90,17 +89,17 @@ export default function HomePage() {
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/admin/pcb"
+              href="/demande"
               className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-tech-primary px-8 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-tech-accent hover:shadow-tech-glow sm:w-auto"
             >
-              <span>Ouvrir PCB Studio</span>
+              <span>Demander un devis PCB</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
-              href="/demande"
+              href="/contact"
               className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-tech-border px-8 py-3.5 text-sm font-medium text-tech-navy transition-all hover:border-tech-primary hover:bg-tech-surface-subtle sm:w-auto"
             >
-              Demander un devis PCB
+              Parler à un ingénieur
             </Link>
           </div>
         </div>
