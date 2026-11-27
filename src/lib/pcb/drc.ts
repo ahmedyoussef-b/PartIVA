@@ -58,7 +58,16 @@ const FABRICATION_TYPES = new Set([
   'drill_to_drill',
 ]);
 
-export function categorizeDrcType(type: string): DrcCategory {
+export function categorizeDrcType(type: string, items: unknown[] = []): DrcCategory {
+  // solder_mask_bridge : routage si une piste/via est impliqué, placement sinon.
+  if (type === 'solder_mask_bridge') {
+    const hasTrack = items.some((raw) => {
+      const item = raw as Record<string, unknown>;
+      const description = typeof item.description === 'string' ? item.description : '';
+      return /^(piste|track|via|segment|zone)/i.test(description.trim());
+    });
+    return hasTrack ? 'routage' : 'placement';
+  }
   if (PLACEMENT_TYPES.has(type)) return 'placement';
   if (ROUTAGE_TYPES.has(type)) return 'routage';
   if (FABRICATION_TYPES.has(type)) return 'fabrication';
@@ -83,16 +92,21 @@ function parseViolations(raw: unknown[]): DrcViolationDetail[] {
     if (!item || typeof item !== 'object') continue;
     const v = item as Record<string, unknown>;
     const type = typeof v.type === 'string' ? v.type : 'unknown';
-    const firstItem = Array.isArray(v.items) ? (v.items[0] as Record<string, unknown>) : undefined;
+    const items = Array.isArray(v.items) ? v.items : [];
+    const firstItem = items[0] as Record<string, unknown> | undefined;
     const pos = firstItem?.pos as Record<string, unknown> | undefined;
+    const category = categorizeDrcType(type, items);
     details.push({
       type,
       severity: typeof v.severity === 'string' ? v.severity : 'error',
       description: typeof v.description === 'string' ? v.description : type,
       x: typeof pos?.x === 'number' ? pos.x : undefined,
       y: typeof pos?.y === 'number' ? pos.y : undefined,
-      category: categorizeDrcType(type),
-      suggestion: suggestionFor(type),
+      category,
+      suggestion:
+        type === 'solder_mask_bridge' && category === 'routage'
+          ? 'Éloigner la piste du pad (masque de soudure).'
+          : suggestionFor(type),
     });
   }
   return details;

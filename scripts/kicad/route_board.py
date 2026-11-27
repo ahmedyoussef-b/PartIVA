@@ -73,28 +73,80 @@ def ensure_nets(board, nets):
 
 
 def capture_pads(board):
-    """Anti-SWIG : capturer empreintes + pads AVANT toute mutation du board."""
+    """Anti-SWIG : capturer empreintes + pads AVANT toute mutation du board.
+
+    Chaque entrée : (x, y, demi-largeur, demi-hauteur, code net).
+    """
     result = {}
     try:
         for fp in board.GetFootprints():
             pads = {}
             for pad in fp.Pads():
-                pads[pad.GetNumber()] = pad.GetPosition()
+                size = pad.GetSize()
+                half_w = max(1, size.x // 2)
+                half_h = max(1, size.y // 2)
+                pads[pad.GetNumber()] = {
+                    "pos": pad.GetPosition(),
+                    "half_w": half_w,
+                    "half_h": half_h,
+                    "net": pad.GetNetCode(),
+                }
             result[fp.GetReference()] = pads
     except Exception as exc:
-        fail(f"lecture des pads impossible: {exc}")
+        fail(f"lecture des pads impossível: {exc}")
     return result
 
 
-def add_l_segment(board, net, start, end, layer_id):
-    """Un segment horizontal puis un segment vertical (Manhattan)."""
+def foreign_pad_lane(pads_by_ref, net_code, y, x1, x2, clearance_nm):
+    """Recherche un couloir Y libre pour un segment horizontal.
+
+    Renvoie (ok, y_alternatif). Un couloir est libre si aucun pad d'un autre
+    net n'est à moins de clearance_nm de la ligne.
+    """
+    obstacles = []
+    for pads in pads_by_ref.values():
+        for info in pads.values():
+            if info["net"] == net_code:
+                continue
+            obstacles.append(info)
+    xmin, xmax = min(x1, x2), max(x1, x2)
+    candidates = [y]
+    for info in obstacles:
+        pos = info["pos"]
+        if xmin - info["half_w"] <= pos.x <= xmax + info["half_w"]:
+            limit = info["half_h"] + clearance_nm + TRACK_WIDTH_MM * 500_000
+            candidates.append(pos.y - limit)
+            candidates.append(pos.y + limit)
+    # un couloir est valide s'il n'entre en conflit avec aucun obstacle
+    for candidate in candidates:
+        if all(
+            abs(info["pos"].y - candidate) >= info["half_h"] + clearance_nm
+            or not (xmin - info["half_w"] <= info["pos"].x <= xmax + info["half_w"])
+            for info in obstacles
+        ):
+            return True, int(candidate)
+    return False, int(y)
+
+
+def add_l_segment(board, net, start, end, layer_id, pads_by_ref=None, board_bbox=None):
+    """Segment Manhattan avec contournement des pads d'un autre net."""
     created = 0
-    for a, b in (
-        ((start.x, start.y), (end.x, start.y)),
-        ((end.x, start.y), (end.x, end.y)),
-    ):
+    x1, y1 = start.x, start.y
+    x2, y2 = end.x, end.y
+    lane = y1
+    if pads_by_ref is not None:
+        ok, candidate = foreign_pad_lane(
+            pads_by_ref, net.GetNetCode(), y1, x1, x2, int(CLEARANCE_MM * 1_000_000)
+        )
+        if ok:
+            lane = candidate
+        if board_bbox is not None:
+            lane = max(board_bbox.GetY() + 500_000, min(board_bbox.GetBottom() - 500_000, lane))
+
+    def segment(a, b):
+        nonlocal created
         if a == b:
-            continue
+            return
         track = pcbnew.PCB_TRACK(board)
         track.SetStart(pcbnew.VECTOR2I(int(a[0]), int(a[1])))
         track.SetEnd(pcbnew.VECTOR2I(int(b[0]), int(b[1])))
@@ -103,6 +155,11 @@ def add_l_segment(board, net, start, end, layer_id):
         track.SetNet(net)
         board.Add(track)
         created += 1
+
+    # ecartement vertical depuis le pad source, couloir horizontal, retour vers la cible
+    segment((x1, y1), (x1, lane))
+    segment((x1, lane), (x2, lane))
+    segment((x2, lane), (x2, y2))
     return created
 
 
@@ -172,6 +229,7 @@ def main():
     if missing_pins:
         print(f"warning: pins introuvables: {', '.join(missing_pins[:10])}", file=sys.stderr)
 
+    board_bbox = board.GetBoardEdgesBoundingBox()
     pads_by_ref = capture_pads(board)
     layer_f = board.GetLayerID("F.Cu")
     routed = 0
@@ -195,10 +253,15 @@ def main():
                     parsed = parse_pin(pin)
                     if not parsed:
                         continue
-                    pos = pads_by_ref.get(parsed[0], {}).get(parsed[1])
-                    if pos is None:
+                    info = pads_by_ref.get(parsed[0], {}).get(parsed[1])
+                    if info is None:
                         continue
-                    via_pos = pcbnew.VECTOR2I(pos.x + 1_000_000, pos.y + 1_000_000)
+                    pos = info["pos"]
+                    # via à 0,8 mm du pad + piste de liaison : il n'est plus orphelin.
+                    via_pos = pcbnew.VECTOR2I(pos.x + 800_000, pos.y)
+                    routed += add_l_segment(
+                        board, gnd, pos, via_pos, layer_f, pads_by_ref, board_bbox
+                    )
                     add_via(board, gnd, via_pos)
                     vias += 1
             else:
@@ -214,16 +277,18 @@ def main():
             parsed = parse_pin(pin)
             if not parsed:
                 continue
-            pos = pads_by_ref.get(parsed[0], {}).get(parsed[1])
-            if pos is not None:
-                endpoints.append(pos)
+            info = pads_by_ref.get(parsed[0], {}).get(parsed[1])
+            if info is not None:
+                endpoints.append(info["pos"])
         if len(endpoints) < 2:
             print(f"warning: pins introuvables pour {name}", file=sys.stderr)
             continue
         root = endpoints[0]
         for target in endpoints[1:]:
             if not args.dry_run:
-                routed += add_l_segment(board, net_item, root, target, layer_f)
+                routed += add_l_segment(
+                    board, net_item, root, target, layer_f, pads_by_ref, board_bbox
+                )
             else:
                 routed += 2
 

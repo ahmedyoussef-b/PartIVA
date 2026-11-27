@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { callGroq, hasLlmProvider } from '@/lib/ai/groq-client';
 import { requireAdmin } from '@/lib/auth-admin';
-import { getFootprintSize, resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
+import {
+  getFootprintPadNumbers,
+  getFootprintSize,
+  resolveKicadFootprint,
+} from '@/lib/pcb/kicad-footprints';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 
@@ -501,6 +505,51 @@ Règles :
       });
     }
 
+    // Validation croisée LLM ↔ pads réels (identique à nets-only) : le cache
+    // ne doit jamais persister des REF.PIN inexistants sur l'empreinte choisie.
+    const warnings: string[] = [];
+    const padsByRef = new Map<string, string[]>();
+    for (const comp of components) {
+      padsByRef.set(comp.reference, getFootprintPadNumbers(comp.libName, comp.footprintName));
+    }
+    const validPins = new Set<string>();
+    for (const [ref, pads] of padsByRef) {
+      for (const pad of pads) validPins.add(`${ref}.${pad}`);
+    }
+    const filteredNets: typeof proposedNets = [];
+    for (const net of proposedNets) {
+      const pins = net.pins.filter((pin) => {
+        const ref = pin.split('.')[0] ?? '';
+        const readable = (padsByRef.get(ref) ?? []).length > 0;
+        return !readable || validPins.has(pin);
+      });
+      if (pins.length >= 2) filteredNets.push({ name: net.name, pins });
+    }
+    const droppedPins =
+      proposedNets.reduce((acc, n) => acc + n.pins.length, 0) -
+      filteredNets.reduce((acc, n) => acc + n.pins.length, 0);
+    if (droppedPins > 0) {
+      warnings.push(`${droppedPins} broche(s) inexistante(s) sur les empreintes ont été retirées.`);
+    }
+    for (const [ref, pads] of padsByRef) {
+      if (pads.length === 0) continue;
+      const connected = new Set(
+        filteredNets.flatMap((n) => n.pins.filter((p) => p.startsWith(`${ref}.`))),
+      );
+      const hasPower = [...connected].some(
+        (p) =>
+          /vcc|vdd|3v3|5v/i.test(p) ||
+          filteredNets.some((n) => /vcc|vdd|3v3|5v/i.test(n.name) && n.pins.includes(p)),
+      );
+      const hasGnd = [...connected].some((p) =>
+        filteredNets.some((n) => /gnd|vss|ground/i.test(n.name) && n.pins.includes(p)),
+      );
+      if (!hasPower || !hasGnd) {
+        warnings.push(`${ref} : alimentation ou GND manquant dans la netlist.`);
+      }
+    }
+    proposedNets = filteredNets;
+
     // Persistance des nets (netlist LLM) — upsert par nom.
     try {
       await prisma.pcbNet.deleteMany({ where: { projectId, status: 'proposed' } });
@@ -546,6 +595,8 @@ Règles :
       count: components.length,
       nets: proposedNets,
       netsMissing: proposedNets.length === 0,
+      droppedPins,
+      warnings,
     });
   } finally {
     guard.release();

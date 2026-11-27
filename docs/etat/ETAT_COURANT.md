@@ -851,6 +851,19 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Option B correctifs
+
+- Correctif 1 : `solder_mask_bridge` classé `routage` si un item est une piste/via, `placement` sinon. Placement passe de 15 à 0 sur la carte test.
+- Correctif 2 : `source-components` valide les `REF.PIN` du LLM contre `getFootprintPadNumbers()` avant de persister le cache ; `droppedPins` + `warnings` renvoyés.
+- Correctif 3 : `route_board.py` contourne les pads d'un autre net (couloir Y libre, 3 segments Manhattan).
+- Correctif 4 : vias GND à 0,8 mm du pad avec piste de liaison (plus orphelins).
+- Correctif 5 : empreinte U1 vérifiée — `Package_DIP:DIP-8_W7.62mm`, pads 1-8 corrects ; seuls 2 pads câblés (netlist incomplète, pas un défaut d'empreinte).
+- Test E2E : reset → source → place → nets → route → Freerouting → score 1000 ; DRC placement 0.
+- 1 test de catégorisation ajouté (410 total).
+- typecheck 0, lint 0, vitest 410/410, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
