@@ -26,7 +26,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({
-  badgeText = 'Atelier Spécialisé • Plastiques Techniques & Rétro-Ingénierie',
+  badgeText = 'Plastiques Techniques • Rétro-Ingénierie • PCB Studio',
   titlePrefix = 'Usinage CNC &',
   titleHighlight = 'Pièces de Rechange',
   titleSuffix = 'Haute Précision',
