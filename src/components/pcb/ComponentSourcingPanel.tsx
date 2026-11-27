@@ -8,6 +8,11 @@ import { NetlistEditorModal } from './NetlistEditorModal';
 import { useActionProgress } from './ActionProgressProvider';
 import { createKicadFile } from '@/lib/pcb/client/kicad-file';
 import { validateNetlist } from '@/lib/pcb/netlist-validation';
+import {
+  buildMissingPowerMessage,
+  LLM_NETLIST_EMPTY_CODE,
+  NET_EMPTY_MESSAGE,
+} from '@/lib/pcb/netlist-guidance';
 import { validateDfm } from '@/lib/pcb/dfm/jlcpcb-rules';
 import { usePcbLiveState } from './PcbLiveStateProvider';
 import type { ResolvedComponent } from '@/lib/pcb/component-mapping';
@@ -122,6 +127,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [netsEditorOpen, setNetsEditorOpen] = useState(false);
   const [netsMissing, setNetsMissing] = useState(false);
   const [heuristicNets, setHeuristicNets] = useState(0);
+  const [netlistError, setNetlistError] = useState<string | null>(null);
+  const [powerFixRefs, setPowerFixRefs] = useState<string[]>([]);
+  const [netsWarning, setNetsWarning] = useState<string | null>(null);
   const [fullFlowRunning, setFullFlowRunning] = useState(false);
   const [fullFlowDone, setFullFlowDone] = useState(false);
   const fullRouted = fullFlowDone || (liveState.tracks ?? 0) > 0 || (liveState.zones ?? 0) > 0;
@@ -208,13 +216,24 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, peek, forceRefresh, force: forceRefresh }),
       });
-      assertJsonResponse(res);
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+      const data = await res.json().catch(() => ({}));
+      // 422 : la netlist est vide après deux essais. On garde la BOM pour que
+      // l'utilisateur puisse réparer via « Générer les nets » ou l'éditeur.
+      if (res.status === 422 && data.error === LLM_NETLIST_EMPTY_CODE) {
+        return {
+          components: (data.components ?? []) as ProposedComponent[],
+          nets: [] as Array<{ name: string; pins: string[] }>,
+          netsMissing: true,
+          netlistError: (data.message as string) || NET_EMPTY_MESSAGE,
+        };
+      }
+      if (!res.ok || data.error)
+        throw new Error(data.message || data.error || `Erreur ${res.status}`);
       return {
         components: (data.components ?? []) as ProposedComponent[],
         nets: (data.nets ?? []) as Array<{ name: string; pins: string[] }>,
         netsMissing: data.netsMissing === true,
+        netlistError: null as string | null,
       };
     },
     [projectId],
@@ -231,6 +250,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const result = await fetchComponents();
       setComponents(result.components);
       setNetsMissing(result.netsMissing);
+      setNetlistError(result.netlistError);
+      setPowerFixRefs([]);
       setSelections({});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur');
@@ -247,6 +268,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         if (cancelled) return;
         setComponents(result.components);
         setNetsMissing(result.netsMissing);
+        setNetlistError(result.netlistError);
+        setPowerFixRefs([]);
         setSelections({});
         setPlaced({});
         setPlaceErrors({});
@@ -524,6 +547,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const result = await fetchComponents(false, true);
       setComponents(result.components);
       setNetsMissing(result.netsMissing);
+      setNetlistError(result.netlistError);
+      setPowerFixRefs([]);
       setSelections({});
       setPlaceErrors({});
       // Étape 1 : la BOM générée est immédiatement posée sur le layout.
@@ -561,7 +586,10 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       setNetsMissing(false);
+      setNetlistError(null);
+      setPowerFixRefs([]);
       setHeuristicNets(data.heuristicCount ?? 0);
+      setNetsWarning(typeof data.warnings?.[0] === 'string' ? data.warnings[0] : null);
       window.dispatchEvent(new Event('pcb:board-refresh'));
       toast.success(
         `${data.count} réseaux générés et connectés sur le layout (${(data.nets ?? [])
@@ -937,6 +965,8 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     setFullFlowRunning(true);
     setFlowSummary(null);
     setResultShown(false);
+    setNetlistError(null);
+    setPowerFixRefs([]);
     startProgress('Processus complet : composants (LLM)');
     try {
       await ensureBoard();
@@ -946,9 +976,28 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       setSelections({});
       setPlaceErrors({});
       setNetsMissing(sourced.netsMissing);
+      setNetlistError(sourced.netlistError);
       const validation = validateNetlist(sourced.components, sourced.nets);
       if (!validation.ok) {
         setValidationIssues(validation.errors.map((e) => e.message));
+        if (validation.errors.some((e) => e.code === 'NO_NETS')) {
+          setNetlistError(NET_EMPTY_MESSAGE);
+          throw new Error(NET_EMPTY_MESSAGE);
+        }
+        const refs = [
+          ...new Set(
+            validation.errors
+              .filter((e) => e.code === 'NO_POWER' || e.code === 'NO_GND')
+              .map((e) => e.message.match(/composant (\S+)/)?.[1])
+              .filter((ref): ref is string => !!ref),
+          ),
+        ];
+        if (refs.length > 0) {
+          setPowerFixRefs(refs);
+          const message = buildMissingPowerMessage(refs);
+          setNetlistError(message);
+          throw new Error(message);
+        }
         throw new Error(validation.errors[0]?.message ?? 'Netlist invalide');
       }
       setValidationIssues([]);
@@ -1200,17 +1249,41 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           )}
         </div>
       </div>
-      {netsMissing && (
+      {(netsMissing || netlistError) && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
-          Aucune netlist disponible : les connexions (ratsnest) ne peuvent pas être tracées. Cliquez
-          sur « 2. Générer les nets (GND/VCC) » pour produire uniquement les connexions, ou sur « 1.
-          Générer les composants (LLM) » pour refaire aussi la BOM.
+          <p className="font-semibold">Connexions à corriger</p>
+          <p>{netlistError ?? NET_EMPTY_MESSAGE}</p>
+          {powerFixRefs.length > 0 && (
+            <p className="mt-1 text-[10px]">Composants concernés : {powerFixRefs.join(', ')}</p>
+          )}
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded border border-blue-300 bg-white px-2 py-1 text-blue-700 disabled:opacity-50"
+              onClick={handleGenerateNetsOnly}
+              disabled={generatingNets}
+            >
+              {generatingNets ? 'Ajout en cours…' : '2. Générer les nets (GND/VCC)'}
+            </button>
+            <button
+              type="button"
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-700"
+              onClick={() => setNetsEditorOpen(true)}
+            >
+              Éditer la Netlist
+            </button>
+          </div>
         </div>
       )}
       {heuristicNets > 0 && (
         <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
           {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
           Vérifiez-les via « Éditer la Netlist ».
+        </div>
+      )}
+      {netsWarning && (
+        <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+          {netsWarning}
         </div>
       )}
       {freeroutingInfo && (

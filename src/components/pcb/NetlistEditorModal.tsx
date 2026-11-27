@@ -134,7 +134,19 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
               <thead>
                 <tr className="bg-gray-50 text-left">
                   <th className="border p-2">Nom du net</th>
-                  <th className="border p-2">Pins (séparés par des virgules)</th>
+                  <th className="border p-2">
+                    <span className="inline-flex items-center gap-1">
+                      Pins (séparés par des virgules)
+                      <span
+                        role="note"
+                        aria-label="Aide sur le format des pins"
+                        title="Entrez les broches au format REF.PIN, séparées par des virgules. Exemple : U1.7, U2.3 pour relier la broche 7 de U1 à la broche 3 de U2. Les numéros de broches doivent correspondre aux empreintes générées."
+                        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-gray-400 text-[10px] font-bold text-gray-600"
+                      >
+                        ?
+                      </span>
+                    </span>
+                  </th>
                   <th className="w-10 border p-2" />
                 </tr>
               </thead>

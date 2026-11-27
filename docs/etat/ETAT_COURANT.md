@@ -957,6 +957,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 — Netlist auto-réparante et pédagogique
+
+- `source-components/route.ts` : extraction des nets factorisée (`parseNetCandidates`), second essai LLM avec le prompt strict contenant les composants retenus et leurs **vrais pads** (`buildStrictNetsPrompt`). Échec après deux essais → HTTP 422 `LLM_NETLIST_EMPTY` avec `components` conservés et message pédagogique.
+- `nets-only/route.ts` : `ensurePowerNets()` appliquée aux chemins cache et frais — VCC_5V/GND complétés pour chaque U* non couvert à partir de pads réels, marqués `heuristic`/`to_verify`, avec avertissement dans la réponse.
+- `netlist-guidance.ts` (nouveau) : messages REF.PIN / nets vides / MCU sans VCC-GND + hélper pur testé (`netlist-guidance.test.ts`, 3 tests dont validation croisée avec `validateNetlist`). Le regex de validation est inchangé.
+- Frontend : `fetchComponents()` gère le 422 sans perdre la BOM, bandeau d'action avec « Générer les nets » / « Éditer la Netlist », avertissement heuristique affiché, infobulle « ? » sur le champ Pins de la modale.
+- Vérifié en direct sur 3100 : `U1-7, U2-3` → message REF.PIN ; `U1.7` seul → message « au moins deux broches » ; `U1.7, U2.3` → net sauvegardé ; infobulle présente ; nets-only sur un U1 sans alimentation → VCC_5V/GND créés avec avertissement. Projets temporaires supprimés.
+- typecheck 0, lint 0, vitest 413/413, prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

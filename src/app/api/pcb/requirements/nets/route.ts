@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import { clearLlmCacheAsync } from '@/lib/utils/llm-cache';
+import { NET_TOO_SHORT_MESSAGE, PIN_FORMAT_MESSAGE } from '@/lib/pcb/netlist-guidance';
 
 export const runtime = 'nodejs';
 
@@ -13,6 +14,16 @@ function normalizePins(raw: unknown): string[] {
     .filter((p): p is string => typeof p === 'string')
     .map((p) => p.trim())
     .filter((p) => /^[A-Za-z0-9_]+\.[^\s]+$/.test(p));
+}
+
+// On ne touche pas au regex de validation : on choisit seulement le message
+// le plus utile selon que l'utilisateur a saisi des pins mal formatés ou trop
+// peu de pins.
+function invalidPinsMessage(raw: unknown): string {
+  const filled = Array.isArray(raw)
+    ? raw.filter((p) => typeof p === 'string' && p.trim().length > 0).length
+    : 0;
+  return filled >= 2 ? PIN_FORMAT_MESSAGE : NET_TOO_SHORT_MESSAGE;
 }
 
 async function readNets(projectId: string) {
@@ -99,10 +110,7 @@ export async function PATCH(req: Request) {
     }
     const pins = normalizePins(net.pins);
     if (pins.length < 2) {
-      return NextResponse.json(
-        { error: 'Un net doit contenir au moins 2 pins valides' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: invalidPinsMessage(net.pins) }, { status: 400 });
     }
     await prisma.pcbNet.create({
       data: { projectId, name, pins: pins as object, source: 'manual', status: 'manual' },
@@ -112,10 +120,7 @@ export async function PATCH(req: Request) {
     if (!target) return NextResponse.json({ error: `Net ${oldName} introuvable` }, { status: 404 });
     const pins = normalizePins(net.pins);
     if (pins.length < 2) {
-      return NextResponse.json(
-        { error: 'Un net doit contenir au moins 2 pins valides' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: invalidPinsMessage(net.pins) }, { status: 400 });
     }
     await prisma.pcbNet.update({
       where: { id: target.id },
