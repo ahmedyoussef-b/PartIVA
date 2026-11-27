@@ -7,6 +7,10 @@ const isExport = process.env.NEXT_EXPORT === 'true';
 const isDesktopBuild = process.env.DESKTOP_BUILD === 'true';
 
 const nextConfig = {
+  // Le serveur de dev desktop utilise son propre dossier : le verrou Next.js
+  // (.next/dev/lock) est partagé par tous les ports d'un même projet, ce qui
+  // empêchait de lancer 3000 (web) et 3100 (Tauri) en parallèle.
+  distDir: process.env.PARTIVA_DESKTOP_DEV === '1' ? '.next-desktop' : '.next',
   env: {
     NEXT_PUBLIC_COMMIT_SHA:
       process.env.NEXT_PUBLIC_COMMIT_SHA || process.env.COMMIT_SHA || '',

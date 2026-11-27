@@ -31,6 +31,7 @@ const config = [
     ignores: [
       'node_modules/**',
       '.next/**',
+      '.next-desktop/**',
       'out/**',
       'dist/**',
       'build/**',

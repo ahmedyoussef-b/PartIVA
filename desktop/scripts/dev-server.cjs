@@ -56,6 +56,8 @@ env.BETTER_AUTH_SECRET =
 env.BETTER_AUTH_URL = `http://localhost:${port}`;
 // Enables desktop-only routes (KiCad launch) from the dev server.
 env.PARTIVA_DESKTOP = '1';
+// Cache/verrou Next.js dédiés au dev desktop (peut cohabiter avec le dev web).
+env.PARTIVA_DESKTOP_DEV = '1';
 
 const llmKeys = [
   'GROQ_API_KEY',
