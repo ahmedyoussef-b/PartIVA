@@ -864,6 +864,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Option D Viewer 3D
+
+- Sélection de composant au clic sur un marqueur : panneau avec référence, valeur, empreinte, nets connectés, position/rotation.
+- Toggle « Afficher les nets » : ratsnests pointillés colorés par net (Palette 8 couleurs, `Line` drei).
+- Bouton « Vue éclatée » : substrat, F.Cu, B.Cu et composants décalés en hauteur.
+- Bouton « Capturer » : PNG téléchargeable via `preserveDrawingBuffer` + `toDataURL`.
+- Test UI non réalisé : Better Auth renvoie 500 « Connection terminated due to connection timeout » (Neon momentanément injoignable). Compilation et 410 tests verts.
+- typecheck 0, lint 0, vitest 410/410, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
