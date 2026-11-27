@@ -59,6 +59,11 @@ def is_gnd(name):
     return any(token in lowered for token in ("gnd", "vss", "0v"))
 
 
+def is_power(name):
+    lowered = str(name).lower()
+    return any(token in lowered for token in ("vcc", "vdd", "3v3", "5v", "12v", "24v", "vbat"))
+
+
 def ensure_nets(board, nets):
     """Crée les NETINFO_ITEM manquants dans le board (sinon pistes sur net 0)."""
     created = []
@@ -150,14 +155,10 @@ def clear_routing(board):
             pass
     for zone in list(board.Zones()):
         try:
-            board.Delete(zone)
+            board.Remove(zone)
             removed["zones"] += 1
         except Exception:
-            try:
-                board.Remove(zone)
-                removed["zones"] += 1
-            except Exception:
-                pass
+            pass
     return removed
 
 
@@ -202,8 +203,9 @@ def add_l_segment(board, net, start, end, layer_id, pads_by_ref=None, board_bbox
     return created
 
 
-def add_gnd_zone(board, net):
-    # Réutilise une zone GND existante si le nettoyage SWIG n'a pas pu la retirer.
+def add_plane_zone(board, net, layer_name):
+    """Zone de plan (GND ou VCC) sur la couche demandée."""
+    # Réutilise une zone du même net si le nettoyage SWIG n'a pas pu la retirer.
     for existing in list(board.Zones()):
         try:
             if existing.GetNetCode() == net.GetNetCode():
@@ -211,7 +213,7 @@ def add_gnd_zone(board, net):
         except Exception:
             pass
     zone = pcbnew.ZONE(board)
-    zone.SetLayer(board.GetLayerID("B.Cu"))
+    zone.SetLayer(board.GetLayerID(layer_name))
     zone.SetNet(net)
     zone.SetLocalClearance(int(CLEARANCE_MM * 1_000_000))
     outline = zone.Outline()
@@ -246,12 +248,25 @@ def add_via(board, net, position):
     return via
 
 
+def add_via_pair(board, net, position, layer_a, layer_b):
+    """Via reliant deux couches (ex. F.Cu ↔ In1.Cu pour un plan d'alimentation)."""
+    via = pcbnew.PCB_VIA(board)
+    via.SetPosition(position)
+    via.SetWidth(int(VIA_WIDTH_MM * 1_000_000))
+    via.SetDrill(int(VIA_DRILL_MM * 1_000_000))
+    via.SetLayerPair(layer_a, layer_b)
+    via.SetNet(net)
+    board.Add(via)
+    return via
+
+
 def main():
     parser = argparse.ArgumentParser(description="Routage assisté partiel (arbre + zone GND + vias)")
     parser.add_argument("--board", required=True)
     parser.add_argument("--nets", required=True)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--layers", type=int, choices=[2, 4], default=2)
     args = parser.parse_args()
 
     if pcbnew is None:
@@ -293,6 +308,9 @@ def main():
     vias = 0
     zones = 0
 
+    gnd_layer = "In2.Cu" if args.layers == 4 else "B.Cu"
+    power_layer = "In1.Cu" if args.layers == 4 else None
+
     for net in nets:
         if not isinstance(net, dict):
             continue
@@ -304,7 +322,7 @@ def main():
         if is_gnd(name):
             if not args.dry_run:
                 gnd = board.FindNet(name)
-                add_gnd_zone(board, gnd)
+                add_plane_zone(board, gnd, gnd_layer)
                 zones += 1
                 for pin in pins:
                     parsed = parse_pin(pin)
@@ -325,6 +343,27 @@ def main():
                 zones += 1
                 vias += sum(1 for p in pins if parse_pin(p))
             continue
+
+        # Plan VCC sur In1.Cu en 4 couches (la piste F.Cu reste pour les pins).
+        if args.layers == 4 and is_power(name) and not args.dry_run:
+            power_net = board.FindNet(name)
+            if power_net is not None:
+                add_plane_zone(board, power_net, power_layer)
+                zones += 1
+                for pin in pins:
+                    parsed = parse_pin(pin)
+                    if not parsed:
+                        continue
+                    info = pads_by_ref.get(parsed[0], {}).get(parsed[1])
+                    if info is None:
+                        continue
+                    pos = info["pos"]
+                    via_pos = pcbnew.VECTOR2I(pos.x + 800_000, pos.y)
+                    routed += add_l_segment(
+                        board, power_net, pos, via_pos, layer_f, pads_by_ref, board_bbox
+                    )
+                    add_via_pair(board, power_net, via_pos, layer_f, board.GetLayerID(power_layer))
+                    vias += 1
 
         net_item = board.FindNet(name)
         if net_item is None:

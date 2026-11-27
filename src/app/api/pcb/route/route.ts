@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
@@ -57,7 +57,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await routeBoard({ boardPath: abs, nets, dryRun });
+  // Le nombre de couches est déduit du plateau ((stackup) écrit par pcbnew).
+  const rawBoard = readFileSync(abs, 'utf8');
+  const copperCount = (rawBoard.match(/\(\d+\s+"(?:F\.Cu|B\.Cu|In\d+\.Cu)"\s+signal\)/g) ?? [])
+    .length;
+  const layers: 2 | 4 = copperCount >= 4 ? 4 : 2;
+
+  const result = await routeBoard({ boardPath: abs, nets, dryRun, layers });
   if (!result.ok) {
     console.error('[PCB:ROUTE] Erreur', result.error);
     return NextResponse.json({ error: result.error ?? 'Échec du routage' }, { status: 500 });

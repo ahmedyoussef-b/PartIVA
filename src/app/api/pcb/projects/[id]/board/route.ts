@@ -16,6 +16,7 @@ import {
   isBoardOpenInKicad,
   openBoardInDesktop,
 } from '@/lib/pcb/kicad-desktop';
+import { configureBoardLayers } from '@/lib/pcb/kicad-bridge';
 
 export const runtime = 'nodejs';
 
@@ -145,6 +146,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const b = (body ?? {}) as Record<string, unknown>;
   const action = typeof b.action === 'string' ? b.action : 'open';
   const source = b.source === 'manual' ? 'manual' : 'auto';
+  const layers: 2 | 4 = b.layers === 4 ? 4 : 2;
   if (
     action !== 'open' &&
     action !== 'reset' &&
@@ -279,6 +281,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
     writeFileSync(dest, emptyBoard, 'utf8');
 
+    if (layers === 4) {
+      const configured = await configureBoardLayers(dest, 4);
+      if (!configured.ok) {
+        return NextResponse.json(
+          { error: configured.error ?? 'Configuration 4 couches impossible' },
+          { status: 500 },
+        );
+      }
+    }
+
     try {
       await prisma.$transaction(async (tx) => {
         if (action === 'reset') {
@@ -317,6 +329,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       action,
       kicadFilePath: dest,
       exists: true,
+      layers,
       closedWindows,
       lockReleased,
     });
