@@ -937,6 +937,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Première compilation CDC conservée
+
+- Dans `/admin/pcb/[projectId]/cahier-des-charges`, la carte 1 « Idée générale » affichait `project.description`, écrasée à chaque validation. Nouveau champ `PcbProject.initialDescription` (+ migration `20261127110000_add_pcb_project_initial_description`), posé une seule fois par `/api/pcb/requirements/parse`.
+- `RequirementForm` mémorise le premier texte renvoyé par `/api/pcb/requirements/compile` et l'envoie à la validation ; les recompilations ne l'écrasent pas. `description` reste le dernier texte validé (source de `cdcHash`/analyse). Repli sur `description` pour les projets antérieurs.
+- Migration appliquée et colonne vérifiée en base. Test bout en bout sur le serveur 3100 avec projet temporaire : seconde validation faite, page = 200, contient `PREMIERE_COMPILATION_TEST`, ne contient ni la valeur précédente ni la nouvelle ; projet supprimé ensuite.
+- Vérifié également au redémarrage du serveur de dev : `[dev] routes pré-chauffées: /=200, /login=200`.
+- typecheck 0, lint 0, vitest 410/410, prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
