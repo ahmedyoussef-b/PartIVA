@@ -11,6 +11,7 @@ import { getFootprintPadNumbers } from '@/lib/pcb/kicad-footprints';
 import { assignBoardNets } from '@/lib/pcb/kicad-bridge';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { inferPlacementRole } from '@/lib/pcb/placement';
+import { ensurePowerNets } from '@/lib/pcb/netlist-guidance';
 
 export const runtime = 'nodejs';
 
@@ -19,7 +20,8 @@ type NetSource = 'llm' | 'heuristic';
 interface ScoredNet {
   name: string;
   pins: string[];
-  source: NetSource;
+  source: NetSource | string;
+  status?: string;
 }
 
 interface NetsOnlyResult {
@@ -162,6 +164,19 @@ function buildHeuristicNets(
   return result;
 }
 
+/** Pads réels par référence, pour la réparation heuristique VCC/GND. */
+function padsForComponents(
+  components: Array<{ reference: string; footprint: string | null }>,
+): Map<string, string[]> {
+  const pads = new Map<string, string[]>();
+  for (const comp of components) {
+    const fp = String(comp.footprint ?? '');
+    const [lib, name] = fp.includes(':') ? fp.split(':', 2) : ['', fp];
+    pads.set(comp.reference, getFootprintPadNumbers(lib ?? '', name ?? ''));
+  }
+  return pads;
+}
+
 export async function POST(req: Request) {
   try {
     await requireAdmin();
@@ -205,11 +220,42 @@ export async function POST(req: Request) {
   const cacheKey = `pcb:nets-only:v2:${hashKey(`${projectId}|${componentList}|${project.description ?? ''}`)}`;
   const cached = await getLlmCacheAsync<NetsOnlyResult>(cacheKey);
   if (cached) {
-    const board = await assignNetsOnBoard(project.kicadFilePath, cached.nets);
+    const fix = ensurePowerNets(
+      components,
+      cached.nets as Array<{ name: string; pins: string[]; source?: string }>,
+      padsForComponents(components),
+    );
+    const nets = fix.nets as ScoredNet[];
+    if (fix.fixedRefs.length > 0) {
+      await prisma.pcbNet.deleteMany({ where: { projectId } });
+      await prisma.pcbNet.createMany({
+        data: nets.map((n) => ({
+          projectId,
+          name: n.name,
+          pins: n.pins as object,
+          source: n.source,
+          status: n.status ?? 'proposed',
+        })),
+      });
+      await setLlmCacheAsync(cacheKey, { nets });
+      await prisma.pcbProject.update({
+        where: { id: projectId },
+        data: {
+          sourcingCache: {
+            ...((project.sourcingCache ?? {}) as Record<string, unknown>),
+            nets,
+            cacheVersion: 2,
+          } as object,
+        },
+      });
+    }
+    const board = await assignNetsOnBoard(project.kicadFilePath, nets);
     return NextResponse.json({
       ok: true,
-      nets: cached.nets,
+      nets,
       cached: true,
+      warnings: fix.warnings,
+      powerFixCount: fix.fixedRefs.length,
       boardAssigned: board.assigned,
     });
   }
@@ -256,12 +302,7 @@ Format attendu :
     }
 
     // Validation des pins contre les pads réels des footprints.
-    const padsByRef = new Map<string, string[]>();
-    for (const c of components) {
-      const fp = String(c.footprint ?? '');
-      const [lib, name] = fp.includes(':') ? fp.split(':', 2) : ['', fp];
-      padsByRef.set(c.reference, getFootprintPadNumbers(lib ?? '', name ?? ''));
-    }
+    const padsByRef = padsForComponents(components);
     const validPins = new Set<string>();
     for (const [ref, pads] of padsByRef) {
       for (const pad of pads) validPins.add(`${ref}.${pad}`);
@@ -285,7 +326,10 @@ Format attendu :
     const coveredRefs = new Set(llmNets.flatMap((n) => n.pins.map((p) => p.split('.')[0]!)));
     const usedNames = new Set(llmNets.map((n) => n.name));
     const heuristicNets = buildHeuristicNets(components, padsByRef, coveredRefs, usedNames);
-    const nets = [...llmNets, ...heuristicNets];
+    // Dernier filet : VCC/GND des composants actifs non couverts, à partir des
+    // pads réels. Ces nets sont marqués `to_verify` et signalés à l'utilisateur.
+    const powerFix = ensurePowerNets(components, [...llmNets, ...heuristicNets], padsByRef);
+    const nets = powerFix.nets as ScoredNet[];
     if (nets.length === 0) {
       console.warn('[NETS-ONLY] Aucun net exploitable après validation');
       return NextResponse.json({ error: 'Aucun net exploitable généré' }, { status: 502 });
@@ -298,7 +342,7 @@ Format attendu :
         name: n.name,
         pins: n.pins as object,
         source: n.source,
-        status: 'proposed',
+        status: n.status ?? 'proposed',
       })),
     });
 
@@ -323,6 +367,8 @@ Format attendu :
       nets,
       count: nets.length,
       heuristicCount: heuristicNets.length,
+      powerFixCount: powerFix.fixedRefs.length,
+      warnings: powerFix.warnings,
       droppedPins,
       cached: false,
       boardAssigned: board.assigned,

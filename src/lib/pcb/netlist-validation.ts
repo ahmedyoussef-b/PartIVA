@@ -24,8 +24,9 @@ export interface NetlistNet {
   pins: string[];
 }
 
-const POWER_RE = /(^|[_+\s-])(vcc|vdd|vbat|3v3|5v|12v|24v|\+?(?:3|5|12|24)v\d*)(?:$|[_+\s-])/i;
-const GND_RE = /(^|[_+\s-])([a-z]?gnd|vss|ground|0v)(?:$|[_+\s-])/i;
+export const POWER_RE =
+  /(^|[_+\s-])(vcc|vdd|vbat|3v3|5v|12v|24v|\+?(?:3|5|12|24)v\d*)(?:$|[_+\s-])/i;
+export const GND_RE = /(^|[_+\s-])([a-z]?gnd|vss|ground|0v)(?:$|[_+\s-])/i;
 
 function isPower(name: string): boolean {
   return POWER_RE.test(name.trim());

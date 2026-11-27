@@ -9,6 +9,7 @@ import {
 } from '@/lib/pcb/kicad-footprints';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
+import { LLM_NETLIST_EMPTY_CODE, NET_EMPTY_MESSAGE } from '@/lib/pcb/netlist-guidance';
 
 export const runtime = 'nodejs';
 
@@ -24,6 +25,59 @@ interface ProposedComponent {
   rotation: number;
   rationale: string;
   searchKeyword: string;
+}
+
+/** Extrait les nets d'une réponse LLM, en tolérant `REF.PIN` et {ref, pin}. */
+function parseNetCandidates(rawNets: unknown): { name: string; pins: string[] }[] {
+  const candidates = Array.isArray(rawNets) ? rawNets : [];
+  const parsed: { name: string; pins: string[] }[] = [];
+  for (const n of candidates) {
+    if (!n || typeof n !== 'object') continue;
+    const net = n as Record<string, unknown>;
+    const name = typeof net.name === 'string' ? net.name.trim() : '';
+    const pins = Array.isArray(net.pins)
+      ? net.pins
+          .map((p) => {
+            if (typeof p === 'string') return p.trim();
+            if (p && typeof p === 'object') {
+              const o = p as Record<string, unknown>;
+              const ref = String(o.ref ?? o.reference ?? o.component ?? '').trim();
+              const num = String(o.pin ?? o.number ?? o.name ?? '').trim();
+              return ref && num ? `${ref}.${num}` : '';
+            }
+            return '';
+          })
+          .filter((p) => /^[A-Za-z0-9_]+\.[^\s]+$/.test(p))
+      : [];
+    if (name && pins.length >= 2) parsed.push({ name, pins });
+  }
+  return parsed;
+}
+
+/** Deuxième passe : le LLM reçoit les VRAIS pads des composants retenus. */
+function buildStrictNetsPrompt(
+  components: Array<{ reference: string; value: string; libName: string; footprintName: string }>,
+  padsByRef: Map<string, string[]>,
+): string {
+  const list = components
+    .map((c) => {
+      const pads = padsByRef.get(c.reference) ?? [];
+      return `- ${c.reference} (${c.value || c.libName}:${c.footprintName}) — pads: ${
+        pads.length ? pads.join(', ') : 'inconnus'
+      }`;
+    })
+    .join('\n');
+  return `Tu es un ingénieur électronique. La liste des composants est déjà figée. Voici leurs VRAIS numéros de pads :
+${list}
+
+Réponds UNIQUEMENT en JSON valide : {"nets":[{"name":"...","pins":["REF.PIN",...]}]}
+
+RÈGLES STRICTES :
+- Produis au moins 2 nets : un nommé "GND" et un dont le nom contient VCC, VDD ou 5V.
+- Chaque net contient au moins 2 pins.
+- Chaque pin est exactement "REF.PIN", avec REF et PIN choisis UNIQUEMENT dans la liste ci-dessus. Aucune autre référence, aucun autre numéro de pad.
+- Relie l'alimentation et la masse de tous les composants actifs (U*, IC*).
+- Aucun texte, commentaire ou explication en dehors du JSON.`;
 }
 
 export async function POST(req: Request) {
@@ -309,34 +363,8 @@ Règles :
 
         if (next.length > 0) {
           proposed = next;
-          // Parse nets if provided
-          const rawNets = Array.isArray(obj.nets)
-            ? obj.nets
-            : Array.isArray(obj.netlist)
-              ? obj.netlist
-              : [];
-          const parsedNets: { name: string; pins: string[] }[] = [];
-          for (const n of rawNets) {
-            if (!n || typeof n !== 'object') continue;
-            const net = n as Record<string, unknown>;
-            const name = typeof net.name === 'string' ? net.name.trim() : '';
-            // Tolérer `"U1.1"` mais aussi `{ref:"U1", pin:"1"}`.
-            const pins = Array.isArray(net.pins)
-              ? net.pins
-                  .map((p) => {
-                    if (typeof p === 'string') return p.trim();
-                    if (p && typeof p === 'object') {
-                      const o = p as Record<string, unknown>;
-                      const ref = String(o.ref ?? o.reference ?? o.component ?? '').trim();
-                      const num = String(o.pin ?? o.number ?? o.name ?? '').trim();
-                      return ref && num ? `${ref}.${num}` : '';
-                    }
-                    return '';
-                  })
-                  .filter((p) => /^[A-Za-z0-9_]+\.[^\s]+$/.test(p))
-              : [];
-            if (name && pins.length >= 2) parsedNets.push({ name, pins });
-          }
+          // Parse nets if provided (`REF.PIN` ou `{ref, pin}`).
+          const parsedNets = parseNetCandidates(obj.nets ?? obj.netlist);
           // Optimize placement using nets
           if (parsedNets.length > 0) {
             try {
@@ -507,7 +535,6 @@ Règles :
 
     // Validation croisée LLM ↔ pads réels (identique à nets-only) : le cache
     // ne doit jamais persister des REF.PIN inexistants sur l'empreinte choisie.
-    const warnings: string[] = [];
     const padsByRef = new Map<string, string[]>();
     for (const comp of components) {
       padsByRef.set(comp.reference, getFootprintPadNumbers(comp.libName, comp.footprintName));
@@ -516,39 +543,84 @@ Règles :
     for (const [ref, pads] of padsByRef) {
       for (const pad of pads) validPins.add(`${ref}.${pad}`);
     }
-    const filteredNets: typeof proposedNets = [];
-    for (const net of proposedNets) {
-      const pins = net.pins.filter((pin) => {
-        const ref = pin.split('.')[0] ?? '';
-        const readable = (padsByRef.get(ref) ?? []).length > 0;
-        return !readable || validPins.has(pin);
-      });
-      if (pins.length >= 2) filteredNets.push({ name: net.name, pins });
+    const filterByPads = (nets: typeof proposedNets) => {
+      const kept: typeof proposedNets = [];
+      for (const net of nets) {
+        const pins = net.pins.filter((pin) => {
+          const ref = pin.split('.')[0] ?? '';
+          const readable = (padsByRef.get(ref) ?? []).length > 0;
+          return !readable || validPins.has(pin);
+        });
+        if (pins.length >= 2) kept.push({ name: net.name, pins });
+      }
+      return kept;
+    };
+
+    let finalNets = filterByPads(proposedNets);
+    if (finalNets.length === 0) {
+      // Le LLM a halluciné des références ou des numéros de broches : seconde
+      // passe avec la source de vérité (composants retenus + pads réels).
+      try {
+        const retryRes = await callGroq(
+          [{ role: 'user', content: buildStrictNetsPrompt(components, padsByRef) }],
+          apiKey,
+          {
+            model: process.env.GROQ_MODEL,
+            temperature: 0,
+            maxTokens: 2048,
+            timeout: 30000,
+            responseFormat: 'json_object',
+          },
+        );
+        const retryObj = JSON.parse(retryRes.content) as Record<string, unknown>;
+        finalNets = filterByPads(parseNetCandidates(retryObj.nets ?? retryObj.netlist));
+        if (finalNets.length > 0) {
+          console.info('[PCB:SOURCE] Netlist réparée au second essai', {
+            count: finalNets.length,
+          });
+        }
+      } catch (e) {
+        console.warn('[PCB:SOURCE] Second essai netlist impossible', e);
+      }
     }
+    if (finalNets.length === 0) {
+      return NextResponse.json(
+        {
+          error: LLM_NETLIST_EMPTY_CODE,
+          message: NET_EMPTY_MESSAGE,
+          components,
+          nets: [],
+          netsMissing: true,
+        },
+        { status: 422 },
+      );
+    }
+
+    const warnings: string[] = [];
     const droppedPins =
       proposedNets.reduce((acc, n) => acc + n.pins.length, 0) -
-      filteredNets.reduce((acc, n) => acc + n.pins.length, 0);
+      finalNets.reduce((acc, n) => acc + n.pins.length, 0);
     if (droppedPins > 0) {
       warnings.push(`${droppedPins} broche(s) inexistante(s) sur les empreintes ont été retirées.`);
     }
     for (const [ref, pads] of padsByRef) {
       if (pads.length === 0) continue;
       const connected = new Set(
-        filteredNets.flatMap((n) => n.pins.filter((p) => p.startsWith(`${ref}.`))),
+        finalNets.flatMap((n) => n.pins.filter((p) => p.startsWith(`${ref}.`))),
       );
       const hasPower = [...connected].some(
         (p) =>
           /vcc|vdd|3v3|5v/i.test(p) ||
-          filteredNets.some((n) => /vcc|vdd|3v3|5v/i.test(n.name) && n.pins.includes(p)),
+          finalNets.some((n) => /vcc|vdd|3v3|5v/i.test(n.name) && n.pins.includes(p)),
       );
       const hasGnd = [...connected].some((p) =>
-        filteredNets.some((n) => /gnd|vss|ground/i.test(n.name) && n.pins.includes(p)),
+        finalNets.some((n) => /gnd|vss|ground/i.test(n.name) && n.pins.includes(p)),
       );
       if (!hasPower || !hasGnd) {
         warnings.push(`${ref} : alimentation ou GND manquant dans la netlist.`);
       }
     }
-    proposedNets = filteredNets;
+    proposedNets = finalNets;
 
     // Persistance des nets (netlist LLM) — upsert par nom.
     try {
