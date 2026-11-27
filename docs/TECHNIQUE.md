@@ -47,6 +47,18 @@ Copier `.env.example` vers `.env.local`. Les plus importantes pour PCB :
 | `PARTIVA_DESKTOP` | `1` en mode Tauri (ouverture/fermeture KiCad) |
 | `FREEROUTING_JAR` / `FREEROUTING_JAVA` | Binaire/path Freerouting |
 | `FREEROUTING_PASSES` | Passes d'optimisation (défaut 10) |
+| `JLCPCB_APP_ID` / `JLCPCB_ACCESS_KEY` / `JLCPCB_SECRET_KEY` | Credentials API JLCPCB (optionnels) |
+| `JLCPCB_ENDPOINT` / `JLCPCB_QUOTE_PATH` | Surcharge endpoint/chemin de devis (par défaut `https://open.jlcpcb.com` + `/overseas/openapi/pcb/calculatePrice`) |
+
+### Obtenir un accès à l'API JLCPCB
+
+1. Créer un compte sur [jlcpcb.com](https://jlcpcb.com).
+2. Candidate sur [api.jlcpcb.com](https://api.jlcpcb.com) (l'approbation dépend de l'historique de commandes).
+3. Après approbation, créer une application et relever `appId`, `accessKey` et `secretKey`.
+4. Renseigner les trois variables dans `.env.local`.
+5. Le devis utilise la signature JOP : `HMAC-SHA256(secretKey, "METHOD\nPATH\nTIMESTAMP\nNONCE\nBODY\n")` encodé en Base64, envoyé dans l'en-tête `Authorization`.
+
+**Attention** : le chemin exact de l'endpoint de devis (`JLCPCB_QUOTE_PATH`) et le format de réponse doivent être validés par un test live avec de vraies credentials ; sans credentials, l'application affiche un message de configuration et n'appelle pas l'API.
 | `LLM_*`, `GROQ_API_KEY`, `CEREBRAS_API_KEY` | Fournisseurs LLM (topologie uniquement) |
 
 Les secrets ne sont jamais commités. Le guide complet est `.env.example`.
