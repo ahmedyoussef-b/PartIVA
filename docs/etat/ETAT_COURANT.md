@@ -919,6 +919,14 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Page d'accueil
+
+- Nouvelle section **PCB Studio** sur la page publique : 4 piliers (placement intelligent, routage optimisé, vérifications intégrées, export fabrication), CTA « Ouvrir PCB Studio » et « Demander un devis PCB ».
+- Badge du hero mis à jour pour mentionner PCB Studio.
+- typecheck 0, lint 0, vitest 410/410, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
