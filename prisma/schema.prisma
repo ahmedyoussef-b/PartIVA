@@ -680,6 +680,9 @@ model PcbProject {
   id            String   @id @default(cuid())
   name          String
   description   String?
+  // Première description technique générée par l'IA (« Compiler »), figée :
+  // `description` reste le dernier texte validé, utilisé par l'analyse CDC.
+  initialDescription String?
   status        String   @default("draft") // draft | requirements_validated | design_validated | manufacturing_ready
   cadFileUrl    String?
   cadFileName   String?

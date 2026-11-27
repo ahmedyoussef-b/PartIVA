@@ -70,6 +70,10 @@ export default async function CahierDesChargesPage({
 
   const photos = Array.isArray(request?.photos) ? (request?.photos as unknown as string[]) : [];
 
+  // Carte 1 : première compilation IA (figée), repli sur le dernier texte
+  // validé pour les projets créés avant l'ajout du champ.
+  const generalIdeaText = project.initialDescription?.trim() || project.description?.trim();
+
   // Une analyse est "à jour" si des exigences existent et que l'empreinte du
   // CDC n'a pas changé depuis. Le bouton disparaît alors définitivement (y
   // compris après un retour depuis le Layout PCB, la page étant force-dynamic).
@@ -130,21 +134,19 @@ export default async function CahierDesChargesPage({
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        {!request && !project.description && (
+        {!request && !generalIdeaText && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
             Aucune demande client n&apos;est rattachée à ce projet. Le cahier des charges est vide.
           </div>
         )}
 
-        {!request && project.description && (
+        {!request && generalIdeaText && (
           <section className="overflow-hidden rounded-lg border bg-white">
             <div className="flex items-center gap-2 border-b bg-gray-50 p-3 text-sm font-semibold text-gray-700">
               <FileText className="h-4 w-4" />
               Idée générale (projet interne)
             </div>
-            <div className="p-4 text-sm whitespace-pre-wrap text-gray-800">
-              {project.description}
-            </div>
+            <div className="p-4 text-sm whitespace-pre-wrap text-gray-800">{generalIdeaText}</div>
           </section>
         )}
 

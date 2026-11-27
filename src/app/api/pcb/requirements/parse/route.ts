@@ -13,12 +13,13 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const { projectId, answers, description, status, projectName } = body as {
+    const { projectId, answers, description, status, projectName, initialDescription } = body as {
       projectId?: string;
       answers: RequirementAnswer[];
       description?: string;
       status?: string;
       projectName?: string;
+      initialDescription?: string;
     };
 
     if (!answers || !Array.isArray(answers)) {
@@ -38,6 +39,12 @@ export async function POST(req: Request) {
       : null;
 
     const desc = typeof description === 'string' ? description.trim() : undefined;
+    // Première compilation IA : posée une seule fois, jamais écrasée par les
+    // validations suivantes (qui ne mettent à jour que `description`).
+    const firstDescription =
+      typeof initialDescription === 'string' && initialDescription.trim()
+        ? initialDescription.trim()
+        : undefined;
     const name =
       typeof projectName === 'string' && projectName.trim() ? projectName.trim() : undefined;
     const allowedStatuses = new Set([
@@ -55,13 +62,22 @@ export async function POST(req: Request) {
           name: name ?? 'Nouveau projet PCB',
           status: nextStatus ?? 'draft',
           description: desc,
+          initialDescription: firstDescription ?? desc,
         },
       });
     } else {
-      const data: { description?: string; status?: string; name?: string } = {};
+      const data: {
+        description?: string;
+        status?: string;
+        name?: string;
+        initialDescription?: string;
+      } = {};
       if (name) data.name = name;
       if (desc) data.description = desc;
       if (nextStatus) data.status = nextStatus;
+      if (!project.initialDescription && (firstDescription || desc)) {
+        data.initialDescription = firstDescription || desc;
+      }
       if (Object.keys(data).length > 0) {
         project = await prisma.pcbProject.update({
           where: { id: project.id },

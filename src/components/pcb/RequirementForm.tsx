@@ -22,6 +22,9 @@ export function RequirementForm({
   const [projectName, setProjectName] = useState(initialProjectName);
   const [generalIdea, setGeneralIdea] = useState('');
   const [compiledText, setCompiledText] = useState('');
+  // Première version générée par « Compiler » : conservée même si l'utilisateur
+  // relance la compilation ou modifie le texte avant de valider.
+  const [firstCompiledText, setFirstCompiledText] = useState('');
   const [compiling, setCompiling] = useState(false);
   const [validated, setValidated] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -90,6 +93,7 @@ export function RequirementForm({
           projectId,
           answers,
           description: contextText,
+          initialDescription: firstCompiledText || contextText,
           projectName: projectName.trim(),
           status: 'requirements_validated',
         }),
@@ -191,7 +195,10 @@ export function RequirementForm({
                         if (!res.ok || data.error) {
                           throw new Error(data.error || `Erreur ${res.status}`);
                         }
-                        setCompiledText(data.compiled || '');
+                        const compiled =
+                          typeof data.compiled === 'string' ? data.compiled.trim() : '';
+                        setCompiledText(compiled);
+                        setFirstCompiledText((prev) => prev || compiled);
                         if (Array.isArray(data.answers)) {
                           setAnswers((prev) => {
                             const next = prev.filter(
@@ -433,6 +440,7 @@ export function RequirementForm({
                     projectId,
                     answers,
                     description: contextText,
+                    initialDescription: firstCompiledText || contextText,
                     status: validated && !dirty ? 'requirements_validated' : 'draft',
                   }),
                 });
