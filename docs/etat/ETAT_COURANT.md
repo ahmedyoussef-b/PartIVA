@@ -909,6 +909,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Prompt 3 Devis JLCPCB
+
+- Audit : aucune credential `JLCPCB_*` dans `.env`. Procédure de candidature documentée dans `docs/TECHNIQUE.md` (api.jlcpcb.com, appId/accessKey/secretKey, signature JOP HMAC-SHA256 Base64).
+- `jlcpcb-quote.ts` : `getJlcpcbQuote()` signe la requête (METHOD/PATH/TIMESTAMP/NONCE/BODY), lit dimensions + couches depuis le plateau, renvoie `{ok, configured, price, currency, deliveryDays}`.
+- Route `POST /api/pcb/jlcpcb/quote` + bouton « Obtenir un devis JLCPCB » dans le récapitulatif.
+- Test fallback vérifié : `configured:false` → message « configurez vos credentials JLCPCB dans .env (voir docs/TECHNIQUE.md) », aucun appel réseau. Test live impossible sans credentials.
+- typecheck 0, lint 0, vitest 410/410, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

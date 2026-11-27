@@ -134,6 +134,13 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [lastTracks, setLastTracks] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [quote, setQuote] = useState<{
+    ok: boolean;
+    configured: boolean;
+    price?: number;
+    currency?: string;
+    message?: string;
+  } | null>(null);
   const [importReport, setImportReport] = useState<{
     format?: string;
     components?: Array<{ reference: string; value: string; footprint: string }>;
@@ -813,6 +820,24 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  const getQuote = async () => {
+    try {
+      const res = await fetch('/api/pcb/jlcpcb/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, quantity: 5 }),
+      });
+      assertJsonResponse(res);
+      const data = await res.json();
+      setQuote(data);
+      if (data.ok) {
+        toast.success(`Devis JLCPCB : ${data.price} ${data.currency ?? 'USD'}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Devis impossible');
+    }
+  };
+
   const importSchematicFile = async (file: File) => {
     setImporting(true);
     startProgress('Import du schéma');
@@ -1385,6 +1410,21 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
                 })}
               </div>
             </div>
+          )}
+          <button
+            type="button"
+            onClick={getQuote}
+            disabled={fullFlowRunning}
+            className="rounded border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 disabled:opacity-50"
+          >
+            Obtenir un devis JLCPCB
+          </button>
+          {quote && (
+            <p className={`${quote.ok ? 'text-green-700' : 'text-amber-700'}`}>
+              {quote.ok
+                ? `Devis estimé : ${quote.price} ${quote.currency ?? 'USD'}`
+                : quote.message}
+            </p>
           )}
           {lastDrc && (
             <div className="rounded border bg-white p-2">
