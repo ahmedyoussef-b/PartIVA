@@ -486,6 +486,7 @@ export function routeBoard(args: {
   boardPath: string;
   nets: RouteNetInput[];
   dryRun?: boolean;
+  layers?: 2 | 4;
 }): Promise<KicadBridgeResult> {
   if (args.nets.length === 0) {
     return Promise.resolve({ ok: false, error: 'nets requis (tableau non vide)' });
@@ -508,6 +509,8 @@ export function routeBoard(args: {
         '--nets',
         tmpInput,
         '--force',
+        '--layers',
+        String(args.layers ?? 2),
         ...(args.dryRun === true ? ['--dry-run'] : []),
       ];
       const output = await runPython(pyPath, scriptPath, cli);
@@ -577,6 +580,26 @@ export async function cleanBoardTracks(boardPath: string): Promise<KicadBridgeRe
         stderr: output.stderr.slice(-800),
       });
     }
+    return parseResult(output);
+  });
+}
+
+/** Configure le nombre de couches cuivre (2 ou 4) d'un plateau. */
+export async function configureBoardLayers(
+  boardPath: string,
+  layers: 2 | 4,
+): Promise<KicadBridgeResult> {
+  return withMutex(async () => {
+    const pyPath = await detectKicadPython();
+    if (!pyPath) return { ok: false, error: kicadUnavailableMessage() };
+    const scriptPath = resolveScriptPath('configure_stackup.py');
+    if (!scriptPath) return { ok: false, error: 'script configure_stackup.py introuvable' };
+    const output = await runPython(pyPath, scriptPath, [
+      '--board',
+      boardPath,
+      '--layers',
+      String(layers),
+    ]);
     return parseResult(output);
   });
 }

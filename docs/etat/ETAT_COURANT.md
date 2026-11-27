@@ -887,6 +887,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-27 (suite) — Support 4 couches (Prompt 1)
+
+- `configure_stackup.py` + `configureBoardLayers()` : configuration du nombre de couches cuivre (2 ou 4) via `SetCopperLayerCount`.
+- `POST /api/pcb/projects/[id]/board` accepte `layers: 4` à l'ouverture ; `/api/pcb/route` détecte automatiquement le nombre de couches depuis le plateau.
+- `route_board.py --layers 4` : plan VCC_5V sur In1.Cu, plan GND sur In2.Cu, vias F.Cu↔In1.Cu pour l'alimentation.
+- Freerouting 2.6.0 reconnaît les plans internes dans le DSN (`(plane VCC_5V (polygon In1.Cu ...))`) et route en multi-couches.
+- Vérifié : stackup 4 couches (F.Cu/In1.Cu/In2.Cu/B.Cu), DSN avec 4 layers + 2 plans, Freerouting COMPLETED. Test DRC complet 4 couches non finalisé : crash SWIG KiCad sur un plateau muté plusieurs fois en processus successifs (limite documentée, repartir d'un plateau vierge).
+- typecheck 0, lint 0, vitest 410/410, prettier 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
