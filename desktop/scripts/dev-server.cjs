@@ -9,6 +9,7 @@
 
 const { execSync, spawn } = require('child_process');
 const fs = require('fs');
+const net = require('net');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..', '..');
@@ -100,38 +101,65 @@ execSync('npx prisma generate', { cwd: root, stdio: 'inherit' });
 
 console.log(`[dev] next dev -p ${port} (${root})`);
 
-const child = spawn(process.execPath, args, {
-  cwd: root,
-  env,
-  stdio: 'inherit',
-});
-
-let stopping = false;
-function stop(code) {
-  if (stopping) return;
-  stopping = true;
-  try {
-    child.kill();
-  } catch {
-    // ignore
-  }
-  process.exit(code);
+// Un serveur déjà à l'écoute sur 3100 est réutilisé : deux `tauri dev`
+// simultanés ne doivent pas faire échouer beforeDevCommand (EADDRINUSE).
+function portIsListening(portNumber) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host: '127.0.0.1', port: portNumber });
+    socket.setTimeout(1000, () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on('connect', () => {
+      socket.end();
+      resolve(true);
+    });
+    socket.on('error', () => resolve(false));
+  });
 }
 
-process.on('SIGINT', () => stop(0));
-process.on('SIGTERM', () => stop(0));
-process.on('exit', () => {
-  try {
-    child.kill();
-  } catch {
-    // ignore
+function startNext() {
+  const child = spawn(process.execPath, args, {
+    cwd: root,
+    env,
+    stdio: 'inherit',
+  });
+
+  let stopping = false;
+  function stop(code) {
+    if (stopping) return;
+    stopping = true;
+    try {
+      child.kill();
+    } catch {
+      // ignore
+    }
+    process.exit(code);
   }
-});
-child.on('exit', (code) => {
-  stopping = true;
-  process.exit(code ?? 0);
-});
-child.on('error', (err) => {
-  console.error('[dev] échec du lancement de next dev:', err.message);
-  process.exit(1);
+
+  process.on('SIGINT', () => stop(0));
+  process.on('SIGTERM', () => stop(0));
+  process.on('exit', () => {
+    try {
+      child.kill();
+    } catch {
+      // ignore
+    }
+  });
+  child.on('exit', (code) => {
+    stopping = true;
+    process.exit(code ?? 0);
+  });
+  child.on('error', (err) => {
+    console.error('[dev] échec du lancement de next dev:', err.message);
+    process.exit(1);
+  });
+}
+
+portIsListening(Number(port)).then((listening) => {
+  if (listening) {
+    console.log(`[dev] serveur déjà actif sur ${port}, réutilisation.`);
+    process.exit(0);
+  }
+  startNext();
 });
