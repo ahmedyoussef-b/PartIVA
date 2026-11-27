@@ -4,6 +4,7 @@ const m = vi.hoisted(() => ({
   findProject: vi.fn(),
   findNets: vi.fn(),
   assignBoardNets: vi.fn(),
+  cleanBoardTracks: vi.fn(),
   exportDsn: vi.fn(),
   importSes: vi.fn(),
   runDrc: vi.fn(),
@@ -18,6 +19,7 @@ const {
   findProject,
   findNets,
   assignBoardNets,
+  cleanBoardTracks,
   exportDsn,
   importSes,
   runDrc,
@@ -39,6 +41,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 vi.mock('@/lib/pcb/kicad-bridge', () => ({
   assignBoardNets: (...a: unknown[]) => assignBoardNets(...a),
+  cleanBoardTracks: (...a: unknown[]) => cleanBoardTracks(...a),
   exportDsn: (...a: unknown[]) => exportDsn(...a),
   importSes: (...a: unknown[]) => importSes(...a),
 }));
@@ -72,6 +75,7 @@ describe('POST /api/pcb/autoroute/freerouting — chaîne DSN → SES → DRC', 
     findNets.mockResolvedValue([{ name: 'GND', pins: ['U1.1', 'C1.1'] }]);
     existsSync.mockReturnValue(true);
     assignBoardNets.mockResolvedValue({ ok: true, assignedPads: 2, missingPins: 0 });
+    cleanBoardTracks.mockResolvedValue({ ok: true, tracks: 4 });
     exportDsn.mockResolvedValue({ ok: true, bytes: 100 });
     importSes.mockResolvedValue({ ok: true, tracks: 4 });
     runDrc.mockResolvedValue({ ok: true, violations: 3, unconnected: 1 });

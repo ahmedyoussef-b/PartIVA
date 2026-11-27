@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
-import { assignBoardNets, exportDsn, importSes } from '@/lib/pcb/kicad-bridge';
+import { assignBoardNets, cleanBoardTracks, exportDsn, importSes } from '@/lib/pcb/kicad-bridge';
 import { runDrc } from '@/lib/pcb/drc';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 
@@ -68,6 +68,13 @@ function sanitizeDsn(dsnPath: string): number {
   });
   if (replaced > 0) writeFileSync(dsnPath, clean, 'utf8');
   return replaced;
+}
+
+/** Lève le dégagement DSN à 0,5 mm pour absorber l'ouverture de masque. */
+function applyPowerClearance(dsnPath: string): void {
+  const raw = readFileSync(dsnPath, 'utf8');
+  const updated = raw.replace(/\(clearance 200\)/g, '(clearance 500)');
+  if (updated !== raw) writeFileSync(dsnPath, updated, 'utf8');
 }
 
 function countSesWires(sesPath: string): number {
@@ -179,8 +186,21 @@ export async function POST(req: Request) {
     }
   }
 
+  // Sauvegarde du routage courant AVANT nettoyage, pour restauration si le score régresse.
   const backupPath = `${boardPath}.routing-bak`;
   copyFileSync(boardPath, backupPath);
+
+  const cleaned = await cleanBoardTracks(boardPath);
+  if (!cleaned.ok) {
+    return NextResponse.json(
+      { error: cleaned.error ?? 'Nettoyage des pistes impossible' },
+      { status: 500 },
+    );
+  }
+  console.info('[FREEROUTING] Pistes existantes retirées', {
+    projectId,
+    removed: cleaned.tracks ?? 0,
+  });
 
   const dsnPath = `${boardPath.replace(/\.kicad_pcb$/i, '')}.dsn`;
   const exported = await exportDsn(boardPath, dsnPath);
@@ -188,6 +208,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: exported.error ?? 'Export DSN impossible' }, { status: 500 });
   }
   const sanitizedChars = sanitizeDsn(dsnPath);
+  applyPowerClearance(dsnPath);
   console.info('[FREEROUTING] DSN exporté', {
     projectId,
     dsnPath,
