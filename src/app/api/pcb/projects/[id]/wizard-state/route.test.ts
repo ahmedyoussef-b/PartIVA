@@ -27,12 +27,12 @@ function mockProject() {
   findUnique.mockResolvedValue({
     id: 'proj-1',
     name: 'Test',
-    status: 'draft',
+    status: 'requirements_validated',
     kicadFilePath: BOARD,
     sourcingCache: null,
     components: [{ reference: 'R1', footprint: '0805' }],
     nets: [{ name: 'GND', source: 'llm' }],
-    requirements: [{ id: 'req-1' }],
+    requirements: [],
   });
   findManyValidations.mockResolvedValue([]);
   existsSync.mockReturnValue(true);

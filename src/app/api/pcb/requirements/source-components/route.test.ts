@@ -10,11 +10,15 @@ const callGroq = vi.fn();
 const hasLlmProvider = vi.fn();
 const acquireGuard = vi.fn();
 const hashKey = vi.fn();
+const checkCdcGate = vi.hoisted(() => vi.fn());
 const getPads = vi.fn();
 const getSize = vi.fn();
 const resolveFootprint = vi.fn();
 
 vi.mock('@/lib/auth-admin', () => ({ requireAdmin: vi.fn() }));
+vi.mock('@/lib/pcb/cdc-guard', () => ({
+  checkCdcGate: (...a: unknown[]) => checkCdcGate(...a),
+}));
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     pcbProject: {
@@ -110,6 +114,7 @@ describe('POST /api/pcb/requirements/source-components — validation des pads',
     hasLlmProvider.mockReturnValue(true);
     acquireGuard.mockReturnValue({ ok: true, release: vi.fn() });
     hashKey.mockReturnValue('hash');
+    checkCdcGate.mockResolvedValue({ ok: true });
     getSize.mockReturnValue({ widthMm: 5, heightMm: 5 });
     getPads.mockImplementation((_lib: string, fp: string) => {
       if (fp.includes('TO-220')) return ['1', '2', '3'];
@@ -342,5 +347,30 @@ describe('POST /api/pcb/requirements/source-components — validation des pads',
         }),
       }),
     );
+  });
+
+  it('refuse la génération si le CDC n’est pas validé (409)', async () => {
+    checkCdcGate.mockResolvedValue({
+      ok: false,
+      status: 409,
+      error: 'CDC_NOT_VALIDATED',
+      message: 'Complétez et validez le cahier des charges avant de générer le PCB.',
+    });
+    const res = await POST(request());
+    expect(res.status).toBe(409);
+    await expect(res.json()).resolves.toMatchObject({ error: 'CDC_NOT_VALIDATED' });
+    expect(callGroq).not.toHaveBeenCalled();
+  });
+
+  it('peek reste autorisé sans CDC validé (chargement initial)', async () => {
+    checkCdcGate.mockResolvedValue({
+      ok: false,
+      status: 409,
+      error: 'CDC_NOT_VALIDATED',
+      message: '',
+    });
+    const res = await POST(request({ peek: true }));
+    expect(res.status).toBe(200);
+    expect(checkCdcGate).not.toHaveBeenCalled();
   });
 });

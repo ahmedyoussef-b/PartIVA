@@ -12,6 +12,7 @@ import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 import { LLM_NETLIST_EMPTY_CODE, NET_EMPTY_MESSAGE } from '@/lib/pcb/netlist-guidance';
 import { validateNetsAgainstFootprints, type NetlistReport } from '@/lib/pcb/netlist-validation';
+import { checkCdcGate } from '@/lib/pcb/cdc-guard';
 
 export const runtime = 'nodejs';
 // Deux appels Groq séquentiels (BOM + nets stricts) + une réparation : la
@@ -119,6 +120,16 @@ export async function POST(req: Request) {
   const peek = b.peek === true;
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
+  }
+  // Le mode peek ne génère rien : il peut lire un état vide sans CDC validé.
+  if (!peek) {
+    const gate = await checkCdcGate(projectId);
+    if (!gate.ok) {
+      return NextResponse.json(
+        { error: gate.error, message: gate.message },
+        { status: gate.status },
+      );
+    }
   }
 
   const project = await prisma.pcbProject.findUnique({ where: { id: projectId } });

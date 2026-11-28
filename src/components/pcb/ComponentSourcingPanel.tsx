@@ -108,9 +108,18 @@ function formatDrcCategories(drc: {
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }
 
-export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
+export function ComponentSourcingPanel({
+  projectId,
+  cdcValidated = true,
+}: {
+  projectId: string;
+  cdcValidated?: boolean;
+}) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
+  const cdcHint = cdcValidated
+    ? ''
+    : 'Complétez et validez le cahier des charges avant de générer le PCB';
   const { state: liveState, refresh: refreshLiveState } = usePcbLiveState();
   const activeAction = liveState.nextActionId;
   const [loading, setLoading] = useState(true);
@@ -1147,14 +1156,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              title="Processus complet : composants, connexions et routage"
+              title={
+                cdcValidated
+                  ? 'Processus complet : composants, connexions et routage'
+                  : 'Complétez et validez le cahier des charges avant de générer le PCB'
+              }
               className={`rounded border px-2 py-0.5 text-xs font-normal ${
                 activeAction === 'components'
                   ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
                   : ''
               }`}
               onClick={() => runFullFlow(false)}
-              disabled={fullFlowRunning}
+              disabled={fullFlowRunning || !cdcValidated}
             >
               {fullFlowRunning ? 'Processus…' : 'Lancer'}
             </button>
@@ -1165,493 +1178,506 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   }
 
   return (
-    <div className="rounded-lg border bg-white">
-      <div className="flex flex-col gap-2 border-b bg-gray-50 p-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <span>Sourcing ({components.length})</span>
+    <>
+      {!cdcValidated && (
+        <div className="mb-2 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800">
+          {cdcHint}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {fullRouted ? (
-            <>
-              <button
-                type="button"
-                title="Relancer le processus complet : composants, connexions, routage"
-                className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
-                onClick={() => runFullFlow(true)}
-                disabled={fullFlowRunning}
-              >
-                {fullFlowRunning ? 'Processus…' : 'Relancer'}
-              </button>
-              <button
-                type="button"
-                title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
-                className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
-                onClick={showResult}
-                disabled={showingResult || fullFlowRunning}
-              >
-                {showingResult
-                  ? 'Affichage…'
-                  : resultShown
-                    ? 'Réafficher les résultats'
-                    : 'Afficher les résultats'}
-              </button>
-              <button
-                type="button"
-                title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-                className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                  activeAction === 'edit-netlist'
-                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
-                onClick={() => setNetsEditorOpen(true)}
-              >
-                Éditer la Netlist
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Ordre logique du parcours : composants -> connexions -> correction ->
+      )}
+      <div className="rounded-lg border bg-white">
+        <div className="flex flex-col gap-2 border-b bg-gray-50 p-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <span>Sourcing ({components.length})</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {fullRouted ? (
+              <>
+                <button
+                  type="button"
+                  title="Relancer le processus complet : composants, connexions, routage"
+                  className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700"
+                  onClick={() => runFullFlow(true)}
+                  disabled={fullFlowRunning || !cdcValidated}
+                >
+                  {fullFlowRunning ? 'Processus…' : 'Relancer'}
+                </button>
+                <button
+                  type="button"
+                  title="Affiche le résultat complet dans le layout et ouvre le fichier KiCad nommé d'après le projet"
+                  className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
+                  onClick={showResult}
+                  disabled={showingResult || fullFlowRunning}
+                >
+                  {showingResult
+                    ? 'Affichage…'
+                    : resultShown
+                      ? 'Réafficher les résultats'
+                      : 'Afficher les résultats'}
+                </button>
+                <button
+                  type="button"
+                  title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+                  className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                    activeAction === 'edit-netlist'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={() => setNetsEditorOpen(true)}
+                >
+                  Éditer la Netlist
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Ordre logique du parcours : composants -> connexions -> correction ->
                 placement -> pistes -> routage avancé. */}
+                <button
+                  type="button"
+                  title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
+                  className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                    activeAction === 'components'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={handleRegenerate}
+                  disabled={regenerating || !cdcValidated}
+                >
+                  {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
+                </button>
+                <button
+                  type="button"
+                  title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
+                  className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
+                    activeAction === 'nets'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={handleGenerateNetsOnly}
+                  disabled={generatingNets}
+                >
+                  {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
+                </button>
+                <button
+                  type="button"
+                  title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
+                  className={`rounded border px-2 py-0.5 text-xs font-normal ${
+                    activeAction === 'edit-netlist'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={() => setNetsEditorOpen(true)}
+                >
+                  Éditer la Netlist
+                </button>
+                <button
+                  type="button"
+                  title="4. Optimiser la répartition des composants sur le plateau"
+                  className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
+                    activeAction === 'place'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={handlePlaceAll}
+                  disabled={placingAll || !cdcValidated}
+                >
+                  {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
+                </button>
+                <button
+                  type="button"
+                  title="5. Tracer les pistes et la zone GND"
+                  className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
+                    activeAction === 'route'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={handleRouteBoard}
+                  disabled={routing || !cdcValidated}
+                >
+                  {routing ? 'Routage…' : '5. Router la carte'}
+                </button>
+                <button
+                  type="button"
+                  title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
+                  className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
+                    activeAction === 'freeroute'
+                      ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
+                      : ''
+                  }`}
+                  onClick={handleFreeroute}
+                  disabled={freerouting || !cdcValidated}
+                >
+                  {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-b bg-gray-50 p-2 text-xs text-gray-600">
+          <span>Affichage du plateau KiCad</span>
+          <button
+            type="button"
+            className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-700 disabled:opacity-50"
+            onClick={handleSyncBoard}
+            disabled={syncingBoard}
+            title="Relire le fichier .kicad_pcb et rafraîchir le canvas sans relancer le routage"
+          >
+            {syncingBoard ? 'Rechargement…' : 'Recharger depuis le fichier'}
+          </button>
+        </div>
+        {(netsMissing || netlistError) && (
+          <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+            <p className="font-semibold">Connexions à corriger</p>
+            <p>{netlistError ?? NET_EMPTY_MESSAGE}</p>
+            {powerFixRefs.length > 0 && (
+              <p className="mt-1 text-[10px]">Composants concernés : {powerFixRefs.join(', ')}</p>
+            )}
+            <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
-                title="1. Générer les composants : appelle le LLM pour proposer la BOM (écrase les nets manuels)"
-                className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                  activeAction === 'components'
-                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
-                onClick={handleRegenerate}
-                disabled={regenerating}
-              >
-                {regenerating ? 'Génération…' : '1. Générer les composants (LLM)'}
-              </button>
-              <button
-                type="button"
-                title="2. Créer les connexions : génère les nets GND/VCC à partir des composants persistés"
-                className={`rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-normal text-blue-700 ${
-                  activeAction === 'nets' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-                }`}
+                className="rounded border border-blue-300 bg-white px-2 py-1 text-blue-700 disabled:opacity-50"
                 onClick={handleGenerateNetsOnly}
-                disabled={generatingNets}
+                disabled={generatingNets || !cdcValidated}
               >
-                {generatingNets ? 'Génération…' : '2. Générer les nets (GND/VCC)'}
+                {generatingNets ? 'Ajout en cours…' : '2. Générer les nets (GND/VCC)'}
               </button>
               <button
                 type="button"
-                title="3. Corriger les connexions : ajouter/supprimer/éditer les nets manuellement"
-                className={`rounded border px-2 py-0.5 text-xs font-normal ${
-                  activeAction === 'edit-netlist'
-                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
+                className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-700"
                 onClick={() => setNetsEditorOpen(true)}
               >
                 Éditer la Netlist
               </button>
-              <button
-                type="button"
-                title="4. Optimiser la répartition des composants sur le plateau"
-                className={`rounded border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-normal text-green-700 ${
-                  activeAction === 'place' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-                }`}
-                onClick={handlePlaceAll}
-                disabled={placingAll}
-              >
-                {placingAll ? 'Optimisation…' : '4. Optimiser la répartition'}
-              </button>
-              <button
-                type="button"
-                title="5. Tracer les pistes et la zone GND"
-                className={`rounded border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-normal text-purple-700 ${
-                  activeAction === 'route' ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2' : ''
-                }`}
-                onClick={handleRouteBoard}
-                disabled={routing}
-              >
-                {routing ? 'Routage…' : '5. Router la carte'}
-              </button>
-              <button
-                type="button"
-                title="6. Routage automatique avancé via Freerouting (nécessite Java + freerouting.jar)"
-                className={`rounded border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-normal text-indigo-700 ${
-                  activeAction === 'freeroute'
-                    ? 'animate-pulse ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
-                onClick={handleFreeroute}
-                disabled={freerouting}
-              >
-                {freerouting ? 'Routage complet…' : '6. Routage complet (Freerouting)'}
-              </button>
-            </>
-          )}
+            </div>
+          </div>
+        )}
+        {heuristicNets > 0 && (
+          <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
+            {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
+            Vérifiez-les via « Éditer la Netlist ».
+          </div>
+        )}
+        {netsWarning && (
+          <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+            {netsWarning}
+          </div>
+        )}
+        {freeroutingInfo && (
+          <div className="border-b border-indigo-200 bg-indigo-50 p-2 text-xs whitespace-pre-wrap text-indigo-900">
+            {freeroutingInfo}
+            <br />
+            Installation : installez Java puis placez `freerouting.jar` dans `tools/` ou définissez
+            la variable `FREEROUTING_JAR`. Le DSN complet a été exporté et peut être routé
+            manuellement dans Freerouting.
+          </div>
+        )}
+        <div className="space-y-3 p-4">
+          {components.map((comp, idx) => {
+            const options: { label: string; index: number }[] = [
+              { label: `IA : ${comp.libName}:${comp.footprintName} (${comp.value})`, index: -1 },
+              ...comp.candidates.map((c, ci) => ({
+                label: `BDD : ${c.name} (${c.footprint || '—'})`,
+                index: ci,
+              })),
+            ];
+            return (
+              <div key={idx} className="rounded border p-3 text-xs">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="font-semibold text-gray-800">
+                    {comp.reference} — {comp.type}
+                  </span>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                      comp.candidates.length > 0
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}
+                  >
+                    {comp.candidates.length > 0
+                      ? `En stock (${comp.candidates.length})`
+                      : 'Non trouvé en stock'}
+                  </span>
+                </div>
+                <div className="mb-1 text-gray-500">{comp.rationale}</div>
+                <div className="mb-2 text-gray-600">
+                  Pos. proposée : ({comp.xMm}, {comp.yMm}) mm · rot. {comp.rotation}° · qté{' '}
+                  {comp.quantity}
+                </div>
+                <label className="block text-xs font-medium text-gray-700">
+                  Composant à implanter
+                </label>
+                <select
+                  className="mt-1 w-full rounded border p-1.5 text-xs"
+                  value={selections[idx] ?? -1}
+                  onChange={(e) =>
+                    setSelections((prev) => ({ ...prev, [idx]: Number(e.target.value) }))
+                  }
+                >
+                  {options.map((o) => (
+                    <option key={o.index} value={o.index}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+
+                {placed[idx] && (
+                  <div className="mt-2 rounded border border-green-200 bg-green-50 p-2 text-xs text-green-700">
+                    ✓ {placed[idx]}
+                  </div>
+                )}
+                {placeErrors[idx] && (
+                  <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+                    <div>{placeErrors[idx]}</div>
+                    {/verrou|\.lck|--force/i.test(placeErrors[idx] ?? '') && (
+                      <button
+                        type="button"
+                        disabled={placing !== null}
+                        onClick={() => handlePlaceOne(idx, true)}
+                        className="mt-2 rounded bg-red-600 px-2 py-1 text-[11px] font-medium text-white disabled:opacity-50"
+                      >
+                        Forcer le placement
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  disabled={placing !== null || !!placed[idx]}
+                  onClick={() => handlePlaceOne(idx)}
+                  className="mt-2 w-full rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                >
+                  {placing === idx
+                    ? 'Placement en cours…'
+                    : placed[idx]
+                      ? 'Placé dans KiCad'
+                      : 'Valider et placer dans KiCad'}
+                </button>
+              </div>
+            );
+          })}
         </div>
-      </div>
-      <div className="flex items-center justify-between gap-2 border-b bg-gray-50 p-2 text-xs text-gray-600">
-        <span>Affichage du plateau KiCad</span>
-        <button
-          type="button"
-          className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-700 disabled:opacity-50"
-          onClick={handleSyncBoard}
-          disabled={syncingBoard}
-          title="Relire le fichier .kicad_pcb et rafraîchir le canvas sans relancer le routage"
-        >
-          {syncingBoard ? 'Rechargement…' : 'Recharger depuis le fichier'}
-        </button>
-      </div>
-      {(netsMissing || netlistError) && (
-        <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
-          <p className="font-semibold">Connexions à corriger</p>
-          <p>{netlistError ?? NET_EMPTY_MESSAGE}</p>
-          {powerFixRefs.length > 0 && (
-            <p className="mt-1 text-[10px]">Composants concernés : {powerFixRefs.join(', ')}</p>
-          )}
-          <div className="mt-2 flex flex-wrap gap-2">
+        <div className="flex items-center gap-2 border-b bg-gray-50 p-2">
+          <label className="cursor-pointer rounded border border-gray-400 bg-white px-2 py-1 text-[11px] font-medium text-gray-700">
+            {importing ? 'Import…' : 'Importer un schéma'}
+            <input
+              type="file"
+              accept=".sch,.brd,.net"
+              className="hidden"
+              disabled={importing}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void importSchematicFile(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
+          <span className="text-[10px] text-gray-500">Eagle .sch / .brd</span>
+        </div>
+        {validationIssues.length > 0 && (
+          <div className="border-b border-red-200 bg-red-50 p-2 text-xs text-red-800">
+            <div className="font-semibold">Netlist invalide — placement bloqué :</div>
+            <ul className="mt-1 list-inside list-disc">
+              {validationIssues.map((issue, i) => (
+                <li key={i}>{issue}</li>
+              ))}
+            </ul>
             <button
               type="button"
-              className="rounded border border-blue-300 bg-white px-2 py-1 text-blue-700 disabled:opacity-50"
-              onClick={handleGenerateNetsOnly}
-              disabled={generatingNets}
-            >
-              {generatingNets ? 'Ajout en cours…' : '2. Générer les nets (GND/VCC)'}
-            </button>
-            <button
-              type="button"
-              className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-700"
+              className="mt-2 rounded border border-red-300 bg-white px-2 py-0.5"
               onClick={() => setNetsEditorOpen(true)}
             >
               Éditer la Netlist
             </button>
           </div>
-        </div>
-      )}
-      {heuristicNets > 0 && (
-        <div className="border-b border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
-          {heuristicNets} net(s) ont été inférés automatiquement (pins ou connexions manquants).
-          Vérifiez-les via « Éditer la Netlist ».
-        </div>
-      )}
-      {netsWarning && (
-        <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
-          {netsWarning}
-        </div>
-      )}
-      {freeroutingInfo && (
-        <div className="border-b border-indigo-200 bg-indigo-50 p-2 text-xs whitespace-pre-wrap text-indigo-900">
-          {freeroutingInfo}
-          <br />
-          Installation : installez Java puis placez `freerouting.jar` dans `tools/` ou définissez la
-          variable `FREEROUTING_JAR`. Le DSN complet a été exporté et peut être routé manuellement
-          dans Freerouting.
-        </div>
-      )}
-      <div className="space-y-3 p-4">
-        {components.map((comp, idx) => {
-          const options: { label: string; index: number }[] = [
-            { label: `IA : ${comp.libName}:${comp.footprintName} (${comp.value})`, index: -1 },
-            ...comp.candidates.map((c, ci) => ({
-              label: `BDD : ${c.name} (${c.footprint || '—'})`,
-              index: ci,
-            })),
-          ];
-          return (
-            <div key={idx} className="rounded border p-3 text-xs">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="font-semibold text-gray-800">
-                  {comp.reference} — {comp.type}
-                </span>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                    comp.candidates.length > 0
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-100 text-amber-700'
-                  }`}
-                >
-                  {comp.candidates.length > 0
-                    ? `En stock (${comp.candidates.length})`
-                    : 'Non trouvé en stock'}
-                </span>
-              </div>
-              <div className="mb-1 text-gray-500">{comp.rationale}</div>
-              <div className="mb-2 text-gray-600">
-                Pos. proposée : ({comp.xMm}, {comp.yMm}) mm · rot. {comp.rotation}° · qté{' '}
-                {comp.quantity}
-              </div>
-              <label className="block text-xs font-medium text-gray-700">
-                Composant à implanter
-              </label>
-              <select
-                className="mt-1 w-full rounded border p-1.5 text-xs"
-                value={selections[idx] ?? -1}
-                onChange={(e) =>
-                  setSelections((prev) => ({ ...prev, [idx]: Number(e.target.value) }))
-                }
-              >
-                {options.map((o) => (
-                  <option key={o.index} value={o.index}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-
-              {placed[idx] && (
-                <div className="mt-2 rounded border border-green-200 bg-green-50 p-2 text-xs text-green-700">
-                  ✓ {placed[idx]}
-                </div>
-              )}
-              {placeErrors[idx] && (
-                <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
-                  <div>{placeErrors[idx]}</div>
-                  {/verrou|\.lck|--force/i.test(placeErrors[idx] ?? '') && (
-                    <button
-                      type="button"
-                      disabled={placing !== null}
-                      onClick={() => handlePlaceOne(idx, true)}
-                      className="mt-2 rounded bg-red-600 px-2 py-1 text-[11px] font-medium text-white disabled:opacity-50"
-                    >
-                      Forcer le placement
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <button
-                type="button"
-                disabled={placing !== null || !!placed[idx]}
-                onClick={() => handlePlaceOne(idx)}
-                className="mt-2 w-full rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-              >
-                {placing === idx
-                  ? 'Placement en cours…'
-                  : placed[idx]
-                    ? 'Placé dans KiCad'
-                    : 'Valider et placer dans KiCad'}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex items-center gap-2 border-b bg-gray-50 p-2">
-        <label className="cursor-pointer rounded border border-gray-400 bg-white px-2 py-1 text-[11px] font-medium text-gray-700">
-          {importing ? 'Import…' : 'Importer un schéma'}
-          <input
-            type="file"
-            accept=".sch,.brd,.net"
-            className="hidden"
-            disabled={importing}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void importSchematicFile(file);
-              e.target.value = '';
-            }}
-          />
-        </label>
-        <span className="text-[10px] text-gray-500">Eagle .sch / .brd</span>
-      </div>
-      {validationIssues.length > 0 && (
-        <div className="border-b border-red-200 bg-red-50 p-2 text-xs text-red-800">
-          <div className="font-semibold">Netlist invalide — placement bloqué :</div>
-          <ul className="mt-1 list-inside list-disc">
-            {validationIssues.map((issue, i) => (
-              <li key={i}>{issue}</li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            className="mt-2 rounded border border-red-300 bg-white px-2 py-0.5"
-            onClick={() => setNetsEditorOpen(true)}
-          >
-            Éditer la Netlist
-          </button>
-        </div>
-      )}
-      {flowSummary && (
-        <div className="border-b border-green-200 bg-green-50 p-2 text-xs text-green-800">
-          {flowSummary}
-        </div>
-      )}
-      {allPlaced && !fullRouted && (
-        <div className="border-t bg-gray-50 p-3">
-          <button
-            type="button"
-            onClick={runPostPlacementPipeline}
-            disabled={routing || fullFlowRunning}
-            className="rounded bg-purple-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {routing ? 'Routage…' : 'Placer routage et connexion'}
-          </button>
-          <p className="mt-1 text-[11px] text-gray-500">
-            Génère les connexions et trace les pistes à partir des composants placés.
-          </p>
-        </div>
-      )}
-      {fullRouted && (
-        <div className="space-y-2 border-t bg-gray-50 p-3 text-[11px] text-gray-500">
-          <p>
-            Le résultat est prêt : cliquez sur « Afficher les résultats » dans l&apos;en-tête
-            ci-dessus pour l&apos;afficher dans le layout et dans KiCad.
-          </p>
-          {lastScore !== null && (
-            <div className="rounded border border-blue-200 bg-blue-50 p-2 text-blue-900">
-              <div className="font-semibold">Routage terminé</div>
-              <div>Score : {lastScore}/1000</div>
-              <div>Pistes : {lastTracks}</div>
-              <div>
-                Violations : {Object.values(lastDrc?.categories ?? {}).reduce((a, b) => a + b, 0)}
-                {lastDrc?.categories
-                  ? ` (${lastDrc.categories.placement ?? 0} placement, ${lastDrc.categories.routage ?? 0} routage)`
-                  : ''}
-              </div>
-            </div>
-          )}
-          {lastScore !== null && (
+        )}
+        {flowSummary && (
+          <div className="border-b border-green-200 bg-green-50 p-2 text-xs text-green-800">
+            {flowSummary}
+          </div>
+        )}
+        {allPlaced && !fullRouted && (
+          <div className="border-t bg-gray-50 p-3">
             <button
               type="button"
-              onClick={rerouteWithThreshold}
-              disabled={rerouting || fullFlowRunning}
-              className="rounded border border-indigo-300 bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 disabled:opacity-50"
+              onClick={runPostPlacementPipeline}
+              disabled={routing || fullFlowRunning || !cdcValidated}
+              className="rounded bg-purple-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
             >
-              {rerouting ? 'Re-routage…' : 'Re-router avec score minimum'}
+              {routing ? 'Routage…' : 'Placer routage et connexion'}
             </button>
-          )}
-          {routingAttempts.length > 1 && (
-            <div className="rounded border bg-white p-2">
-              <div className="font-semibold">Historique des routages</div>
-              <div className="mt-1 flex h-16 items-end gap-1">
-                {routingAttempts.map((a, i) => {
-                  const height = Math.max(4, ((a.score ?? 0) / 1000) * 60);
-                  return (
-                    <div key={a.id} className="flex flex-1 flex-col items-center gap-0.5">
-                      <div
-                        className="w-full rounded-t bg-blue-400"
-                        style={{ height: `${height}px` }}
-                        title={`Routage ${i + 1} : ${a.score ?? '—'}/1000`}
-                      />
-                      <span className="text-[9px] text-gray-500">{i + 1}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={getQuote}
-            disabled={fullFlowRunning}
-            className="rounded border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 disabled:opacity-50"
-          >
-            Obtenir un devis JLCPCB
-          </button>
-          {quote && (
-            <p className={`${quote.ok ? 'text-green-700' : 'text-amber-700'}`}>
-              {quote.ok
-                ? `Devis estimé : ${quote.price} ${quote.currency ?? 'USD'}`
-                : quote.message}
+            <p className="mt-1 text-[11px] text-gray-500">
+              Génère les connexions et trace les pistes à partir des composants placés.
             </p>
-          )}
-          {lastDrc && (
-            <div className="rounded border bg-white p-2">
-              {validateDfm(lastDrc).ok ? (
-                <span className="rounded bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
-                  ✓ Conforme JLCPCB
-                </span>
-              ) : (
-                <>
-                  <span className="rounded bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-800">
-                    ✗ Non conforme JLCPCB
-                  </span>
-                  <ul className="mt-1 space-y-0.5">
-                    {validateDfm(lastDrc).violations.map((v, i) => (
-                      <li key={i} className="text-gray-600">
-                        {v.type} — {v.suggestion}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={exportFabrication}
-            disabled={exporting || fullFlowRunning}
-            className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {exporting ? 'Export…' : 'Exporter pour JLCPCB'}
-          </button>
-          {lastDrc && (lastDrc.details?.length ?? 0) > 0 && (
-            <details className="rounded border bg-white p-2">
-              <summary className="cursor-pointer font-semibold text-gray-700">
-                Voir les détails DRC ({lastDrc.details?.length})
-              </summary>
-              <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-                {lastDrc.details?.map((v, i) => (
-                  <li key={`${v.type}-${i}`} className="rounded bg-gray-50 p-1.5">
-                    <span className="font-semibold">{v.category}</span> · {v.type}
-                    {typeof v.x === 'number' && typeof v.y === 'number'
-                      ? ` @ (${v.x.toFixed(1)}, ${v.y.toFixed(1)})`
-                      : ''}
-                    <div className="text-gray-500">{v.suggestion}</div>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
-        </div>
-      )}
-      {importReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-4 text-xs">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-800">
-                Rapport d&apos;import ({importReport.format})
-              </h3>
+          </div>
+        )}
+        {fullRouted && (
+          <div className="space-y-2 border-t bg-gray-50 p-3 text-[11px] text-gray-500">
+            <p>
+              Le résultat est prêt : cliquez sur « Afficher les résultats » dans l&apos;en-tête
+              ci-dessus pour l&apos;afficher dans le layout et dans KiCad.
+            </p>
+            {lastScore !== null && (
+              <div className="rounded border border-blue-200 bg-blue-50 p-2 text-blue-900">
+                <div className="font-semibold">Routage terminé</div>
+                <div>Score : {lastScore}/1000</div>
+                <div>Pistes : {lastTracks}</div>
+                <div>
+                  Violations : {Object.values(lastDrc?.categories ?? {}).reduce((a, b) => a + b, 0)}
+                  {lastDrc?.categories
+                    ? ` (${lastDrc.categories.placement ?? 0} placement, ${lastDrc.categories.routage ?? 0} routage)`
+                    : ''}
+                </div>
+              </div>
+            )}
+            {lastScore !== null && (
               <button
                 type="button"
-                onClick={() => setImportReport(null)}
-                className="rounded border px-2 py-0.5"
+                onClick={rerouteWithThreshold}
+                disabled={rerouting || fullFlowRunning}
+                className="rounded border border-indigo-300 bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 disabled:opacity-50"
               >
-                Fermer
+                {rerouting ? 'Re-routage…' : 'Re-router avec score minimum'}
               </button>
-            </div>
-            <p className="mb-2 text-gray-600">
-              {importReport.counts?.components ?? 0} composants · {importReport.counts?.nets ?? 0}{' '}
-              nets · {importReport.counts?.warnings ?? 0} avertissements
-            </p>
-            <div className="space-y-2">
-              {(importReport.components ?? []).map((c) => (
-                <div key={c.reference} className="rounded border p-2">
-                  <span className="font-semibold">{c.reference}</span> · {c.value || '—'} ·{' '}
-                  {c.footprint || 'sans empreinte'}
+            )}
+            {routingAttempts.length > 1 && (
+              <div className="rounded border bg-white p-2">
+                <div className="font-semibold">Historique des routages</div>
+                <div className="mt-1 flex h-16 items-end gap-1">
+                  {routingAttempts.map((a, i) => {
+                    const height = Math.max(4, ((a.score ?? 0) / 1000) * 60);
+                    return (
+                      <div key={a.id} className="flex flex-1 flex-col items-center gap-0.5">
+                        <div
+                          className="w-full rounded-t bg-blue-400"
+                          style={{ height: `${height}px` }}
+                          title={`Routage ${i + 1} : ${a.score ?? '—'}/1000`}
+                        />
+                        <span className="text-[9px] text-gray-500">{i + 1}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-              {(importReport.nets ?? []).map((n) => (
-                <div key={n.name} className="rounded border p-2">
-                  <span className="font-semibold">{n.name}</span> : {n.pins.join(', ')}
-                </div>
-              ))}
-              {(importReport.warnings ?? []).map((w, i) => (
-                <div key={i} className="rounded bg-amber-50 p-2 text-amber-800">
-                  {w}
-                </div>
-              ))}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={getQuote}
+              disabled={fullFlowRunning}
+              className="rounded border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 disabled:opacity-50"
+            >
+              Obtenir un devis JLCPCB
+            </button>
+            {quote && (
+              <p className={`${quote.ok ? 'text-green-700' : 'text-amber-700'}`}>
+                {quote.ok
+                  ? `Devis estimé : ${quote.price} ${quote.currency ?? 'USD'}`
+                  : quote.message}
+              </p>
+            )}
+            {lastDrc && (
+              <div className="rounded border bg-white p-2">
+                {validateDfm(lastDrc).ok ? (
+                  <span className="rounded bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
+                    ✓ Conforme JLCPCB
+                  </span>
+                ) : (
+                  <>
+                    <span className="rounded bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-800">
+                      ✗ Non conforme JLCPCB
+                    </span>
+                    <ul className="mt-1 space-y-0.5">
+                      {validateDfm(lastDrc).violations.map((v, i) => (
+                        <li key={i} className="text-gray-600">
+                          {v.type} — {v.suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={exportFabrication}
+              disabled={exporting || fullFlowRunning}
+              className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            >
+              {exporting ? 'Export…' : 'Exporter pour JLCPCB'}
+            </button>
+            {lastDrc && (lastDrc.details?.length ?? 0) > 0 && (
+              <details className="rounded border bg-white p-2">
+                <summary className="cursor-pointer font-semibold text-gray-700">
+                  Voir les détails DRC ({lastDrc.details?.length})
+                </summary>
+                <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                  {lastDrc.details?.map((v, i) => (
+                    <li key={`${v.type}-${i}`} className="rounded bg-gray-50 p-1.5">
+                      <span className="font-semibold">{v.category}</span> · {v.type}
+                      {typeof v.x === 'number' && typeof v.y === 'number'
+                        ? ` @ (${v.x.toFixed(1)}, ${v.y.toFixed(1)})`
+                        : ''}
+                      <div className="text-gray-500">{v.suggestion}</div>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
+        {importReport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-4 text-xs">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-gray-800">
+                  Rapport d&apos;import ({importReport.format})
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setImportReport(null)}
+                  className="rounded border px-2 py-0.5"
+                >
+                  Fermer
+                </button>
+              </div>
+              <p className="mb-2 text-gray-600">
+                {importReport.counts?.components ?? 0} composants · {importReport.counts?.nets ?? 0}{' '}
+                nets · {importReport.counts?.warnings ?? 0} avertissements
+              </p>
+              <div className="space-y-2">
+                {(importReport.components ?? []).map((c) => (
+                  <div key={c.reference} className="rounded border p-2">
+                    <span className="font-semibold">{c.reference}</span> · {c.value || '—'} ·{' '}
+                    {c.footprint || 'sans empreinte'}
+                  </div>
+                ))}
+                {(importReport.nets ?? []).map((n) => (
+                  <div key={n.name} className="rounded border p-2">
+                    <span className="font-semibold">{n.name}</span> : {n.pins.join(', ')}
+                  </div>
+                ))}
+                {(importReport.warnings ?? []).map((w, i) => (
+                  <div key={i} className="rounded bg-amber-50 p-2 text-amber-800">
+                    {w}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {netsEditorOpen && (
-        <NetlistEditorModal
-          projectId={projectId}
-          onClose={() => setNetsEditorOpen(false)}
-          onSaved={(count) => {
-            setNetsMissing(count === 0);
-            window.dispatchEvent(new Event('pcb:board-refresh'));
-            // Le compteur « N réseaux » vient du rendu serveur : sans refresh,
-            // il reste figé sur l'ancien nombre après une édition.
-            router.refresh();
-          }}
-        />
-      )}
-    </div>
+        )}
+        {netsEditorOpen && (
+          <NetlistEditorModal
+            projectId={projectId}
+            onClose={() => setNetsEditorOpen(false)}
+            onSaved={(count) => {
+              setNetsMissing(count === 0);
+              window.dispatchEvent(new Event('pcb:board-refresh'));
+              // Le compteur « N réseaux » vient du rendu serveur : sans refresh,
+              // il reste figé sur l'ancien nombre après une édition.
+              router.refresh();
+            }}
+          />
+        )}
+      </div>
+    </>
   );
 }

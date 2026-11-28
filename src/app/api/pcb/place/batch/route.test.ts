@@ -9,6 +9,11 @@ vi.mock('@/lib/prisma', () => ({
   prisma: { pcbProject: { findUnique: vi.fn() } },
 }));
 
+const checkCdcGate = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/pcb/cdc-guard', () => ({
+  checkCdcGate: (...a: unknown[]) => checkCdcGate(...a),
+}));
+
 vi.mock('@/lib/pcb/kicad-bridge', () => ({
   placeFootprints: vi.fn(),
   syncBoardLive: vi.fn(),
@@ -116,6 +121,7 @@ describe('POST /api/pcb/place/batch', () => {
     vi.clearAllMocks();
     prepareBoardForWrite.mockResolvedValue({ closed: 0, released: true });
     vi.mocked(assertBoardStamp).mockImplementation(() => {});
+    checkCdcGate.mockResolvedValue({ ok: true });
   });
 
   it('1. 401 sans admin', async () => {
@@ -357,5 +363,18 @@ describe('POST /api/pcb/place/batch', () => {
     const data = await res.json();
     expect(data.verified).toBe(2);
     expect(data.backup).toBe('y.bak');
+  });
+
+  it('409 CDC_NOT_VALIDATED avant tout placement', async () => {
+    mockHappyPath();
+    checkCdcGate.mockResolvedValue({
+      ok: false,
+      status: 409,
+      error: 'CDC_NOT_VALIDATED',
+      message: 'Complétez et validez le cahier des charges avant de générer le PCB.',
+    });
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1] }));
+    expect(res.status).toBe(409);
+    expect(placeFootprints).not.toHaveBeenCalled();
   });
 });

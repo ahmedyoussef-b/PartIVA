@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { assignBoardNets, cleanBoardTracks, exportDsn, importSes } from '@/lib/pcb/kicad-bridge';
 import { BoardLockError, BoardLockedByKicadError, withBoardLock } from '@/lib/pcb/board-lock';
 import { prepareBoardForWrite } from '@/lib/pcb/kicad-desktop';
+import { checkCdcGate } from '@/lib/pcb/cdc-guard';
 import { runDrc } from '@/lib/pcb/drc';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 
@@ -359,6 +360,10 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
   if (!projectId) return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
+  const gate = await checkCdcGate(projectId);
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error, message: gate.message }, { status: gate.status });
+  }
 
   const project = await prisma.pcbProject.findUnique({
     where: { id: projectId },
