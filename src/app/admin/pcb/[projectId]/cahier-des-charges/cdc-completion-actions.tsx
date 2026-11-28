@@ -31,7 +31,7 @@ export function CdcCompletionActions({
       body: JSON.stringify({ projectId, ...payload }),
     });
     const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    if (!res.ok || !data.ok) throw new Error(data.message || data.error || `Erreur ${res.status}`);
     return data;
   };
 
@@ -40,7 +40,16 @@ export function CdcCompletionActions({
     setSaving(true);
     try {
       const data = await post('/api/pcb/requirements/confirm-all', {});
-      toast.success(`${data.confirmed as number} champ(s) confirmé(s).`);
+      // Une fois tout confirmé, le même bouton finalise le CDC : plus besoin
+      // d'un second bouton, et l'erreur de gating disparaît immédiatement.
+      try {
+        await post('/api/pcb/requirements/validate', {});
+        toast.success('CDC confirmé et validé — passage au layout autorisé.');
+      } catch (validationError) {
+        const message =
+          validationError instanceof Error ? validationError.message : 'Validation impossible';
+        toast.error(`${data.confirmed as number} champ(s) confirmé(s). ${message}`);
+      }
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Confirmation impossible');
@@ -70,11 +79,15 @@ export function CdcCompletionActions({
       <button
         type="button"
         onClick={() => void confirmAll()}
-        disabled={saving || unconfirmed === 0}
+        disabled={saving}
         className="rounded border border-green-300 bg-white px-2 py-1 font-semibold text-green-700 disabled:opacity-50"
-        title="Confirmer toutes les exigences proposées ou à vérifier"
+        title={
+          unconfirmed > 0
+            ? 'Confirmer toutes les exigences puis valider le CDC si tout est complet'
+            : 'Valider définitivement le CDC (désactive le message d’erreur)'
+        }
       >
-        {unconfirmed > 0 ? `Tout confirmer (${unconfirmed})` : 'Tout est confirmé'}
+        {unconfirmed > 0 ? `Tout confirmer (${unconfirmed})` : 'Valider le CDC'}
       </button>
       <div className="flex flex-wrap items-end gap-1">
         <label className="flex flex-col gap-0.5">
