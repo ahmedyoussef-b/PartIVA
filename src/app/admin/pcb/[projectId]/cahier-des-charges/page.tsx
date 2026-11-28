@@ -5,8 +5,9 @@ import { AnalyzeButton } from './analyze-button';
 import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
 import { RequirementValueEditor } from '@/components/pcb/RequirementValueEditor';
 import { hashKey } from '@/lib/utils/llm-guard';
-import { evaluateCdcCompleteness, evaluateCdcGate } from '@/lib/pcb/cdc-gate';
+import { CDC_CATEGORIES, evaluateCdcCompleteness, evaluateCdcGate } from '@/lib/pcb/cdc-gate';
 import { CdcGateActions } from './cdc-gate-actions';
+import { CdcCompletionActions } from './cdc-completion-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,6 +99,10 @@ export default async function CahierDesChargesPage({
 
   const gate = evaluateCdcGate({ status: project.status, requirements: project.requirements });
   const completeness = evaluateCdcCompleteness(project.requirements);
+  const unconfirmed = project.requirements.filter((r) => r.status !== 'confirmed').length;
+  const missingCategories = CDC_CATEGORIES.filter(
+    (c) => !project.requirements.some((r) => r.category === c),
+  );
   const canFinalize =
     project.status !== 'requirements_validated' &&
     project.requirements.length > 0 &&
@@ -137,7 +142,7 @@ export default async function CahierDesChargesPage({
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
-          {analysisDone ? (
+          {analysisDone && project.status === 'requirements_validated' ? (
             <span className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
               ✓ Analyse effectuée · {project.requirements.length} exigence(s)
             </span>
@@ -153,6 +158,15 @@ export default async function CahierDesChargesPage({
             redirected={cdcRedirect === 'incomplete'}
           />
         </div>
+      </div>
+
+      <div className="border-b p-3">
+        <CdcCompletionActions
+          projectId={projectId}
+          unconfirmed={unconfirmed}
+          categories={CDC_CATEGORIES}
+          missingCategories={missingCategories}
+        />
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">

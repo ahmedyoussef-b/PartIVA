@@ -1058,6 +1058,15 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F6-bis : complétion du CDC depuis l'UI
+
+- Suite au test final : le projet `cmx0fywjw00007kfc1ikp9pam` avait 13 exigences (6 `proposed`, 7 `confirmed`) mais aucune ligne `manufacturing`/`quality` ; le gating F6 affichait « Manquant : validation » à juste titre, mais l'UI ne permettait ni d'ajouter un champ manquant, ni de confirmer en masse, ni de relancer l'analyse (badge « Analyse effectuée » masquant `AnalyzeButton`).
+- Nouvelles routes : `requirements/confirm-all` (passe toutes les lignes non confirmées en `confirmed`) et `requirements/add` (ajout d'un champ saisi, `confirmed`/`manual`, catégorie validée contre `CDC_CATEGORIES`).
+- Page Cahier des charges : `cdc-completion-actions.tsx` (« Tout confirmer (N) », formulaire catégorie/champ/valeur avec catégories manquantes signalées) ; `AnalyzeButton` réapparaît tant que le statut n'est pas `requirements_validated`, même si le hash d'analyse est à jour.
+- typecheck 0, lint 0, vitest 506/506 (62 fichiers), prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
