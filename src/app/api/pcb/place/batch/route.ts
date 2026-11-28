@@ -20,6 +20,7 @@ import {
   openBoardInDesktop,
   prepareBoardForWrite,
 } from '@/lib/pcb/kicad-desktop';
+import { checkCdcGate } from '@/lib/pcb/cdc-guard';
 
 export const runtime = 'nodejs';
 
@@ -82,6 +83,10 @@ export async function POST(req: Request) {
 
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
+  }
+  const gate = await checkCdcGate(projectId);
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error, message: gate.message }, { status: gate.status });
   }
   if (components.length === 0) {
     return NextResponse.json({ error: 'components requis (tableau non vide)' }, { status: 400 });

@@ -54,6 +54,10 @@ vi.mock('@/lib/pcb/board-lock', () => ({
 vi.mock('@/lib/pcb/kicad-desktop', () => ({
   prepareBoardForWrite: vi.fn(async () => ({ closed: 0, released: true })),
 }));
+const checkCdcGate = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/pcb/cdc-guard', () => ({
+  checkCdcGate: (...a: unknown[]) => checkCdcGate(...a),
+}));
 vi.mock('node:fs', () => ({
   existsSync: (...a: unknown[]) => existsSync(...a),
   readFileSync: (...a: unknown[]) => readFileSync(...a),
@@ -79,6 +83,7 @@ describe('POST /api/pcb/autoroute/freerouting — chaîne DSN → SES → DRC', 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(requireAdmin).mockResolvedValue({ role: 'ADMIN' } as never);
+    checkCdcGate.mockResolvedValue({ ok: true });
     findProject.mockResolvedValue({ id: 'proj-1', kicadFilePath: BOARD });
     findNets.mockResolvedValue([{ name: 'GND', pins: ['U1.1', 'C1.1'] }]);
     existsSync.mockReturnValue(true);

@@ -1047,6 +1047,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F6 : gating séquentiel du CDC
+
+- Diagnostic : `wizard-state.ts` considérait le CDC validé dès que `project.requirements.length > 0` (`||`), donc une simple analyse partielle ouvrait le layout et autorisait « Lancer ». La page Cahier des charges n'avait aucun bouton « Passer au Layout PCB » conditionné, la page Layout aucun `redirect`, et `ComponentSourcingPanel` aucune connaissance du statut CDC. `/api/pcb/wizard/validate` n'imposait aucun prérequis.
+- `cdc-gate.ts` (nouveau, pur) : `evaluateCdcGate` (statut `requirements_validated` comme seule source de vérité, exigences complètes et confirmées si elles existent, projets historiques sans exigences analysées tolérés) et `evaluateCdcCompleteness` (6 catégories + champs confirmés). `cdc-guard.ts` : `checkCdcGate(projectId)` renvoie 404/409 `CDC_NOT_VALIDATED`.
+- UI : page Cahier des charges avec bouton « Passer au Layout PCB » désactivé, bandeau `?cdc=incomplete` et bouton « Valider le CDC complet » (`cdc-gate-actions.tsx`) ; page Layout avec `redirect()` serveur et transmission de `cdcValidated` ; panneau Sourcing avec tous les boutons de génération désactivés et message « Complétez et validez le cahier des charges avant de générer le PCB ».
+- API : garde `checkCdcGate` sur `source-components` (sauf `peek`), `place/batch`, `route` et `freerouting` → 409 ; nouvelle route `requirements/validate` (422 `CDC_INCOMPLETE` si incomplet) ; `wizard/validate` applique la chaîne `analyze → nets → placement → routing → review` avec 409 `STEP_LOCKED`.
+- Tests : `cdc-gate.test.ts`, `wizard-state.test.ts`, `requirements/validate/route.test.ts`, `wizard/validate/route.test.ts`, plus cas 409/peek dans les tests de routes existants et mise à jour du mock `wizard-state` pour un projet valide.
+- typecheck 0, lint 0, vitest 501/501 (60 fichiers), prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

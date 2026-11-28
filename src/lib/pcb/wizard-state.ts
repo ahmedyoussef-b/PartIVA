@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { parseKicadPcb } from './kicad-file-reader';
 import { normalizeBoardPath } from './kicad-path';
 import { analyzeRealState } from './simulation';
+import { evaluateCdcGate } from './cdc-gate';
 
 /**
  * État complet du parcours PCB, calculé côté serveur à partir de la BDD et du
@@ -95,8 +96,12 @@ export async function computeWizardState(projectId: string): Promise<PcbWizardSt
 
   const suggested = standardBoardPath(projectId);
   const suggestedOnDisk = existsSync(suggested);
-  const cdcValidated =
-    project.status === 'requirements_validated' || project.requirements.length > 0;
+  // Un faux positif (`|| requirements.length > 0`) laissait passer un CDC
+  // partiellement analysé : seule la validation explicite compte désormais.
+  const cdcValidated = evaluateCdcGate({
+    status: project.status,
+    requirements: project.requirements,
+  }).ready;
   const proposedComponents =
     (project.sourcingCache as { components?: unknown[] } | null)?.components?.length ?? 0;
 

@@ -5,6 +5,8 @@ import { AnalyzeButton } from './analyze-button';
 import { assessCdcQuality } from '@/lib/pcb/cdc-quality';
 import { RequirementValueEditor } from '@/components/pcb/RequirementValueEditor';
 import { hashKey } from '@/lib/utils/llm-guard';
+import { evaluateCdcCompleteness, evaluateCdcGate } from '@/lib/pcb/cdc-gate';
+import { CdcGateActions } from './cdc-gate-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,10 +49,13 @@ function Row({ label, value }: { label: string; value: string | null | undefined
 
 export default async function CahierDesChargesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ cdc?: string }>;
 }) {
   const { projectId } = await params;
+  const { cdc: cdcRedirect } = await searchParams;
 
   const project = await prisma.pcbProject.findUnique({
     where: { id: projectId },
@@ -91,6 +96,13 @@ export default async function CahierDesChargesPage({
     })),
   );
 
+  const gate = evaluateCdcGate({ status: project.status, requirements: project.requirements });
+  const completeness = evaluateCdcCompleteness(project.requirements);
+  const canFinalize =
+    project.status !== 'requirements_validated' &&
+    project.requirements.length > 0 &&
+    completeness.ready;
+
   const requirementsByCategory = project.requirements.reduce(
     (acc, requirement) => {
       const key = requirement.category || 'autre';
@@ -124,13 +136,23 @@ export default async function CahierDesChargesPage({
             </p>
           </div>
         </div>
-        {analysisDone ? (
-          <span className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
-            ✓ Analyse effectuée · {project.requirements.length} exigence(s)
-          </span>
-        ) : (
-          <AnalyzeButton projectId={projectId} hasExisting={project.requirements.length > 0} />
-        )}
+        <div className="flex flex-col items-end gap-2">
+          {analysisDone ? (
+            <span className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
+              ✓ Analyse effectuée · {project.requirements.length} exigence(s)
+            </span>
+          ) : (
+            <AnalyzeButton projectId={projectId} hasExisting={project.requirements.length > 0} />
+          )}
+          <CdcGateActions
+            projectId={projectId}
+            ready={gate.ready}
+            reason={gate.reason}
+            missing={gate.missing}
+            canFinalize={canFinalize}
+            redirected={cdcRedirect === 'incomplete'}
+          />
+        </div>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">

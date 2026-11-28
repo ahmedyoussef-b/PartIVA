@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/prisma';
 import CompliancePanel from '@/components/pcb/CompliancePanel';
@@ -18,6 +19,7 @@ import { CapitalizeButton } from '@/components/pcb/CapitalizeButton';
 import { computePriceTotal } from '@/lib/pcb/price-total';
 import { analyzeRealState } from '@/lib/pcb/simulation';
 import { computeWizardState } from '@/lib/pcb/wizard-state';
+import { evaluateCdcGate } from '@/lib/pcb/cdc-gate';
 import { ActionProgressProvider, ActionProgressBar } from '@/components/pcb/ActionProgressProvider';
 import { PcbLiveStateProvider } from '@/components/pcb/PcbLiveStateProvider';
 
@@ -41,6 +43,15 @@ export default async function PcbProjectPage({
 
   if (!project) {
     return <div className="p-6 text-red-600">Projet introuvable : {projectId}</div>;
+  }
+
+  // Gating séquentiel : aucun accès au layout sans CDC complété et validé.
+  const cdcGate = evaluateCdcGate({
+    status: project.status,
+    requirements: project.requirements,
+  });
+  if (!cdcGate.ready) {
+    redirect(`/admin/pcb/${projectId}/cahier-des-charges?cdc=incomplete`);
   }
 
   const clientRequest = project.requestId
@@ -221,7 +232,7 @@ export default async function PcbProjectPage({
 
                 {/* Étape 3 — Sourcing : netlist, placement optimisé, routage */}
                 <div id="card-sourcing">
-                  <ComponentSourcingPanel projectId={projectId} />
+                  <ComponentSourcingPanel projectId={projectId} cdcValidated={cdcGate.ready} />
                 </div>
 
                 {/* Étape 4 — Placement manuel / ajustements */}
