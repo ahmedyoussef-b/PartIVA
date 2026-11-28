@@ -63,6 +63,18 @@ export async function closeBoardInDesktop(
   return { closed, released: !existsSync(lockPath) };
 }
 
+/**
+ * Avant toute écriture backend : ferme proprement la fenêtre KiCad si le plateau
+ * est ouvert. Retourne `released: false` si l'utilisateur a refusé la fermeture
+ * (modifications non enregistrées) — l'appelant doit alors renoncer à écrire.
+ */
+export async function prepareBoardForWrite(
+  absPath: string,
+): Promise<{ closed: number; released: boolean }> {
+  if (!isBoardOpenInKicad(absPath)) return { closed: 0, released: true };
+  return closeBoardInDesktop(absPath);
+}
+
 export function openBoardInDesktop(absPath: string): void {
   if (!isDesktopKiCad()) return;
   // Ne jamais ouvrir une seconde fenêtre sur un plateau déjà ouvert :

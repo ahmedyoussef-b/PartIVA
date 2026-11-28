@@ -7,6 +7,8 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import { assignBoardNets, cleanBoardTracks, exportDsn, importSes } from '@/lib/pcb/kicad-bridge';
+import { BoardLockError, BoardLockedByKicadError, withBoardLock } from '@/lib/pcb/board-lock';
+import { prepareBoardForWrite } from '@/lib/pcb/kicad-desktop';
 import { runDrc } from '@/lib/pcb/drc';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 
@@ -100,7 +102,7 @@ async function javaAvailable(): Promise<boolean> {
   }
 }
 
-export async function POST(req: Request) {
+async function runPost(req: Request, body: Record<string, unknown>): Promise<NextResponse> {
   try {
     await requireAdmin();
   } catch (error) {
@@ -108,7 +110,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ message }, { status: message === 'Forbidden' ? 403 : 401 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
   const minScore = typeof body.minScore === 'number' ? body.minScore : null;
   const restoreIfWorse = body.restoreIfWorse === true;
@@ -348,4 +349,50 @@ export async function POST(req: Request) {
     dsn: dsnPath,
     ses: sesPath,
   });
+}
+
+/**
+ * Point d'entrée : toute la chaîne DSN → SES → DRC s'exécute sous un verrou
+ * exclusif sur le plateau, et renonce si KiCad garde le fichier ouvert.
+ */
+export async function POST(req: Request) {
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
+  if (!projectId) return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
+
+  const project = await prisma.pcbProject.findUnique({
+    where: { id: projectId },
+    select: { id: true, kicadFilePath: true },
+  });
+  if (!project?.kicadFilePath?.trim()) {
+    return NextResponse.json({ error: 'Projet sans fichier KiCad' }, { status: 400 });
+  }
+  const normalized = normalizeBoardPath(project.kicadFilePath);
+  const boardPath = path.isAbsolute(normalized) ? normalized : path.join(process.cwd(), normalized);
+
+  try {
+    return await withBoardLock(
+      boardPath,
+      async () => {
+        const prepared = await prepareBoardForWrite(boardPath);
+        if (!prepared.released) throw new BoardLockedByKicadError(boardPath);
+        return runPost(req, body);
+      },
+      { operation: 'freerouting' },
+    );
+  } catch (e) {
+    if (e instanceof BoardLockedByKicadError) {
+      return NextResponse.json(
+        { error: 'BOARD_LOCKED_BY_KICAD', message: e.message, boardPath },
+        { status: 423 },
+      );
+    }
+    if (e instanceof BoardLockError) {
+      return NextResponse.json(
+        { error: 'BOARD_LOCKED_BY_WRITER', message: e.message, boardPath },
+        { status: 423 },
+      );
+    }
+    throw e;
+  }
 }

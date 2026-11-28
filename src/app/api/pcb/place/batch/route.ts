@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { copyFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -6,6 +6,20 @@ import { requireAdmin } from '@/lib/auth-admin';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { placeFootprints, syncBoardLive, type BatchFootprintInput } from '@/lib/pcb/kicad-bridge';
 import { getFootprintSize, resolveKicadFootprint } from '@/lib/pcb/kicad-footprints';
+import {
+  assertBoardStamp,
+  BoardChangedError,
+  BoardLockError,
+  BoardLockedByKicadError,
+  readBoardStamp,
+  withBoardLock,
+} from '@/lib/pcb/board-lock';
+import {
+  closeBoardInDesktop,
+  isBoardOpenInKicad,
+  openBoardInDesktop,
+  prepareBoardForWrite,
+} from '@/lib/pcb/kicad-desktop';
 
 export const runtime = 'nodejs';
 
@@ -296,78 +310,134 @@ export async function POST(req: Request) {
   // Persistance TOUJOURS par le fichier : c'est la seule source de vérité qui
   // contient tous les composants (KiCad garde un état mémoire potentiellement
   // obsolète et ne doit jamais réécrire le plateau depuis cette mémoire).
-  const result = await placeFootprints({
-    boardPath: abs,
-    footprints,
-    dryRun: dryRunFlag,
-    // KiCad reste ouvert pendant les manipulations : l'écriture fichier doit
-    // ignorer le verrou `.lck`.
-    force: true,
-    allowOutside,
-  });
+  class PlacementFailure extends Error {}
+  const stampBefore = readBoardStamp(abs);
+  const wasOpen = isBoardOpenInKicad(abs);
+  let backupPath: string | undefined;
 
-  if (!result.ok) {
-    console.error('[PCB:PLACE-BATCH] Erreur', result.error);
-    return NextResponse.json(
-      { error: result.error ?? 'Échec du placement batch' },
-      { status: 500 },
-    );
-  }
+  try {
+    const payload = await withBoardLock(
+      abs,
+      async () => {
+        // Plus d'écriture `--force` sous une GUI vivante : on ferme proprement,
+        // et on renonce si l'utilisateur a des modifications non enregistrées.
+        const prepared = await prepareBoardForWrite(abs);
+        if (!prepared.released) throw new BoardLockedByKicadError(abs);
+        assertBoardStamp(abs, stampBefore);
 
-  // Rafraîchissement de la fenêtre KiCad ouverte (sans sauvegarde) : les
-  // déplacements de composants déjà connus de l'éditeur apparaissent en direct.
-  // Les composants ajoutés depuis l'ouverture de KiCad ne sont pas dans sa
-  // mémoire : ils nécessitent un rechargement manuel du plateau dans l'éditeur.
-  let liveSynced = false;
-  let liveMissing: string[] = [];
-  if (!dryRunFlag && process.env.PARTIVA_DESKTOP === '1') {
-    const live = await syncBoardLive({ boardPath: abs, footprints });
-    if (live.ok) {
-      liveSynced = (live.moved?.length ?? 0) > 0;
-      liveMissing = live.missing ?? [];
-      console.info('[PCB:PLACE-BATCH] Sync live KiCad', {
-        board: live.board,
-        moved: live.moved,
-        missing: liveMissing,
-      });
-    } else {
-      console.warn('[PCB:PLACE-BATCH] Sync live indisponible', {
-        code: live.code,
-        error: live.error,
-      });
-    }
-  }
-
-  console.info('[PCB:PLACE-BATCH] Résultat', {
-    message: result.message,
-    footprintCount: result.footprintCount,
-  });
-
-  // Auto-open removed: user opens KiCad explicitly from workspace controls.
-
-  const payload: Record<string, unknown> = {
-    ok: true,
-    placed: result.footprintCount ?? 0,
-    dryRun: dryRunFlag,
-    message: result.message,
-    liveSynced,
-    ...(optimizeFlag
-      ? {
-          optimized: working.map((c) => ({
-            reference: c.reference,
-            xMm: c.xMm,
-            yMm: c.yMm,
-            rotation: c.rotation,
-          })),
+        const result = await placeFootprints({
+          boardPath: abs,
+          footprints,
+          dryRun: dryRunFlag,
+          force: false,
+          allowOutside,
+        });
+        if (!result.ok) {
+          console.error('[PCB:PLACE-BATCH] Erreur', result.error);
+          throw new PlacementFailure(result.error ?? 'Échec du placement batch');
         }
-      : {}),
-    ...(liveMissing.length > 0
-      ? { liveMissing, hint: 'Rechargez le plateau dans KiCad pour voir les nouveaux composants.' }
-      : {}),
-  };
-  if (result.verified !== undefined) payload.verified = result.verified;
-  if (result.movedTracks !== undefined) payload.movedTracks = result.movedTracks;
-  if (result.backup !== undefined) payload.backup = result.backup;
+        backupPath = result.backup;
+        const stampAfterWrite = readBoardStamp(abs);
 
-  return NextResponse.json(payload);
+        // Sync live : seuls les composants déjà connus de la GUI sont déplacés.
+        let liveSynced = false;
+        let liveMissing: string[] = [];
+        if (!dryRunFlag && process.env.PARTIVA_DESKTOP === '1') {
+          const live = await syncBoardLive({ boardPath: abs, footprints });
+          if (live.ok) {
+            liveSynced = (live.moved?.length ?? 0) > 0;
+            liveMissing = live.missing ?? [];
+            console.info('[PCB:PLACE-BATCH] Sync live KiCad', {
+              board: live.board,
+              moved: live.moved,
+              missing: liveMissing,
+            });
+          } else {
+            console.warn('[PCB:PLACE-BATCH] Sync live indisponible', {
+              code: live.code,
+              error: live.error,
+            });
+          }
+        }
+
+        // Fencing : une sauvegarde KiCad pendant l'opération écrase nos changes.
+        assertBoardStamp(abs, stampAfterWrite);
+
+        // Rafraîchir UNIQUEMENT une fenêtre déjà ouverte : jamais de 2e fenêtre.
+        if (!dryRunFlag && wasOpen && process.env.PARTIVA_DESKTOP === '1') {
+          await closeBoardInDesktop(abs);
+          openBoardInDesktop(abs);
+        }
+
+        console.info('[PCB:PLACE-BATCH] Résultat', {
+          message: result.message,
+          footprintCount: result.footprintCount,
+        });
+
+        const response: Record<string, unknown> = {
+          ok: true,
+          placed: result.footprintCount ?? 0,
+          dryRun: dryRunFlag,
+          message: result.message,
+          liveSynced,
+          ...(optimizeFlag
+            ? {
+                optimized: working.map((c) => ({
+                  reference: c.reference,
+                  xMm: c.xMm,
+                  yMm: c.yMm,
+                  rotation: c.rotation,
+                })),
+              }
+            : {}),
+          ...(liveMissing.length > 0
+            ? {
+                liveMissing,
+                hint: 'Rechargez le plateau dans KiCad pour voir les nouveaux composants.',
+              }
+            : {}),
+        };
+        if (result.verified !== undefined) response.verified = result.verified;
+        if (result.movedTracks !== undefined) response.movedTracks = result.movedTracks;
+        if (result.backup !== undefined) response.backup = result.backup;
+        return response;
+      },
+      { operation: 'place-batch' },
+    );
+    return NextResponse.json(payload);
+  } catch (e) {
+    if (e instanceof BoardLockedByKicadError) {
+      return NextResponse.json(
+        {
+          error: 'BOARD_LOCKED_BY_KICAD',
+          message: e.message,
+          boardPath: abs,
+        },
+        { status: 423 },
+      );
+    }
+    if (e instanceof BoardLockError) {
+      return NextResponse.json(
+        { error: 'BOARD_LOCKED_BY_WRITER', message: e.message, boardPath: abs },
+        { status: 423 },
+      );
+    }
+    if (e instanceof BoardChangedError) {
+      if (backupPath && existsSync(backupPath)) {
+        try {
+          copyFileSync(backupPath, abs);
+        } catch (rollbackError) {
+          console.error('[PCB:PLACE-BATCH] Rollback impossible', rollbackError);
+        }
+      }
+      return NextResponse.json(
+        { error: 'BOARD_CHANGED', message: e.message, boardPath: abs },
+        { status: 409 },
+      );
+    }
+    if (e instanceof PlacementFailure) {
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+    throw e;
+  }
 }

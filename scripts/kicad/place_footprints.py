@@ -396,13 +396,15 @@ def main():
         emit({"ok": True, "wouldPlace": True, "placed": len(items), "board": board_path})
 
     # 5. Sauvegarde de secours + écriture atomique
-    backup_path = board_path + ".bak"
+    # Suffixe PID : deux processus (serveur Next + sidecar Tauri) peuvent
+    # écrire le même plateau sans écraser les fichiers auxiliaires de l'autre.
+    backup_path = f"{board_path}.{os.getpid()}.bak"
     try:
         shutil.copy2(board_path, backup_path)
     except Exception as exc:
         fail(f"sauvegarde de securite impossible: {exc}")
 
-    tmp_path = board_path + ".tmp"
+    tmp_path = f"{board_path}.{os.getpid()}.tmp"
     try:
         pcbnew.SaveBoard(tmp_path, board)
         os.replace(tmp_path, board_path)
@@ -417,7 +419,7 @@ def main():
     # 6. Réconciliation post-écriture dans un PROCESSUS PYTHON NEUF.
     # Relire le plateau dans le processus qui vient de le muter échoue sur
     # KiCad 10.0.x (proxies SWIG dégradés) : on délègue donc à --verify.
-    expected_path = board_path + ".expected.json"
+    expected_path = f"{board_path}.{os.getpid()}.expected.json"
     try:
         with open(expected_path, "w", encoding="utf-8") as fh:
             json.dump(expected, fh)

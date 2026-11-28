@@ -5,6 +5,8 @@ import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import { routeBoard } from '@/lib/pcb/kicad-bridge';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
+import { BoardLockError, BoardLockedByKicadError, withBoardLock } from '@/lib/pcb/board-lock';
+import { prepareBoardForWrite } from '@/lib/pcb/kicad-desktop';
 
 export const runtime = 'nodejs';
 
@@ -57,34 +59,61 @@ export async function POST(req: Request) {
     );
   }
 
-  // Le nombre de couches est déduit du plateau ((stackup) écrit par pcbnew).
-  const rawBoard = readFileSync(abs, 'utf8');
-  const copperCount = (rawBoard.match(/\(\d+\s+"(?:F\.Cu|B\.Cu|In\d+\.Cu)"\s+signal\)/g) ?? [])
-    .length;
-  const layers: 2 | 4 = copperCount >= 4 ? 4 : 2;
+  try {
+    return await withBoardLock(
+      abs,
+      async () => {
+        if (!dryRun) {
+          const prepared = await prepareBoardForWrite(abs);
+          if (!prepared.released) throw new BoardLockedByKicadError(abs);
+        }
+        // Le nombre de couches est déduit du plateau ((stackup) écrit par pcbnew).
+        const rawBoard = readFileSync(abs, 'utf8');
+        const copperCount = (
+          rawBoard.match(/\(\d+\s+"(?:F\.Cu|B\.Cu|In\d+\.Cu)"\s+signal\)/g) ?? []
+        ).length;
+        const layers: 2 | 4 = copperCount >= 4 ? 4 : 2;
 
-  const result = await routeBoard({ boardPath: abs, nets, dryRun, layers });
-  if (!result.ok) {
-    console.error('[PCB:ROUTE] Erreur', result.error);
-    return NextResponse.json({ error: result.error ?? 'Échec du routage' }, { status: 500 });
+        const result = await routeBoard({ boardPath: abs, nets, dryRun, layers });
+        if (!result.ok) {
+          console.error('[PCB:ROUTE] Erreur', result.error);
+          return NextResponse.json({ error: result.error ?? 'Échec du routage' }, { status: 500 });
+        }
+
+        console.info('[PCB:ROUTE] Résultat', {
+          projectId,
+          routed: result.routed ?? 0,
+          zones: result.zones ?? 0,
+          vias: result.vias ?? 0,
+          dryRun,
+        });
+        return NextResponse.json({
+          ok: true,
+          routed: result.routed ?? 0,
+          zones: result.zones ?? 0,
+          vias: result.vias ?? 0,
+          createdNets: result.createdNets ?? [],
+          assignedPads: result.assignedPads ?? 0,
+          missingPins: result.missingPins ?? 0,
+          dryRun,
+          message: 'Routage assisté partiel — DRC non vérifié',
+        });
+      },
+      { operation: 'route' },
+    );
+  } catch (e) {
+    if (e instanceof BoardLockedByKicadError) {
+      return NextResponse.json(
+        { error: 'BOARD_LOCKED_BY_KICAD', message: e.message, boardPath: abs },
+        { status: 423 },
+      );
+    }
+    if (e instanceof BoardLockError) {
+      return NextResponse.json(
+        { error: 'BOARD_LOCKED_BY_WRITER', message: e.message, boardPath: abs },
+        { status: 423 },
+      );
+    }
+    throw e;
   }
-
-  console.info('[PCB:ROUTE] Résultat', {
-    projectId,
-    routed: result.routed ?? 0,
-    zones: result.zones ?? 0,
-    vias: result.vias ?? 0,
-    dryRun,
-  });
-  return NextResponse.json({
-    ok: true,
-    routed: result.routed ?? 0,
-    zones: result.zones ?? 0,
-    vias: result.vias ?? 0,
-    createdNets: result.createdNets ?? [],
-    assignedPads: result.assignedPads ?? 0,
-    missingPins: result.missingPins ?? 0,
-    dryRun,
-    message: 'Routage assisté partiel — DRC non vérifié',
-  });
 }
