@@ -25,11 +25,15 @@ describe('cdcCategoryLabel', () => {
 });
 
 describe('evaluateCdcCompleteness', () => {
-  it('exige les 6 catégories et confirmation de chaque champ', () => {
+  it('exige les catégories requises et confirmation de chaque champ', () => {
     expect(evaluateCdcCompleteness(complete)).toEqual({ ready: true, missing: [] });
-    const partial = complete.slice(0, 5);
-    expect(evaluateCdcCompleteness(partial).missing).toContain('quality');
-    expect(evaluateCdcCompleteness(complete.slice(0, -1)).ready).toBe(false);
+    const partial = complete.slice(0, 4);
+    expect(evaluateCdcCompleteness(partial).missing).toContain('manufacturing');
+    expect(evaluateCdcCompleteness(partial).ready).toBe(false);
+  });
+
+  it('tolère l’absence de la catégorie Qualité (optionnelle)', () => {
+    expect(evaluateCdcCompleteness(complete.slice(0, -1))).toEqual({ ready: true, missing: [] });
   });
 
   it('signale les champs non confirmés', () => {

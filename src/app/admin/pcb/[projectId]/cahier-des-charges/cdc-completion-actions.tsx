@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { cdcCategoryLabel } from '@/lib/pcb/cdc-gate';
+import { CDC_OPTIONAL_CATEGORIES, cdcCategoryLabel } from '@/lib/pcb/cdc-gate';
 
 interface Props {
   projectId: string;
@@ -100,7 +100,11 @@ export function CdcCompletionActions({
             {categories.map((c) => (
               <option key={c} value={c}>
                 {cdcCategoryLabel(c)}
-                {missingCategories.includes(c) ? ' (manquante)' : ''}
+                {missingCategories.includes(c)
+                  ? (CDC_OPTIONAL_CATEGORIES as readonly string[]).includes(c)
+                    ? ' (optionnelle)'
+                    : ' (manquante)'
+                  : ''}
               </option>
             ))}
           </select>
