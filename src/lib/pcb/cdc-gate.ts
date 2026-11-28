@@ -11,6 +11,9 @@ export const CDC_CATEGORIES = [
   'quality',
 ] as const;
 
+/** Catégorie non renseignée par le client : son absence ne bloque pas le gate. */
+export const CDC_OPTIONAL_CATEGORIES = ['quality'] as const;
+
 export const CDC_CATEGORY_LABELS: Record<string, string> = {
   usage: 'Usage',
   function: 'Fonction',
@@ -36,14 +39,17 @@ export interface CdcCompleteness {
   missing: string[];
 }
 
-/** Toutes les catégories techniques doivent être renseignées et confirmées. */
+/** Catégories requises renseignées et confirmées ; Qualité peut être absente. */
 export function evaluateCdcCompleteness(requirements: CdcRequirementView[]): CdcCompleteness {
   const missing: string[] = [];
   for (const category of CDC_CATEGORIES) {
     const rows = requirements.filter((r) => (r.category ?? '').trim() === category);
-    if (rows.length === 0 || rows.some((r) => !String(r.value ?? '').trim())) {
-      missing.push(category);
+    if (rows.length === 0) {
+      if (!(CDC_OPTIONAL_CATEGORIES as readonly string[]).includes(category))
+        missing.push(category);
+      continue;
     }
+    if (rows.some((r) => !String(r.value ?? '').trim())) missing.push(category);
   }
   const unconfirmed = requirements.filter((r) => r.status !== 'confirmed').length;
   if (unconfirmed > 0) missing.push(`${unconfirmed} champ(s) à confirmer`);
