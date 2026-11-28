@@ -3,13 +3,20 @@ import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
 import { clearLlmCacheAsync } from '@/lib/utils/llm-cache';
-import { NET_TOO_SHORT_MESSAGE, PIN_FORMAT_MESSAGE } from '@/lib/pcb/netlist-guidance';
+import {
+  NET_TOO_SHORT_MESSAGE,
+  PIN_FORMAT_MESSAGE,
+  pinIssueMessage,
+} from '@/lib/pcb/netlist-guidance';
 import {
   buildNetPlan,
   normalizeNetPins,
   type CurrentNet,
   type NetInput,
+  type NetIssue,
 } from '@/lib/pcb/netlist-plan';
+import { getFootprintPadNumbers } from '@/lib/pcb/kicad-footprints';
+import { diagnosePins, isBlockingPinIssue } from '@/lib/pcb/pin-diagnostics';
 import type { NetlistReport } from '@/lib/pcb/netlist-validation';
 
 export const runtime = 'nodejs';
@@ -54,6 +61,33 @@ async function readNets(projectId: string): Promise<NetRow[]> {
     orderBy: { name: 'asc' },
   });
   return rows.map(toNetRow);
+}
+
+interface FootprintContext {
+  padsByRef: Record<string, string[]>;
+  refs: string[];
+  footprintsByRef: Record<string, string>;
+}
+
+/** Pads réels et références connues, pour le diagnostic F3 côté client. */
+async function readFootprintContext(
+  client: DbClient,
+  projectId: string,
+): Promise<FootprintContext> {
+  const components = await client.pcbComponent.findMany({
+    where: { projectId },
+    select: { reference: true, footprint: true },
+    orderBy: { reference: 'asc' },
+  });
+  const padsByRef: Record<string, string[]> = {};
+  const footprintsByRef: Record<string, string> = {};
+  for (const c of components) {
+    const value = String(c.footprint ?? '');
+    const [lib, name] = value.includes(':') ? value.split(':', 2) : ['', value];
+    padsByRef[c.reference] = getFootprintPadNumbers(lib ?? '', name ?? '');
+    footprintsByRef[c.reference] = value;
+  }
+  return { padsByRef, refs: components.map((c) => c.reference), footprintsByRef };
 }
 
 /** Rapport F2 tel qu'il est persisté dans le cache — jamais recalculé ici. */
@@ -146,10 +180,15 @@ export async function GET(req: Request) {
   if (!projectId) {
     return NextResponse.json({ error: 'projectId requis' }, { status: 400 });
   }
+  const footprints = await readFootprintContext(prisma, projectId);
   return NextResponse.json({
     ok: true,
     nets: await readNets(projectId),
     netlistReport: await readNetlistReport(prisma, projectId),
+    padsByRef: footprints.padsByRef,
+    refs: footprints.refs,
+    // Facultatif : permet un message « sur TO-220-3_Vertical » précis.
+    footprintsByRef: footprints.footprintsByRef,
   });
 }
 
@@ -204,6 +243,33 @@ export async function PUT(req: Request) {
         nets: current,
         netlistReport: await readNetlistReport(tx, projectId),
       };
+    }
+    // Diagnostic F3 sur les pins BRUTS (avant normalisation, qui supprimerait
+    // silencieusement les pins mal formatés). Pads illisibles = non bloquant.
+    const footprints = await readFootprintContext(tx, projectId);
+    const rawNets = desired.map((n) => ({
+      name: n.name.trim(),
+      pins: n.pins.filter((p): p is string => typeof p === 'string'),
+    }));
+    const pinIssues = diagnosePins({
+      nets: rawNets,
+      padsByRef: footprints.padsByRef,
+      refs: footprints.refs,
+      footprintsByRef: footprints.footprintsByRef,
+    }).filter(isBlockingPinIssue);
+    if (pinIssues.length > 0) {
+      const issues: NetIssue[] = pinIssues.map((issue) => ({
+        code: 'PIN_ISSUE',
+        index: rawNets.findIndex((n) => n.name === issue.net),
+        name: issue.net,
+        message: pinIssueMessage(issue),
+        net: issue.net,
+        pin: issue.pin,
+        reason: issue.reason,
+        available: issue.available,
+        footprint: issue.footprint,
+      }));
+      return { kind: 'invalid' as const, issues, nets: current };
     }
     if (plan.issues.length > 0) {
       return { kind: 'invalid' as const, issues: plan.issues, nets: current };

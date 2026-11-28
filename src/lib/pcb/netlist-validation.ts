@@ -151,7 +151,9 @@ export function validateNetlist(
   return { ok: errors.length === 0, errors, warnings };
 }
 
-export type PinIssueReason = 'UNKNOWN_REFERENCE' | 'PAD_NOT_FOUND' | 'PAD_NOT_READABLE';
+// Ajout de raisons locales (F3) sans modifier la forme du rapport F2.
+export type PinIssueReason =
+  'UNKNOWN_REFERENCE' | 'PAD_NOT_FOUND' | 'PAD_NOT_READABLE' | 'BAD_FORMAT' | 'DUPLICATE_PIN';
 
 export interface NetlistPinIssue {
   net: string;
@@ -160,6 +162,8 @@ export interface NetlistPinIssue {
   reason: PinIssueReason;
   /** Pads réellement disponibles sur l'empreinte (PAD_NOT_FOUND uniquement). */
   available?: string[];
+  /** Empreinte KiCad lue pour ce composant, pour un message précis. */
+  footprint?: string;
 }
 
 export interface NetlistDroppedNet {

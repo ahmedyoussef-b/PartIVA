@@ -1022,6 +1022,18 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F3 : diagnostic fin des pins
+
+- Diagnostic : F2 produisait `netlistReport.invalidPins` mais la modale ne l'affichait qu'en bandeau « génération », sans lien avec la saisie ; `normalizeNetPins()` filtrait silencieusement les pins mal formatés et la sauvegarde manuelle ne vérifiait pas les pads → message générique « au moins 2 pins valides ».
+- `pin-diagnostics.ts` (nouveau, pur) : `splitPinInput`, `diagnosePins` (`BAD_FORMAT`, `UNKNOWN_REFERENCE`, `PAD_NOT_FOUND` avec `available`/`footprint`, `DUPLICATE_PIN`, `PAD_NOT_READABLE` non bloquant), `mergePinIssues` (déduplication par net+pin), `isBlockingPinIssue` ; `pinIssueMessage()` ajouté dans `netlist-guidance.ts` avec le nom du pin, la raison et les pads disponibles.
+- `PinIssueReason` étendu de façon additive ; `NetIssue` étendu avec `code:'PIN_ISSUE'` et les champs `pin`/`reason`/`available`/`footprint`.
+- `nets/route.ts` : GET expose `padsByRef`, `refs`, `footprintsByRef` (calculés via `getFootprintPadNumbers`) ; PUT diagnostique les pins **bruts** avant normalisation et refuse la sauvegarde avec un 422 `INVALID_NETLIST` détaillé si un pin est invalide — le mode dégradé (pads illisibles) reste non bloquant. Plan/transaction F4 et 409 inchangés.
+- `NetlistEditorModal.tsx` : champ de pins remplacé par un éditeur de chips (rouge + `aria-invalid` + infobulle avec raison et pads disponibles, amber pour « à vérifier »), diagnostic local recalculé au rendu et fusionné avec les `serverIssues` (effacées dès édition du net), bouton « + REF.PIN ». Bandeau F2 conservé mais clairement daté de la génération.
+- Tests : `pin-diagnostics.test.ts` (8 cas) et `nets/route.test.ts` (4 cas supplémentaires : GET pads, 422 détaillé, format invalide nommé, mode dégradé accepté).
+- typecheck 0, lint 0, vitest 471/471 (55 fichiers), prettier 0, `git diff --check` 0. Un test unrelated (`reconstruct.test.ts`) a dépassé son timeout de 5 s lors du premier passage complet ; rejoué seul et au second passage complet : vert (flaky, non lié à F3).
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useActionProgress } from './ActionProgressProvider';
-import type { NetlistReport } from '@/lib/pcb/netlist-validation';
+import {
+  diagnosePins,
+  mergePinIssues,
+  pinIssueMessage,
+  splitPinInput,
+} from '@/lib/pcb/pin-diagnostics';
+import type { NetlistPinIssue, NetlistReport } from '@/lib/pcb/netlist-validation';
 
 interface NetRow {
   id: string;
@@ -22,6 +28,11 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
   const [original, setOriginal] = useState<NetRow[]>([]);
   const [draft, setDraft] = useState<NetRow[]>([]);
   const [report, setReport] = useState<NetlistReport | null>(null);
+  const [padsByRef, setPadsByRef] = useState<Record<string, string[]>>({});
+  const [refs, setRefs] = useState<string[]>([]);
+  const [footprintsByRef, setFootprintsByRef] = useState<Record<string, string>>({});
+  const [serverIssues, setServerIssues] = useState<NetlistPinIssue[]>([]);
+  const [pinDrafts, setPinDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { start: startProgress, finish: finishProgress } = useActionProgress();
@@ -36,10 +47,18 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
       const nets = (data.nets ?? []) as NetRow[];
       const netlistReport = (data.netlistReport ?? null) as NetlistReport | null;
+      const pads = (data.padsByRef ?? {}) as Record<string, string[]>;
+      const knownRefs = (data.refs ?? []) as string[];
+      const footprints = (data.footprintsByRef ?? {}) as Record<string, string>;
       if (apply) {
         setOriginal(nets);
         setDraft(nets);
         setReport(netlistReport);
+        setPadsByRef(pads);
+        setRefs(knownRefs);
+        setFootprintsByRef(footprints);
+        setServerIssues([]);
+        setPinDrafts({});
       }
       return { nets, netlistReport };
     },
@@ -74,8 +93,39 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
   };
 
   const updateRow = (index: number, patch: Partial<NetRow>) => {
+    const before = draft[index]?.name ?? '';
+    const after = patch.name ?? before;
     setDraft((rows) => rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+    // Un diagnostic serveur n'est valable que pour la valeur qui l'a produit.
+    setServerIssues((issues) =>
+      issues.filter((issue) => issue.net !== before && issue.net !== after),
+    );
   };
+
+  const rowKey = (row: NetRow, index: number) => row.id || `new-${index}`;
+
+  const addPins = (index: number) => {
+    const row = draft[index];
+    if (!row) return;
+    const key = rowKey(row, index);
+    const parts = splitPinInput(pinDrafts[key] ?? '');
+    if (parts.length > 0) updateRow(index, { pins: [...row.pins, ...parts] });
+    setPinDrafts((prev) => ({ ...prev, [key]: '' }));
+  };
+
+  const removePin = (index: number, pinIndex: number) => {
+    const row = draft[index];
+    if (!row) return;
+    updateRow(index, { pins: row.pins.filter((_, i) => i !== pinIndex) });
+  };
+
+  const localIssues = diagnosePins({
+    nets: draft.map((row) => ({ name: row.name.trim(), pins: row.pins })),
+    padsByRef,
+    refs,
+    footprintsByRef,
+  });
+  const pinIssues = mergePinIssues(serverIssues, localIssues);
 
   /** Un seul PUT atomique : plus de boucle de PATCH, plus d'état partiel. */
   const save = async () => {
@@ -127,7 +177,34 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
       }
       if (res.status === 422 && data.error === 'INVALID_NETLIST') {
         const issues = Array.isArray(data.issues) ? data.issues : [];
-        toast.error(issues[0]?.message || 'Netlist invalide');
+        const pinIssuesFromServer: NetlistPinIssue[] = issues
+          .filter((i: { code?: string; pin?: string }) => i.code === 'PIN_ISSUE' && !!i.pin)
+          .map(
+            (i: {
+              net?: string;
+              ref?: string;
+              pin: string;
+              reason?: NetlistPinIssue['reason'];
+              available?: string[];
+              footprint?: string;
+              message?: string;
+            }) => ({
+              net: i.net ?? '',
+              ref: i.ref ?? i.pin.split('.')[0] ?? '',
+              pin: i.pin,
+              reason: i.reason ?? 'BAD_FORMAT',
+              available: i.available,
+              footprint: i.footprint,
+            }),
+          );
+        setServerIssues(pinIssuesFromServer);
+        const first = issues[0] as { message?: string } | undefined;
+        toast.error(
+          first?.message ||
+            (pinIssuesFromServer[0]
+              ? pinIssueMessage(pinIssuesFromServer[0]!)
+              : 'Netlist invalide'),
+        );
         return;
       }
       if (!res.ok || !data.ok)
@@ -244,18 +321,81 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
                       </div>
                     </td>
                     <td className="border p-1">
-                      <input
-                        className="w-full rounded border px-1 py-0.5"
-                        value={row.pins.join(', ')}
-                        onChange={(e) =>
-                          updateRow(index, {
-                            pins: e.target.value
-                              .split(',')
-                              .map((p) => p.trim())
-                              .filter(Boolean),
-                          })
-                        }
-                      />
+                      <div
+                        className="flex min-h-6 flex-wrap items-center gap-1"
+                        data-testid={`pins-${rowKey(row, index)}`}
+                      >
+                        {row.pins.map((pin, pinIndex) => {
+                          const issues = pinIssues.filter(
+                            (issue) => issue.net === row.name.trim() && issue.pin === pin,
+                          );
+                          const blocking = issues.some(
+                            (issue) => issue.reason !== 'PAD_NOT_READABLE',
+                          );
+                          const warningOnly = issues.length > 0 && !blocking;
+                          return (
+                            <span
+                              key={`${pin}-${pinIndex}`}
+                              title={
+                                issues.length ? issues.map(pinIssueMessage).join(' ') : `Pin ${pin}`
+                              }
+                              aria-invalid={blocking || undefined}
+                              className={`inline-flex items-center gap-0.5 rounded border px-1 py-0.5 text-[10px] ${
+                                blocking
+                                  ? 'border-red-400 bg-red-100 text-red-800'
+                                  : warningOnly
+                                    ? 'border-amber-300 bg-amber-50 text-amber-800'
+                                    : 'border-gray-300 bg-gray-50 text-gray-700'
+                              }`}
+                            >
+                              {pin}
+                              <button
+                                type="button"
+                                aria-label={`Retirer ${pin}`}
+                                className="ml-0.5 leading-none opacity-60 hover:opacity-100"
+                                onClick={() => removePin(index, pinIndex)}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })}
+                        <input
+                          className="min-w-16 flex-1 rounded border px-1 py-0.5 text-[10px]"
+                          data-testid={`pin-add-${rowKey(row, index)}`}
+                          aria-label={`Ajouter un pin au net ${row.name}`}
+                          placeholder="+ REF.PIN"
+                          value={pinDrafts[rowKey(row, index)] ?? ''}
+                          onChange={(e) =>
+                            setPinDrafts((prev) => ({
+                              ...prev,
+                              [rowKey(row, index)]: e.target.value,
+                            }))
+                          }
+                          onBlur={() => addPins(index)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ',') {
+                              e.preventDefault();
+                              addPins(index);
+                            }
+                          }}
+                        />
+                      </div>
+                      {pinIssues.some(
+                        (issue) =>
+                          issue.net === row.name.trim() && issue.reason !== 'PAD_NOT_READABLE',
+                      ) && (
+                        <p className="mt-1 text-[10px] text-red-700">
+                          {pinIssues
+                            .filter(
+                              (issue) =>
+                                issue.net === row.name.trim() &&
+                                issue.reason !== 'PAD_NOT_READABLE',
+                            )
+                            .map(pinIssueMessage)
+                            .join(' · ')}
+                        </p>
+                      )}
                     </td>
                     <td className="border p-1 text-center">
                       <button
