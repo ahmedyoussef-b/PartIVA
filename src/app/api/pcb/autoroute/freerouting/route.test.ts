@@ -46,6 +46,14 @@ vi.mock('@/lib/pcb/kicad-bridge', () => ({
   importSes: (...a: unknown[]) => importSes(...a),
 }));
 vi.mock('@/lib/pcb/drc', () => ({ runDrc: (...a: unknown[]) => runDrc(...a) }));
+vi.mock('@/lib/pcb/board-lock', () => ({
+  withBoardLock: (_path: string, fn: () => Promise<unknown>) => fn(),
+  BoardLockedByKicadError: class BoardLockedByKicadError extends Error {},
+  BoardLockError: class BoardLockError extends Error {},
+}));
+vi.mock('@/lib/pcb/kicad-desktop', () => ({
+  prepareBoardForWrite: vi.fn(async () => ({ closed: 0, released: true })),
+}));
 vi.mock('node:fs', () => ({
   existsSync: (...a: unknown[]) => existsSync(...a),
   readFileSync: (...a: unknown[]) => readFileSync(...a),

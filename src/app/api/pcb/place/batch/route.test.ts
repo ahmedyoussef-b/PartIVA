@@ -16,12 +16,50 @@ vi.mock('@/lib/pcb/kicad-bridge', () => ({
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
+  copyFileSync: vi.fn(),
+}));
+
+const {
+  BoardLockedByKicadError,
+  BoardChangedError,
+  BoardLockError,
+  prepareBoardForWrite,
+  assertBoardStamp,
+} = vi.hoisted(() => ({
+  BoardLockedByKicadError: class BoardLockedByKicadError extends Error {
+    readonly boardPath: string;
+    constructor(boardPath: string) {
+      super('Enregistrez ou annulez vos modifications dans KiCad puis réessayez.');
+      this.boardPath = boardPath;
+    }
+  },
+  BoardChangedError: class BoardChangedError extends Error {},
+  BoardLockError: class BoardLockError extends Error {},
+  prepareBoardForWrite: vi.fn(),
+  assertBoardStamp: vi.fn(),
+}));
+
+vi.mock('@/lib/pcb/board-lock', () => ({
+  withBoardLock: (_path: string, fn: () => Promise<unknown>) => fn(),
+  readBoardStamp: () => ({ mtimeMs: 1, size: 1 }),
+  assertBoardStamp,
+  BoardLockedByKicadError,
+  BoardChangedError,
+  BoardLockError,
+}));
+
+vi.mock('@/lib/pcb/kicad-desktop', () => ({
+  prepareBoardForWrite: (...a: unknown[]) => prepareBoardForWrite(...a),
+  isBoardOpenInKicad: vi.fn(() => false),
+  closeBoardInDesktop: vi.fn(),
+  openBoardInDesktop: vi.fn(),
 }));
 
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
 import { placeFootprints, syncBoardLive } from '@/lib/pcb/kicad-bridge';
 import { existsSync } from 'node:fs';
+import { assertBoardStamp } from '@/lib/pcb/board-lock';
 import { POST } from './route';
 
 // Chemin de plateau normalise attendu : /c/... en forme absolue POSIX,
@@ -76,6 +114,8 @@ function mockHappyPath() {
 describe('POST /api/pcb/place/batch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prepareBoardForWrite.mockResolvedValue({ closed: 0, released: true });
+    vi.mocked(assertBoardStamp).mockImplementation(() => {});
   });
 
   it('1. 401 sans admin', async () => {
@@ -188,7 +228,7 @@ describe('POST /api/pcb/place/batch', () => {
           value: undefined,
         },
       ],
-      force: true,
+      force: false,
       allowOutside: false,
     });
   });
@@ -229,7 +269,7 @@ describe('POST /api/pcb/place/batch', () => {
       );
       // Le fichier reste la source de vérité : il est écrit AVANT le refresh IPC.
       expect(placeFootprints).toHaveBeenCalledWith(
-        expect.objectContaining({ boardPath: EXPECTED_BOARD_PATH, force: true }),
+        expect.objectContaining({ boardPath: EXPECTED_BOARD_PATH, force: false }),
       );
     } finally {
       if (previous === undefined) delete process.env.PARTIVA_DESKTOP;
@@ -256,11 +296,35 @@ describe('POST /api/pcb/place/batch', () => {
     );
   });
 
-  it('force:true transmis a placeFootprints', async () => {
+  it('le force du client est ignoré : placeFootprints reçoit toujours force:false', async () => {
     mockHappyPath();
     const res = await POST(makeRequest({ projectId: 'p1', components: [C1], force: true }));
     expect(res.status).toBe(200);
-    expect(placeFootprints).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+    expect(placeFootprints).toHaveBeenCalledWith(expect.objectContaining({ force: false }));
+  });
+
+  it('423 si KiCad garde le plateau ouvert après fermeture gracieuse', async () => {
+    mockHappyPath();
+    prepareBoardForWrite.mockResolvedValue({ closed: 0, released: false });
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1] }));
+    expect(res.status).toBe(423);
+    await expect(res.json()).resolves.toMatchObject({
+      error: 'BOARD_LOCKED_BY_KICAD',
+      message: 'Enregistrez ou annulez vos modifications dans KiCad puis réessayez.',
+    });
+    expect(placeFootprints).not.toHaveBeenCalled();
+  });
+
+  it('409 avec rollback si le plateau change pendant l’opération', async () => {
+    mockHappyPath();
+    vi.mocked(assertBoardStamp)
+      .mockImplementationOnce(() => {})
+      .mockImplementationOnce(() => {
+        throw new BoardChangedError('Le plateau a été modifié pendant l’opération.');
+      });
+    const res = await POST(makeRequest({ projectId: 'p1', components: [C1] }));
+    expect(res.status).toBe(409);
+    await expect(res.json()).resolves.toMatchObject({ error: 'BOARD_CHANGED' });
   });
 
   it('allowOutside:true transmis a placeFootprints', async () => {

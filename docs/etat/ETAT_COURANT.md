@@ -1034,6 +1034,19 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F5 : verrou de plateau et course d'écriture
+
+- Diagnostic : PR #250 (`cedd62f` / `3899d33`) a corrigé le crash SWIG immédiat (capture des pads avant mutation, `gc.collect()`, relecture en processus neuf, écriture `.tmp`/`.bak`), mais `place/batch/route.ts` passait `force: true` pour écraser le `.lck` d'une GUI KiCad ouverte ; un Ctrl+S dans KiCad pouvait ensuite écraser le fichier backend. `withMutex` du bridge est limité à un processus Node.
+- `board-lock.ts` (nouveau) : `withBoardLock(boardPath, fn)` avec fichier `<plateau>.partiva.lock` (PID/date/opération), retry/timeout 30 s, récupération des locks périmés (5 min) ou au PID mort, relâchement même en erreur ; `readBoardStamp` / `assertBoardStamp` pour le fencing.
+- `kicad-desktop.ts` : `prepareBoardForWrite()` ferme proprement la fenêtre KiCad si `.lck` présent et indique `released:false` si l'utilisateur refuse.
+- `place/batch/route.ts` : plus de `force:true` (toujours `false`), 423 `BOARD_LOCKED_BY_KICAD` si la GUI garde le plateau, 423 `BOARD_LOCKED_BY_WRITER` sur contention, snapshot avant/après écriture avec rollback depuis le `.bak` et 409 `BOARD_CHANGED`, rafraîchissement uniquement d'une fenêtre déjà ouverte (jamais de seconde).
+- `route/route.ts` et `autoroute/freerouting/route.ts` : toute la chaîne d'écriture enveloppée dans `withBoardLock` + fermeture gracieuse, avec les mêmes réponses 423. Audité : `projects/[id]/board/route.ts` (actions `show`/`reset`) ferme déjà gracieusement et restaure le plateau en cas d'échec BDD — laissé tel quel ; les écritures de `nets-only` restent couvertes par le mutex du bridge.
+- `place_footprints.py` : fichiers `.tmp`, `.bak` et `.expected.json` suffixés par PID pour éviter les collisions inter-processus ; logique SWIG de #250 inchangée.
+- Tests : `board-lock.test.ts` (9 cas : exclusion, timeout, lock périmé/PID mort, relâchement en erreur, fencing) et `place/batch/route.test.ts` (423 GUI, 409 changement, `force:false` même si le client demande `force:true`).
+- typecheck 0, lint 0, vitest 482/482 (56 fichiers), prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
