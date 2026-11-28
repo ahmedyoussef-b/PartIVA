@@ -34,31 +34,34 @@ export function PcbLiveStateProvider({
 }) {
   const [polled, setPolled] = useState<PcbWizardState | null>(null);
   const [previousInitial, setPreviousInitial] = useState(initial);
-  const inFlight = useRef(false);
+  // Génération incrémentée à chaque rendu serveur, et numéro de séquence des
+  // requêtes : une réponse en vol ne doit jamais écraser un état plus récent.
+  const [generation, setGeneration] = useState(0);
+  const requestSeq = useRef(0);
 
   // Un rendu serveur (router.refresh) prime sur le dernier polling : on invalide
   // le snapshot local pendant le rendu, comme recommandé par React.
   if (initial !== previousInitial) {
     setPreviousInitial(initial);
     setPolled(null);
+    setGeneration((g) => g + 1);
   }
   const state = polled ?? initial;
 
   const refresh = useCallback(async () => {
-    if (inFlight.current) return;
-    inFlight.current = true;
+    const gen = generation;
+    const seq = ++requestSeq.current;
     try {
       const res = await fetch(`/api/pcb/projects/${projectId}/wizard-state`, { cache: 'no-store' });
-      if (res.ok) {
-        const data = (await res.json()) as { ok: boolean; state: PcbWizardState };
-        if (data.ok && data.state) setPolled(data.state);
-      }
+      if (!res.ok) return;
+      const data = (await res.json()) as { ok: boolean; state: PcbWizardState };
+      // Plus récent rendu serveur ou polling plus récent : on ignore cette réponse.
+      if (gen !== generation || seq !== requestSeq.current) return;
+      if (data.ok && data.state) setPolled(data.state);
     } catch {
       // Le dernier état connu reste affiché ; le prochain polling réessaiera.
-    } finally {
-      inFlight.current = false;
     }
-  }, [projectId]);
+  }, [projectId, generation]);
 
   useEffect(() => {
     // Le setState arrive après le fetch asynchrone, pas pendant le rendu.

@@ -65,33 +65,38 @@ export async function GET(req: Request) {
 
   try {
     const parsed = parseKicadPcb(readFileSync(abs, 'utf8'));
-    return NextResponse.json({
-      ok: true,
-      board: {
-        origin: parsed.origin,
-        dimensions: parsed.dimensions,
-        edges: parsed.edges ?? [],
-        tracks: parsed.tracks ?? [],
-        vias: parsed.vias ?? [],
-        zones: parsed.zones ?? [],
+    return NextResponse.json(
+      {
+        ok: true,
+        // Le plateau peut être réécrit par KiCad ou par le backend entre deux
+        // rendus : jamais de cache HTTP sur cette lecture.
+        board: {
+          origin: parsed.origin,
+          dimensions: parsed.dimensions,
+          edges: parsed.edges ?? [],
+          tracks: parsed.tracks ?? [],
+          vias: parsed.vias ?? [],
+          zones: parsed.zones ?? [],
+        },
+        components: parsed.components.map((c) => ({
+          reference: c.reference,
+          value: c.value ?? '',
+          x: c.x,
+          y: c.y,
+          rotation: c.rotation,
+          layer: c.layer,
+          footprint: c.library ? `${c.library}:${c.name}` : c.name,
+          libName: libByReference.get(c.reference) ?? c.library ?? '',
+          pads: c.pads ?? [],
+          graphics: c.graphics ?? [],
+        })),
+        nets: dbNets.map((n) => ({
+          name: n.name,
+          pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
+        })),
       },
-      components: parsed.components.map((c) => ({
-        reference: c.reference,
-        value: c.value ?? '',
-        x: c.x,
-        y: c.y,
-        rotation: c.rotation,
-        layer: c.layer,
-        footprint: c.library ? `${c.library}:${c.name}` : c.name,
-        libName: libByReference.get(c.reference) ?? c.library ?? '',
-        pads: c.pads ?? [],
-        graphics: c.graphics ?? [],
-      })),
-      nets: dbNets.map((n) => ({
-        name: n.name,
-        pins: Array.isArray(n.pins) ? (n.pins as string[]) : [],
-      })),
-    });
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } },
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Erreur lecture board';
     return NextResponse.json({ error: msg }, { status: 500 });

@@ -17,6 +17,7 @@ import {
   openBoardInDesktop,
 } from '@/lib/pcb/kicad-desktop';
 import { configureBoardLayers } from '@/lib/pcb/kicad-bridge';
+import { computeWizardState } from '@/lib/pcb/wizard-state';
 
 export const runtime = 'nodejs';
 
@@ -152,6 +153,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     action !== 'reset' &&
     action !== 'launch' &&
     action !== 'reload' &&
+    action !== 'sync' &&
     action !== 'show'
   ) {
     return NextResponse.json({ error: 'action invalide' }, { status: 400 });
@@ -162,6 +164,35 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     select: { id: true, kicadFilePath: true, name: true },
   });
   if (!project) return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
+
+  // `sync` : relecture du plateau existant, sans aucune écriture ni ouverture
+  // de fenêtre KiCad. Sert de bouton de déblocage quand l'affichage est figé
+  // alors que le backend a déjà routé.
+  if (action === 'sync') {
+    const boardPath = project.kicadFilePath?.trim();
+    if (!boardPath) return NextResponse.json({ ok: false, reason: 'no-file' }, { status: 200 });
+    const abs = path.isAbsolute(boardPath) ? boardPath : path.join(process.cwd(), boardPath);
+    if (!existsSync(abs)) {
+      return NextResponse.json({ error: `Fichier KiCad introuvable : ${abs}` }, { status: 400 });
+    }
+    const raw = readFileSync(abs, 'utf8');
+    const state = await computeWizardState(id);
+    if (!state) return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
+    return NextResponse.json(
+      {
+        ok: true,
+        action,
+        kicadFilePath: abs,
+        bytes: Buffer.byteLength(raw, 'utf8'),
+        footprints: state.footprints,
+        tracks: state.tracks,
+        zones: state.zones,
+        componentsCount: state.componentsCount,
+        nextActionId: state.nextActionId,
+      },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } },
+    );
+  }
 
   // `reload` : KiCad ne recharge pas un fichier modifié en externe. On ferme
   // gracieusement la fenêtre puis on rouvre le plateau courant pour refléter
