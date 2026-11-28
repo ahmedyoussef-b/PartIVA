@@ -150,3 +150,120 @@ export function validateNetlist(
 
   return { ok: errors.length === 0, errors, warnings };
 }
+
+export type PinIssueReason = 'UNKNOWN_REFERENCE' | 'PAD_NOT_FOUND' | 'PAD_NOT_READABLE';
+
+export interface NetlistPinIssue {
+  net: string;
+  ref: string;
+  pin: string;
+  reason: PinIssueReason;
+  /** Pads réellement disponibles sur l'empreinte (PAD_NOT_FOUND uniquement). */
+  available?: string[];
+}
+
+export interface NetlistDroppedNet {
+  name: string;
+  pins: string[];
+  reason: 'NET_TOO_SHORT';
+}
+
+export interface NetlistReport {
+  repaired: boolean;
+  /** true si une édition manuelle a eu lieu après la génération. */
+  stale: boolean;
+  /** Code lisible côté UI (ex. INVALID_PINS), absent si tout est valide. */
+  code?: string;
+  invalidPins: NetlistPinIssue[];
+  droppedPins: string[];
+  droppedNets: NetlistDroppedNet[];
+  unreadableFootprints: Array<{ ref: string; footprint: string }>;
+  toVerify: string[];
+}
+
+export interface NetsAgainstFootprintsResult {
+  nets: NetlistNet[];
+  report: NetlistReport;
+}
+
+export interface ValidateNetsOptions {
+  /** Empreinte lisible par référence, pour enrichir le rapport. */
+  footprintsByRef?: Map<string, string>;
+  /** Références résolues par fallback : à vérifier même si les pads sont lisibles. */
+  fallbackRefs?: Set<string>;
+}
+
+/**
+ * Filtre les nets LLM contre les pads réellement présents sur les empreintes.
+ *
+ * Règles :
+ * - référence absente de `padsByRef` → UNKNOWN_REFERENCE, broche retirée ;
+ * - empreinte connue mais pads illisibles (`[]`) → broche conservée et marquée
+ *   `toVerify` (web sans KiCad, fichier absent) ;
+ * - pad absent de l'empreinte → PAD_NOT_FOUND, broche retirée ;
+ * - net réduit à moins de 2 broches → net retiré et signalé.
+ */
+export function validateNetsAgainstFootprints(
+  nets: NetlistNet[],
+  padsByRef: Map<string, string[]>,
+  options: ValidateNetsOptions = {},
+): NetsAgainstFootprintsResult {
+  const invalidPins: NetlistPinIssue[] = [];
+  const droppedPins: string[] = [];
+  const droppedNets: NetlistDroppedNet[] = [];
+  const unreadable = new Map<string, string>();
+  const kept: NetlistNet[] = [];
+
+  for (const net of nets) {
+    const pins: string[] = [];
+    for (const pin of net.pins) {
+      const ref = compOfPin(pin);
+      if (!padsByRef.has(ref)) {
+        invalidPins.push({ net: net.name, ref, pin, reason: 'UNKNOWN_REFERENCE' });
+        droppedPins.push(pin);
+        continue;
+      }
+      const pads = padsByRef.get(ref) ?? [];
+      if (pads.length === 0) {
+        unreadable.set(ref, options.footprintsByRef?.get(ref) ?? '');
+        pins.push(pin);
+        continue;
+      }
+      const pad = pin.slice(ref.length + 1);
+      if (!pads.includes(pad)) {
+        invalidPins.push({
+          net: net.name,
+          ref,
+          pin,
+          reason: 'PAD_NOT_FOUND',
+          available: [...pads],
+        });
+        droppedPins.push(pin);
+        continue;
+      }
+      pins.push(pin);
+    }
+    if (pins.length >= 2) {
+      kept.push({ name: net.name, pins });
+    } else {
+      droppedNets.push({ name: net.name, pins: [...net.pins], reason: 'NET_TOO_SHORT' });
+    }
+  }
+
+  const toVerify = new Set<string>([...unreadable.keys(), ...(options.fallbackRefs ?? [])]);
+  return {
+    nets: kept,
+    report: {
+      repaired: invalidPins.length > 0 || droppedNets.length > 0,
+      stale: false,
+      invalidPins,
+      droppedPins,
+      droppedNets,
+      unreadableFootprints: [...unreadable.entries()].map(([ref, footprint]) => ({
+        ref,
+        footprint,
+      })),
+      toVerify: [...toVerify],
+    },
+  };
+}

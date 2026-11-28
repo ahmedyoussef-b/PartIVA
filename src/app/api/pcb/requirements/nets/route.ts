@@ -47,13 +47,20 @@ async function syncSourcingCache(projectId: string): Promise<void> {
   });
   const previous = (project?.sourcingCache ?? {}) as Record<string, unknown>;
   const nets = await readNets(projectId);
+  const previousReport =
+    previous.netlistReport && typeof previous.netlistReport === 'object'
+      ? (previous.netlistReport as Record<string, unknown>)
+      : null;
   await prisma.pcbProject.update({
     where: { id: projectId },
     data: {
       sourcingCache: {
         ...previous,
         nets: nets.map(({ name, pins, source }) => ({ name, pins, source })),
-        cacheVersion: 2,
+        cacheVersion: 3,
+        // Une édition manuelle invalide le rapport de génération : on le garde
+        // pour l'affichage F3/F4, mais marqué comme périmé.
+        ...(previousReport ? { netlistReport: { ...previousReport, stale: true } } : {}),
       } as object,
     },
   });

@@ -989,6 +989,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F2 : netlist validée contre les pads réels
+
+- **Helper partagé** `netlist-validation.ts` : `validateNetsAgainstFootprints(nets, padsByRef)` distingue `UNKNOWN_REFERENCE` (référence absente, broche retirée), `PAD_NOT_FOUND` (pad inexistant sur une empreinte lisible, broche retirée avec `available`), `PAD_NOT_READABLE` (empreinte illisible, broche conservée et composant `toVerify`). Ajout de `droppedNets`, `toVerify`, `stale` et `code` au `NetlistReport`.
+- **Résolution d'empreinte** `kicad-footprints.ts` : `strategy: 'exact' | 'other-lib' | 'fuzzy' | 'fallback'` ; seul `fallback` déclenche `toVerify`. Sanitisation `safeFootprintPart()` (gère `/` et `\`, retire `..`) appliquée aussi à `getFootprintPadNumbers`/`getFootprintSize`. Les caches vides expirent après 60 s au lieu d'être figés.
+- **`source-components/route.ts`** : cache v3 avec `netlistReport` et `rawProposal` persistés ; sur cache hit, le helper déterministe est rejoué sans LLM et le rapport réécrit. Phase 1 = BOM + brouillon de nets ; phase 2 = netlist stricte avec les pads réels, le brouillon servant d'indice. Maximum 3 appels LLM (BOM + 2 tentatives nets). 422 enrichi : `error: LLM_NETLIST_EMPTY` conservé à la racine, plus `netlistReport` (`code: INVALID_PINS`) et `rawProposal`. `maxDuration = 60`.
+- **`nets-only/route.ts`** : même helper, `netlistReport` dans la réponse et le cache v3, fusion des `toVerify` issus des nets heuristiques. **`nets/route.ts`** : une édition manuelle marque `netlistReport.stale = true` au lieu de le supprimer.
+- **Tests** : 5 cas de non-régression sur la route `source-components` (TO-220 lisible + `U2.4` retiré sans `toVerify` ; empreinte illisible conservée + `toVerify` ; fallback `U*` → `toVerify` ; 422 avec rapport et proposition brute ; cache hit sans LLM), 5 tests du helper, stratégies et path traversal dans `kicad-footprints.test.ts`.
+- typecheck 0, lint 0, vitest 425/425 (50 fichiers), prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
