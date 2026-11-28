@@ -1011,6 +1011,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F1 : compilation CDC par extraction
+
+- Diagnostic : le prompt de `compile/route.ts` imposait « complète », « les 6 obligatoires », « déduis une valeur raisonnable », « ne laisse aucune catégorie vide », « sois exhaustif », « remplis un MAXIMUM de champs » — le LLM inventait donc des spécifications et ignorait « pas de Wi-Fi / pas de batterie / pas d'écran tactile ». Le post-traitement écrasait en plus tous les statuts en `proposed`.
+- `negative-constraints.ts` (nouveau, pur) : `extractNegativeConstraints()` (négations FR, alias WiFi/batterie/tactile/écran/relais/12V, exclusion des idiomes « pas de problème », « sans fil »), `checkConstraintViolations()` (détection dans `compiled` et les réponses, avec fenêtre de négation pour ne pas signaler « WiFi exclu »), `reconcileConflicts()` (conflits limités aux interdictions réellement extraites).
+- `compile/route.ts` : prompt réécrit en **extraction** (aucune inférence, champs absents omis, interdictions absolues, conflits déclarés), `temperature: 0`, cache **v4**, `blockId` repris du référentiel serveur, champs requis manquants synthétisés en `À préciser`/`status:'missing'`, statuts `to_verify` pour violations et conflits. Réponse `{compiled, answers, constraints, conflicts, violations, needsReview, count}` ; aucune mise en cache si `needsReview`.
+- `types.ts` : ajout de `CompileViolation` et `CompileConflict`. `RequirementForm.tsx` : badges « Contraintes extraites », « À préciser », « À vérifier », conflits arbitrables, violations recalculées au rendu par le même helper pur, garde-fou dans les deux chemins de validation, et `firstCompiledText` posé uniquement si la compilation est propre (il devient `initialDescription`).
+- Tests : `negative-constraints.test.ts` (10 cas) et `compile/route.test.ts` (6 cas : prompt sans injonction à inventer, statuts et blockId serveur, violation → `needsReview` sans cache, conflits, cache v4, devises DT).
+- typecheck 0, lint 0, vitest 458/458 (54 fichiers), prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
