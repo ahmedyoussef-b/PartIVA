@@ -11,9 +11,13 @@ export interface FootprintRef {
 export interface ResolvedFootprint extends FootprintRef {
   /** true si l'empreinte proposée n'existe pas et qu'un fallback a été appliqué. */
   corrected: boolean;
+  /** Comment l'empreinte a été trouvée (traçabilité + avertissement ciblé). */
+  strategy: FootprintResolution;
   /** Empreinte proposée avant correction (pour traçabilité). */
   proposed: string;
 }
+
+export type FootprintResolution = 'exact' | 'other-lib' | 'fuzzy' | 'fallback';
 
 /** Empreintes de repli, vérifiées présentes dans KiCad 10. */
 const FALLBACKS: Record<string, FootprintRef> = {
@@ -40,6 +44,16 @@ function normalize(value: string): string {
 function refPrefix(reference: string): string {
   const prefix = reference.replace(/[0-9].*$/, '').toUpperCase();
   return prefix || 'R';
+}
+
+/**
+ * Un nom d'empreinte vient du LLM : on retire tout chemin pour empêcher une
+ * lecture hors de la racine des bibliothèques (path traversal). Gère `/` et
+ * `\` car le backend tourne aussi bien sous Windows que sous Linux.
+ */
+function safeFootprintPart(value: string): string {
+  const base = value.replace(/\\/g, '/').split('/').filter(Boolean).pop() ?? '';
+  return base.replace(/\.\./g, '').trim();
 }
 
 export interface FsAdapter {
@@ -69,17 +83,17 @@ export function resolveKicadFootprint(
   footprintsRoot: string,
   fs: FsAdapter = NODE_FS,
 ): ResolvedFootprint {
-  const lib = libName.trim().replace(/\.pretty$/i, '');
-  const fp = footprintName.trim().replace(/\.kicad_mod$/i, '');
+  const lib = safeFootprintPart(libName).replace(/\.pretty$/i, '');
+  const fp = safeFootprintPart(footprintName).replace(/\.kicad_mod$/i, '');
   const proposed = `${lib}:${fp}`;
 
   if (!lib || !fp) {
     const fb = FALLBACKS[refPrefix(reference)] ?? DEFAULT_FALLBACK;
-    return { ...fb, corrected: true, proposed };
+    return { ...fb, corrected: true, strategy: 'fallback', proposed };
   }
 
   if (fs.exists(`${footprintsRoot}/${lib}.pretty/${fp}.kicad_mod`)) {
-    return { libName: lib, footprintName: fp, corrected: false, proposed };
+    return { libName: lib, footprintName: fp, corrected: false, strategy: 'exact', proposed };
   }
 
   let dirs: string[] = [];
@@ -95,6 +109,7 @@ export function resolveKicadFootprint(
         libName: dir.replace(/\.pretty$/i, ''),
         footprintName: fp,
         corrected: false,
+        strategy: 'other-lib',
         proposed,
       };
     }
@@ -112,6 +127,7 @@ export function resolveKicadFootprint(
             libName: dir.replace(/\.pretty$/i, ''),
             footprintName: name,
             corrected: false,
+            strategy: 'fuzzy',
             proposed,
           };
         }
@@ -120,7 +136,7 @@ export function resolveKicadFootprint(
   }
 
   const fb = FALLBACKS[refPrefix(reference)] ?? DEFAULT_FALLBACK;
-  return { ...fb, corrected: true, proposed };
+  return { ...fb, corrected: true, strategy: 'fallback', proposed };
 }
 
 export interface FootprintSize {
@@ -128,8 +144,11 @@ export interface FootprintSize {
   heightMm: number;
 }
 
-const sizeCache = new Map<string, FootprintSize | null>();
-const padCache = new Map<string, string[]>();
+const sizeCache = new Map<string, { size: FootprintSize | null; at: number }>();
+const padCache = new Map<string, { pads: string[]; at: number }>();
+// Un résultat vide peut venir d'une installation KiCad absente : on le
+// recalcule après ce délai au lieu de le figer jusqu'au redémarrage.
+const EMPTY_CACHE_TTL_MS = 60_000;
 
 /**
  * Bbox du composant : courtyard F.CrtYd/B.CrtYd si présent, sinon pads du .kicad_mod.
@@ -143,13 +162,16 @@ export function getFootprintSize(
   footprintsRoot = process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT?.trim() ||
     'C:/Program Files/KiCad/10.0/share/kicad/footprints',
 ): FootprintSize | null {
-  const lib = libName.trim().replace(/\.pretty$/i, '');
-  const fp = footprintName.trim().replace(/\.kicad_mod$/i, '');
+  const lib = safeFootprintPart(libName).replace(/\.pretty$/i, '');
+  const fp = safeFootprintPart(footprintName).replace(/\.kicad_mod$/i, '');
   if (!lib || !fp) return null;
   const filePath = `${footprintsRoot.replace(/\/$/, '')}/${lib}.pretty/${fp}.kicad_mod`;
   // v2 : courtyard (F.CrtYd/B.CrtYd) désormais prioritaire sur les pads.
   const cacheKey = `${filePath}|v2`;
-  if (sizeCache.has(cacheKey)) return sizeCache.get(cacheKey) ?? null;
+  const cached = sizeCache.get(cacheKey);
+  if (cached && (cached.size !== null || Date.now() - cached.at < EMPTY_CACHE_TTL_MS)) {
+    return cached.size;
+  }
 
   let size: FootprintSize | null = null;
   try {
@@ -208,7 +230,7 @@ export function getFootprintSize(
   } catch {
     size = null;
   }
-  sizeCache.set(cacheKey, size);
+  sizeCache.set(cacheKey, { size, at: Date.now() });
   return size;
 }
 
@@ -223,12 +245,14 @@ export function getFootprintPadNumbers(
   footprintsRoot = process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT?.trim() ||
     'C:/Program Files/KiCad/10.0/share/kicad/footprints',
 ): string[] {
-  const lib = libName.trim().replace(/\.pretty$/i, '');
-  const fp = footprintName.trim().replace(/\.kicad_mod$/i, '');
+  const lib = safeFootprintPart(libName).replace(/\.pretty$/i, '');
+  const fp = safeFootprintPart(footprintName).replace(/\.kicad_mod$/i, '');
   if (!lib || !fp) return [];
   const filePath = `${footprintsRoot.replace(/\/$/, '')}/${lib}.pretty/${fp}.kicad_mod`;
   const cached = padCache.get(filePath);
-  if (cached) return cached;
+  if (cached && (cached.pads.length > 0 || Date.now() - cached.at < EMPTY_CACHE_TTL_MS)) {
+    return cached.pads;
+  }
 
   let pads: string[] = [];
   try {
@@ -240,6 +264,6 @@ export function getFootprintPadNumbers(
   } catch {
     pads = [];
   }
-  padCache.set(filePath, pads);
+  padCache.set(filePath, { pads, at: Date.now() });
   return pads;
 }

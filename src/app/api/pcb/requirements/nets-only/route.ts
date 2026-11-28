@@ -12,8 +12,11 @@ import { assignBoardNets } from '@/lib/pcb/kicad-bridge';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { inferPlacementRole } from '@/lib/pcb/placement';
 import { ensurePowerNets } from '@/lib/pcb/netlist-guidance';
+import { validateNetsAgainstFootprints, type NetlistReport } from '@/lib/pcb/netlist-validation';
 
 export const runtime = 'nodejs';
+// Génération LLM + validation + assignation KiCad : marge nécessaire sur Vercel.
+export const maxDuration = 60;
 
 type NetSource = 'llm' | 'heuristic';
 
@@ -177,6 +180,15 @@ function padsForComponents(
   return pads;
 }
 
+/** Empreinte lisible par référence, pour enrichir le rapport de validation. */
+function footprintsForComponents(
+  components: Array<{ reference: string; footprint: string | null }>,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const comp of components) map.set(comp.reference, String(comp.footprint ?? ''));
+  return map;
+}
+
 export async function POST(req: Request) {
   try {
     await requireAdmin();
@@ -220,13 +232,23 @@ export async function POST(req: Request) {
   const cacheKey = `pcb:nets-only:v2:${hashKey(`${projectId}|${componentList}|${project.description ?? ''}`)}`;
   const cached = await getLlmCacheAsync<NetsOnlyResult>(cacheKey);
   if (cached) {
-    const fix = ensurePowerNets(
-      components,
-      cached.nets as Array<{ name: string; pins: string[]; source?: string }>,
-      padsForComponents(components),
+    const padsByRef = padsForComponents(components);
+    const footprintsByRef = footprintsForComponents(components);
+    const validated = validateNetsAgainstFootprints(
+      cached.nets as Array<{ name: string; pins: string[] }>,
+      padsByRef,
+      { footprintsByRef },
     );
+    const fix = ensurePowerNets(components, validated.nets, padsByRef);
     const nets = fix.nets as ScoredNet[];
-    if (fix.fixedRefs.length > 0) {
+    const toVerify = new Set(validated.report.toVerify);
+    for (const net of nets) {
+      if (net.status !== 'to_verify') continue;
+      for (const pin of net.pins) toVerify.add(pin.split('.')[0]!);
+    }
+    const netlistReport: NetlistReport = { ...validated.report, toVerify: [...toVerify] };
+    const needsRepair = fix.fixedRefs.length > 0 || netlistReport.repaired;
+    if (needsRepair) {
       await prisma.pcbNet.deleteMany({ where: { projectId } });
       await prisma.pcbNet.createMany({
         data: nets.map((n) => ({
@@ -238,16 +260,24 @@ export async function POST(req: Request) {
         })),
       });
       await setLlmCacheAsync(cacheKey, { nets });
+    }
+    // Persister le rapport même sans réparation : F3/F4 doivent pouvoir
+    // l'afficher après un refresh. Un échec d'écriture ne doit pas invalider
+    // une netlist déjà calculée.
+    try {
       await prisma.pcbProject.update({
         where: { id: projectId },
         data: {
           sourcingCache: {
             ...((project.sourcingCache ?? {}) as Record<string, unknown>),
             nets,
-            cacheVersion: 2,
+            cacheVersion: 3,
+            netlistReport,
           } as object,
         },
       });
+    } catch (e) {
+      console.warn('[NETS-ONLY] Cache report save failed', e);
     }
     const board = await assignNetsOnBoard(project.kicadFilePath, nets);
     return NextResponse.json({
@@ -256,6 +286,7 @@ export async function POST(req: Request) {
       cached: true,
       warnings: fix.warnings,
       powerFixCount: fix.fixedRefs.length,
+      netlistReport,
       boardAssigned: board.assigned,
     });
   }
@@ -303,25 +334,10 @@ Format attendu :
 
     // Validation des pins contre les pads réels des footprints.
     const padsByRef = padsForComponents(components);
-    const validPins = new Set<string>();
-    for (const [ref, pads] of padsByRef) {
-      for (const pad of pads) validPins.add(`${ref}.${pad}`);
-    }
-    const llmNets: ScoredNet[] = rawNets
-      .map((n) => ({
-        name: n.name,
-        pins: n.pins.filter((pin) => {
-          const ref = pin.split('.')[0] ?? '';
-          const readable = (padsByRef.get(ref) ?? []).length > 0;
-          // Si le footprint est illisible, on ne supprime pas aveuglément.
-          return !readable || validPins.has(pin);
-        }),
-        source: 'llm' as const,
-      }))
-      .filter((n) => n.pins.length >= 2);
-    const droppedPins =
-      rawNets.reduce((acc, n) => acc + n.pins.length, 0) -
-      llmNets.reduce((acc, n) => acc + n.pins.length, 0);
+    const footprintsByRef = footprintsForComponents(components);
+    const validation = validateNetsAgainstFootprints(rawNets, padsByRef, { footprintsByRef });
+    const llmNets: ScoredNet[] = validation.nets.map((n) => ({ ...n, source: 'llm' as const }));
+    const droppedPins = validation.report.droppedPins.length;
 
     const coveredRefs = new Set(llmNets.flatMap((n) => n.pins.map((p) => p.split('.')[0]!)));
     const usedNames = new Set(llmNets.map((n) => n.name));
@@ -334,6 +350,13 @@ Format attendu :
       console.warn('[NETS-ONLY] Aucun net exploitable après validation');
       return NextResponse.json({ error: 'Aucun net exploitable généré' }, { status: 502 });
     }
+
+    const toVerify = new Set(validation.report.toVerify);
+    for (const net of nets) {
+      if (net.status !== 'to_verify') continue;
+      for (const pin of net.pins) toVerify.add(pin.split('.')[0]!);
+    }
+    const netlistReport: NetlistReport = { ...validation.report, toVerify: [...toVerify] };
 
     await prisma.pcbNet.deleteMany({ where: { projectId } });
     await prisma.pcbNet.createMany({
@@ -349,7 +372,14 @@ Format attendu :
     const previousCache = project.sourcingCache as Record<string, unknown> | null;
     await prisma.pcbProject.update({
       where: { id: projectId },
-      data: { sourcingCache: { ...(previousCache ?? {}), nets, cacheVersion: 2 } as object },
+      data: {
+        sourcingCache: {
+          ...(previousCache ?? {}),
+          nets,
+          cacheVersion: 3,
+          netlistReport,
+        } as object,
+      },
     });
 
     const board = await assignNetsOnBoard(project.kicadFilePath, nets);
@@ -370,6 +400,7 @@ Format attendu :
       powerFixCount: powerFix.fixedRefs.length,
       warnings: powerFix.warnings,
       droppedPins,
+      netlistReport,
       cached: false,
       boardAssigned: board.assigned,
       boardPads: 'pads' in board ? board.pads : 0,

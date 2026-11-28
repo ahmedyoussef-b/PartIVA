@@ -6,12 +6,17 @@ import {
   getFootprintPadNumbers,
   getFootprintSize,
   resolveKicadFootprint,
+  type FootprintResolution,
 } from '@/lib/pcb/kicad-footprints';
 import { normalizeBoardPath } from '@/lib/pcb/kicad-path';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 import { LLM_NETLIST_EMPTY_CODE, NET_EMPTY_MESSAGE } from '@/lib/pcb/netlist-guidance';
+import { validateNetsAgainstFootprints, type NetlistReport } from '@/lib/pcb/netlist-validation';
 
 export const runtime = 'nodejs';
+// Deux appels Groq séquentiels (BOM + nets stricts) + une réparation : la
+// limite Vercel par défaut est trop basse pour le flux complet.
+export const maxDuration = 60;
 
 interface ProposedComponent {
   type: string;
@@ -25,6 +30,8 @@ interface ProposedComponent {
   rotation: number;
   rationale: string;
   searchKeyword: string;
+  strategy?: FootprintResolution;
+  toVerify?: boolean;
 }
 
 /** Extrait les nets d'une réponse LLM, en tolérant `REF.PIN` et {ref, pin}. */
@@ -58,6 +65,7 @@ function parseNetCandidates(rawNets: unknown): { name: string; pins: string[] }[
 function buildStrictNetsPrompt(
   components: Array<{ reference: string; value: string; libName: string; footprintName: string }>,
   padsByRef: Map<string, string[]>,
+  draftNets: Array<{ name: string; pins: string[] }> = [],
 ): string {
   const list = components
     .map((c) => {
@@ -67,15 +75,22 @@ function buildStrictNetsPrompt(
       }`;
     })
     .join('\n');
+  const draft = draftNets.length
+    ? `\nPROPOSITION INITIALE À CORRIGER (ne la recopie pas aveuglément ; vérifie chaque pin) :\n${draftNets
+        .map((n) => `- ${n.name}: ${n.pins.join(', ')}`)
+        .join('\n')}\n`
+    : '';
   return `Tu es un ingénieur électronique. La liste des composants est déjà figée. Voici leurs VRAIS numéros de pads :
 ${list}
-
+${draft}
 Réponds UNIQUEMENT en JSON valide : {"nets":[{"name":"...","pins":["REF.PIN",...]}]}
 
 RÈGLES STRICTES :
 - Produis au moins 2 nets : un nommé "GND" et un dont le nom contient VCC, VDD ou 5V.
 - Chaque net contient au moins 2 pins.
-- Chaque pin est exactement "REF.PIN", avec REF et PIN choisis UNIQUEMENT dans la liste ci-dessus. Aucune autre référence, aucun autre numéro de pad.
+- Chaque pin est exactement "REF.PIN", avec REF choisi UNIQUEMENT dans la liste ci-dessus.
+- Pour un composant dont les pads sont connus, le PIN doit être l'un de ceux listés.
+- Pour un composant dont les pads sont "inconnus", conserve les pins plausibles de la proposition initiale : ils seront marqués à vérifier.
 - Relie l'alimentation et la masse de tous les composants actifs (U*, IC*).
 - Aucun texte, commentaire ou explication en dehors du JSON.`;
 }
@@ -128,9 +143,12 @@ export async function POST(req: Request) {
     cdcHash?: string;
     nets?: unknown;
     cacheVersion?: number;
+    netlistReport?: unknown;
+    rawProposal?: unknown;
   } | null;
-  // v2 : la netlist fait partie intégrante du cache. Les anciennes entrées
-  // (sans nets) sont ignorées une fois pour forcer une génération complète.
+  // v3 : la netlist est validée contre les pads réels et le rapport est
+  // persisté. Les caches v2 sont ignorés une fois pour forcer une génération
+  // complète avec la nouvelle validation.
   const cachedNets = (Array.isArray(cached?.nets) ? cached.nets : []).filter(
     (n): n is { name: string; pins: string[] } =>
       !!n &&
@@ -140,30 +158,38 @@ export async function POST(req: Request) {
   );
   if (
     !forceRefresh &&
-    cached?.cacheVersion === 2 &&
+    cached?.cacheVersion === 3 &&
     cached.cdcHash === cdcHash &&
     Array.isArray(cached.components) &&
     cached.components.length > 0
   ) {
     console.info('[PCB:SOURCE] Cache hit', { projectId, count: cached.components.length });
-    // Recompute candidates from catalog (cheap, no LLM) to keep prices fresh.
     const cachedComponents = cached.components as Array<Record<string, unknown>>;
-    // Re-run the cheap footprint-resolution + catalog search for each cached component.
     const footprintsRoot =
       process.env.PARTIVA_KICAD_FOOTPRINTS_ROOT ??
       'C:/Program Files/KiCad/10.0/share/kicad/footprints';
     const refreshed = [];
+    const padsByRef = new Map<string, string[]>();
+    const footprintsByRef = new Map<string, string>();
+    const fallbackRefs = new Set<string>();
     for (const p of cachedComponents) {
+      const reference = String(p.reference ?? '');
       const resolved = resolveKicadFootprint(
         String(p.libName ?? ''),
         String(p.footprintName ?? ''),
-        String(p.reference ?? ''),
+        reference,
         footprintsRoot,
       );
+      const pads = getFootprintPadNumbers(resolved.libName, resolved.footprintName);
+      padsByRef.set(reference, pads);
+      footprintsByRef.set(reference, `${resolved.libName}:${resolved.footprintName}`);
+      if (resolved.strategy === 'fallback') fallbackRefs.add(reference);
       const comp = {
         ...p,
         libName: resolved.libName,
         footprintName: resolved.footprintName,
+        strategy: resolved.strategy,
+        toVerify: resolved.strategy === 'fallback' || pads.length === 0,
         xMm: p.xMm,
         yMm: p.yMm,
       };
@@ -202,25 +228,59 @@ export async function POST(req: Request) {
         })),
       });
     }
+
+    // Rejouer la validation déterministe : un cache v3 peut avoir été écrit
+    // avant une mise à jour des empreintes, ou après une édition manuelle.
+    const validated = validateNetsAgainstFootprints(cachedNets, padsByRef, {
+      footprintsByRef,
+      fallbackRefs,
+    });
+    const cachedReport = (cached.netlistReport ?? null) as NetlistReport | null;
+    let report: NetlistReport =
+      cachedNets.length > 0
+        ? { ...validated.report, stale: cachedReport?.stale === true }
+        : (cachedReport ?? validated.report);
+    if (report.invalidPins.length > 0) {
+      report = { ...report, code: 'INVALID_PINS' };
+    }
+
+    // Persister le rapport rafraîchi (aucun appel LLM) pour F3/F4.
+    try {
+      await prisma.pcbProject.update({
+        where: { id: projectId },
+        data: {
+          sourcingCache: {
+            components: refreshed,
+            count: refreshed.length,
+            nets: validated.nets,
+            cdcHash,
+            cacheVersion: 3,
+            netlistReport: report,
+            rawProposal: cached.rawProposal ?? null,
+          } as object,
+        },
+      });
+    } catch (e) {
+      console.warn('[PCB:SOURCE] Cache refresh save failed', e);
+    }
+
     // La netlist est la source des ratsnest : si elle existe dans le cache mais
     // a disparu de la BDD (reset, nettoyage), la restaurer sans appel LLM.
-    if (cachedNets.length > 0) {
+    if (validated.nets.length > 0) {
       try {
         const existing = await prisma.pcbNet.count({ where: { projectId } });
         if (existing === 0) {
           await prisma.pcbNet.createMany({
-            data: cachedNets
-              .filter((n) => n.pins.length >= 2)
-              .map((n) => ({
-                projectId,
-                name: n.name,
-                pins: n.pins as object,
-                status: 'proposed',
-              })),
+            data: validated.nets.map((n) => ({
+              projectId,
+              name: n.name,
+              pins: n.pins as object,
+              status: 'proposed',
+            })),
           });
           console.info('[PCB:SOURCE] Nets restaurés depuis le cache', {
             projectId,
-            count: cachedNets.length,
+            count: validated.nets.length,
           });
         }
       } catch (e) {
@@ -231,9 +291,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       components: refreshed,
       count: refreshed.length,
-      nets: cachedNets,
-      netsMissing: cachedNets.length === 0,
+      nets: validated.nets,
+      netsMissing: validated.nets.length === 0,
       cached: true,
+      netlistReport: report,
+      rawProposal: cached.rawProposal ?? null,
     });
   }
 
@@ -493,6 +555,8 @@ Règles :
         ...p,
         libName: resolved.libName,
         footprintName: resolved.footprintName,
+        strategy: resolved.strategy,
+        toVerify: resolved.strategy === 'fallback',
         xMm: Math.round((p.xMm + offsetX) * 100) / 100,
         yMm: Math.round((p.yMm + offsetY) * 100) / 100,
       };
@@ -533,36 +597,76 @@ Règles :
       });
     }
 
-    // Validation croisée LLM ↔ pads réels (identique à nets-only) : le cache
-    // ne doit jamais persister des REF.PIN inexistants sur l'empreinte choisie.
+    // Validation croisée LLM ↔ pads réels. Le cache ne doit jamais persister
+    // des REF.PIN inexistants sur l'empreinte choisie.
     const padsByRef = new Map<string, string[]>();
+    const footprintsByRef = new Map<string, string>();
+    const fallbackRefs = new Set<string>();
     for (const comp of components) {
-      padsByRef.set(comp.reference, getFootprintPadNumbers(comp.libName, comp.footprintName));
+      const pads = getFootprintPadNumbers(comp.libName, comp.footprintName);
+      padsByRef.set(comp.reference, pads);
+      footprintsByRef.set(comp.reference, `${comp.libName}:${comp.footprintName}`);
+      if (comp.strategy === 'fallback') fallbackRefs.add(comp.reference);
+      if (pads.length === 0) comp.toVerify = true;
     }
-    const validPins = new Set<string>();
-    for (const [ref, pads] of padsByRef) {
-      for (const pad of pads) validPins.add(`${ref}.${pad}`);
-    }
-    const filterByPads = (nets: typeof proposedNets) => {
-      const kept: typeof proposedNets = [];
-      for (const net of nets) {
-        const pins = net.pins.filter((pin) => {
-          const ref = pin.split('.')[0] ?? '';
-          const readable = (padsByRef.get(ref) ?? []).length > 0;
-          return !readable || validPins.has(pin);
-        });
-        if (pins.length >= 2) kept.push({ name: net.name, pins });
-      }
-      return kept;
-    };
 
-    let finalNets = filterByPads(proposedNets);
+    // Phase 2 : toujours demander une netlist stricte avec les pads réels. Le
+    // brouillon de la phase 1 sert d'indice, jamais de vérité.
+    let rawProposal: Array<{ name: string; pins: string[] }> = proposedNets;
+    let validation = validateNetsAgainstFootprints(proposedNets, padsByRef, {
+      footprintsByRef,
+      fallbackRefs,
+    });
+    let finalNets = validation.nets;
+    let report = validation.report;
+
+    try {
+      const strictRes = await callGroq(
+        [
+          {
+            role: 'user',
+            content: buildStrictNetsPrompt(components, padsByRef, proposedNets),
+          },
+        ],
+        apiKey,
+        {
+          model: process.env.GROQ_MODEL,
+          temperature: 0,
+          maxTokens: 2048,
+          timeout: 30000,
+          responseFormat: 'json_object',
+        },
+      );
+      const strictObj = JSON.parse(strictRes.content) as Record<string, unknown>;
+      const strictNets = parseNetCandidates(strictObj.nets ?? strictObj.netlist);
+      if (strictNets.length > 0) {
+        rawProposal = strictNets;
+        validation = validateNetsAgainstFootprints(strictNets, padsByRef, {
+          footprintsByRef,
+          fallbackRefs,
+        });
+        finalNets = validation.nets;
+        report = validation.report;
+      }
+    } catch (e) {
+      console.warn('[PCB:SOURCE] Phase 2 netlist impossible', e);
+    }
+
     if (finalNets.length === 0) {
-      // Le LLM a halluciné des références ou des numéros de broches : seconde
-      // passe avec la source de vérité (composants retenus + pads réels).
+      // Une seule tentative de réparation supplémentaire avec la source de
+      // vérité. Maximum 3 appels LLM au total (BOM + 2 tentatives nets).
       try {
         const retryRes = await callGroq(
-          [{ role: 'user', content: buildStrictNetsPrompt(components, padsByRef) }],
+          [
+            {
+              role: 'user',
+              content: buildStrictNetsPrompt(
+                components,
+                padsByRef,
+                rawProposal.length ? rawProposal : proposedNets,
+              ),
+            },
+          ],
           apiKey,
           {
             model: process.env.GROQ_MODEL,
@@ -573,7 +677,16 @@ Règles :
           },
         );
         const retryObj = JSON.parse(retryRes.content) as Record<string, unknown>;
-        finalNets = filterByPads(parseNetCandidates(retryObj.nets ?? retryObj.netlist));
+        const retryNets = parseNetCandidates(retryObj.nets ?? retryObj.netlist);
+        if (retryNets.length > 0) {
+          rawProposal = retryNets;
+          validation = validateNetsAgainstFootprints(retryNets, padsByRef, {
+            footprintsByRef,
+            fallbackRefs,
+          });
+          finalNets = validation.nets;
+          report = validation.report;
+        }
         if (finalNets.length > 0) {
           console.info('[PCB:SOURCE] Netlist réparée au second essai', {
             count: finalNets.length,
@@ -583,7 +696,27 @@ Règles :
         console.warn('[PCB:SOURCE] Second essai netlist impossible', e);
       }
     }
+
     if (finalNets.length === 0) {
+      const emptyReport: NetlistReport = { ...report, repaired: true, code: 'INVALID_PINS' };
+      try {
+        await prisma.pcbProject.update({
+          where: { id: projectId },
+          data: {
+            sourcingCache: {
+              components,
+              count: components.length,
+              nets: [],
+              cdcHash,
+              cacheVersion: 3,
+              netlistReport: emptyReport,
+              rawProposal,
+            } as object,
+          },
+        });
+      } catch (e) {
+        console.warn('[PCB:SOURCE] Cache save (netlist vide) échoué', e);
+      }
       return NextResponse.json(
         {
           error: LLM_NETLIST_EMPTY_CODE,
@@ -591,17 +724,29 @@ Règles :
           components,
           nets: [],
           netsMissing: true,
+          netlistReport: emptyReport,
+          rawProposal,
         },
         { status: 422 },
       );
     }
 
+    if (report.invalidPins.length > 0) {
+      report = { ...report, code: 'INVALID_PINS' };
+    }
+
     const warnings: string[] = [];
-    const droppedPins =
-      proposedNets.reduce((acc, n) => acc + n.pins.length, 0) -
-      finalNets.reduce((acc, n) => acc + n.pins.length, 0);
+    const droppedPins = report.droppedPins.length;
     if (droppedPins > 0) {
       warnings.push(`${droppedPins} broche(s) inexistante(s) sur les empreintes ont été retirées.`);
+    }
+    for (const unreadable of report.unreadableFootprints) {
+      warnings.push(
+        `${unreadable.ref} : empreinte illisible (${unreadable.footprint || 'inconnue'}), broches à vérifier.`,
+      );
+    }
+    for (const ref of fallbackRefs) {
+      warnings.push(`${ref} : empreinte remplacée par un fallback, à vérifier.`);
     }
     for (const [ref, pads] of padsByRef) {
       if (pads.length === 0) continue;
@@ -649,7 +794,9 @@ Règles :
             count: components.length,
             nets: proposedNets,
             cdcHash,
-            cacheVersion: 2,
+            cacheVersion: 3,
+            netlistReport: report,
+            rawProposal,
           } as object,
         },
       });
@@ -669,6 +816,8 @@ Règles :
       netsMissing: proposedNets.length === 0,
       droppedPins,
       warnings,
+      netlistReport: report,
+      rawProposal,
     });
   } finally {
     guard.release();
