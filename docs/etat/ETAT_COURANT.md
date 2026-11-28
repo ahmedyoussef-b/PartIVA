@@ -1000,6 +1000,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — F4 : édition atomique de la netlist
+
+- Diagnostic : la modale envoyait une boucle de PATCH avec `oldName` comme identité ; les ajouts précédaient les suppressions (409 « Le net existe déjà » sur un remplacement), un échec en cours de boucle laissait un état partiel, et le compteur « N réseaux » venait du rendu serveur sans `router.refresh()`. Aucune contrainte d'unicité sur `pcb_nets(projectId, name)`.
+- `netlist-plan.ts` (nouveau, pur) : `buildNetPlan(current, desired)` calcule un plan unique `{deleteIds, updates, creates, issues, unknownIds}` ; unicité des noms insensible à la casse, suppression avant ajout (swap et remplacement même nom supportés), id inconnu détecté comme dérive.
+- `nets/route.ts` : nouveau `PUT` transactionnel (suppressions → renommages → ajouts, cache et rapport `stale` dans la même transaction) avec `maxDuration = 60` ; réponses 409 `NETLIST_CONFLICT` (avec la vérité serveur) et 422 `INVALID_NETLIST` (avec `issues`), aucune écriture dans ces deux cas. GET renvoie `netlistReport`. PATCH historique conservé et rendu atomique via le helper `syncCacheWithNets` partagé. `clearLlmCacheAsync()` appelé après commit.
+- `NetlistEditorModal.tsx` : un seul PUT, plus de boucle ; resynchronisation `original`/`draft`/rapport depuis la réponse serveur (succès, 409, rechargement manuel), bandeau rapport F2 en lecture seule étiqueté « périmé », bouton « Recharger ». `ComponentSourcingPanel.tsx` : `router.refresh()` dans `onSaved` pour rafraîchir le compteur RSC.
+- Tests : `netlist-plan.test.ts` (8 cas dont swap, remplacement même nom, id inconnu, doublons) et `nets/route.test.ts` (7 cas dont atomicité, 409, 422, stale, GET rapport, compat PATCH).
+- typecheck 0, lint 0, vitest 441/441 (52 fichiers), prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.

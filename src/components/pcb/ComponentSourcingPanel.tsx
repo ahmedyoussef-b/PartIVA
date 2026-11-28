@@ -1646,6 +1646,9 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
           onSaved={(count) => {
             setNetsMissing(count === 0);
             window.dispatchEvent(new Event('pcb:board-refresh'));
+            // Le compteur « N réseaux » vient du rendu serveur : sans refresh,
+            // il reste figé sur l'ancien nombre après une édition.
+            router.refresh();
           }}
         />
       )}
