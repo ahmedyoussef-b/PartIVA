@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateCdcCompleteness, evaluateCdcGate } from './cdc-gate';
+import { cdcCategoryLabel, evaluateCdcCompleteness, evaluateCdcGate } from './cdc-gate';
 
 const confirmed = (category: string, key = keyFor(category)) => ({
   category,
@@ -15,6 +15,14 @@ function keyFor(category: string): string {
 const complete = ['usage', 'function', 'processing', 'mechanical', 'manufacturing', 'quality'].map(
   (c) => confirmed(c),
 );
+
+describe('cdcCategoryLabel', () => {
+  it('affiche les catégories en français', () => {
+    expect(cdcCategoryLabel('manufacturing')).toBe('Fabrication');
+    expect(cdcCategoryLabel('quality')).toBe('Qualité');
+    expect(cdcCategoryLabel('autre')).toBe('autre');
+  });
+});
 
 describe('evaluateCdcCompleteness', () => {
   it('exige les 6 catégories et confirmation de chaque champ', () => {

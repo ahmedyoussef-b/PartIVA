@@ -11,6 +11,19 @@ export const CDC_CATEGORIES = [
   'quality',
 ] as const;
 
+export const CDC_CATEGORY_LABELS: Record<string, string> = {
+  usage: 'Usage',
+  function: 'Fonction',
+  processing: 'Traitement',
+  mechanical: 'Mécanique',
+  manufacturing: 'Fabrication',
+  quality: 'Qualité',
+};
+
+export function cdcCategoryLabel(code: string): string {
+  return CDC_CATEGORY_LABELS[code] ?? code;
+}
+
 export interface CdcRequirementView {
   category?: string | null;
   key?: string | null;
@@ -70,7 +83,7 @@ export function evaluateCdcGate({ status, requirements = [] }: CdcGateInput): Cd
     return {
       ready: false,
       missing: completeness.missing,
-      reason: `Cahier des charges incomplet : ${completeness.missing.join(', ')}.`,
+      reason: `Cahier des charges incomplet : ${completeness.missing.map(cdcCategoryLabel).join(', ')}.`,
     };
   }
   return { ready: true, missing: [], reason: '' };

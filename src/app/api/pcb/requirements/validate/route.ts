@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-admin';
 import { prisma } from '@/lib/prisma';
-import { evaluateCdcCompleteness } from '@/lib/pcb/cdc-gate';
+import { cdcCategoryLabel, evaluateCdcCompleteness } from '@/lib/pcb/cdc-gate';
 
 export const runtime = 'nodejs';
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: 'CDC_INCOMPLETE',
-        message: `Cahier des charges incomplet : ${completeness.missing.join(', ')}.`,
+        message: `Cahier des charges incomplet : ${completeness.missing.map(cdcCategoryLabel).join(', ')}.`,
         missing: completeness.missing,
       },
       { status: 422 },

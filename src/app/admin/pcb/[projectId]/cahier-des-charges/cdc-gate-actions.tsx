@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { cdcCategoryLabel } from '@/lib/pcb/cdc-gate';
 
 interface Props {
   projectId: string;
@@ -74,7 +75,9 @@ export function CdcGateActions({
         </p>
       )}
       {!ready && missing.length > 0 && (
-        <p className="text-[10px] text-amber-700">Manquant : {missing.join(', ')}</p>
+        <p className="text-[10px] text-amber-700">
+          Manquant : {missing.map(cdcCategoryLabel).join(', ')}
+        </p>
       )}
     </div>
   );
