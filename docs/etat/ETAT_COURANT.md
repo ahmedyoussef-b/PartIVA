@@ -979,6 +979,16 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — Crash SWIG au placement
+
+- Crash reproduit sur `cmwzjodye0010n8fckcuwtjrm` : `TypeError: 'SwigPyObject' object is not iterable` à `scripts/kicad/place_footprints.py:55` (`old_fp.Pads()` appelé après mutation du plateau) + leaks SWIG `PCB_IO_KICAD_SEXPR`.
+- Correctif : nouvelle fonction `capture_pad_positions()` qui copie les positions des pads en entiers plains **avant toute mutation** ; `move_connected_tracks()` ne manipule plus que ces copies (plus aucun appel SWIG sur les empreintes). `gc.collect()` avant la sortie du processus pour limiter les leaks.
+- Non impliqué volontairement : vider le plateau avant **chaque** placement écraserait les composants/pistes déjà posés. Chaque appel au script est déjà un processus Python neuf, et l'action `Reset` existante fournit un plateau vierge (`board/route.ts`).
+- Test de non-régression `scripts/kicad/test_place_footprints.py` (3 tests unittest avec faux pads SWIG non itérables) + nouveau job CI `Scripts KiCad (Python)`.
+- typecheck 0, lint 0, vitest 413/413, unittest 3/3, prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
