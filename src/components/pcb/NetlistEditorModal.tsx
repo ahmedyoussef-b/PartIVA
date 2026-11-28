@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useActionProgress } from './ActionProgressProvider';
+import type { NetlistReport } from '@/lib/pcb/netlist-validation';
 
 interface NetRow {
   id: string;
@@ -20,22 +21,36 @@ interface Props {
 export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
   const [original, setOriginal] = useState<NetRow[]>([]);
   const [draft, setDraft] = useState<NetRow[]>([]);
-  const [loading, setLoading] = useState(true); // charge au montage (useEffect plus bas)
+  const [report, setReport] = useState<NetlistReport | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { start: startProgress, finish: finishProgress } = useActionProgress();
+
+  /** Une seule source de vérité : le GET. Aucune copie locale du rapport. */
+  const fetchNets = useCallback(
+    async (apply: boolean) => {
+      const res = await fetch(
+        `/api/pcb/requirements/nets?projectId=${encodeURIComponent(projectId)}`,
+      );
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      const nets = (data.nets ?? []) as NetRow[];
+      const netlistReport = (data.netlistReport ?? null) as NetlistReport | null;
+      if (apply) {
+        setOriginal(nets);
+        setDraft(nets);
+        setReport(netlistReport);
+      }
+      return { nets, netlistReport };
+    },
+    [projectId],
+  );
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/pcb/requirements/nets?projectId=${encodeURIComponent(projectId)}`,
-        );
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
-        if (cancelled) return;
-        setOriginal(data.nets as NetRow[]);
-        setDraft(data.nets as NetRow[]);
+        await fetchNets(!cancelled);
       } catch (e) {
         if (!cancelled) {
           toast.error(e instanceof Error ? e.message : 'Chargement de la netlist impossible');
@@ -47,12 +62,22 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [fetchNets]);
+
+  const reload = async () => {
+    try {
+      await fetchNets(true);
+      toast.success('Netlist rechargée depuis le serveur');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Rechargement impossible');
+    }
+  };
 
   const updateRow = (index: number, patch: Partial<NetRow>) => {
     setDraft((rows) => rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   };
 
+  /** Un seul PUT atomique : plus de boucle de PATCH, plus d'état partiel. */
   const save = async () => {
     const seen = new Set<string>();
     for (const row of draft) {
@@ -61,71 +86,119 @@ export function NetlistEditorModal({ projectId, onClose, onSaved }: Props) {
         toast.error('Tous les nets doivent avoir un nom');
         return;
       }
-      if (seen.has(name)) {
+      const key = name.toLowerCase();
+      if (seen.has(key)) {
         toast.error(`Net en double : ${name}`);
         return;
       }
-      seen.add(name);
+      seen.add(key);
     }
 
     setSaving(true);
     startProgress('3. Sauvegarde de la netlist');
+    let status: 'done' | 'error' = 'error';
     try {
-      const originalById = new Map(original.map((n) => [n.id, n]));
-      const draftIds = new Set(draft.filter((n) => n.id).map((n) => n.id));
+      const res = await fetch('/api/pcb/requirements/nets', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          nets: draft.map((row) => ({
+            ...(row.id ? { id: row.id } : {}),
+            name: row.name.trim(),
+            pins: row.pins,
+            ...(row.source ? { source: row.source } : {}),
+          })),
+          expectedIds: original.map((row) => row.id),
+        }),
+      });
+      const data = await res.json();
 
-      for (const row of draft) {
-        const before = row.id ? originalById.get(row.id) : undefined;
-        const pinsChanged =
-          !before ||
-          JSON.stringify([...before.pins].sort()) !== JSON.stringify([...row.pins].sort());
-        if (!row.id || !before) {
-          await patch({ action: 'add', net: { name: row.name.trim(), pins: row.pins } });
-        } else if (pinsChanged || before.name !== row.name.trim()) {
-          await patch({
-            action: 'update',
-            oldName: before.name,
-            net: { name: row.name.trim(), pins: row.pins },
-          });
-        }
+      if (res.status === 409 && data.error === 'NETLIST_CONFLICT') {
+        const fresh = (data.nets ?? []) as NetRow[];
+        setOriginal(fresh);
+        setDraft(fresh);
+        setReport((data.netlistReport ?? null) as NetlistReport | null);
+        toast.warning(
+          'La netlist a été modifiée ailleurs : données rechargées. Vérifiez vos modifications.',
+          { duration: 10_000 },
+        );
+        return;
       }
-      for (const before of original) {
-        if (!draftIds.has(before.id)) {
-          await patch({ action: 'delete', net: { name: before.name } });
-        }
+      if (res.status === 422 && data.error === 'INVALID_NETLIST') {
+        const issues = Array.isArray(data.issues) ? data.issues : [];
+        toast.error(issues[0]?.message || 'Netlist invalide');
+        return;
       }
+      if (!res.ok || !data.ok)
+        throw new Error(data.error || data.message || `Erreur ${res.status}`);
 
-      toast.success(`${draft.length} net(s) sauvegardés`);
-      onSaved(draft.length);
+      const saved = (data.nets ?? []) as NetRow[];
+      setOriginal(saved);
+      setDraft(saved);
+      setReport((data.netlistReport ?? null) as NetlistReport | null);
+      status = 'done';
+      toast.success(`${saved.length} net(s) sauvegardés`);
+      onSaved(saved.length);
       onClose();
-      finishProgress('done');
     } catch (e) {
-      finishProgress('error');
       toast.error(e instanceof Error ? e.message : 'Sauvegarde impossible');
     } finally {
+      finishProgress(status);
       setSaving(false);
     }
   };
 
-  const patch = async (payload: Record<string, unknown>) => {
-    const res = await fetch('/api/pcb/requirements/nets', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, ...payload }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
-  };
+  const invalidPins = Array.isArray(report?.invalidPins) ? report!.invalidPins : [];
+  const droppedPins = Array.isArray(report?.droppedPins) ? report!.droppedPins : [];
+  const droppedNets = Array.isArray(report?.droppedNets) ? report!.droppedNets : [];
+  const toVerify = Array.isArray(report?.toVerify) ? report!.toVerify : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-2xl rounded-lg border bg-white p-4 shadow-xl">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-800">Édition de la netlist</h3>
-          <button type="button" className="text-sm text-gray-500" onClick={onClose}>
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="rounded border px-2 py-0.5 text-[11px] text-gray-600 disabled:opacity-50"
+              onClick={reload}
+              disabled={loading || saving}
+            >
+              Recharger
+            </button>
+            <button type="button" className="text-sm text-gray-500" onClick={onClose}>
+              ✕
+            </button>
+          </div>
         </div>
+
+        {report && (
+          <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-900">
+            <p className="font-semibold">
+              Rapport de génération{report.stale ? ' — périmé' : ''}
+              {report.code ? ` (${report.code})` : ''}
+            </p>
+            <p>
+              {invalidPins.length} pin(s) invalide(s) · {droppedPins.length} retiré(s) ·{' '}
+              {droppedNets.length} net(s) supprimé(s)
+            </p>
+            {invalidPins.slice(0, 5).map((issue, i) => (
+              <p key={`${issue.pin}-${i}`}>
+                {issue.pin} — {issue.reason}
+                {issue.available?.length
+                  ? ` (pads disponibles : ${issue.available.join(', ')})`
+                  : ''}
+              </p>
+            ))}
+            {toVerify.length > 0 && <p>À vérifier : {toVerify.join(', ')}</p>}
+            <p className="mt-1 text-[10px] opacity-75">
+              Diagnostic de la génération initiale, pas de l’état en cours d’édition.
+            </p>
+          </div>
+        )}
+
         {loading ? (
           <p className="text-sm text-gray-500">Chargement…</p>
         ) : (
