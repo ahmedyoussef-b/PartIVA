@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { cdcCategoryLabel } from '@/lib/pcb/cdc-gate';
 
 interface Props {
   projectId: string;
@@ -85,7 +86,7 @@ export function CdcCompletionActions({
           >
             {categories.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {cdcCategoryLabel(c)}
                 {missingCategories.includes(c) ? ' (manquante)' : ''}
               </option>
             ))}
