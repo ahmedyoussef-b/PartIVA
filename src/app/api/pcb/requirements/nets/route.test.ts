@@ -11,6 +11,8 @@ const netCreateMany = vi.fn();
 const netUpdate = vi.fn();
 const netDelete = vi.fn();
 const netDeleteMany = vi.fn();
+const componentFindMany = vi.fn();
+const getPads = vi.fn();
 const clearCache = vi.fn();
 
 vi.mock('@/lib/auth-admin', () => ({
@@ -18,6 +20,9 @@ vi.mock('@/lib/auth-admin', () => ({
 }));
 vi.mock('@/lib/utils/llm-cache', () => ({
   clearLlmCacheAsync: (...a: unknown[]) => clearCache(...a),
+}));
+vi.mock('@/lib/pcb/kicad-footprints', () => ({
+  getFootprintPadNumbers: (...a: unknown[]) => getPads(...a),
 }));
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -35,6 +40,7 @@ vi.mock('@/lib/prisma', () => ({
       delete: (...a: unknown[]) => netDelete(...a),
       deleteMany: (...a: unknown[]) => netDeleteMany(...a),
     },
+    pcbComponent: { findMany: (...a: unknown[]) => componentFindMany(...a) },
   },
 }));
 
@@ -55,6 +61,7 @@ const txMock = {
     findUnique: (...a: unknown[]) => projectFindUnique(...a),
     update: (...a: unknown[]) => projectUpdate(...a),
   },
+  pcbComponent: { findMany: (...a: unknown[]) => componentFindMany(...a) },
 };
 
 interface StoredNet {
@@ -163,6 +170,9 @@ describe('/api/pcb/requirements/nets — édition atomique F4', () => {
       return { count: ids.size };
     });
     clearCache.mockResolvedValue(undefined);
+    // Par défaut : aucun composant lisible -> mode dégradé non bloquant.
+    componentFindMany.mockResolvedValue([]);
+    getPads.mockReturnValue([]);
   });
 
   it('GET renvoie la netlist et le rapport F2', async () => {
@@ -294,5 +304,98 @@ describe('/api/pcb/requirements/nets — édition atomique F4', () => {
     const body = (await res.json()) as { ok: boolean; netlistReport: { stale: boolean } };
     expect(body.ok).toBe(true);
     expect(body.netlistReport.stale).toBe(true);
+  });
+
+  it('GET expose padsByRef, refs et footprintsByRef pour le diagnostic local', async () => {
+    componentFindMany.mockResolvedValue([
+      { reference: 'U2', footprint: 'Package_TO_SOT_THT:TO-220-3_Vertical' },
+    ]);
+    getPads.mockReturnValue(['1', '2', '3']);
+    const res = await GET(getRequest());
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      padsByRef: Record<string, string[]>;
+      refs: string[];
+      footprintsByRef: Record<string, string>;
+    };
+    expect(body.padsByRef).toEqual({ U2: ['1', '2', '3'] });
+    expect(body.refs).toEqual(['U2']);
+    expect(body.footprintsByRef.U2).toBe('Package_TO_SOT_THT:TO-220-3_Vertical');
+  });
+
+  it('PUT refuse un pad inexistant avec un PIN_ISSUE détaillé sans écrire', async () => {
+    componentFindMany.mockResolvedValue([
+      { reference: 'U2', footprint: 'Package_TO_SOT_THT:TO-220-3_Vertical' },
+      { reference: 'C1', footprint: 'Capacitor_SMD:C_0603_1608Metric' },
+    ]);
+    getPads.mockImplementation((_lib: string, fp: string) =>
+      fp.includes('TO-220') ? ['1', '2', '3'] : ['1', '2'],
+    );
+    const res = await PUT(
+      putRequest({
+        nets: [{ name: 'VCC', pins: ['U2.4', 'C1.1'] }],
+        expectedIds: ['n1', 'n2'],
+      }),
+    );
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as {
+      error: string;
+      issues: Array<{
+        code: string;
+        pin?: string;
+        reason?: string;
+        available?: string[];
+        footprint?: string;
+        message?: string;
+      }>;
+    };
+    expect(body.error).toBe('INVALID_NETLIST');
+    const pinIssue = body.issues.find((i) => i.code === 'PIN_ISSUE');
+    expect(pinIssue).toMatchObject({
+      net: 'VCC',
+      pin: 'U2.4',
+      reason: 'PAD_NOT_FOUND',
+      available: ['1', '2', '3'],
+      footprint: 'Package_TO_SOT_THT:TO-220-3_Vertical',
+    });
+    expect(pinIssue?.message).toContain('U2.4');
+    expect(netUpdate).not.toHaveBeenCalled();
+    expect(netCreateMany).not.toHaveBeenCalled();
+    expect(netDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it('PUT refuse un pin mal formaté en le nommant', async () => {
+    componentFindMany.mockResolvedValue([
+      { reference: 'U2', footprint: 'Package_TO_SOT_THT:TO-220-3_Vertical' },
+    ]);
+    getPads.mockReturnValue(['1', '2', '3']);
+    const res = await PUT(
+      putRequest({
+        nets: [{ name: 'VCC', pins: ['U2-4', 'U2.1'] }],
+        expectedIds: ['n1', 'n2'],
+      }),
+    );
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as {
+      issues: Array<{ code: string; pin?: string; reason?: string; message?: string }>;
+    };
+    expect(body.issues[0]).toMatchObject({ code: 'PIN_ISSUE', pin: 'U2-4', reason: 'BAD_FORMAT' });
+    expect(body.issues[0]?.message).toContain('U2-4');
+    expect(projectUpdate).not.toHaveBeenCalled();
+  });
+
+  it('PUT accepte la sauvegarde en mode dégradé si les pads sont illisibles', async () => {
+    componentFindMany.mockResolvedValue([
+      { reference: 'U2', footprint: 'Package_TO_SOT_THT:TO-220-3_Vertical' },
+    ]);
+    getPads.mockReturnValue([]);
+    const res = await PUT(
+      putRequest({
+        nets: [{ name: 'VCC', pins: ['U2.9', 'U2.1'] }],
+        expectedIds: ['n1', 'n2'],
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(projectUpdate).toHaveBeenCalled();
   });
 });

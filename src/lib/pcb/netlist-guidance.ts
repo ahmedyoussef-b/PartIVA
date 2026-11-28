@@ -2,7 +2,7 @@
 // La validation elle-même reste dans `netlist-validation.ts` : ce module ne
 // fait que guider l'utilisateur et compléter les nets absents.
 
-import { GND_RE, POWER_RE } from './netlist-validation';
+import { GND_RE, POWER_RE, type NetlistPinIssue } from './netlist-validation';
 
 export const LLM_NETLIST_EMPTY_CODE = 'LLM_NETLIST_EMPTY';
 
@@ -11,6 +11,28 @@ export const PIN_FORMAT_MESSAGE =
 
 export const NET_TOO_SHORT_MESSAGE =
   'Ajoutez au moins deux broches à ce net, au format REF.PIN (ex : U1.7, U2.3).';
+
+/** Diagnostic fin : nomme toujours le pin fautif et propose la correction. */
+export function pinIssueMessage(issue: NetlistPinIssue): string {
+  switch (issue.reason) {
+    case 'BAD_FORMAT':
+      return `${issue.pin} : format attendu REF.PIN (ex : U1.7).`;
+    case 'DUPLICATE_PIN':
+      return `${issue.pin} : cette broche est déjà présente dans le net ${issue.net}.`;
+    case 'UNKNOWN_REFERENCE':
+      return `${issue.pin} : aucune empreinte ne porte la référence ${issue.ref}.`;
+    case 'PAD_NOT_READABLE':
+      return `${issue.pin} : empreinte illisible — à vérifier manuellement.`;
+    case 'PAD_NOT_FOUND': {
+      const pad = issue.pin.slice(issue.ref.length + 1);
+      const where = issue.footprint ? ` sur ${issue.footprint}` : '';
+      const available = issue.available?.length
+        ? ` Pads disponibles : ${issue.available.join(', ')}.`
+        : '';
+      return `${issue.pin} : la broche ${pad} n'existe pas${where}.${available}`;
+    }
+  }
+}
 
 export const NET_EMPTY_MESSAGE =
   'La génération automatique n’a pas réussi à créer les connexions. Vous pouvez : 1) Cliquer sur « Générer les nets (GND/VCC) » pour une création heuristique, 2) Éditer manuellement la netlist, ou 3) Vérifier que vos composants ont bien des empreintes valides.';

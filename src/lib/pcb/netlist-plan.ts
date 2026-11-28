@@ -3,6 +3,7 @@
 // l'applique en une seule transaction (suppressions → mises à jour → ajouts).
 
 import { NET_TOO_SHORT_MESSAGE } from './netlist-guidance';
+import type { PinIssueReason } from './netlist-validation';
 
 export interface NetInput {
   id?: string;
@@ -15,7 +16,8 @@ export interface CurrentNet extends NetInput {
   id: string;
 }
 
-export type NetIssueCode = 'EMPTY_NAME' | 'DUPLICATE_NAME' | 'DUPLICATE_ID' | 'TOO_FEW_PINS';
+export type NetIssueCode =
+  'EMPTY_NAME' | 'DUPLICATE_NAME' | 'DUPLICATE_ID' | 'TOO_FEW_PINS' | 'PIN_ISSUE';
 
 export interface NetIssue {
   code: NetIssueCode;
@@ -23,6 +25,12 @@ export interface NetIssue {
   index: number;
   name: string;
   message: string;
+  /** Champs propres à PIN_ISSUE (F3). */
+  net?: string;
+  pin?: string;
+  reason?: PinIssueReason;
+  available?: string[];
+  footprint?: string;
 }
 
 export interface NetPlan {
