@@ -20,6 +20,7 @@ Sortie stdout : {"ok": true, "placed": N, "verified": N, "board": "<path>", "bac
 """
 
 import argparse
+import gc
 import json
 import os
 import shutil
@@ -35,6 +36,12 @@ def emit(payload, code=0):
     # sans saut de ligne juste avant.
     sys.stdout.write("\n" + json.dumps(payload, ensure_ascii=False) + "\n")
     sys.stdout.flush()
+    # Les proxies SWIG (PCB_IO_KICAD_SEXPR, FOOTPRINT, BOX2) n'ont pas toujours
+    # de destructeur : on force une collection avant de quitter le processus.
+    try:
+        gc.collect()
+    except Exception:
+        pass
     sys.exit(code)
 
 
@@ -42,39 +49,58 @@ def fail(message, code=1):
     emit({"ok": False, "error": message}, code)
 
 
-def move_connected_tracks(board, old_fp, new_fp, pcbnew):
+def capture_pad_positions(fp):
+    """Copie {numero: (x_nm, y_nm)} AVANT toute mutation du plateau.
+
+    KiCad 10.0.x dégrade les proxies SWIG après mutation : `fp.Pads()` peut
+    alors renvoyer un `SwigPyObject` non itérable (TypeError à l'itération), ou
+    des positions dont les proxies sont invalides. On ne conserve donc que des
+    entiers, sans référence SWIG.
+    """
+    result = {}
+    try:
+        pads = fp.Pads()
+        if pads is None:
+            return result
+        for pad in pads:
+            try:
+                position = pad.GetPosition()
+                result[pad.GetNumber()] = (int(position.x), int(position.y))
+            except Exception:
+                continue
+    except TypeError:
+        # SwigPyObject non itérable : plateau déjà muté, rien à capturer.
+        return result
+    except Exception:
+        return result
+    return result
+
+
+def move_connected_tracks(board, old_pads, new_pads, pcbnew):
     """Fait suivre les pistes/vias connectés à une empreinte déplacée.
 
-    Sans cela, le script remplace l'empreinte à sa nouvelle position mais
-    laisse les segments sur l'ancienne : le composant se retrouve déconnecté
-    de son propre routage. Le déplacement est calculé par pad (donc correct
-    aussi quand la rotation change) et ne touche que les extrémités reliées
-    aux pads de l'ancienne empreinte ; l'autre extrémité reste en place.
+    `old_pads` / `new_pads` sont des copies plain-python obtenues via
+    `capture_pad_positions()` avant mutation : aucun appel SWIG sur les
+    empreintes ici. Sans ce déplacement, le composant se retrouverait
+    déconnecté de son propre routage.
     """
-    old_pads = {}
-    for pad in old_fp.Pads():
-        old_pads[pad.GetNumber()] = pad.GetPosition()
-    new_pads = {}
-    for pad in new_fp.Pads():
-        new_pads[pad.GetNumber()] = pad.GetPosition()
-
     deltas = []
     for number, old_pos in old_pads.items():
         new_pos = new_pads.get(number)
         if new_pos is None:
             continue
-        dx = new_pos.x - old_pos.x
-        dy = new_pos.y - old_pos.y
+        dx = new_pos[0] - old_pos[0]
+        dy = new_pos[1] - old_pos[1]
         if dx or dy:
-            deltas.append((old_pos, dx, dy))
+            deltas.append((old_pos[0], old_pos[1], dx, dy))
     if not deltas:
         return 0
 
     tolerance = 2000  # nm — marge pour les arrondis KiCad
 
     def delta_for(pos):
-        for old_pos, dx, dy in deltas:
-            if abs(pos.x - old_pos.x) <= tolerance and abs(pos.y - old_pos.y) <= tolerance:
+        for x, y, dx, dy in deltas:
+            if abs(pos.x - x) <= tolerance and abs(pos.y - y) <= tolerance:
                 return dx, dy
         return None
 
@@ -305,18 +331,23 @@ def main():
             fail(f"items[{index}] : FootprintLoad echoue: {exc}")
         if fp is None:
             fail(f"items[{index}] : empreinte introuvable: {lib_name}:{fp_name}")
-        prepared.append((item, reference, fp))
+        # Capture AVANT mutation : après `SetPosition`, `fp.Pads()` peut
+        # renvoyer un SwigPyObject non itérable sur KiCad 10.0.x.
+        prepared.append((item, reference, fp, capture_pad_positions(fp)))
 
     existing_by_ref = {}
+    existing_pads = {}
     try:
         for existing in list(board.GetFootprints()):
-            existing_by_ref[existing.GetReference()] = existing
+            ref = existing.GetReference()
+            existing_by_ref[ref] = existing
+            existing_pads[ref] = capture_pad_positions(existing)
     except Exception as exc:
         fail(f"lecture des empreintes du plateau impossible: {exc}")
 
     expected = []
     moved_tracks = 0
-    for index, (item, reference, fp) in enumerate(prepared):
+    for index, (item, reference, fp, new_pads) in enumerate(prepared):
         try:
             x_mm = float(item.get("xMm", 0) or 0)
             y_mm = float(item.get("yMm", 0) or 0)
@@ -339,7 +370,9 @@ def main():
         if old is not None:
             # Le composant est peut-être déjà routé : les pistes attachées à
             # ses pads doivent suivre le déplacement, sinon il est déconnecté.
-            moved_tracks += move_connected_tracks(board, old, fp, pcbnew)
+            moved_tracks += move_connected_tracks(
+                board, existing_pads.get(reference, {}), new_pads, pcbnew
+            )
             try:
                 board.Remove(old)
             except Exception as exc:
