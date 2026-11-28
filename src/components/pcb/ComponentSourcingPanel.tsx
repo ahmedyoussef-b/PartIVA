@@ -111,7 +111,7 @@ function formatDrcCategories(drc: {
 export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const { addNode } = usePcbEditor();
   const router = useRouter();
-  const { state: liveState } = usePcbLiveState();
+  const { state: liveState, refresh: refreshLiveState } = usePcbLiveState();
   const activeAction = liveState.nextActionId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,9 +130,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
   const [netlistError, setNetlistError] = useState<string | null>(null);
   const [powerFixRefs, setPowerFixRefs] = useState<string[]>([]);
   const [netsWarning, setNetsWarning] = useState<string | null>(null);
+  const [syncingBoard, setSyncingBoard] = useState(false);
   const [fullFlowRunning, setFullFlowRunning] = useState(false);
   const [fullFlowDone, setFullFlowDone] = useState(false);
-  const fullRouted = fullFlowDone || (liveState.tracks ?? 0) > 0 || (liveState.zones ?? 0) > 0;
+  // Le résultat renvoyé par /api/pcb/route est conservé localement : le polling
+  // peut être en retard (ou repartir d'un plateau réécrit) juste après le routage.
+  const [routeResult, setRouteResult] = useState<{ routed: number; zones: number } | null>(null);
+  const fullRouted =
+    fullFlowDone ||
+    (liveState.tracks ?? 0) > 0 ||
+    (liveState.zones ?? 0) > 0 ||
+    (routeResult?.routed ?? 0) > 0 ||
+    (routeResult?.zones ?? 0) > 0;
   const [resultShown, setResultShown] = useState(false);
   const [showingResult, setShowingResult] = useState(false);
   const [flowSummary, setFlowSummary] = useState<string | null>(null);
@@ -616,6 +625,33 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
     }
   };
 
+  // Déblocage manuel : relit le .kicad_pcb existant et resynchronise le client,
+  // sans écrire dans le fichier ni relancer le routage.
+  const handleSyncBoard = async () => {
+    if (syncingBoard) return;
+    setSyncingBoard(true);
+    try {
+      const res = await fetch(`/api/pcb/projects/${encodeURIComponent(projectId)}/board`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync' }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+      window.dispatchEvent(new Event('pcb:board-refresh'));
+      await refreshLiveState();
+      router.refresh();
+      toast.success(
+        `Plateau rechargé : ${data.footprints ?? 0} empreinte(s), ${data.tracks ?? 0} pistes, ${data.zones ?? 0} zone(s).`,
+        { duration: 8000 },
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Rechargement impossible');
+    } finally {
+      setSyncingBoard(false);
+    }
+  };
+
   const handleRouteBoard = async () => {
     setRouting(true);
     startProgress('5. Routage de la carte');
@@ -628,6 +664,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
       assertJsonResponse(res);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      setRouteResult({ routed: data.routed ?? 0, zones: data.zones ?? 0 });
       window.dispatchEvent(new Event('pcb:board-refresh'));
       router.refresh();
       await reloadKiCad();
@@ -1031,6 +1068,7 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
         throw new Error(routeData.error || `Erreur ${routeRes.status}`);
 
       const assistedSummary = `Routage assisté : ${routeData.routed ?? 0} pistes · ${routeData.zones ?? 0} zone(s) GND`;
+      setRouteResult({ routed: routeData.routed ?? 0, zones: routeData.zones ?? 0 });
       setFullFlowDone(true);
       setFlowSummary(assistedSummary);
       router.refresh();
@@ -1248,6 +1286,18 @@ export function ComponentSourcingPanel({ projectId }: { projectId: string }) {
             </>
           )}
         </div>
+      </div>
+      <div className="flex items-center justify-between gap-2 border-b bg-gray-50 p-2 text-xs text-gray-600">
+        <span>Affichage du plateau KiCad</span>
+        <button
+          type="button"
+          className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-700 disabled:opacity-50"
+          onClick={handleSyncBoard}
+          disabled={syncingBoard}
+          title="Relire le fichier .kicad_pcb et rafraîchir le canvas sans relancer le routage"
+        >
+          {syncingBoard ? 'Rechargement…' : 'Recharger depuis le fichier'}
+        </button>
       </div>
       {(netsMissing || netlistError) && (
         <div className="border-b border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">

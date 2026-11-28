@@ -207,7 +207,9 @@ export function PcbCanvas({ projectId, wizard }: { projectId?: string; wizard?: 
   const fetchBoard = React.useCallback(async () => {
     if (!projectId) return;
     try {
-      const res = await fetch(`/api/pcb/board/render?projectId=${encodeURIComponent(projectId)}`);
+      const res = await fetch(`/api/pcb/board/render?projectId=${encodeURIComponent(projectId)}`, {
+        cache: 'no-store',
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || `Erreur ${res.status}`);
       setData(json as BoardData);

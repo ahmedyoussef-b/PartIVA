@@ -968,6 +968,17 @@ TransformControls (move/rotate/scale), redimensionnement canvas, croix fermeture
 
 ---
 
+## Session 2026-11-28 (suite) — Synchronisation d'affichage du plateau
+
+- Diagnostic sur `cmwzjodye0010n8fckcuwtjrm` : le backend a bien routé (14 pistes + 1 zone, puis Freerouting 18 pistes/score 852), mais le fichier `carte-test.kicad_pcb` a été réécrit à vide à 00:45 (0 empreinte/0 piste) avant d'être rechargé ; le client a ensuite affiché un snapshot périmé.
+- Correctifs (sans toucher au routage) : `PcbLiveStateProvider` ne laisse plus une réponse de polling en vol écraser un rendu serveur plus récent (génération + numéro de requête) ; `/api/pcb/board/render` renvoie `Cache-Control: no-store` et le canvas `fetch(..., cache:'no-store')` ; `ComponentSourcingPanel` conserve le résultat de `/api/pcb/route` pour afficher « Afficher les résultats » même si le polling est en retard.
+- Nouvelle action `POST /api/pcb/projects/[id]/board {action:'sync'}` : relit le `.kicad_pcb` et renvoie compteurs + chemin, sans écriture ni ouverture KiCad. Bouton « Recharger depuis le fichier » dans le panneau Sourcing.
+- Vérifié en direct : sync = 200 (2 empreintes/14 pistes/1 zone), header no-store présent, bouton cliquable, page affichant « 14 pistes · 9 violations DRC · 2 composants » et bouton « Afficher les résultats » présent. Les manipulations manuelles (Ctrl+R / retour-projet) avaient déjà rétabli l'affichage.
+- Risque résiduel documenté : une fenètre KiCad ouverte peut réécrire le fichier par-dessus une écriture backend (locks présents dans le dossier) — non corrigé ici (hors périmètre routage).
+- typecheck 0, lint 0, vitest 413/413, prettier 0, `git diff --check` 0.
+
+---
+
 ## Prochaine étape
 
 **Roadmap active :** `docs/roadmap/PCB_STUDIO_ROADMAP.md` (P12, 5 phases). Prochaine action retenue : **Phase 1.3 — édition manuelle de la netlist**, couplée à 1.1 (prompt hiérarchique), avant toute amélioration du placement ou du routage.
