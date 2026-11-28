@@ -33,3 +33,20 @@ export interface RequirementFormState {
   isComplete: boolean;
   incoherences: string[];
 }
+
+/** Interdiction extraite du texte client et retrouvée dans la compilation. */
+export interface CompileViolation {
+  questionId: string;
+  term: string;
+  where: 'compiled' | 'answer';
+  value: string;
+  message: string;
+}
+
+/** Besoin du client qui entre en conflit avec une interdiction formulée. */
+export interface CompileConflict {
+  questionId: string;
+  forbidden: string;
+  need: string;
+  explanation: string;
+}

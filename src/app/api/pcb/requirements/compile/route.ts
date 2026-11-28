@@ -2,11 +2,27 @@ import { NextResponse } from 'next/server';
 import { callGroq, hasLlmProvider } from '@/lib/ai/groq-client';
 import { requireAdmin } from '@/lib/auth-admin';
 import { requirementBlocks } from '@/lib/pcb/requirement-blocks';
-import type { RequirementAnswer } from '@/lib/pcb/types';
+import {
+  checkConstraintViolations,
+  extractNegativeConstraints,
+  reconcileConflicts,
+} from '@/lib/pcb/negative-constraints';
+import type { CompileConflict, CompileViolation, RequirementAnswer } from '@/lib/pcb/types';
 import { acquireLlmGuard, hashKey } from '@/lib/utils/llm-guard';
 import { getLlmCacheAsync, setLlmCacheAsync } from '@/lib/utils/llm-cache';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+interface CompileResult {
+  compiled: string;
+  answers: RequirementAnswer[];
+  constraints: string[];
+  conflicts: CompileConflict[];
+  violations: CompileViolation[];
+  needsReview: boolean;
+  count: number;
+}
 
 function buildQuestionList(): string {
   const lines: string[] = [];
@@ -19,6 +35,62 @@ function buildQuestionList(): string {
     }
   }
   return lines.join('\n');
+}
+
+function buildPrompt(
+  projectName: string,
+  description: string,
+  questionList: string,
+  constraints: string[],
+): string {
+  const constraintBlock = constraints.length
+    ? `INTERDICTIONS ABSOLUES (extraites mot pour mot du texte du client) :\n${constraints
+        .map((c) => `- ${c}`)
+        .join(
+          '\n',
+        )}\nCes éléments sont formellement exclus. Ne les réintroduis sous aucune forme, même pour satisfaire un autre besoin. Reproduisez-les telles quelles dans "compiled", mais n'écris jamais le terme interdit dans une affirmation positive. Si un besoin entre en conflit avec une interdiction, n'enfreins pas l'interdiction : ajoute le conflit dans "conflicts" (questionId, forbidden, need, explanation) et laisse le champ concerné non rempli.\n`
+    : "Aucune interdiction explicite n'a été relevée dans le texte du client.";
+
+  return `Tu es un ingénieur électronique senior. Tu EXTRAIS et STRUCTURES le cahier des charges rédigé par le client. Ce texte est la SEULE source de vérité.
+
+NOM DU PROJET (contexte métier) :
+${projectName || '(non renseigné)'}
+
+DESCRIPTION LIBRE DU CLIENT :
+${description}
+
+CHAMPS DU FORMULAIRE (blockId / questionId : libellé) :
+${questionList}
+
+${constraintBlock}
+
+RÈGLES D'EXTRACTION (impératives) :
+- N'ajoute aucune information qui n'est pas présente dans le texte du client : ni valeur, ni composant, ni interface, ni tension, ni norme, ni test.
+- N'infère aucune valeur « typique » ou « raisonnable ». Si une donnée manque, OMETS le champ : le serveur le marquera « À préciser ».
+- Pour chaque catégorie non évoquée par le client, écris simplement « Non renseigné par le client » dans "compiled" — n'invente pas de contenu pour la remplir.
+- Ne transforme pas une interdiction en spécification positive : « pas de Wi-Fi » reste une exclusion, jamais une fonctionnalité.
+- Si une information est ambiguë ou contradictoire, ne choisis pas à la place du client : mentionne l'ambiguïté dans "compiled" et omets le champ.
+- Exprime TOUS les prix, budgets et coûts présents dans le texte en dinars tunisiens (DT / TND). N'utilise JAMAIS d'euros (€) ni de dollars ($).
+- Rédige "compiled" en 6 paragraphes courts, un par catégorie (usage, fonction, traitement, mécanique, fabrication, qualité), en citant uniquement ce que le client a écrit.
+
+Règles pour les "answers" :
+- Ne remplis que les champs dont la valeur est explicitement présente dans le texte client.
+- Les multiselect (inputs, outputs, communications, standards) : liste de valeurs séparées par des virgules, parmi les options données.
+- Les select (usage_type, complexity, manufacturer) : une seule valeur parmi les options.
+- Les checkbox (realtime) : "oui" ou "non".
+- Les number (quantity) : un nombre.
+- status = "proposed" pour les champs extraits.
+
+Réponds UNIQUEMENT en JSON valide, sans markdown :
+{
+  "compiled": "description structurée des seules informations fournies par le client",
+  "answers": [
+    { "blockId": "...", "questionId": "...", "answer": "valeur", "status": "proposed" }
+  ],
+  "conflicts": [
+    { "questionId": "...", "forbidden": "...", "need": "...", "explanation": "..." }
+  ]
+}`;
 }
 
 export async function POST(req: Request) {
@@ -49,57 +121,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Aucun fournisseur LLM configuré' }, { status: 503 });
   }
 
-  const questionList = buildQuestionList();
+  const constraints = extractNegativeConstraints(description);
+  const prompt = buildPrompt(projectName, description, buildQuestionList(), constraints);
 
-  const prompt = `Tu es un ingénieur électronique senior. À partir de la description libre d'une carte électronique, compile une description technique structurée et COMPLÈTE, couvrant obligatoirement les 6 catégories du cahier des charges, puis remplis les champs du formulaire.
-
-NOM DU PROJET (contexte métier, utile pour retrouver des projets similaires) :
-${projectName || '(non renseigné)'}
-
-DESCRIPTION LIBRE :
-${description}
-
-CHAMPS À REMPLIR (blockId / questionId : libellé) :
-${questionList}
-
-CATÉGORIES À COUVRIR (les 6 sont obligatoires) :
-1. Usage : type d'usage, température de fonctionnement, environnement, durée de vie.
-2. Fonction : fonctions principales, interfaces d'entrée/sortie, communications, alimentation (tension, courant, source).
-3. Traitement : complexité (logique simple / microcontrôleur / SoC / FPGA), temps réel, mémoire, consommation.
-4. Mécanique : dimensions max (L×l×H), fixation, position des connecteurs, esthétique.
-5. Fabrication : quantité prévue, budget par carte, contraintes de fabrication, délai souhaité.
-6. Qualité : tests fonctionnels, fiabilité, normes (CE, FCC, RoHS).
-
-Règles pour la description compilée ("compiled") :
-- Rédige un paragraphe structuré de 10 à 18 phrases couvrant explicitement les 6 catégories.
-- Pour chaque information non fournie explicitement par la description libre, déduis une valeur raisonnable et typique pour une carte de ce type, et indique-la clairement (ex. "Température de fonctionnement estimée : -20 à +70 °C (déduit)").
-- Ne laisse aucune catégorie vide : si une donnée manque, propose une valeur typique et marque-la comme déduite.
-- Sois exhaustif : mentionne tension, courant, dimensions, quantité, environnement, tests, normes.
-- Exprime TOUS les prix, budgets et coûts en dinars tunisiens (DT / TND). N'utilise JAMAIS d'euros (€) ni de dollars ($).
-
-Règles pour les answers :
-- Remplis un MAXIMUM de champs, y compris par déduction raisonnable. Omettre un champ n'est acceptable que si aucune déduction n'est possible.
-- Les multiselect (inputs, outputs, communications, standards) : liste de valeurs séparées par des virgules, parmi les options données.
-- Les select (usage_type, complexity, manufacturer) : une seule valeur parmi les options.
-- Les checkbox (realtime) : "oui" ou "non".
-- Les number (quantity) : un nombre.
-- status = "proposed" pour toutes.
-
-Réponds UNIQUEMENT en JSON valide, sans markdown :
-{
-  "compiled": "description technique structurée couvrant les 6 catégories, 10 à 18 phrases",
-  "answers": [
-    { "blockId": "...", "questionId": "...", "answer": "valeur", "status": "proposed" }
-  ]
-}`;
-
-  // v3 : nom du projet ajouté au contexte LLM (et prix en DT depuis v2).
-  const cacheKey = `pcb:compile:v3:${hashKey(`${projectName}|${description}`)}`;
-  const cached = await getLlmCacheAsync<{
-    compiled: string;
-    answers: RequirementAnswer[];
-    count: number;
-  }>(cacheKey);
+  // v4 : prompt d'extraction + contraintes négatives + champs « À préciser ».
+  const cacheKey = `pcb:compile:v4:${hashKey(`${projectName}|${description}`)}`;
+  const cached = await getLlmCacheAsync<CompileResult>(cacheKey);
   if (cached) {
     console.info('[PCB:COMPILE] Cache hit');
     return NextResponse.json({ ...cached, cached: true });
@@ -113,7 +140,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
   try {
     const llmRes = await callGroq([{ role: 'user', content: prompt }], apiKey, {
       model: process.env.GROQ_MODEL,
-      temperature: 0.15,
+      temperature: 0,
       maxTokens: 2048,
       timeout: 30000,
       responseFormat: 'json_object',
@@ -133,28 +160,86 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
         .replace(/€/g, ' DT')
         .replace(/\bEUR\b/gi, 'DT')
         .replace(/\bUSD\b/gi, 'DT');
-    const compiled = typeof obj.compiled === 'string' ? toDt(obj.compiled).trim() : '';
-    const rawAnswers = Array.isArray(obj.answers) ? obj.answers : [];
+    const compiled =
+      typeof obj.compiled === 'string' && obj.compiled.trim()
+        ? toDt(obj.compiled).trim()
+        : description;
 
-    const validQuestionIds = new Set<string>();
+    const questionToBlock = new Map<string, string>();
+    const required: Array<{ blockId: string; questionId: string }> = [];
     for (const block of requirementBlocks) {
-      for (const q of block.questions) validQuestionIds.add(q.id);
+      if (block.id === 'summary') continue;
+      for (const q of block.questions) {
+        questionToBlock.set(q.id, block.id);
+        if (q.required) required.push({ blockId: block.id, questionId: q.id });
+      }
     }
 
     const answers: RequirementAnswer[] = [];
+    const seen = new Set<string>();
+    const rawAnswers = Array.isArray(obj.answers) ? obj.answers : [];
     for (const a of rawAnswers) {
       if (!a || typeof a !== 'object') continue;
       const item = a as Record<string, unknown>;
-      const blockId = typeof item.blockId === 'string' ? item.blockId : '';
-      const questionId = typeof item.questionId === 'string' ? item.questionId : '';
+      const questionId = typeof item.questionId === 'string' ? item.questionId.trim() : '';
       const answer = typeof item.answer === 'string' ? toDt(item.answer).trim() : '';
-      if (!blockId || !questionId || !answer) continue;
-      if (!validQuestionIds.has(questionId)) continue;
+      const blockId = questionToBlock.get(questionId);
+      // Le blockId vient du référentiel serveur, pas du LLM.
+      if (!blockId || !answer || seen.has(questionId)) continue;
+      seen.add(questionId);
       answers.push({ blockId, questionId, answer, status: 'proposed' });
     }
 
-    const result = { compiled, answers, count: answers.length };
-    await setLlmCacheAsync(cacheKey, result);
+    // Les champs requis non cités par le client ne sont pas devinés.
+    for (const q of required) {
+      if (seen.has(q.questionId)) continue;
+      seen.add(q.questionId);
+      answers.push({
+        blockId: q.blockId,
+        questionId: q.questionId,
+        answer: 'À préciser',
+        status: 'missing',
+      });
+    }
+
+    const conflicts = reconcileConflicts(obj.conflicts, constraints).filter((c) =>
+      questionToBlock.has(c.questionId),
+    );
+    for (const conflict of conflicts) {
+      const existing = answers.find((a) => a.questionId === conflict.questionId);
+      if (existing) existing.status = 'to_verify';
+      else {
+        const blockId = questionToBlock.get(conflict.questionId)!;
+        answers.push({
+          blockId,
+          questionId: conflict.questionId,
+          answer: 'À préciser',
+          status: 'to_verify',
+        });
+      }
+      seen.add(conflict.questionId);
+    }
+
+    const violations = checkConstraintViolations({ compiled, answers, constraints });
+    for (const violation of violations) {
+      const target = answers.find((a) => a.questionId === violation.questionId);
+      if (target && target.status !== 'missing') target.status = 'to_verify';
+    }
+
+    const needsReview = violations.length > 0 || conflicts.length > 0;
+    const result: CompileResult = {
+      compiled,
+      answers,
+      constraints,
+      conflicts,
+      violations,
+      needsReview,
+      count: answers.length,
+    };
+
+    // Une compilation à revoir n'est pas mise en cache : l'utilisateur va la
+    // corriger et la prochaine tentative doit repartir du texte client.
+    if (!needsReview) await setLlmCacheAsync(cacheKey, result);
     return NextResponse.json(result);
   } catch (e) {
     console.error('[PCB:COMPILE] Erreur LLM', e);

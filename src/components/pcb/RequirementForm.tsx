@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { requirementBlocks } from '@/lib/pcb/requirement-blocks';
 import { detectIncoherences } from '@/lib/pcb/incoherence-detector';
-import type { RequirementAnswer } from '@/lib/pcb/types';
+import { checkConstraintViolations } from '@/lib/pcb/negative-constraints';
+import type { CompileConflict, CompileViolation, RequirementAnswer } from '@/lib/pcb/types';
 
 export function RequirementForm({
   projectId,
@@ -28,6 +29,52 @@ export function RequirementForm({
   const [compiling, setCompiling] = useState(false);
   const [validated, setValidated] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [constraints, setConstraints] = useState<string[]>([]);
+  const [conflicts, setConflicts] = useState<CompileConflict[]>([]);
+
+  // Même helper pur que le serveur, recalculé au rendu : aucune copie locale
+  // ne peut rester obsolète après une édition du texte ou des réponses.
+  const violations = checkConstraintViolations({ compiled: compiledText, answers, constraints });
+  const needsReview = violations.length > 0 || conflicts.length > 0;
+
+  function focusIssue(message: string, questionId?: string) {
+    setError(message);
+    if (!questionId) return;
+    const bi = requirementBlocks.findIndex((b) => b.questions.some((q) => q.id === questionId));
+    if (bi >= 0) setCurrentBlock(bi);
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(
+        `[data-field-id="field-${questionId}"], [data-testid="field-${questionId}"]`,
+      );
+      el?.focus();
+      el?.scrollIntoView({ block: 'center' });
+    });
+  }
+
+  function unresolvedIssue(): { message: string; questionId?: string } | null {
+    const pending = answers.find((a) => a.status === 'missing' || a.status === 'to_verify');
+    if (pending) {
+      const label = pending.status === 'missing' ? 'À préciser' : 'À vérifier';
+      return {
+        message: `${label} : ${pending.questionId}. Renseignez ce champ avant de valider.`,
+        questionId: pending.questionId,
+      };
+    }
+    if (violations.length > 0) {
+      return {
+        message: violations[0]!.message,
+        questionId: violations[0]!.questionId || undefined,
+      };
+    }
+    if (conflicts.length > 0) {
+      const c = conflicts[0]!;
+      return {
+        message: `Conflit à arbitrer : ${c.need} — « ${c.forbidden} » est exclu.`,
+        questionId: c.questionId,
+      };
+    }
+    return null;
+  }
 
   const block = requirementBlocks[currentBlock];
   if (!block) return null;
@@ -84,6 +131,11 @@ export function RequirementForm({
         el?.focus();
         el?.scrollIntoView({ block: 'center' });
       });
+      return;
+    }
+    const issue = unresolvedIssue();
+    if (issue) {
+      focusIssue(issue.message, issue.questionId);
       return;
     }
     setSubmitting(true);
@@ -200,8 +252,25 @@ export function RequirementForm({
                         }
                         const compiled =
                           typeof data.compiled === 'string' ? data.compiled.trim() : '';
+                        const nextConstraints = Array.isArray(data.constraints)
+                          ? (data.constraints as string[])
+                          : [];
+                        const nextConflicts = Array.isArray(data.conflicts)
+                          ? (data.conflicts as CompileConflict[])
+                          : [];
+                        const serverViolations = Array.isArray(data.violations)
+                          ? (data.violations as CompileViolation[])
+                          : [];
+                        const clean =
+                          data.needsReview !== true &&
+                          nextConflicts.length === 0 &&
+                          serverViolations.length === 0;
                         setCompiledText(compiled);
-                        setFirstCompiledText((prev) => prev || compiled);
+                        setConstraints(nextConstraints);
+                        setConflicts(nextConflicts);
+                        // Piège F1 : la première compilation sert d'initialDescription.
+                        // Ne la figer que si elle est fidèle au texte client.
+                        if (clean) setFirstCompiledText((prev) => prev || compiled);
                         if (Array.isArray(data.answers)) {
                           setAnswers((prev) => {
                             const next = prev.filter(
@@ -238,6 +307,53 @@ export function RequirementForm({
                     </button>
                   )}
                 </div>
+
+                {constraints.length > 0 && (
+                  <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
+                    <p className="font-semibold">Contraintes extraites du texte client</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {constraints.map((c, i) => (
+                        <span key={`${c}-${i}`} className="rounded bg-white px-1.5 py-0.5">
+                          « {c} »
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {conflicts.length > 0 && (
+                  <div className="mt-2 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800">
+                    <p className="font-semibold">Conflits à arbitrer</p>
+                    <ul className="mt-1 list-disc pl-5">
+                      {conflicts.map((c, i) => (
+                        <li key={`${c.questionId}-${i}`}>
+                          {c.need} — « {c.forbidden} » exclu. {c.explanation}
+                          <button
+                            type="button"
+                            className="ml-2 underline"
+                            onClick={() => setConflicts((prev) => prev.filter((_, j) => j !== i))}
+                          >
+                            Arbitré
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {violations.length > 0 && (
+                  <div className="mt-2 rounded border border-red-300 bg-red-50 p-2 text-xs text-red-700">
+                    <p className="font-semibold">Interdictions réintroduites par la compilation</p>
+                    <ul className="mt-1 list-disc pl-5">
+                      {violations.map((v, i) => (
+                        <li key={`${v.questionId}-${v.term}-${i}`}>{v.message}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {needsReview && (
+                  <p className="mt-2 text-xs font-medium text-amber-700">
+                    Corrigez les champs signalés avant de valider.
+                  </p>
+                )}
                 <p className="text-xs text-gray-500">
                   Généré par IA à partir de l&apos;idée générale. Modifiable avant validation.
                 </p>
@@ -321,78 +437,91 @@ export function RequirementForm({
       <p className="mb-6 text-gray-600">{block.description}</p>
 
       <div className="space-y-4">
-        {block.questions.map((q) => (
-          <div key={q.id}>
-            <label className="block text-sm font-medium">
-              {q.label} {q.required && <span className="text-red-500">*</span>}
-            </label>
-            {q.type === 'select' && (
-              <select
-                data-testid={`select-${q.id}`}
-                data-field-id={`field-${q.id}`}
-                className="mt-1 w-full rounded border p-2"
-                value={answerFor(q.id)}
-                onChange={(e) => handleAnswer(q.id, e.target.value)}
-              >
-                <option value="">Sélectionner...</option>
-                {q.options?.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            )}
-            {q.type === 'multiselect' && (
-              <div data-testid={`field-${q.id}`} className="mt-1 flex flex-wrap gap-3">
-                {(q.options ?? []).map((o) => {
-                  const selected = answerFor(q.id)
-                    .split(',')
-                    .map((v) => v.trim())
-                    .filter(Boolean)
-                    .includes(o);
-                  return (
-                    <label key={o} className="flex items-center gap-1 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() => toggleMulti(q.id, o, answerFor(q.id))}
-                      />
+        {block.questions.map((q) => {
+          const fieldStatus = answers.find((a) => a.questionId === q.id)?.status;
+          return (
+            <div key={q.id}>
+              <label className="block text-sm font-medium">
+                {q.label} {q.required && <span className="text-red-500">*</span>}
+                {fieldStatus === 'missing' && (
+                  <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                    À préciser
+                  </span>
+                )}
+                {fieldStatus === 'to_verify' && (
+                  <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                    À vérifier
+                  </span>
+                )}
+              </label>
+              {q.type === 'select' && (
+                <select
+                  data-testid={`select-${q.id}`}
+                  data-field-id={`field-${q.id}`}
+                  className="mt-1 w-full rounded border p-2"
+                  value={answerFor(q.id)}
+                  onChange={(e) => handleAnswer(q.id, e.target.value)}
+                >
+                  <option value="">Sélectionner...</option>
+                  {q.options?.map((o) => (
+                    <option key={o} value={o}>
                       {o}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            {q.type === 'text' && (
-              <input
-                data-testid={`input-${q.id}`}
-                data-field-id={`field-${q.id}`}
-                type="text"
-                className="mt-1 w-full rounded border p-2"
-                value={answerFor(q.id)}
-                onChange={(e) => handleAnswer(q.id, e.target.value)}
-              />
-            )}
-            {q.type === 'number' && (
-              <input
-                data-testid={`field-${q.id}`}
-                type="number"
-                className="mt-1 w-full rounded border p-2"
-                value={answerFor(q.id)}
-                onChange={(e) => handleAnswer(q.id, e.target.value)}
-              />
-            )}
-            {q.type === 'checkbox' && (
-              <input
-                data-testid={`field-${q.id}`}
-                type="checkbox"
-                className="mt-1"
-                checked={answerFor(q.id) === 'oui'}
-                onChange={(e) => handleAnswer(q.id, e.target.checked ? 'oui' : 'non')}
-              />
-            )}
-          </div>
-        ))}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {q.type === 'multiselect' && (
+                <div data-testid={`field-${q.id}`} className="mt-1 flex flex-wrap gap-3">
+                  {(q.options ?? []).map((o) => {
+                    const selected = answerFor(q.id)
+                      .split(',')
+                      .map((v) => v.trim())
+                      .filter(Boolean)
+                      .includes(o);
+                    return (
+                      <label key={o} className="flex items-center gap-1 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleMulti(q.id, o, answerFor(q.id))}
+                        />
+                        {o}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {q.type === 'text' && (
+                <input
+                  data-testid={`input-${q.id}`}
+                  data-field-id={`field-${q.id}`}
+                  type="text"
+                  className="mt-1 w-full rounded border p-2"
+                  value={answerFor(q.id)}
+                  onChange={(e) => handleAnswer(q.id, e.target.value)}
+                />
+              )}
+              {q.type === 'number' && (
+                <input
+                  data-testid={`field-${q.id}`}
+                  type="number"
+                  className="mt-1 w-full rounded border p-2"
+                  value={answerFor(q.id)}
+                  onChange={(e) => handleAnswer(q.id, e.target.value)}
+                />
+              )}
+              {q.type === 'checkbox' && (
+                <input
+                  data-testid={`field-${q.id}`}
+                  type="checkbox"
+                  className="mt-1"
+                  checked={answerFor(q.id) === 'oui'}
+                  onChange={(e) => handleAnswer(q.id, e.target.checked ? 'oui' : 'non')}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {incoherences.length > 0 && (
@@ -431,6 +560,11 @@ export function RequirementForm({
               const contextText = validated ? compiledText.trim() : generalIdea.trim();
               if (!contextText) {
                 setError("L'idée générale de la carte est obligatoire.");
+                return;
+              }
+              const issue = unresolvedIssue();
+              if (issue) {
+                focusIssue(issue.message, issue.questionId);
                 return;
               }
               setSubmitting(true);
